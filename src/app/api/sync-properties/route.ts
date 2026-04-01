@@ -89,6 +89,7 @@ export async function GET() {
           base[`description_${lang}`] = String(description).trim();
         }
 
+        console.log(`Préparation villa ${base.id_externe} avec source: ${base.xml_source}`);
         return base;
       });
 
