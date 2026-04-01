@@ -57,12 +57,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const whatsappNumber = (property.phone || agency?.phone || "34627768233").replace(/\D/g, '');
 
   return (
-    <main className={`min-h-screen ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
+    <main className={`min-h-screen relative z-10 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
       <div className="pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* BOUTON RETOUR */}
-          <div className="mb-12">
+          {/* BOUTON RETOUR UNIQUE */}
+          <div className="mb-12 relative z-20">
             <button 
               onClick={() => window.history.back()}
               className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold hover:opacity-70 transition-all"
@@ -140,20 +140,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* INTÉGRATION DE LA LOCALISATION (GOOGLE MAPS) */}
+              {/* LOCALISATION AVEC OVERLAY */}
               {property.latitude && property.longitude && (
                 <div className="mt-10">
-                   <h2 className={`text-2xl font-serif mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                     {t('propertyDetail.location') || "Localisation"}
-                   </h2>
-                   <div className="rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl">
+                  <h2 className={`text-2xl font-serif mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    {t('propertyDetail.location') || "Localisation"}
+                  </h2>
+                  <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl group">
+                    {/* Overlay de la map */}
+                    <div className="absolute inset-0 bg-black/20 pointer-events-none z-10 group-hover:bg-transparent transition-all duration-700" />
+                    
                     <iframe
                       width="100%"
                       height="400"
                       style={{ border: 0 }}
                       loading="lazy"
                       allowFullScreen
-                      src={`https://maps.google.com/maps?q=${property.latitude},${property.longitude}&z=15&output=embed`}
+                      src={`http://googleusercontent.com/maps.google.com/maps?q=${property.latitude},${property.longitude}&z=10&output=embed`}
                     ></iframe>
                   </div>
                 </div>
