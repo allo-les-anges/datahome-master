@@ -261,10 +261,11 @@ export default function AgencyDashboard() {
   };
 
   const setDefaultLang = (code: string) => {
-  setSelectedAgency({
-    ...selectedAgency,
-    default_lang: code
-  });
+    setSelectedAgency({
+      ...selectedAgency,
+      default_lang: code
+    });
+  };
 
   if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-slate-900" size={40} /></div>;
 
