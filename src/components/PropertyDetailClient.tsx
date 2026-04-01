@@ -37,15 +37,16 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     
     setTimeout(() => {
       const nav = document.querySelector('nav') || document.querySelector('header');
+      const mainElement = document.querySelector('main');
+      
       if (nav) {
         console.log("%c4. Dimensions Navbar :", "color: #00ff00;", {
           height: nav.offsetHeight + "px",
           position: window.getComputedStyle(nav).position,
         });
       }
-      const mainElement = document.querySelector('main');
       if (mainElement) {
-        console.log("%c5. Espacement Main :", "color: #00ff00;", {
+        console.log("%c5. Espacement Main (Corrected) :", "color: #00ff00;", {
           paddingTop: window.getComputedStyle(mainElement).paddingTop,
         });
       }
@@ -97,26 +98,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     <main className={`min-h-screen ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
       <Navbar agency={agency} />
       
-      {/* pt-0 supprime le bandeau blanc parasite. 
-          L'espace pour la Navbar est géré uniquement par la section Galerie.
-      */}
-      <div className="pt-0">
+      {/* CORRECTION : Remplacement du pt-0 par un padding-top de 112px (mesuré dans vos logs) */}
+      <div className="pt-[112px] md:pt-[120px]">
         
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* GALERIE PHOTO (C'est ici qu'on gère l'espacement sous la Navbar) */}
-          <section className="pt-32 mb-16">
-            
-            {/* Ligne de Retour unique et stylisée */}
-            <div className="mb-8">
-              <button 
-                onClick={() => window.history.back()}
-                className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold hover:opacity-70 transition-all"
-              >
-                <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la sélection"}
-              </button>
-            </div>
+          {/* Ligne de Retour UNIQUE */}
+          <div className="py-8">
+            <button 
+              onClick={() => window.history.back()}
+              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold hover:opacity-70 transition-all"
+            >
+              <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la sélection"}
+            </button>
+          </div>
 
+          {/* GALERIE PHOTO */}
+          <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:h-[550px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-slate-100 dark:bg-[#111] h-[400px] md:h-full">
                 <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
