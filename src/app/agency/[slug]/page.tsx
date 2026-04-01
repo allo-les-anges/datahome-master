@@ -90,7 +90,7 @@ export default function AgencyDynamicPage() {
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
         ref: String(v.id_externe || v.ref || ""), 
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
-        description: v[`description_${locale}`] || v.description || "",
+        description: v[`description_${locale}`] || v.description || v.details || "",
         price: Number(v.price || v.prix || 0),
         town: v.town || v.ville || v.city || "",
         region: v.region || v.province || "",
@@ -102,7 +102,7 @@ export default function AgencyDynamicPage() {
     });
   }, [locale]);
 
-  // --- 4. RÉCUPÉRATION SUPABASE (AVEC LOGS) ---
+  // --- 4. RÉCUPÉRATION SUPABASE ---
   useEffect(() => {
     let isMounted = true;
     async function init() {
@@ -125,7 +125,7 @@ export default function AgencyDynamicPage() {
             return;
         }
 
-        console.log("✅ [DEBUG] Agence chargée:", agencyData.agency_name, "ID:", agencyData.id);
+        console.log("✅ [DEBUG] Agence chargée:", agencyData.agency_name);
 
         if (isMounted) {
           setAgency(agencyData);
@@ -134,20 +134,42 @@ export default function AgencyDynamicPage() {
           }
         }
 
-        // B. Récupérer les biens de cette agence
-        console.log("📡 [DEBUG] Récupération des villas pour agency_id:", agencyData.id);
-        const { data: villasData, error: villasError } = await supabase
+        // B. Analyse de la configuration XML de l'agence
+        let allowedXmlUrls: string[] = [];
+        try {
+          const footerConfig = typeof agencyData.footer_config === 'string' 
+            ? JSON.parse(agencyData.footer_config) 
+            : agencyData.footer_config;
+          
+          allowedXmlUrls = footerConfig?.xml_urls || [];
+        } catch (e) {
+          console.error("❌ [DEBUG] Erreur lors du parsing de footer_config:", e);
+        }
+
+        console.log("📡 [DEBUG] Flux XML autorisés pour cette agence:", allowedXmlUrls);
+
+        // C. Récupérer les biens basés sur les flux XML
+        let query = supabase
           .from('villas')
           .select('*')
-          .eq('agency_id', agencyData.id)
           .eq('is_excluded', false);
+
+        // Si l'agence a des URLs spécifiées, on filtre. 
+        // Sinon, on n'affiche rien (ou on pourrait choisir d'afficher tout)
+        if (allowedXmlUrls.length > 0) {
+          query = query.in('xml_source', allowedXmlUrls);
+        } else {
+          console.warn("⚠️ [DEBUG] Aucun flux XML configuré pour cette agence.");
+        }
+
+        const { data: villasData, error: villasError } = await query;
 
         if (villasError) {
           console.error("❌ [DEBUG] Erreur lors de la récupération des villas:", villasError);
         }
 
         if (isMounted && villasData) {
-          console.log("📦 [DEBUG] Nombre de villas brutes reçues:", villasData.length);
+          console.log("📦 [DEBUG] Nombre de villas filtrées reçues:", villasData.length);
           const formatted = formatVillaData(villasData);
           const sorted = formatted.sort((a, b) => b.price - a.price); 
           setAllProperties(sorted);

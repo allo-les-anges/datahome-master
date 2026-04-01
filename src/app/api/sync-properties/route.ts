@@ -18,6 +18,7 @@ export async function GET() {
     const languages = ['fr', 'en', 'es', 'nl', 'pl', 'ar'];
 
     for (const source of SOURCES) {
+      console.log(`📡 Synchronisation du flux : ${source.url}`);
       const response = await fetch(source.url, { cache: 'no-store' });
       const xmlText = await response.text();
       
@@ -32,7 +33,7 @@ export async function GET() {
         const loc = p.location || {};
         const dists = p.distances || {}; 
         
-        // Gestion des images (extraction de l'URL si objet ou string)
+        // Gestion des images
         let imagesArray: string[] = [];
         if (p.images && p.images.image) {
           const rawImages = Array.isArray(p.images.image) ? p.images.image : [p.images.image];
@@ -41,7 +42,7 @@ export async function GET() {
             .filter((u: any) => typeof u === 'string');
         }
 
-        // Objet de base mappé sur vos colonnes SQL exactes
+        // Objet de base mappé sur vos colonnes SQL
         const base: any = {
           id_externe: String(p.id),
           ref: String(p.ref || p.id),
@@ -67,10 +68,13 @@ export async function GET() {
           images: imagesArray,
           updated_at: new Date().toISOString(),
           
-          // MAPPING CORRIGÉ SELON VOTRE SQL :
+          // --- AJOUT CRUCIAL ICI ---
+          xml_source: source.url, // On enregistre l'URL source pour permettre le filtrage par agence
+          // -------------------------
+
           promoteur_name: p.development_name ? String(p.development_name) : null,
           commission_percentage: p.commission?.quantity ? parseFloat(p.commission.quantity) : 0,
-          is_excluded: false // Valeur par défaut
+          is_excluded: false 
         };
 
         // Titres et descriptions multilingues
@@ -95,15 +99,16 @@ export async function GET() {
         .select('id_externe');
 
       if (error) {
-        console.error(`Erreur d'insertion pour ${source.url}:`, error.message);
+        console.error(`❌ Erreur d'insertion pour ${source.url}:`, error.message);
       } else {
+        console.log(`✅ ${data?.length} propriétés synchronisées depuis ${source.url}`);
         totalSynced += data?.length || 0;
       }
     }
 
     return NextResponse.json({ success: true, totalSynced });
   } catch (error: any) {
-    console.error("Erreur de synchronisation:", error.message);
+    console.error("🔥 Erreur de synchronisation:", error.message);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
