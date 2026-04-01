@@ -3,38 +3,29 @@
 import React from 'react';
 import { useTranslation } from "@/contexts/I18nContext";
 import { Bed, Bath, Maximize, Heart, MapPin } from "lucide-react";
-import type { Villa } from '@/types';  
+import type { Villa, Agency, Filters } from '@/types';  
+
 interface PropertyGridProps {
-  properties: any[];
-  onPropertyClick: (property: any) => void;
+  agency?: Agency | null; // Ajout pour corriger l'erreur de build
+  properties: Villa[];
+  onPropertyClick: (property: Villa) => void;
   isLight?: boolean;
   favorites?: string[];
   onToggleFavorite?: (id: string) => void;
-  activeFilters?: any; 
+  activeFilters?: Filters; 
 }
 
-// --- C'EST ICI QUE TU PLACES TES LOGS ---
-const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale }: any) => {
-  // Log 1 : Voir si la carte reçoit bien les données de la propriété
-  console.log("PropertyCard reçue :", property);
+const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale, agency }: any) => {
   
   const getLocalizedText = (field: any) => {
-    // Log 2 : Voir quelle donnée brute arrive pour la traduction
-    console.log("getLocalizedText (champ brut) :", field);
-    
     if (!field) return "";
-    
-    // Si c'est déjà une chaîne de caractères, on la retourne
     if (typeof field === 'string') return field;
-
-    // Logique de traduction avec log
-    const localizedText = field[locale] || field.fr || field.en || "";
-    console.log(`Texte localisé (langue: ${locale}) :`, localizedText);
-    
-    return localizedText;
+    return field[locale] || field.fr || field.en || "";
   };
 
   const price = Number(property.price || 0);
+  // Utilisation de la couleur du Dashboard pour le survol et les icônes
+  const brandColor = agency?.primary_color || "#D4AF37";
 
   return (
     <div 
@@ -66,7 +57,7 @@ const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale
 
       <div className="p-8 flex flex-col flex-grow">
         <div className="flex items-center gap-2 text-slate-400 mb-3">
-          <MapPin size={12} className="text-primary" />
+          <MapPin size={12} style={{ color: brandColor }} />
           <span className="text-[10px] font-black uppercase tracking-widest">
             {getLocalizedText(property.town)}
           </span>
@@ -105,6 +96,7 @@ const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale
 };
 
 export default function PropertyGrid({ 
+  agency, // Ajout de l'argument agency
   properties, 
   onPropertyClick, 
   isLight = false, 
@@ -112,7 +104,7 @@ export default function PropertyGrid({
   onToggleFavorite = () => {},
   activeFilters 
 }: PropertyGridProps) {
-  const { locale } = useTranslation();
+  const { locale } = useTranslation() as any;
 
   if (!properties || properties.length === 0) {
     return (
@@ -137,6 +129,7 @@ export default function PropertyGrid({
             onToggle={onToggleFavorite}
             onClick={onPropertyClick}
             locale={locale}
+            agency={agency} // On passe l'agence à la carte
           />
         </div>
       ))}
