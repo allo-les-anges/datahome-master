@@ -12,7 +12,7 @@
     "showMore": "Ver más propiedades"
   },
   "nav": {
-    "home": "Inicio",
+    "about": "Quiénes somos",
     "results": "Nuestras Propiedades",
     "contact": "Contacto",
     "back": "Volver a la lista",
@@ -20,7 +20,7 @@
     "clientAccess": "Seguimiento de Obra"
   },
   "home": {
-    "heroTitleLine1": "Villas de Lujo &",
+    "heroTitleLine1": "Villas de Lujo y",
     "heroTitleLine2": "Propiedades Excepcionales",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Encuentre su villa",
@@ -40,20 +40,20 @@
     "bedrooms": "Dormitorios",
     "bathrooms": "Baños",
     "built": "m² Construidos",
-    "plot": "m² Parcela",
+    "plot": "Parcela m²",
     "pool": "Piscina",
     "description": "Descripción",
-    "parking": "Aparcamiento",
+    "parking": "Parking",
     "price": "Precio de venta",
     "brochure": "Folleto PDF",
     "whatsapp": "Contacto WhatsApp",
-    "bookVisit": "Reservar visita",
+    "bookVisit": "Reservar una visita",
     "location": "Ubicación",
     "distanceSea": "Mar a {distance}km",
     "propertyNotFound": "Propiedad no encontrada"
   },
   "projectTracker": {
-    "title": "Seguimiento de Proyecto",
+    "title": "Seguimiento de su Proyecto",
     "phaseLabel": "Fase Actual:",
     "quit": "Salir del espacio",
     "documents": "Documentos Administrativos",
@@ -65,7 +65,7 @@
   "contact": {
     "formTitle": "Contáctenos",
     "namePlaceholder": "NOMBRE COMPLETO",
-    "emailPlaceholder": "EMAIL",
+    "emailPlaceholder": "CORREO ELECTRÓNICO",
     "messagePlaceholder": "DETALLES DE SU PROYECTO...",
     "submit": "Enviar solicitud",
     "success": "¡Mensaje enviado con éxito!",
@@ -75,7 +75,7 @@
     "title": "Área de Clientes",
     "subtitle": "Autenticación Segura",
     "pinPlaceholder": "CÓDIGO PIN",
-    "connect": "Conectarse",
+    "connect": "Iniciar sesión",
     "invalidPin": "Código PIN incorrecto"
   },
   "footer": {

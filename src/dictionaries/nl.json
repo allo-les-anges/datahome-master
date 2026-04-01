@@ -1,7 +1,7 @@
 {
   "common": {
     "back": "Terug",
-    "backToHome": "Terug naar home",
+    "backToHome": "Terug naar Home",
     "loading": "Laden...",
     "error": "Er is een fout opgetreden",
     "search": "Zoeken",
@@ -9,11 +9,11 @@
     "cancel": "Annuleren",
     "save": "Opslaan",
     "close": "Sluiten",
-    "showMore": "Bekijk meer woningen"
+    "showMore": "Meer woningen weergeven"
   },
   "nav": {
-    "home": "Home",
-    "results": "Ons Aanbod",
+    "about": "Over ons",
+    "results": "Ons aanbod",
     "contact": "Contact",
     "back": "Terug naar lijst",
     "search": "Zoek een woning",
@@ -21,16 +21,16 @@
   },
   "home": {
     "heroTitleLine1": "Luxe Villa's &",
-    "heroTitleLine2": "Uitzonderlijk Vastgoed",
+    "heroTitleLine2": "Exclusief Vastgoed",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Vind uw villa",
     "noMatch": "Geen resultaten gevonden",
-    "reset": "Filters wissen"
+    "reset": "Filters resetten"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
-    "beds": "slpks",
-    "baths": "badks",
+    "beds": "slpk",
+    "baths": "badk",
     "surface": "m²",
     "plot": "m² grond"
   },
@@ -39,47 +39,47 @@
     "ref": "Ref: {ref}",
     "bedrooms": "Slaapkamers",
     "bathrooms": "Badkamers",
-    "built": "m² Bebouwd",
+    "built": "Bebouwde m²",
     "plot": "Grond m²",
     "pool": "Zwembad",
     "description": "Beschrijving",
     "parking": "Parking",
     "price": "Verkoopprijs",
     "brochure": "PDF Brochure",
-    "whatsapp": "WhatsApp Contact",
+    "whatsapp": "Contact WhatsApp",
     "bookVisit": "Bezoek plannen",
     "location": "Locatie",
     "distanceSea": "Zee op {distance}km",
     "propertyNotFound": "Woning niet gevonden"
   },
   "projectTracker": {
-    "title": "Projectopvolging",
+    "title": "Opvolging van uw Project",
     "phaseLabel": "Huidige Fase:",
-    "quit": "Ruimte verlaten",
+    "quit": "Sessie beëindigen",
     "documents": "Administratieve Documenten",
     "technicalReports": "Werfverslagen",
-    "visitDate": "Bezoekdatum: {date}",
+    "visitDate": "Bezoeksdatum: {date}",
     "statusConforme": "STATUS: CONFORM",
     "certification": "Informatie gecertificeerd door de technische afdeling van ERA."
   },
   "contact": {
-    "formTitle": "Neem contact op",
+    "formTitle": "Contacteer ons",
     "namePlaceholder": "VOLLEDIGE NAAM",
-    "emailPlaceholder": "EMAIL",
+    "emailPlaceholder": "E-MAIL",
     "messagePlaceholder": "DETAILS VAN UW PROJECT...",
-    "submit": "Verzoek verzenden",
+    "submit": "Aanvraag verzenden",
     "success": "Bericht succesvol verzonden!",
     "error": "Fout bij verzenden."
   },
   "login": {
     "title": "Klantenzone",
-    "subtitle": "Beveiligde Verificatie",
+    "subtitle": "Beveiligde Toegang",
     "pinPlaceholder": "PINCODE",
     "connect": "Inloggen",
     "invalidPin": "Onjuiste pincode"
   },
   "footer": {
-    "description": "De kunst van uitzonderlijk vastgoed. Wij slaan bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
+    "description": "De kunst van exclusief vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
     "city": "Orihuela Costa, Spanje",
     "eliteEdition": "Elite Edition v2.0"
   }

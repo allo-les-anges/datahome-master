@@ -12,15 +12,15 @@
     "showMore": "Pokaż więcej nieruchomości"
   },
   "nav": {
-    "home": "Strona główna",
-    "results": "Nasze oferty",
+    "about": "O nas",
+    "results": "Nasze Nieruchomości",
     "contact": "Kontakt",
     "back": "Powrót do listy",
-    "search": "Szukaj nieruchomości",
-    "clientAccess": "Śledzenie projektu"
+    "search": "Znajdź nieruchomość",
+    "clientAccess": "Monitorowanie Budowy"
   },
   "home": {
-    "heroTitleLine1": "Luksusowe Wille &",
+    "heroTitleLine1": "Luksusowe Wille i",
     "heroTitleLine2": "Wyjątkowe Posiadłości",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Znajdź swoją willę",
@@ -32,14 +32,14 @@
     "beds": "sypialnie",
     "baths": "łazienki",
     "surface": "m²",
-    "plot": "m² działki"
+    "plot": "m² działka"
   },
   "propertyDetail": {
     "back": "Powrót do wyboru",
-    "ref": "Ref: {ref}",
+    "ref": "Nr ref: {ref}",
     "bedrooms": "Sypialnie",
     "bathrooms": "Łazienki",
-    "built": "m² Pow. zabudowy",
+    "built": "Pow. zabudowy m²",
     "plot": "Działka m²",
     "pool": "Basen",
     "description": "Opis",
@@ -47,33 +47,33 @@
     "price": "Cena sprzedaży",
     "brochure": "Broszura PDF",
     "whatsapp": "Kontakt WhatsApp",
-    "bookVisit": "Zarezerwuj wizytę",
+    "bookVisit": "Umów wizytę",
     "location": "Lokalizacja",
     "distanceSea": "Morze w odległości {distance}km",
     "propertyNotFound": "Nie znaleziono nieruchomości"
   },
   "projectTracker": {
-    "title": "Śledzenie Twojego Projektu",
-    "phaseLabel": "Aktualna faza:",
-    "quit": "Wyjdź",
-    "documents": "Dokumenty administracyjne",
-    "technicalReports": "Raporty z budowy",
+    "title": "Monitorowanie Twojego Projektu",
+    "phaseLabel": "Aktualna Faza:",
+    "quit": "Wyloguj się",
+    "documents": "Dokumenty Administracyjne",
+    "technicalReports": "Raporty z Budowy",
     "visitDate": "Data wizyty: {date}",
     "statusConforme": "STATUS: ZGODNY",
     "certification": "Informacje certyfikowane przez dział techniczny ERA."
   },
   "contact": {
     "formTitle": "Skontaktuj się z nami",
-    "namePlaceholder": "PEŁNE IMIĘ I NAZWISKO",
-    "emailPlaceholder": "EMAIL",
+    "namePlaceholder": "IMIĘ I NAZWISKO",
+    "emailPlaceholder": "E-MAIL",
     "messagePlaceholder": "SZCZEGÓŁY TWOJEGO PROJEKTU...",
     "submit": "Wyślij zapytanie",
     "success": "Wiadomość wysłana pomyślnie!",
     "error": "Błąd podczas wysyłania."
   },
   "login": {
-    "title": "Panel Klienta",
-    "subtitle": "Bezpieczne uwierzytelnianie",
+    "title": "Strefa Klienta",
+    "subtitle": "Bezpieczne Logowanie",
     "pinPlaceholder": "KOD PIN",
     "connect": "Zaloguj się",
     "invalidPin": "Nieprawidłowy kod PIN"

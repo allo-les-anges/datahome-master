@@ -1,7 +1,7 @@
 {
   "common": {
-    "back": "رجوع",
-    "backToHome": "العودة إلى الرئيسية",
+    "back": "عودة",
+    "backToHome": "العودة للرئيسية",
     "loading": "جاري التحميل...",
     "error": "حدث خطأ ما",
     "search": "بحث",
@@ -12,7 +12,7 @@
     "showMore": "عرض المزيد من العقارات"
   },
   "nav": {
-    "home": "الرئيسية",
+    "about": "من نحن",
     "results": "عقاراتنا",
     "contact": "اتصل بنا",
     "back": "العودة للقائمة",
@@ -23,14 +23,14 @@
     "heroTitleLine1": "فيلات فاخرة و",
     "heroTitleLine2": "عقارات استثنائية",
     "heroSubtitle": "كوستا بلانكا | كوستا ديل سول",
-    "findVilla": "البحث عن فيلتك",
+    "findVilla": "ابحث عن فيلتك",
     "noMatch": "لم يتم العثور على نتائج",
     "reset": "إعادة ضبط الفلاتر"
   },
   "propertyCard": {
     "ref": "مرجع: {ref}",
     "beds": "غرف",
-    "baths": "حمامات",
+    "baths": "حمام",
     "surface": "م²",
     "plot": "م² أرض"
   },
@@ -39,13 +39,13 @@
     "ref": "مرجع: {ref}",
     "bedrooms": "غرف النوم",
     "bathrooms": "الحمامات",
-    "built": "م² مبني",
+    "built": "مساحة البناء م²",
     "plot": "مساحة الأرض م²",
     "pool": "مسبح",
     "description": "الوصف",
     "parking": "موقف سيارات",
     "price": "سعر البيع",
-    "brochure": "كتيب PDF",
+    "brochure": "ملف PDF",
     "whatsapp": "تواصل عبر واتساب",
     "bookVisit": "حجز زيارة",
     "location": "الموقع",
@@ -73,13 +73,13 @@
   },
   "login": {
     "title": "منطقة العملاء",
-    "subtitle": "مصادقة آمنة",
+    "subtitle": "دخول آمن",
     "pinPlaceholder": "رمز PIN",
     "connect": "تسجيل الدخول",
     "invalidPin": "رمز PIN غير صحيح"
   },
   "footer": {
-    "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتكم وأرقى العقارات.",
+    "description": "فن العقارات الاستثنائية. نبني جسوراً بين طموحاتكم وأرقى العقارات.",
     "city": "أوريويلا كوستا، إسبانيا",
     "eliteEdition": "Elite Edition v2.0"
   }

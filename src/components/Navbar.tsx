@@ -50,13 +50,13 @@ export default function Navbar({ agency }: NavbarProps) {
 
   if (!mounted) return null;
 
-  // On définit les couleurs selon le scroll
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
+  // --- MISE À JOUR DES LIENS ---
   const navLinks = [
-    { name: t('nav.home') || "Accueil", href: "/" },
-    { name: t('nav.contact') || "Contact", href: "/contact" },
+    { name: t('nav.about') || "Qui sommes-nous", href: "#about" },
+    { name: t('nav.contact') || "Contact", href: "#contact-section" },
   ];
 
   return (
@@ -72,15 +72,12 @@ export default function Navbar({ agency }: NavbarProps) {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
           
-          {/* LOGO : On retire le filtre brightness-0 invert qui peut causer le cadre */}
           <Link href="/" className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
                  src={agency.logo_url} 
                  alt={agency?.name || "Logo"} 
                  className="h-10 md:h-12 w-auto object-contain transition-all duration-500" 
-                 // Note: Si le logo doit changer de couleur (ex: blanc vers noir), 
-                 // il vaut mieux avoir deux versions d'image ou utiliser un masque SVG.
                />
             ) : (
                <DataHomeLogo 
@@ -90,7 +87,6 @@ export default function Navbar({ agency }: NavbarProps) {
             )}
           </Link>
 
-          {/* DESKTOP NAV */}
           <div className="hidden md:flex items-center gap-12">
             {navLinks.map((link) => (
               <Link 
@@ -104,7 +100,6 @@ export default function Navbar({ agency }: NavbarProps) {
               </Link>
             ))}
 
-            {/* LANG SELECTOR */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsLangOpen(!isLangOpen)}
@@ -130,7 +125,6 @@ export default function Navbar({ agency }: NavbarProps) {
             </div>
           </div>
 
-          {/* MOBILE TOGGLE */}
           <button 
             className={`md:hidden p-2 transition-colors ${textColor}`} 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -140,7 +134,6 @@ export default function Navbar({ agency }: NavbarProps) {
         </div>
       </nav>
 
-      {/* MOBILE MENU */}
       {isMenuOpen && (
         <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
           <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">

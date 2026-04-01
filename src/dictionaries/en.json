@@ -12,12 +12,12 @@
     "showMore": "Show more properties"
   },
   "nav": {
-    "home": "Home",
+    "about": "About Us",
     "results": "Our Properties",
     "contact": "Contact",
     "back": "Back to list",
-    "search": "Search a property",
-    "clientAccess": "Project Tracker"
+    "search": "Search for a property",
+    "clientAccess": "Project Tracking"
   },
   "home": {
     "heroTitleLine1": "Luxury Villas &",
@@ -39,23 +39,23 @@
     "ref": "Ref: {ref}",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
-    "built": "sqm Built",
+    "built": "Built sqm",
     "plot": "Plot sqm",
     "pool": "Pool",
     "description": "Description",
     "parking": "Parking",
     "price": "Sale price",
     "brochure": "PDF Brochure",
-    "whatsapp": "WhatsApp Contact",
-    "bookVisit": "Book a visit",
+    "whatsapp": "Contact WhatsApp",
+    "bookVisit": "Book a viewing",
     "location": "Location",
-    "distanceSea": "{distance}km to the sea",
+    "distanceSea": "Sea at {distance}km",
     "propertyNotFound": "Property not found"
   },
   "projectTracker": {
-    "title": "Project Tracker",
+    "title": "Project Tracking",
     "phaseLabel": "Current Phase:",
-    "quit": "Exit space",
+    "quit": "Exit area",
     "documents": "Administrative Documents",
     "technicalReports": "Site Reports",
     "visitDate": "Visit date: {date}",
@@ -63,13 +63,13 @@
     "certification": "Information certified by the ERA technical department."
   },
   "contact": {
-    "formTitle": "Contact us",
+    "formTitle": "Contact Us",
     "namePlaceholder": "FULL NAME",
     "emailPlaceholder": "EMAIL",
-    "messagePlaceholder": "PROJECT DETAILS...",
-    "submit": "Send request",
+    "messagePlaceholder": "YOUR PROJECT DETAILS...",
+    "submit": "Send Request",
     "success": "Message sent successfully!",
-    "error": "Error during sending."
+    "error": "Error while sending."
   },
   "login": {
     "title": "Client Area",
