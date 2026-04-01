@@ -53,7 +53,6 @@ export default function Navbar({ agency }: NavbarProps) {
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
-  // --- MISE À JOUR DES LIENS ---
   const navLinks = [
     { name: t('nav.about') || "Qui sommes-nous", href: "#about" },
     { name: t('nav.contact') || "Contact", href: "#contact-section" },
@@ -63,7 +62,7 @@ export default function Navbar({ agency }: NavbarProps) {
     <>
       <nav 
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
-          isScrolled ? 'h-20 border-b border-black/5 shadow-lg bg-white/90' : 'h-28 border-none bg-transparent'
+          isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
         }`}
         style={{
           backdropFilter: isScrolled ? 'blur(16px)' : 'none',
@@ -77,11 +76,11 @@ export default function Navbar({ agency }: NavbarProps) {
                <img 
                  src={agency.logo_url} 
                  alt={agency?.name || "Logo"} 
-                 className="h-10 md:h-12 w-auto object-contain transition-all duration-500" 
+                 className="h-24 md:h-32 w-auto object-contain transition-all duration-500" 
                />
             ) : (
                <DataHomeLogo 
-                 className="h-8 w-auto transition-colors duration-500" 
+                 className="h-20 md:h-24 w-auto transition-colors duration-500" 
                  style={{ color: logoHexColor }}
                />
             )}
