@@ -55,7 +55,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       .replace(/color="[^"]*"/gi, '')
       .replace(/<font[^>]*>/gi, '')
       .replace(/<\/font>/gi, '')
-      .replace(/&nbsp;/g, ' ');
+      .replace(/ /g, ' ');
   };
 
   if (!mounted) return null;
@@ -84,13 +84,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <Navbar />
+      {/* MODIFICATION : On passe l'objet agency à la Navbar pour garder le logo/couleurs */}
+      <Navbar agency={agency} />
+      
       <div className="h-24 md:h-32" />
 
       <div className="max-w-7xl mx-auto px-6 mb-8">
-        <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold">
+        <button 
+          onClick={() => window.history.back()}
+          className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold cursor-pointer"
+        >
           <ArrowLeft size={14} /> {t('propertyDetail.back')}
-        </Link>
+        </button>
       </div>
 
       <section className="max-w-7xl mx-auto px-6 mb-16">
