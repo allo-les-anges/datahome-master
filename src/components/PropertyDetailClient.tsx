@@ -19,34 +19,16 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const [activeImage, setActiveImage] = useState(0);
   const [mounted, setMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isLight = searchParams.get('pack') === 'light';
+  
+  // Détection du mode light via l'URL ou les paramètres de l'agence
+  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
 
-  // --- LOGIQUE D'EXTRACTION ULTRA-ROBUSTE ---
+  // Extraction de la couleur primaire avec priorité à primary_color (vu dans page.tsx)
   const primaryColor = useMemo(() => {
-    // 1. Debug: On regarde ce qu'on reçoit vraiment
-    console.log("DEBUG AGENCY OBJECT:", agency);
-
-    // 2. On tente de parser le footer_config
-    let footerColor = null;
-    try {
-      const footerData = typeof agency?.footer_config === 'string' 
-        ? JSON.parse(agency.footer_config) 
-        : (agency?.footer_config || {});
-      footerColor = footerData?.primary_color;
-    } catch (e) {
-      console.error("Erreur de parsing footer_config", e);
-    }
-
-    // 3. Hiérarchie de récupération (on ajoute agency_color qui est souvent utilisé)
-    const color = agency?.theme?.primary || 
-                  agency?.colors?.primary || 
-                  footerColor || 
-                  agency?.agency_color || 
-                  agency?.color || 
-                  "#D4AF37"; // Or par défaut
-    
-    console.log("COULEUR APPLIQUÉE:", color);
-    return color;
+    return agency?.primary_color || 
+           agency?.theme?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
   }, [agency]);
 
   useEffect(() => {
@@ -76,9 +58,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-24 pb-20"> 
+      <div className="pt-12 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
+          {/* GALERIE D'IMAGES */}
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
@@ -117,6 +100,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
+          {/* GRILLE DE CONTENU */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -128,6 +112,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 {property.town || property.ville} • {property.region}
               </div>
               
+              {/* CARACTÉRISTIQUES AVEC ICÔNES COLORÉES */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
@@ -148,11 +133,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
+              {/* DESCRIPTION */}
               <div 
                 className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
+              {/* LOCALISATION / CARTE */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
@@ -160,7 +147,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   </div>
                   <div>
                     <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, Costa Blanca</p>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
                   </div>
                 </div>
                 <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl h-[400px]">
@@ -170,12 +157,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
                     loading="lazy"
                     allowFullScreen
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.latitude || property.town)},${encodeURIComponent(property.longitude || property.region)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                   ></iframe>
                 </div>
               </div>
             </div>
 
+            {/* SIDEBAR (PRIX & CONTACT) */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
