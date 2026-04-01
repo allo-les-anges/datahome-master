@@ -28,17 +28,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   useEffect(() => {
     setMounted(true);
-    
-    // LOGS DE SÉCURITÉ (Utilisation de warn pour éviter les filtres standard)
     if (property) {
       console.warn("%c=== 🛡️ DATA PROPERTY DETAIL ===", "background: #D4AF37; color: black; font-weight: bold; padding: 8px;");
-      console.warn("ID / Ref:", property.id || property.ref);
-      console.warn("📍 Ville:", property.town || property.ville);
-      console.warn("📦 Full Object:", property);
-    } else {
-      console.warn("⚠️ PropertyDetailClient: Aucune propriété reçue");
     }
-  }, [property]); // On ne dépend que de property pour éviter les boucles avec agency
+  }, [property]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -64,9 +57,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     return (
       <div className={`h-screen flex flex-col items-center justify-center ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} p-6 text-center`}>
         <h1 className={`text-2xl mb-4 font-serif ${isLight ? 'text-slate-900' : 'text-white'}`}>Propriété non trouvée</h1>
-        <Link href="/" className="px-8 py-3 bg-[#D4AF37] text-black rounded-full font-bold uppercase text-[10px] tracking-widest">
-          Retour au catalogue
-        </Link>
+        <button onClick={() => window.history.back()} className="px-8 py-3 bg-[#D4AF37] text-black rounded-full font-bold uppercase text-[10px] tracking-widest">
+          Retour
+        </button>
       </div>
     );
   }
@@ -83,22 +76,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const whatsappMessage = encodeURIComponent(`Bonjour, je souhaite plus d'infos sur la référence : ${property.ref || property.id}`);
 
   return (
-    <main className={`min-h-screen transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      {/* MODIFICATION : On passe l'objet agency à la Navbar pour garder le logo/couleurs */}
+    <main className={`min-h-screen ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
       <Navbar agency={agency} />
       
-      <div className="h-24 md:h-32" />
+      {/* ESPACEMENT AJUSTÉ : On réduit l'espace pour éviter l'effet "double bandeau" */}
+      <div className="h-20 md:h-24" />
 
-      <div className="max-w-7xl mx-auto px-6 mb-8">
+      {/* SECTION RETOUR UNIQUE */}
+      <div className="max-w-7xl mx-auto px-6 mb-6">
         <button 
           onClick={() => window.history.back()}
-          className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold cursor-pointer"
+          className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold hover:opacity-70 transition-all"
         >
-          <ArrowLeft size={14} /> {t('propertyDetail.back')}
+          <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la sélection"}
         </button>
       </div>
 
-      <section className="max-w-7xl mx-auto px-6 mb-16">
+      <section className="max-w-7xl mx-auto px-6 mb-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:h-[550px]">
           <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-slate-100 dark:bg-[#111] h-[400px] md:h-full">
             <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
