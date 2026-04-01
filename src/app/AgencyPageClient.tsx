@@ -208,10 +208,10 @@ export default function AgencyPageClient({ slug }: AgencyPageProps) {
                   <PropertyGrid 
                     properties={allProperties} 
                     isLight={true} 
-                    onPropertyClick={(prop) => {
-                      setSelectedProperty(prop);
-                      window.scrollTo(0, 0);
-                    }}
+                    onPropertyClick={(prop: any) => { // Ajoutez ": any" ici
+                    setSelectedProperty(prop);
+                    window.scrollTo(0, 0);
+                  }}
                   />
                   
                   {allProperties.length > 0 && allProperties.length < totalProperties && (
