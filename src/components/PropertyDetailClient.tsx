@@ -22,7 +22,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- COULEURS DYNAMIQUES ---
+  // --- COULEURS DYNAMIQUES (Injection du thème) ---
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
@@ -49,21 +49,20 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     return property[`description_${locale}`] || property.description || property.description_fr || "";
   }, [property, locale]);
 
+  // --- PRÉPARATION DES DONNÉES (Évite les erreurs de build) ---
+  const images = property?.images || [];
+  const numericPrice = Number(property?.price || property?.prix || 0);
+  const whatsappNumber = (property?.phone || agency?.phone || "34627768233").replace(/\D/g, '');
+
   if (!mounted || !property) return null;
 
   return (
-    <main className={`min-h-screen relative transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
+    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
       
-      {/* ZONE DE CONTENU PRINCIPAL 
-          On ne met RIEN au-dessus de ce div 
-      */}
       <div className="pt-32 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* L'UNIQUE LIEN DE RETOUR 
-             Vérifiez bien qu'il n'y a pas un autre <Link> 
-             similaire caché plus haut dans votre fichier.
-          */}
+          {/* L'UNIQUE LIEN DE RETOUR */}
           <div className="mb-8">
             <Link 
               href="/" 
@@ -74,7 +73,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </Link>
           </div>
 
-          {/* GALERIE IMAGES (image_ad77df.jpg) */}
+          {/* GALERIE IMAGES */}
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
@@ -118,18 +117,15 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           {/* INFOS ET SIDEBAR */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
-              {/* TITRE LUXE (image_b7e57f.png) */}
               <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
-              {/* Localisation */}
               <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
                 <MapPin size={18} style={{ color: primaryColor }} />
                 {property.town || property.ville} • {property.region}
               </div>
               
-              {/* GRILLE D'ICÔNES STYLE CARTE SOMBRE (image_b778a7.png) */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
@@ -150,13 +146,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* DESCRIPTION TEXTUELLE */}
               <div 
                 className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* CARTE LOCALISATION */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>
@@ -180,7 +174,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* SIDEBAR DE CONTACT (image_b7f74f.jpg) */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
@@ -190,12 +183,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   </p>
                 </div>
                 
-                {/* Formulaire de contact intégré */}
                 <div className="px-2">
                    <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
                 </div>
 
-                {/* Bouton WhatsApp stylisé */}
                 <div className="px-10 pb-10">
                   <a 
                     href={`https://wa.me/${whatsappNumber}`}
