@@ -40,7 +40,7 @@ export default function AgencyDynamicPage() {
     reference: "",
   });
 
-  // --- 1. INITIALISATION ---
+  // --- 1. INITIALISATION & SEO ---
   useEffect(() => {
     setMounted(true);
     const meta = document.createElement('meta');
@@ -73,7 +73,7 @@ export default function AgencyDynamicPage() {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // --- 3. FORMATAGE DES DONNÉES ---
+  // --- 3. FORMATAGE DES DONNÉES (Indispensable pour PropertyGrid) ---
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -102,7 +102,7 @@ export default function AgencyDynamicPage() {
     });
   }, [locale]);
 
-  // --- 4. RÉCUPÉRATION SUPABASE ---
+  // --- 4. RÉCUPÉRATION SUPABASE (Correction du chargement) ---
   useEffect(() => {
     let isMounted = true;
     async function init() {
@@ -110,13 +110,18 @@ export default function AgencyDynamicPage() {
       setLoading(true);
       
       try {
+        // A. Récupérer l'agence
         const { data: agencyData, error: agencyError } = await supabase
           .from('agency_settings')
           .select('*')
           .eq('subdomain', slug)
           .single();
 
-        if (agencyError || !agencyData) return;
+        if (agencyError || !agencyData) {
+            console.error("Agence introuvable");
+            setLoading(false);
+            return;
+        }
 
         if (isMounted) {
           setAgency(agencyData);
@@ -125,6 +130,7 @@ export default function AgencyDynamicPage() {
           }
         }
 
+        // B. Récupérer les biens de cette agence spécifiquement
         const { data: villasData, error: villasError } = await supabase
           .from('villas')
           .select('*')
@@ -133,12 +139,12 @@ export default function AgencyDynamicPage() {
 
         if (isMounted && villasData) {
           const formatted = formatVillaData(villasData);
-          const sorted = formatted.sort((a, b) => a.price - b.price);
+          const sorted = formatted.sort((a, b) => b.price - a.price); // Tri par prix décroissant
           setAllProperties(sorted);
           setFilteredProperties(sorted);
         }
       } catch (err) {
-        console.error("Erreur initialisation:", err);
+        console.error("Erreur initialisation page:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -181,7 +187,7 @@ export default function AgencyDynamicPage() {
   if (!mounted || loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-white">
       <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement de votre univers...</p>
     </div>
   );
 
@@ -196,8 +202,6 @@ export default function AgencyDynamicPage() {
         .text-primary { color: var(--brand-primary) !important; }
         .border-primary { border-color: var(--brand-primary) !important; }
       `}</style>
-
-      {/* --- INJECTION DE AGENCY DANS TOUS LES COMPOSANTS --- */}
 
       <div className="absolute top-0 left-0 w-full z-[100]">
         <Navbar agency={agency} />
@@ -215,12 +219,10 @@ export default function AgencyDynamicPage() {
                 <ArrowLeft size={14} /> {t('nav.back')}
               </button>
             </div>
-            {/* Passage de agency au détail */}
             <PropertyDetailClient property={selectedProperty} agency={agency} />
           </div>
         ) : (
           <div className="animate-in fade-in duration-700">
-            {/* Passage de agency au Hero pour l'image et les titres Dashboard */}
             <Hero 
               agency={agency}
               title={agency?.hero_title} 
@@ -247,7 +249,6 @@ export default function AgencyDynamicPage() {
                   <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                 </header>
                 
-                {/* Passage de agency à la grille pour les badges de prix */}
                 <PropertyGrid 
                   agency={agency}
                   properties={filteredProperties.slice(0, displayLimit)} 
@@ -280,7 +281,6 @@ export default function AgencyDynamicPage() {
         <Footer agency={agency} />
       </footer>
 
-      {/* RECHERCHE MODALE */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl">
           <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
@@ -289,7 +289,6 @@ export default function AgencyDynamicPage() {
               <X size={20} />
             </button>
             <div className="flex-grow overflow-y-auto custom-scrollbar p-6 md:p-12 lg:p-16">
-              {/* Passage de agency à la recherche pour la couleur du slider */}
               <AdvancedSearch 
                 agency={agency}
                 onSearch={handleSearch} 
