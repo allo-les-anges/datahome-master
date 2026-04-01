@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
-// Logo SVG par défaut
 const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
   <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
     <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
@@ -21,8 +20,6 @@ interface NavbarProps {
 export default function Navbar({ agency }: NavbarProps) {
   const pathname = usePathname();
   const { t, locale, setLocale } = useTranslation() as any;
-
-  // Récupération de la couleur du Dashboard
   const brandColor = agency?.primary_color || "#D4AF37";
 
   const [mounted, setMounted] = useState(false);
@@ -53,10 +50,10 @@ export default function Navbar({ agency }: NavbarProps) {
 
   if (!mounted) return null;
 
+  // On définit les couleurs selon le scroll
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
-  // Navigation simplifiée : Solution retirée
   const navLinks = [
     { name: t('nav.home') || "Accueil", href: "/" },
     { name: t('nav.contact') || "Contact", href: "/contact" },
@@ -66,25 +63,24 @@ export default function Navbar({ agency }: NavbarProps) {
     <>
       <nav 
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
-          isScrolled ? 'h-20 border-b border-black/5 shadow-lg' : 'h-28 border-none'
+          isScrolled ? 'h-20 border-b border-black/5 shadow-lg bg-white/90' : 'h-28 border-none bg-transparent'
         }`}
         style={{
-          backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.90)' : 'transparent',
           backdropFilter: isScrolled ? 'blur(16px)' : 'none',
           WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
         }}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
           
-          {/* LOGO */}
+          {/* LOGO : On retire le filtre brightness-0 invert qui peut causer le cadre */}
           <Link href="/" className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
                  src={agency.logo_url} 
                  alt={agency?.name || "Logo"} 
-                 className={`h-10 md:h-12 w-auto object-contain transition-all duration-500 ${
-                   !isScrolled ? 'brightness-0 invert' : '' 
-                 }`} 
+                 className="h-10 md:h-12 w-auto object-contain transition-all duration-500" 
+                 // Note: Si le logo doit changer de couleur (ex: blanc vers noir), 
+                 // il vaut mieux avoir deux versions d'image ou utiliser un masque SVG.
                />
             ) : (
                <DataHomeLogo 
@@ -100,10 +96,9 @@ export default function Navbar({ agency }: NavbarProps) {
               <Link 
                 key={link.href} 
                 href={link.href} 
-                style={{ color: isScrolled ? undefined : 'white' }}
                 className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
               >
-                <span className="hover:border-b-2" style={{ borderColor: brandColor }}>
+                <span className="pb-1" style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}>
                   {link.name}
                 </span>
               </Link>
@@ -120,7 +115,7 @@ export default function Navbar({ agency }: NavbarProps) {
               </button>
               
               {isLangOpen && (
-                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
                   {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
                     <button
                       key={lang}
@@ -147,7 +142,7 @@ export default function Navbar({ agency }: NavbarProps) {
 
       {/* MOBILE MENU */}
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150] animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
           <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
             <X size={35} />
           </button>
@@ -156,29 +151,11 @@ export default function Navbar({ agency }: NavbarProps) {
               key={link.href}
               href={link.href} 
               onClick={() => setIsMenuOpen(false)} 
-              className="text-xl font-black uppercase tracking-[0.5em] text-white hover:opacity-60 transition-colors"
+              className="text-xl font-black uppercase tracking-[0.5em] text-white"
             >
               {link.name}
             </Link>
           ))}
-          
-          <div className="flex gap-4 mt-4">
-            {['fr', 'en', 'es'].map((lang) => (
-              <button 
-                key={lang} 
-                onClick={() => { setLocale(lang as any); setIsMenuOpen(false); }}
-                style={{ 
-                  backgroundColor: locale === lang ? brandColor : 'transparent',
-                  borderColor: locale === lang ? brandColor : 'rgba(255,255,255,0.2)'
-                }}
-                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 border rounded-full ${
-                  locale === lang ? 'text-black' : 'text-white'
-                }`}
-              >
-                {lang}
-              </button>
-            ))}
-          </div>
         </div>
       )}
     </>
