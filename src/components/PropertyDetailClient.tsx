@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle 
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
@@ -56,7 +56,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      {/* pt-0 car la Navbar globale gère l'espace en haut */}
       <div className="pt-0 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
@@ -102,22 +101,32 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           {/* INFOS ET SIDEBAR */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
-              <h1 className={`text-4xl md:text-7xl font-serif mb-8 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`text-4xl md:text-7xl font-serif mb-6 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {property.titre || property.title || "Propriété"}
               </h1>
+
+              {/* Localisation sous le titre */}
+              <div className="flex items-center gap-3 text-slate-500 mb-8 text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={18} style={{ color: primaryColor }} />
+                {property.town || property.ville} • {property.region}
+              </div>
               
-              <div className="grid grid-cols-3 gap-4 mb-16">
+              {/* GRILLE D'ICÔNES COMPLÈTE (6 ITEMS) */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'Chambres' },
                   { icon: Bath, val: property.baths, label: 'Bains' },
-                  { icon: Maximize, val: property.surface_built, label: 'm²' },
+                  { icon: Maximize, val: property.surface_built, label: 'Construit m²' },
+                  { icon: Home, val: property.surface_plot, label: 'Terrain m²' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "Oui" : "Non"), label: 'Piscine' },
+                  { icon: Car, val: "Oui", label: 'Parking' },
                 ].map((item, i) => (
                   <div 
                     key={i} 
-                    className={`p-6 rounded-3xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}
+                    className={`p-6 rounded-3xl border text-center ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}
                   >
-                    <item.icon className="mb-2" style={{ color: primaryColor }} size={20} />
-                    <p className={`text-xl font-serif ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || 0}</p>
+                    <item.icon className="mx-auto mb-2" style={{ color: primaryColor }} size={22} />
+                    <p className={`text-xl font-serif ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
                     <p className="text-[8px] uppercase text-slate-500 font-bold tracking-tighter">{item.label}</p>
                   </div>
                 ))}
@@ -128,13 +137,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* LOCALISATION - CARTE VISIBLE SANS OVERLAY */}
+              {/* LOCALISATION / CARTE */}
               {property.latitude && property.longitude && (
-                <div className="mt-10">
-                  <h2 className={`text-2xl font-serif mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    Localisation
-                  </h2>
-                  <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl group">
+                <div className="mt-10 border-t pt-10 border-white/10">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>
+                      <Navigation size={24} />
+                    </div>
+                    <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                      Localisation
+                    </h2>
+                  </div>
+                  <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl">
                     <iframe
                       width="100%"
                       height="400"
@@ -179,7 +193,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           </section>
         </div>
       </div>
-      {/* Le Footer est géré par layout.tsx, donc supprimé d'ici */}
     </main>
   );
 }
