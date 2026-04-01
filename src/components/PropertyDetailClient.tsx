@@ -22,7 +22,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- COULEURS DYNAMIQUES ---
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
@@ -60,14 +59,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       <div className="pt-8 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* LIEN RETOUR */}
           <div className="mb-8">
             <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold transition-opacity hover:opacity-70" style={{ color: primaryColor }}>
               <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR À LA LISTE"}
             </Link>
           </div>
 
-          {/* GALERIE IMAGES (image_ad77df.jpg) */}
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
@@ -108,21 +105,17 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* INFOS ET SIDEBAR */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
-              {/* TITRE LUXE (image_b7e57f.png) */}
               <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
-              {/* Localisation */}
               <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
                 <MapPin size={18} style={{ color: primaryColor }} />
                 {property.town || property.ville} • {property.region}
               </div>
               
-              {/* GRILLE D'ICÔNES STYLE CARTE SOMBRE (image_b778a7.png) */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
@@ -143,13 +136,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* DESCRIPTION TEXTUELLE */}
               <div 
                 className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* CARTE LOCALISATION */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>
@@ -173,7 +164,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* SIDEBAR DE CONTACT (image_b7f74f.jpg) */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
@@ -183,12 +173,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   </p>
                 </div>
                 
-                {/* Formulaire de contact intégré */}
                 <div className="px-2">
                    <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
                 </div>
 
-                {/* Bouton WhatsApp stylisé */}
                 <div className="px-10 pb-10">
                   <a 
                     href={`https://wa.me/${whatsappNumber}`}

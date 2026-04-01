@@ -1,22 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Send, CheckCircle, Loader2, User, Mail, MessageSquare } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
 interface ContactFormProps {
-  agency: {
-    id: string;
-    name: string;
-    package_level: string;
-  };
+  agency: any;
   propertyRef: string;
   isLight?: boolean;
 }
 
 export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation() as any;
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  // Extraction de la couleur de l'agence
+  const primaryColor = useMemo(() => {
+    return agency?.theme?.primary || 
+           agency?.colors?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,13 +65,10 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
     );
   }
 
-  // Correction : Ajout de h-14 pour forcer la hauteur et flex pour l'alignement
   const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
-  
-  // Correction : Couleurs plus tranchées pour le placeholder (placeholder:text-slate-500)
   const themeStyles = isLight 
-    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-500 focus:border-black' 
-    : 'bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-[#D4AF37] focus:bg-white/20';
+    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-500' 
+    : 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:bg-white/10';
 
   return (
     <form onSubmit={handleSubmit} className="p-8 space-y-5">
@@ -81,7 +82,6 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
       </div>
 
       <div className="space-y-4">
-        {/* Nom */}
         <div className="relative">
           <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
@@ -90,10 +90,10 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
             placeholder="Votre nom complet" 
             required
             className={`${inputBaseStyles} ${themeStyles}`}
+            style={{ borderColor: status === 'idle' ? undefined : primaryColor }}
           />
         </div>
 
-        {/* Email */}
         <div className="relative">
           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
@@ -105,7 +105,6 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
           />
         </div>
 
-        {/* Message - Hauteur auto mais padding haut ajusté */}
         <div className="relative">
           <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
           <textarea 
@@ -121,7 +120,8 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
       <button 
         type="submit"
         disabled={status === 'loading'}
-        className="w-full py-5 bg-[#D4AF37] text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all mt-4"
+        className="w-full py-5 text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all mt-4"
+        style={{ backgroundColor: primaryColor }}
       >
         {status === 'loading' ? (
           <Loader2 className="animate-spin" size={18} />
