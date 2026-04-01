@@ -51,18 +51,25 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   if (!mounted || !property) return null;
 
-  const images = property.images || [];
-  const numericPrice = Number(property.price || property.prix || 0);
-  const whatsappNumber = (property.phone || agency?.phone || "34627768233").replace(/\D/g, '');
-
   return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-8 pb-20"> 
+    <main className={`min-h-screen relative transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
+      
+      {/* ZONE DE CONTENU PRINCIPAL 
+          On ne met RIEN au-dessus de ce div 
+      */}
+      <div className="pt-32 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* LIEN RETOUR */}
+          {/* L'UNIQUE LIEN DE RETOUR 
+             Vérifiez bien qu'il n'y a pas un autre <Link> 
+             similaire caché plus haut dans votre fichier.
+          */}
           <div className="mb-8">
-            <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold transition-opacity hover:opacity-70" style={{ color: primaryColor }}>
+            <Link 
+              href="/" 
+              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold transition-opacity hover:opacity-70" 
+              style={{ color: primaryColor }}
+            >
               <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR À LA LISTE"}
             </Link>
           </div>
