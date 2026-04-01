@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from "@/contexts/I18nContext";
-import { Bed, Bath, Maximize, Heart, MapPin, Waves, Map, Car, Plus } from "lucide-react";
+import { Bed, Bath, Maximize, MapPin, Waves, Map, Car } from "lucide-react";
 import type { Villa, Agency, Filters } from '@/types';  
 
 interface PropertyGridProps {
@@ -13,11 +13,10 @@ interface PropertyGridProps {
   favorites?: string[];
   onToggleFavorite?: (id: string) => void;
   activeFilters?: Filters; 
+  locale?: string;
 }
 
-// Composant Interne Card (Gardé tel quel selon votre structure)
-const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale, agency }: any) => {
-  const { t } = useTranslation();
+const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
   const price = Number(property.price || 0);
   const brandColor = agency?.primary_color || "#10b981";
   const showDark = !isLight;
@@ -29,7 +28,6 @@ const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale
         showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
       }`}
     >
-      {/* Image et Badge */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <img 
           src={property.images?.[0] || '/placeholder-villa.jpg'} 
@@ -41,7 +39,6 @@ const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale
         </div>
       </div>
 
-      {/* Contenu */}
       <div className="p-8 space-y-4">
         <div className="flex justify-between items-start">
           <div className="text-2xl font-serif italic" style={{ color: showDark ? 'white' : '#0f172a' }}>
@@ -57,7 +54,6 @@ const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale
         </div>
       </div>
 
-      {/* ICONES TECHNIQUES */}
       <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
         {[
           { icon: Maximize, value: `${property.surface_built} m²` },
@@ -77,51 +73,29 @@ const PropertyCard = ({ property, isLight, isFavorite, onToggle, onClick, locale
   );
 };
 
-// Composant Principal avec Pagination
 export default function PropertyGrid({ 
   properties, 
   agency, 
   onPropertyClick, 
   isLight, 
   locale 
-}: any) {
-  // État pour gérer le nombre de biens affichés
-  const [visibleCount, setVisibleCount] = useState(12);
-
-  const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 12);
-  };
-
-  // On découpe la liste pour n'afficher que les X premiers
-  const displayedProperties = properties.slice(0, visibleCount);
-
+}: PropertyGridProps) {
+  
+  // Suppression de visibleCount et du bouton "Voir plus" interne.
+  // Ce composant affiche désormais simplement TOUT ce que AgencyPageClient lui envoie.
+  
   return (
-    <div className="space-y-12">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {displayedProperties.map((property: Villa) => (
-          <PropertyCard 
-            key={property.id} 
-            property={property} 
-            agency={agency}
-            onClick={onPropertyClick}
-            isLight={isLight}
-            locale={locale}
-          />
-        ))}
-      </div>
-
-      {/* Bouton "Voir plus" conditionnel */}
-      {visibleCount < properties.length && (
-        <div className="flex justify-center pt-8 pb-12">
-          <button
-            onClick={handleLoadMore}
-            className="group flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-full font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-2xl active:scale-95"
-          >
-            <Plus size={16} className="group-hover:rotate-90 transition-transform duration-300" />
-            Voir plus de biens
-          </button>
-        </div>
-      )}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {properties.map((property: Villa) => (
+        <PropertyCard 
+          key={property.id} 
+          property={property} 
+          agency={agency}
+          onClick={onPropertyClick}
+          isLight={isLight}
+          locale={locale}
+        />
+      ))}
     </div>
   );
 }
