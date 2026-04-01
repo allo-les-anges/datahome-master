@@ -3,10 +3,11 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ArrowLeft, ImageIcon
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 interface PropertyDetailClientProps {
   property: any;
@@ -56,11 +57,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-0 pb-20"> 
+      <div className="pt-8 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
+          {/* LIEN RETOUR */}
+          <div className="mb-8">
+            <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold transition-opacity hover:opacity-70" style={{ color: primaryColor }}>
+              <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR À LA LISTE"}
+            </Link>
+          </div>
+
           {/* GALERIE IMAGES */}
-          <section className="mb-16 min-h-[400px] pt-8">
+          <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
                 <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
@@ -77,6 +85,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       <img src={img} className="w-full h-full object-cover" alt="" />
                     </div>
                   ))}
+                </div>
+                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
                 </div>
               </div>
 
@@ -102,7 +113,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-4xl md:text-7xl font-serif mb-6 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                {property.titre || property.title || "Propriété"}
+                {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
               {/* Localisation sous le titre */}
@@ -138,15 +149,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               />
 
               {/* LOCALISATION / CARTE */}
-              {property.latitude && property.longitude && (
+              {(property.latitude || property.town) && (
                 <div className="mt-10 border-t pt-10 border-white/10">
                   <div className="flex items-center gap-4 mb-8">
                     <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>
                       <Navigation size={24} />
                     </div>
-                    <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                      Localisation
-                    </h2>
+                    <div>
+                      <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                        Localisation
+                      </h2>
+                      <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, Costa Blanca</p>
+                    </div>
                   </div>
                   <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl">
                     <iframe
@@ -158,7 +172,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       }}
                       loading="lazy"
                       allowFullScreen
-                      src={`https://maps.google.com/maps?q=${property.latitude},${property.longitude}&z=14&output=embed`}
+                      src={`https://maps.google.com/maps?q=${property.latitude || property.town},${property.longitude || property.region}&z=14&output=embed`}
                     ></iframe>
                   </div>
                 </div>
@@ -169,7 +183,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] p-8 ${isLight ? 'bg-white border-slate-200' : 'bg-[#111] border-white/10'}`}>
                 <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">Prix</p>
-                <p className="text-5xl font-serif mb-8" style={{ color: isLight ? '#000' : '#fff' }}>
+                <p className={`text-5xl font-serif mb-8 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   {numericPrice.toLocaleString("fr-FR")} €
                 </p>
                 
