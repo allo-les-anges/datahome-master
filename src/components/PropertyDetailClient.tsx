@@ -22,16 +22,15 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- EXTRACTION DE LA COULEUR DYNAMIQUE (Logique alignée sur le Footer) ---
+  // --- EXTRACTION DE LA COULEUR DYNAMIQUE ---
   const primaryColor = useMemo(() => {
-    // On vérifie d'abord dans footer_config comme dans votre Footer
     const footerData = typeof agency?.footer_config === 'string' 
       ? JSON.parse(agency.footer_config) 
       : (agency?.footer_config || {});
 
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
-           footerData?.primary_color || // Fallback sur la config footer
+           footerData?.primary_color || 
            agency?.color || 
            "#D4AF37"; 
   }, [agency]);
@@ -63,10 +62,27 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      
+      {/* Injection CSS pour forcer la couleur primaire sur les composants enfants si nécessaire */}
+      <style jsx global>{`
+        .text-primary { color: ${primaryColor} !important; }
+        .bg-primary { background-color: ${primaryColor} !important; }
+        .border-primary { border-color: ${primaryColor} !important; }
+      `}</style>
+
       <div className="pt-32 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
+          {/* BOUTON RETOUR */}
+          <div className="mb-8">
+            <Link 
+              href="/" 
+              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold transition-opacity hover:opacity-70" 
+              style={{ color: primaryColor }}
+            >
+              <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR À LA LISTE"}
+            </Link>
+          </div>
+
           {/* GALERIE IMAGES */}
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
@@ -162,7 +178,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
                     loading="lazy"
                     allowFullScreen
-                    src={`https://maps.google.com/maps?q=${property.latitude || property.town},${property.longitude || property.region}&z=14&output=embed`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.latitude || property.town)},${encodeURIComponent(property.longitude || property.region)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                   ></iframe>
                 </div>
               </div>
