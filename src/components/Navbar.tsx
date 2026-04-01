@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { Globe, Menu, X, User } from "lucide-react";
-import { createBrowserClient } from '@supabase/ssr';
+import { usePathname } from "next/navigation";
+import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
-// Logo SVG par défaut avec gestion de la couleur dynamique
+// Logo SVG par défaut
 const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
   <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
     <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
@@ -15,28 +14,20 @@ const DataHomeLogo = ({ className, style }: { className?: string, style?: React.
   </svg>
 );
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 interface NavbarProps {
   agency?: any;
 }
 
 export default function Navbar({ agency }: NavbarProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const { t, locale, setLocale } = useTranslation() as any;
 
-  // Récupération de la couleur du Dashboard (doré par défaut si vide)
+  // Récupération de la couleur du Dashboard
   const brandColor = agency?.primary_color || "#D4AF37";
 
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -62,24 +53,12 @@ export default function Navbar({ agency }: NavbarProps) {
 
   if (!mounted) return null;
 
-  // Logique de couleur dynamique selon le scroll
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordInput === "1234") {
-      setIsLoginModalOpen(false);
-      setPasswordInput("");
-      router.push("/admin");
-    } else {
-      alert("PIN incorrect");
-    }
-  };
-
+  // Navigation simplifiée : Solution retirée
   const navLinks = [
     { name: t('nav.home') || "Accueil", href: "/" },
-    { name: t('nav.solution') || "Solution", href: "/solution" },
     { name: t('nav.contact') || "Contact", href: "/contact" },
   ];
 
@@ -97,7 +76,7 @@ export default function Navbar({ agency }: NavbarProps) {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
           
-          {/* LOGO DYNAMIQUE */}
+          {/* LOGO */}
           <Link href="/" className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
@@ -154,15 +133,6 @@ export default function Navbar({ agency }: NavbarProps) {
                 </div>
               )}
             </div>
-
-            {/* BOUTON CLIENT ACCESS - Couleur Dashboard */}
-            <button 
-              onClick={() => setIsLoginModalOpen(true)}
-              style={{ backgroundColor: brandColor, boxShadow: `0 0 20px ${brandColor}4d` }}
-              className="group relative p-3 rounded-full text-black hover:scale-110 hover:bg-white transition-all duration-300"
-            >
-              <User size={18} />
-            </button>
           </div>
 
           {/* MOBILE TOGGLE */}
@@ -175,7 +145,7 @@ export default function Navbar({ agency }: NavbarProps) {
         </div>
       </nav>
 
-      {/* MOBILE MENU FULLSCREEN */}
+      {/* MOBILE MENU */}
       {isMenuOpen && (
         <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150] animate-in fade-in duration-300">
           <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
@@ -209,37 +179,6 @@ export default function Navbar({ agency }: NavbarProps) {
               </button>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* MODAL PIN LOGIN */}
-      {isLoginModalOpen && (
-        <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
-           <div className="absolute inset-0" onClick={() => { setIsLoginModalOpen(false); setPasswordInput(""); }} />
-           <div 
-             className="relative p-12 max-w-md w-full border bg-slate-900 text-white rounded-[2.5rem] shadow-2xl"
-             style={{ borderColor: `${brandColor}33` }}
-           >
-              <h3 className="text-2xl font-serif italic mb-8 text-center">{t('nav.clientAccess') || "Accès Client"}</h3>
-              <form onSubmit={handleAuthSubmit} className="space-y-8">
-                <input 
-                  type="password" 
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="PIN" 
-                  className="w-full bg-transparent border-b border-white/10 py-4 text-center text-3xl tracking-[0.5em] outline-none transition-all text-white"
-                  style={{ borderBottomColor: passwordInput ? brandColor : 'rgba(255,255,255,0.1)' }}
-                  autoFocus
-                />
-                <button 
-                  type="submit" 
-                  style={{ backgroundColor: brandColor }}
-                  className="w-full text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-[0.4em] hover:bg-white transition-all transform active:scale-95 shadow-lg"
-                >
-                  Accéder
-                </button>
-              </form>
-           </div>
         </div>
       )}
     </>
