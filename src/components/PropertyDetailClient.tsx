@@ -73,15 +73,15 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     <main className={`min-h-screen ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
       <Navbar agency={agency} />
       
-      {/* FIX 1: On utilise mt-[112px] pour compenser la hauteur de la Navbar 
-          FIX 2: Suppression du bloc de retour redondant.
+      {/* On pousse le contenu sous la Navbar fixed (112px).
+          On retire les marges inutiles pour éviter les doubles headers.
       */}
-      <div className="mt-[112px] md:mt-[120px]">
+      <div className="pt-[112px]">
         
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* UN SEUL LIEN DE RETOUR FONCTIONNEL */}
-          <div className="py-8">
+          {/* LIEN DE RETOUR UNIQUE ET PROPRE */}
+          <div className="py-10">
             <button 
               onClick={() => window.history.back()}
               className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold hover:opacity-70 transition-all"
@@ -122,7 +122,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* DETAILS DE LA PROPRIÉTÉ */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16 pb-24">
             <div className="lg:col-span-2">
               <h1 className={`text-4xl md:text-7xl font-serif mb-8 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -134,7 +133,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 {town} {region && `• ${region}`}
               </div>
 
-              {/* GRILLE D'ICÔNES TECHNIQUES */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-16">
                 {[
                   { icon: Bed, key: 'bedrooms', val: property.beds },
@@ -178,7 +176,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* COLONNE LATERALE (Sticky) */}
             <div className="lg:col-span-1">
               <div className="sticky top-40 space-y-6">
                 {!isLight && (
