@@ -21,7 +21,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- EXTRACTION DE LA COULEUR (Sans impacter le reste du site) ---
   const primaryColor = useMemo(() => {
     const footerData = typeof agency?.footer_config === 'string' 
       ? JSON.parse(agency.footer_config) 
@@ -61,8 +60,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      
-      {/* ESPACEMENT RÉDUIT (Suppression du doublon Retour) */}
       <div className="pt-24 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
@@ -96,9 +93,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     key={idx} 
                     onClick={() => setActiveImage(idx)} 
                     className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
-                    style={{ 
-                      borderColor: activeImage === idx ? primaryColor : 'transparent',
-                    }}
+                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
                   >
                     <img src={img} className="w-full h-full object-cover" alt="" />
                   </button>
@@ -115,7 +110,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </h1>
 
               <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={18} style={{ color: primaryColor }} />
+                <MapPin size={18} color={primaryColor} />
                 {property.town || property.ville} • {property.region}
               </div>
               
@@ -132,13 +127,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     key={i} 
                     className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
                   >
-                    {/* CORRECTION ICI : Utilisation de color={primaryColor} en prop */}
-                    <item.icon className="mb-6" color={primaryColor} size={24} strokeWidth={1.5} />
+                    <item.icon className="mb-6" color={primaryColor} size={24} />
                     <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
                     <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
                 ))}
-              </div>
               </div>
 
               <div 
@@ -146,14 +139,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* MAPS */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
-                  {/* Fond avec opacité réduit et icône forcée */}
-                  <div 
-                    className="h-12 w-12 rounded-2xl flex items-center justify-center" 
-                    style={{ backgroundColor: `${primaryColor}20` }}
-                  >
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
                     <Navigation size={24} color={primaryColor} />
                   </div>
                   <div>
