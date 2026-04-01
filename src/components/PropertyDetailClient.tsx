@@ -132,11 +132,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     key={i} 
                     className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
                   >
-                    <item.icon className="mb-6" style={{ color: primaryColor }} size={24} />
+                    {/* CORRECTION ICI : Utilisation de color={primaryColor} en prop */}
+                    <item.icon className="mb-6" color={primaryColor} size={24} strokeWidth={1.5} />
                     <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
                     <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
                 ))}
+              </div>
               </div>
 
               <div 
@@ -147,8 +149,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               {/* MAPS */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>
-                    <Navigation size={24} />
+                  {/* Fond avec opacité réduit et icône forcée */}
+                  <div 
+                    className="h-12 w-12 rounded-2xl flex items-center justify-center" 
+                    style={{ backgroundColor: `${primaryColor}20` }}
+                  >
+                    <Navigation size={24} color={primaryColor} />
                   </div>
                   <div>
                     <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
