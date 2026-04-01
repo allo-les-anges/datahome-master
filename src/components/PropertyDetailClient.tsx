@@ -4,8 +4,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import Footer from "@/components/Footer";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MapPin, MessageCircle, ArrowLeft, 
-  Image as ImageIcon 
+  Bed, Bath, Maximize, MessageCircle, ArrowLeft 
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
@@ -23,7 +22,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- EXTRACTION SÉCURISÉE DES COULEURS ---
+  // --- EXTRACTION DYNAMIQUE DES COULEURS ---
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
@@ -61,7 +60,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       <div className="pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* BOUTON RETOUR - Couleur injectée via style inline */}
+          {/* BOUTON RETOUR UNIQUE */}
           <div className="mb-12 relative z-20">
             <button 
               onClick={() => window.history.back()}
@@ -140,15 +139,15 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* LOCALISATION AVEC OVERLAY LÉGER (Filtre sombre transparent) */}
+              {/* LOCALISATION AVEC OVERLAY SUBTIL */}
               {property.latitude && property.longitude && (
                 <div className="mt-10">
                   <h2 className={`text-2xl font-serif mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     Localisation
                   </h2>
                   <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl group">
-                    {/* Overlay : bg-black/30 pour voir la carte tout en ayant un aspect sombre luxe */}
-                    <div className="absolute inset-0 bg-black/30 pointer-events-none z-10 group-hover:bg-transparent transition-all duration-700" />
+                    {/* Overlay : bg-black/10 (très léger) pour garder la visibilité totale de la carte */}
+                    <div className="absolute inset-0 bg-black/10 pointer-events-none z-10 group-hover:bg-transparent transition-all duration-700" />
                     
                     <iframe
                       width="100%"

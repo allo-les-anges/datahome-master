@@ -7,16 +7,16 @@ import PropertyDetailClient from "@/components/PropertyDetailClient";
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const [property, setProperty] = useState<any>(null);
-  const [agency, setAgency] = useState<any>(null); // Ajout de l'état agency
+  const [agency, setAgency] = useState<any>(null); // Ajout du state agency
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        // Récupération simultanée de la propriété et de l'agence
+        // Récupération simultanée du bien et de l'agence
         const [propRes, agencyRes] = await Promise.all([
           fetch("/api/properties"),
-          fetch("/api/agency") // Assurez-vous que cette route existe
+          fetch("/api/agency") 
         ]);
         
         const properties = await propRes.json();
@@ -26,10 +26,10 @@ export default function PropertyDetailPage() {
         
         if (found) {
           setProperty(found);
-          setAgency(agencyData); // Injection des données de l'agence
+          setAgency(agencyData); // On injecte enfin l'agence ici
         }
       } catch (err) {
-        console.error("Erreur chargement:", err);
+        console.error("Erreur:", err);
       } finally {
         setLoading(false);
       }
@@ -40,6 +40,5 @@ export default function PropertyDetailPage() {
   if (loading) return <div className="h-screen flex items-center justify-center">Chargement...</div>;
   if (!property) return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
 
-  // Transmission de l'agence réelle au lieu de null
   return <PropertyDetailClient property={property} agency={agency} />;
 }
