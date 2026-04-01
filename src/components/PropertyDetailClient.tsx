@@ -26,9 +26,42 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   const isLight = searchParams.get('pack') === 'light';
 
+  // --- SYSTÈME DE DIAGNOSTIC (LOGS) ---
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    console.group("%c🔍 DIAGNOSTIC PAGE DÉTAIL", "background: #000; color: #fff; padding: 10px; border-radius: 5px;");
+    console.log("%c1. Propriété reçue :", "color: #D4AF37; font-weight: bold;", property ? "OUI" : "NON (ERREUR)");
+    console.log("%c2. Agence reçue :", "color: #D4AF37; font-weight: bold;", agency ? "OUI" : "NON");
+    console.log("%c3. Mode Light détecté :", "color: #D4AF37; font-weight: bold;", isLight);
+    
+    // Mesure de la Navbar et des éléments suspects après rendu
+    setTimeout(() => {
+      const nav = document.querySelector('nav');
+      const mainHeader = document.querySelector('header');
+      if (nav) {
+        console.log("%c4. Navbar trouvée :", "color: #00ff00;", {
+          height: nav.offsetHeight + "px",
+          position: window.getComputedStyle(nav).position,
+          top: window.getComputedStyle(nav).top
+        });
+      } else if (mainHeader) {
+        console.log("%c4. Header trouvé (Navbar) :", "color: #00ff00;", mainHeader.offsetHeight + "px");
+      } else {
+        console.warn("⚠️ Aucune Navbar ou Header détecté dans le DOM.");
+      }
+
+      // Vérification des marges parasites
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        console.log("%c5. Style du Main :", "color: #00ff00;", {
+          paddingTop: window.getComputedStyle(mainElement).paddingTop,
+          marginTop: window.getComputedStyle(mainElement).marginTop
+        });
+      }
+    }, 1000);
+    console.groupEnd();
+  }, [property, agency, isLight]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -72,22 +105,21 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      {/* 1. La Navbar est fixe ou absolue, elle gère son propre espace */}
+      {/* 1. Navbar */}
       <Navbar agency={agency} />
       
-      {/* 2. On réduit l'espace au strict minimum pour compenser la hauteur de la Navbar */}
-      <div className="pt-24 md:pt-32">
+      {/* 2. Zone de Correction : On utilise un padding contrôlé au lieu de div vides */}
+      <div className="pt-20 md:pt-28">
         
-        {/* 3. Zone de contenu principal */}
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* LIEN DE RETOUR (Un seul, bien placé) */}
-          <div className="mb-8">
+          {/* 3. Ligne de Retour UNIQUE : stylisée pour être discrète mais claire */}
+          <div className="py-6 mb-2">
             <button 
               onClick={() => window.history.back()}
-              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold"
+              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold hover:opacity-70 transition-all"
             >
-              <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la recherche"}
+              <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la sélection"}
             </button>
           </div>
 
@@ -123,7 +155,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* DETAILS & FORMULAIRE */}
+          {/* DETAILS */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16 pb-24">
             <div className="lg:col-span-2">
               <h1 className={`text-4xl md:text-7xl font-serif mb-8 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -153,7 +185,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* DESCRIPTION */}
               <div className={`max-w-none mb-20 pt-10 border-t ${isLight ? 'border-slate-100' : 'border-white/10'}`}>
                 <h2 className={`text-3xl font-serif italic mb-8 ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('propertyDetail.artOfLiving')}</h2>
                 <div 
@@ -161,7 +192,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   dangerouslySetInnerHTML={{ __html: cleanDescription(property.description || "") }} 
                 />
                 
-                {/* CARTE GOOGLE */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]"><Navigation size={24} /></div>
@@ -181,7 +211,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* BARRE LATÉRALE (PRIX & CONTACT) */}
             <div className="lg:col-span-1">
               <div className="sticky top-40 space-y-6">
                 {!isLight && (
