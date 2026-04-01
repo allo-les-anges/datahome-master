@@ -1,0 +1,86 @@
+{
+  "common": {
+    "back": "Terug",
+    "backToHome": "Terug naar home",
+    "loading": "Laden...",
+    "error": "Er is een fout opgetreden",
+    "search": "Zoeken",
+    "confirm": "Bevestigen",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "close": "Sluiten",
+    "showMore": "Bekijk meer woningen"
+  },
+  "nav": {
+    "home": "Home",
+    "results": "Ons Aanbod",
+    "contact": "Contact",
+    "back": "Terug naar lijst",
+    "search": "Zoek een woning",
+    "clientAccess": "Projectopvolging"
+  },
+  "home": {
+    "heroTitleLine1": "Luxe Villa's &",
+    "heroTitleLine2": "Uitzonderlijk Vastgoed",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Vind uw villa",
+    "noMatch": "Geen resultaten gevonden",
+    "reset": "Filters wissen"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "slpks",
+    "baths": "badks",
+    "surface": "m²",
+    "plot": "m² grond"
+  },
+  "propertyDetail": {
+    "back": "Terug naar selectie",
+    "ref": "Ref: {ref}",
+    "bedrooms": "Slaapkamers",
+    "bathrooms": "Badkamers",
+    "built": "m² Bebouwd",
+    "plot": "Grond m²",
+    "pool": "Zwembad",
+    "description": "Beschrijving",
+    "parking": "Parking",
+    "price": "Verkoopprijs",
+    "brochure": "PDF Brochure",
+    "whatsapp": "WhatsApp Contact",
+    "bookVisit": "Bezoek plannen",
+    "location": "Locatie",
+    "distanceSea": "Zee op {distance}km",
+    "propertyNotFound": "Woning niet gevonden"
+  },
+  "projectTracker": {
+    "title": "Projectopvolging",
+    "phaseLabel": "Huidige Fase:",
+    "quit": "Ruimte verlaten",
+    "documents": "Administratieve Documenten",
+    "technicalReports": "Werfverslagen",
+    "visitDate": "Bezoekdatum: {date}",
+    "statusConforme": "STATUS: CONFORM",
+    "certification": "Informatie gecertificeerd door de technische afdeling van ERA."
+  },
+  "contact": {
+    "formTitle": "Neem contact op",
+    "namePlaceholder": "VOLLEDIGE NAAM",
+    "emailPlaceholder": "EMAIL",
+    "messagePlaceholder": "DETAILS VAN UW PROJECT...",
+    "submit": "Verzoek verzenden",
+    "success": "Bericht succesvol verzonden!",
+    "error": "Fout bij verzenden."
+  },
+  "login": {
+    "title": "Klantenzone",
+    "subtitle": "Beveiligde Verificatie",
+    "pinPlaceholder": "PINCODE",
+    "connect": "Inloggen",
+    "invalidPin": "Onjuiste pincode"
+  },
+  "footer": {
+    "description": "De kunst van uitzonderlijk vastgoed. Wij slaan bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
+    "city": "Orihuela Costa, Spanje",
+    "eliteEdition": "Elite Edition v2.0"
+  }
+}

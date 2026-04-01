@@ -1,0 +1,86 @@
+{
+  "common": {
+    "back": "رجوع",
+    "backToHome": "العودة إلى الرئيسية",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما",
+    "search": "بحث",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "close": "إغلاق",
+    "showMore": "عرض المزيد من العقارات"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "results": "عقاراتنا",
+    "contact": "اتصل بنا",
+    "back": "العودة للقائمة",
+    "search": "البحث عن عقار",
+    "clientAccess": "متابعة المشروع"
+  },
+  "home": {
+    "heroTitleLine1": "فيلات فاخرة و",
+    "heroTitleLine2": "عقارات استثنائية",
+    "heroSubtitle": "كوستا بلانكا | كوستا ديل سول",
+    "findVilla": "البحث عن فيلتك",
+    "noMatch": "لم يتم العثور على نتائج",
+    "reset": "إعادة ضبط الفلاتر"
+  },
+  "propertyCard": {
+    "ref": "مرجع: {ref}",
+    "beds": "غرف",
+    "baths": "حمامات",
+    "surface": "م²",
+    "plot": "م² أرض"
+  },
+  "propertyDetail": {
+    "back": "العودة للاختيار",
+    "ref": "مرجع: {ref}",
+    "bedrooms": "غرف النوم",
+    "bathrooms": "الحمامات",
+    "built": "م² مبني",
+    "plot": "مساحة الأرض م²",
+    "pool": "مسبح",
+    "description": "الوصف",
+    "parking": "موقف سيارات",
+    "price": "سعر البيع",
+    "brochure": "كتيب PDF",
+    "whatsapp": "تواصل عبر واتساب",
+    "bookVisit": "حجز زيارة",
+    "location": "الموقع",
+    "distanceSea": "البحر على بعد {distance} كم",
+    "propertyNotFound": "العقار غير موجود"
+  },
+  "projectTracker": {
+    "title": "متابعة مشروعك",
+    "phaseLabel": "المرحلة الحالية:",
+    "quit": "خروج",
+    "documents": "الوثائق الإدارية",
+    "technicalReports": "تقارير الموقع",
+    "visitDate": "تاريخ الزيارة: {date}",
+    "statusConforme": "الحالة: مطابق",
+    "certification": "معلومات معتمدة من القسم الفني في ERA."
+  },
+  "contact": {
+    "formTitle": "اتصل بنا",
+    "namePlaceholder": "الاسم الكامل",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "messagePlaceholder": "تفاصيل مشروعك...",
+    "submit": "إرسال الطلب",
+    "success": "تم إرسال الرسالة بنجاح!",
+    "error": "خطأ أثناء الإرسال."
+  },
+  "login": {
+    "title": "منطقة العملاء",
+    "subtitle": "مصادقة آمنة",
+    "pinPlaceholder": "رمز PIN",
+    "connect": "تسجيل الدخول",
+    "invalidPin": "رمز PIN غير صحيح"
+  },
+  "footer": {
+    "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتكم وأرقى العقارات.",
+    "city": "أوريويلا كوستا، إسبانيا",
+    "eliteEdition": "Elite Edition v2.0"
+  }
+}

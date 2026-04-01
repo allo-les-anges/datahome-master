@@ -1,0 +1,86 @@
+{
+  "common": {
+    "back": "Powrót",
+    "backToHome": "Powrót do strony głównej",
+    "loading": "Ładowanie...",
+    "error": "Wystąpił błąd",
+    "search": "Szukaj",
+    "confirm": "Potwierdź",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "close": "Zamknij",
+    "showMore": "Pokaż więcej nieruchomości"
+  },
+  "nav": {
+    "home": "Strona główna",
+    "results": "Nasze oferty",
+    "contact": "Kontakt",
+    "back": "Powrót do listy",
+    "search": "Szukaj nieruchomości",
+    "clientAccess": "Śledzenie projektu"
+  },
+  "home": {
+    "heroTitleLine1": "Luksusowe Wille &",
+    "heroTitleLine2": "Wyjątkowe Posiadłości",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Znajdź swoją willę",
+    "noMatch": "Nie znaleziono dopasowań",
+    "reset": "Resetuj filtry"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "sypialnie",
+    "baths": "łazienki",
+    "surface": "m²",
+    "plot": "m² działki"
+  },
+  "propertyDetail": {
+    "back": "Powrót do wyboru",
+    "ref": "Ref: {ref}",
+    "bedrooms": "Sypialnie",
+    "bathrooms": "Łazienki",
+    "built": "m² Pow. zabudowy",
+    "plot": "Działka m²",
+    "pool": "Basen",
+    "description": "Opis",
+    "parking": "Parking",
+    "price": "Cena sprzedaży",
+    "brochure": "Broszura PDF",
+    "whatsapp": "Kontakt WhatsApp",
+    "bookVisit": "Zarezerwuj wizytę",
+    "location": "Lokalizacja",
+    "distanceSea": "Morze w odległości {distance}km",
+    "propertyNotFound": "Nie znaleziono nieruchomości"
+  },
+  "projectTracker": {
+    "title": "Śledzenie Twojego Projektu",
+    "phaseLabel": "Aktualna faza:",
+    "quit": "Wyjdź",
+    "documents": "Dokumenty administracyjne",
+    "technicalReports": "Raporty z budowy",
+    "visitDate": "Data wizyty: {date}",
+    "statusConforme": "STATUS: ZGODNY",
+    "certification": "Informacje certyfikowane przez dział techniczny ERA."
+  },
+  "contact": {
+    "formTitle": "Skontaktuj się z nami",
+    "namePlaceholder": "PEŁNE IMIĘ I NAZWISKO",
+    "emailPlaceholder": "EMAIL",
+    "messagePlaceholder": "SZCZEGÓŁY TWOJEGO PROJEKTU...",
+    "submit": "Wyślij zapytanie",
+    "success": "Wiadomość wysłana pomyślnie!",
+    "error": "Błąd podczas wysyłania."
+  },
+  "login": {
+    "title": "Panel Klienta",
+    "subtitle": "Bezpieczne uwierzytelnianie",
+    "pinPlaceholder": "KOD PIN",
+    "connect": "Zaloguj się",
+    "invalidPin": "Nieprawidłowy kod PIN"
+  },
+  "footer": {
+    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi posiadłościami.",
+    "city": "Orihuela Costa, Hiszpania",
+    "eliteEdition": "Elite Edition v2.0"
+  }
+}

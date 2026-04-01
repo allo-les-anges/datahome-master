@@ -1,0 +1,86 @@
+{
+  "common": {
+    "back": "Back",
+    "backToHome": "Back to Home",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "search": "Search",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "showMore": "Show more properties"
+  },
+  "nav": {
+    "home": "Home",
+    "results": "Our Properties",
+    "contact": "Contact",
+    "back": "Back to list",
+    "search": "Search a property",
+    "clientAccess": "Project Tracker"
+  },
+  "home": {
+    "heroTitleLine1": "Luxury Villas &",
+    "heroTitleLine2": "Exceptional Properties",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Find your villa",
+    "noMatch": "No matches found",
+    "reset": "Reset filters"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "beds",
+    "baths": "baths",
+    "surface": "sqm",
+    "plot": "sqm plot"
+  },
+  "propertyDetail": {
+    "back": "Back to selection",
+    "ref": "Ref: {ref}",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "built": "sqm Built",
+    "plot": "Plot sqm",
+    "pool": "Pool",
+    "description": "Description",
+    "parking": "Parking",
+    "price": "Sale price",
+    "brochure": "PDF Brochure",
+    "whatsapp": "WhatsApp Contact",
+    "bookVisit": "Book a visit",
+    "location": "Location",
+    "distanceSea": "{distance}km to the sea",
+    "propertyNotFound": "Property not found"
+  },
+  "projectTracker": {
+    "title": "Project Tracker",
+    "phaseLabel": "Current Phase:",
+    "quit": "Exit space",
+    "documents": "Administrative Documents",
+    "technicalReports": "Site Reports",
+    "visitDate": "Visit date: {date}",
+    "statusConforme": "STATUS: COMPLIANT",
+    "certification": "Information certified by the ERA technical department."
+  },
+  "contact": {
+    "formTitle": "Contact us",
+    "namePlaceholder": "FULL NAME",
+    "emailPlaceholder": "EMAIL",
+    "messagePlaceholder": "PROJECT DETAILS...",
+    "submit": "Send request",
+    "success": "Message sent successfully!",
+    "error": "Error during sending."
+  },
+  "login": {
+    "title": "Client Area",
+    "subtitle": "Secure Authentication",
+    "pinPlaceholder": "PIN CODE",
+    "connect": "Login",
+    "invalidPin": "Incorrect PIN code"
+  },
+  "footer": {
+    "description": "The art of exceptional real estate. We forge bridges between your ambitions and the most prestigious properties.",
+    "city": "Orihuela Costa, Spain",
+    "eliteEdition": "Elite Edition v2.0"
+  }
+}

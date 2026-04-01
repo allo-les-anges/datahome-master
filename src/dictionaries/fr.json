@@ -1,0 +1,86 @@
+{
+  "common": {
+    "back": "Retour",
+    "backToHome": "Retour à l'accueil",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "search": "Rechercher",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "showMore": "Afficher plus de biens"
+  },
+  "nav": {
+    "home": "Accueil",
+    "results": "Nos Biens",
+    "contact": "Contact",
+    "back": "Retour à la liste",
+    "search": "Rechercher un bien",
+    "clientAccess": "Suivi de Chantier"
+  },
+  "home": {
+    "heroTitleLine1": "Villas de Luxe &",
+    "heroTitleLine2": "Propriétés d'Exception",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Trouver votre villa",
+    "noMatch": "Aucune correspondance trouvée",
+    "reset": "Réinitialiser les filtres"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "lits",
+    "baths": "sdb",
+    "surface": "m²",
+    "plot": "m² terrain"
+  },
+  "propertyDetail": {
+    "back": "Retour à la sélection",
+    "ref": "Réf: {ref}",
+    "bedrooms": "Chambres",
+    "bathrooms": "Bains",
+    "built": "m² Bâti",
+    "plot": "Terrain m²",
+    "pool": "Piscine",
+    "description": "Description",
+    "parking": "Parking",
+    "price": "Prix de vente",
+    "brochure": "Brochure PDF",
+    "whatsapp": "Contact WhatsApp",
+    "bookVisit": "Réserver une visite",
+    "location": "Emplacement",
+    "distanceSea": "Mer à {distance}km",
+    "propertyNotFound": "Propriété non trouvée"
+  },
+  "projectTracker": {
+    "title": "Suivi de votre Projet",
+    "phaseLabel": "Phase Actuelle :",
+    "quit": "Quitter l'espace",
+    "documents": "Documents Administratifs",
+    "technicalReports": "Rapports de Chantier",
+    "visitDate": "Date de visite : {date}",
+    "statusConforme": "STATUT : CONFORME",
+    "certification": "Informations certifiées par le département technique ERA."
+  },
+  "contact": {
+    "formTitle": "Contactez-nous",
+    "namePlaceholder": "NOM COMPLET",
+    "emailPlaceholder": "EMAIL",
+    "messagePlaceholder": "DÉTAILS DE VOTRE PROJET...",
+    "submit": "Envoyer la demande",
+    "success": "Message envoyé avec succès !",
+    "error": "Erreur lors de l'envoi."
+  },
+  "login": {
+    "title": "Espace Client",
+    "subtitle": "Authentification Sécurisée",
+    "pinPlaceholder": "CODE PIN",
+    "connect": "Se connecter",
+    "invalidPin": "Code PIN incorrect"
+  },
+  "footer": {
+    "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
+    "city": "Orihuela Costa, Espagne",
+    "eliteEdition": "Elite Edition v2.0"
+  }
+}
