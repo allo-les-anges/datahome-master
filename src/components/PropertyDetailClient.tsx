@@ -22,6 +22,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
+  // --- COULEURS DYNAMIQUES ---
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
@@ -55,16 +56,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const whatsappNumber = (property.phone || agency?.phone || "34627768233").replace(/\D/g, '');
 
   return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-8 pb-20"> 
+    <main className={`min-h-screen relative transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
+      <div className="pt-4 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
-          <div className="mb-8">
+          {/* LIEN RETOUR UNIQUE */}
+          <div className="mb-6">
             <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold transition-opacity hover:opacity-70" style={{ color: primaryColor }}>
               <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR À LA LISTE"}
             </Link>
           </div>
 
+          {/* GALERIE IMAGES */}
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
@@ -105,6 +108,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
+          {/* INFOS ET SIDEBAR */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -127,7 +131,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ].map((item, i) => (
                   <div 
                     key={i} 
-                    className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                    className={`p-8 rounded-[2rem] border text-left transition-all ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
                   >
                     <item.icon className="mb-6" style={{ color: primaryColor }} size={24} />
                     <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
@@ -164,8 +168,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
+            {/* SIDEBAR DE CONTACT */}
             <div className="lg:col-span-1">
-              <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
+              <div className={`sticky top-32 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
                   <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
                   <p className={`text-6xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
