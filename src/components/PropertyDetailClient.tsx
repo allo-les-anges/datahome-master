@@ -3,11 +3,10 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ArrowLeft, ImageIcon
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 interface PropertyDetailClientProps {
   property: any;
@@ -22,16 +21,15 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- EXTRACTION DE LA COULEUR DYNAMIQUE (Logique alignée sur le Footer) ---
+  // --- EXTRACTION DE LA COULEUR (Sans impacter le reste du site) ---
   const primaryColor = useMemo(() => {
-    // On vérifie d'abord dans footer_config comme dans votre Footer
     const footerData = typeof agency?.footer_config === 'string' 
       ? JSON.parse(agency.footer_config) 
       : (agency?.footer_config || {});
 
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
-           footerData?.primary_color || // Fallback sur la config footer
+           footerData?.primary_color || 
            agency?.color || 
            "#D4AF37"; 
   }, [agency]);
@@ -64,7 +62,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
       
-      <div className="pt-32 pb-20"> 
+      {/* ESPACEMENT RÉDUIT (Suppression du doublon Retour) */}
+      <div className="pt-24 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
           {/* GALERIE IMAGES */}
@@ -108,7 +107,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* INFOS ET SIDEBAR */}
+          {/* CONTENU PRINCIPAL */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -145,6 +144,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
+              {/* MAPS */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>
@@ -162,12 +162,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
                     loading="lazy"
                     allowFullScreen
-                    src={`https://maps.google.com/maps?q=${property.latitude || property.town},${property.longitude || property.region}&z=14&output=embed`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.latitude || property.town)},${encodeURIComponent(property.longitude || property.region)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                   ></iframe>
                 </div>
               </div>
             </div>
 
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
