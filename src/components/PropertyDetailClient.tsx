@@ -22,7 +22,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- COULEURS DYNAMIQUES (Injection du thème) ---
+  // --- COULEURS DYNAMIQUES (Injection du thème de l'agence) ---
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
@@ -49,7 +49,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     return property[`description_${locale}`] || property.description || property.description_fr || "";
   }, [property, locale]);
 
-  // --- PRÉPARATION DES DONNÉES (Évite les erreurs de build) ---
+  // --- PRÉPARATION DES DONNÉES (Sécurité Build & Runtime) ---
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
   const whatsappNumber = (property?.phone || agency?.phone || "34627768233").replace(/\D/g, '');
@@ -62,22 +62,19 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       <div className="pt-32 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* L'UNIQUE LIEN DE RETOUR */}
-          <div className="mb-8">
-            <Link 
-              href="/" 
-              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold transition-opacity hover:opacity-70" 
-              style={{ color: primaryColor }}
-            >
-              <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR À LA LISTE"}
-            </Link>
-          </div>
+          {/* NOTE : Le bloc "mb-8" contenant le Link (Back to list) a été supprimé ici 
+              pour éviter le doublon avec la navigation globale du site.
+          */}
 
           {/* GALERIE IMAGES */}
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                <div 
+                  ref={scrollContainerRef} 
+                  onScroll={handleScroll} 
+                  className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide"
+                >
                   {images.map((img: string, idx: number) => (
                     <div 
                       key={idx} 
@@ -97,6 +94,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 </div>
               </div>
 
+              {/* Miniatures (Desktop) */}
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
                 {images.map((img: string, idx: number) => (
                   <button 
@@ -151,6 +149,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
+              {/* CARTE LOCALISATION */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>
@@ -174,6 +173,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
+            {/* SIDEBAR DE CONTACT */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
