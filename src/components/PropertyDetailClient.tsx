@@ -24,20 +24,16 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const isLight = searchParams.get('pack') === 'light';
 
   // --- EXTRACTION SÉCURISÉE DES COULEURS ---
-  // On cherche partout où la couleur pourrait être stockée dans votre base de données
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
            agency?.color || 
-           "#D4AF37"; // Or par défaut si rien n'est trouvé
+           "#D4AF37"; 
   }, [agency]);
 
   useEffect(() => {
     setMounted(true);
-    // Log pour vérifier ce que l'agence contient réellement
-    console.log("🎨 [THEME DEBUG] Agency Object:", agency);
-    console.log("🎨 [THEME DEBUG] Detected Primary Color:", primaryColor);
-  }, [agency, primaryColor]);
+  }, []);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -76,7 +72,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </button>
           </div>
 
-          {/* SECTION IMAGE : Correction de la hauteur pour éviter la disparition */}
+          {/* GALERIE IMAGES */}
           <section className="mb-16 min-h-[400px]">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
@@ -140,11 +136,31 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
 
               <div 
-                className={`text-lg leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                className={`text-lg leading-relaxed mb-16 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
                 dangerouslySetInnerHTML={{ __html: description }}
               />
+
+              {/* INTÉGRATION DE LA LOCALISATION (GOOGLE MAPS) */}
+              {property.latitude && property.longitude && (
+                <div className="mt-10">
+                   <h2 className={`text-2xl font-serif mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                     {t('propertyDetail.location') || "Localisation"}
+                   </h2>
+                   <div className="rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl">
+                    <iframe
+                      width="100%"
+                      height="400"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
+                      src={`https://maps.google.com/maps?q=${property.latitude},${property.longitude}&z=15&output=embed`}
+                    ></iframe>
+                  </div>
+                </div>
+              )}
             </div>
 
+            {/* SIDEBAR DE CONTACT */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] p-8 ${isLight ? 'bg-white border-slate-200' : 'bg-[#111] border-white/10'}`}>
                 <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">Prix</p>
