@@ -12,22 +12,30 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     async function load() {
       try {
+        console.log("📡 [FETCH] Récupération des propriétés...");
         const res = await fetch("/api/properties");
         const data = await res.json();
+        
+        // On cherche l'ID une seule fois de manière stricte
         const found = data.find((p: any) => String(p.id) === String(id));
-        setProperty(found);
+        
+        if (found) {
+          console.log("✅ [MATCH] Propriété trouvée:", found.id);
+          setProperty(found);
+        } else {
+          console.error("❌ [NOT FOUND] Aucun bien avec l'ID:", id);
+        }
       } catch (err) {
-        console.error("Erreur:", err);
+        console.error("💥 [FATAL] Erreur API:", err);
       } finally {
         setLoading(false);
       }
     }
-    load();
-  }, [id]);
+    if (id) load();
+  }, [id]); // Ne dépend QUE de l'ID, pas de la langue !
 
   if (loading) return <div className="h-screen flex items-center justify-center">Chargement...</div>;
-  if (!property) return <div>Bien introuvable.</div>;
+  if (!property) return <div className="h-screen flex items-center justify-center">Bien introuvable (ID: {id})</div>;
 
-  // C'est ici que la magie opère : on appelle le composant de 220 lignes
   return <PropertyDetailClient property={property} agency={null} />;
 }
