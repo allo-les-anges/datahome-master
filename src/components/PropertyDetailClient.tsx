@@ -29,7 +29,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   useEffect(() => {
     setMounted(true);
     
-    // LOGS DE SÉCURITÉ (Utilisation de warn pour éviter les filtres standard)
+    // LOGS DE SÉCURITÉ
     if (property) {
       console.warn("%c=== 🛡️ DATA PROPERTY DETAIL ===", "background: #D4AF37; color: black; font-weight: bold; padding: 8px;");
       console.warn("ID / Ref:", property.id || property.ref);
@@ -38,7 +38,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     } else {
       console.warn("⚠️ PropertyDetailClient: Aucune propriété reçue");
     }
-  }, [property]); // On ne dépend que de property pour éviter les boucles avec agency
+  }, [property]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -84,13 +84,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <Navbar />
+      {/* CORRECTION : On passe l'objet agency pour garder le branding */}
+      <Navbar agency={agency} />
+      
       <div className="h-24 md:h-32" />
 
       <div className="max-w-7xl mx-auto px-6 mb-8">
-        <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold">
-          <ArrowLeft size={14} /> {t('propertyDetail.back')}
-        </Link>
+        <button 
+          onClick={() => window.history.back()}
+          className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold cursor-pointer"
+        >
+          <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la liste"}
+        </button>
       </div>
 
       <section className="max-w-7xl mx-auto px-6 mb-16">
@@ -127,7 +132,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       <section className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-16 pb-24">
         <div className="lg:col-span-2">
           <h1 className={`text-4xl md:text-7xl font-serif mb-8 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            {property.titre || "Propriété d'exception"}
+            {property.titre_fr || property.titre || "Propriété d'exception"}
           </h1>
           
           <div className="flex items-center gap-3 text-slate-500 mb-8 text-[11px] uppercase tracking-[0.2em] font-bold">
@@ -147,23 +152,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               <div key={i} className={`${isLight ? 'bg-slate-50' : 'bg-white/5'} p-6 rounded-3xl text-center border ${isLight ? 'border-slate-100' : 'border-white/10'}`}>
                 <item.icon className="mx-auto mb-2 text-[#D4AF37]" size={22} />
                 <p className={`text-2xl font-serif ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                <p className="text-[8px] uppercase text-slate-400 font-bold tracking-widest">{t(`propertyDetail.${item.key}`)}</p>
+                <p className="text-[8px] uppercase text-slate-400 font-bold tracking-widest">{t(`propertyDetail.${item.key}`) || item.key}</p>
               </div>
             ))}
           </div>
 
           <div className={`max-w-none mb-20 pt-10 border-t ${isLight ? 'border-slate-100' : 'border-white/10'}`}>
-            <h2 className={`text-3xl font-serif italic mb-8 ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('propertyDetail.artOfLiving')}</h2>
+            <h2 className={`text-3xl font-serif italic mb-8 ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('propertyDetail.artOfLiving') || "L'Art de Vivre"}</h2>
             <div 
               className={`text-lg leading-relaxed opacity-90 mb-16 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-              dangerouslySetInnerHTML={{ __html: cleanDescription(property.description || "") }} 
+              dangerouslySetInnerHTML={{ __html: cleanDescription(property.description_fr || property.description || "") }} 
             />
             
             <div className="space-y-8">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]"><Navigation size={24} /></div>
                 <div>
-                  <h3 className={`text-2xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('propertyDetail.location')}</h3>
+                  <h3 className={`text-2xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('propertyDetail.location') || "Localisation"}</h3>
                   <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{town}, {region}</p>
                 </div>
               </div>
