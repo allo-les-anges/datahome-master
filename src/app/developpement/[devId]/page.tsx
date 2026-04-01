@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { 
   Bed, Bath, Maximize, ArrowLeft, Building2, 
@@ -30,13 +29,11 @@ export default function DevelopmentPage() {
     load();
   }, []);
 
-  // Fonction pour transformer le nom du projet en format URL (slug)
   const slugify = (text: string) =>
     text?.toString().toLowerCase().trim()
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
 
-  // Filtrage des unités appartenant à ce développement précis
   const devUnits = properties.filter((p) => {
     const nameInJson = slugify(p.development_name || "");
     const idInUrl = String(devId).toLowerCase();
@@ -63,11 +60,9 @@ export default function DevelopmentPage() {
 
   return (
     <main className="bg-white min-h-screen">
-      <Navbar />
+      {/* Navbar supprimée ici car elle est déjà dans layout.tsx */}
       
-      {/* HEADER DU PROGRAMME - DESIGN LUXE */}
       <section className="relative pt-48 pb-32 bg-[#0A0A0A] text-white overflow-hidden">
-        {/* Décoration de fond subtile */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -100,7 +95,6 @@ export default function DevelopmentPage() {
         </div>
       </section>
 
-      {/* SECTION PRÉSENTATION */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
           <div>
@@ -135,7 +129,6 @@ export default function DevelopmentPage() {
         </div>
       </section>
 
-      {/* GRILLE DES UNITÉS */}
       <section className="py-24 bg-slate-50 border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
@@ -159,7 +152,6 @@ export default function DevelopmentPage() {
 
                 <div className="p-10">
                   <h3 className="text-2xl font-serif italic text-slate-900 mb-4">{unit.titre}</h3>
-                  
                   <div className="flex justify-between items-end mb-8">
                     <p className="text-3xl font-serif text-slate-900">
                       {unit.price ? Number(unit.price).toLocaleString("fr-FR") : "--"} €
@@ -173,17 +165,14 @@ export default function DevelopmentPage() {
                     <div className="text-center">
                       <Bed size={20} className="mx-auto mb-2 text-slate-300" />
                       <span className="text-sm font-bold text-slate-900">{unit.beds || "0"}</span>
-                      <p className="text-[8px] uppercase font-black text-slate-400">Chambres</p>
                     </div>
                     <div className="text-center border-x border-slate-50">
                       <Bath size={20} className="mx-auto mb-2 text-slate-300" />
                       <span className="text-sm font-bold text-slate-900">{unit.baths || "0"}</span>
-                      <p className="text-[8px] uppercase font-black text-slate-400">Bains</p>
                     </div>
                     <div className="text-center">
                       <Maximize size={20} className="mx-auto mb-2 text-slate-300" />
                       <span className="text-sm font-bold text-slate-900">{unit.surface_area?.built || unit.sqft || "0"}m²</span>
-                      <p className="text-[8px] uppercase font-black text-slate-400">Surface</p>
                     </div>
                   </div>
 
