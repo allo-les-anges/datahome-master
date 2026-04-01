@@ -56,7 +56,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-24 pb-20"> {/* pt-24 réduit pour éviter le trop grand vide en haut */}
+      <div className="pt-10 pb-20"> {/* Padding réduit car la Navbar est déjà là */}
         <div className="max-w-7xl mx-auto px-6">
           
           {/* BOUTON RETOUR UNIQUE - S'affichera avec la couleur de l'agence */}

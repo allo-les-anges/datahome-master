@@ -7,13 +7,12 @@ import PropertyDetailClient from "@/components/PropertyDetailClient";
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const [property, setProperty] = useState<any>(null);
-  const [agency, setAgency] = useState<any>(null); // Ajout du state agency
+  const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        // Récupération simultanée du bien et de l'agence
         const [propRes, agencyRes] = await Promise.all([
           fetch("/api/properties"),
           fetch("/api/agency") 
@@ -26,7 +25,7 @@ export default function PropertyDetailPage() {
         
         if (found) {
           setProperty(found);
-          setAgency(agencyData); // On injecte enfin l'agence ici
+          setAgency(agencyData);
         }
       } catch (err) {
         console.error("Erreur:", err);
