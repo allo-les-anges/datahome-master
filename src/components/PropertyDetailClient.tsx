@@ -35,28 +35,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     console.log("%c2. Agence reçue :", "color: #D4AF37; font-weight: bold;", agency ? "OUI" : "NON");
     console.log("%c3. Mode Light détecté :", "color: #D4AF37; font-weight: bold;", isLight);
     
-    // Mesure de la Navbar et des éléments suspects après rendu
     setTimeout(() => {
-      const nav = document.querySelector('nav');
-      const mainHeader = document.querySelector('header');
+      const nav = document.querySelector('nav') || document.querySelector('header');
       if (nav) {
-        console.log("%c4. Navbar trouvée :", "color: #00ff00;", {
+        console.log("%c4. Dimensions Navbar :", "color: #00ff00;", {
           height: nav.offsetHeight + "px",
           position: window.getComputedStyle(nav).position,
-          top: window.getComputedStyle(nav).top
         });
-      } else if (mainHeader) {
-        console.log("%c4. Header trouvé (Navbar) :", "color: #00ff00;", mainHeader.offsetHeight + "px");
-      } else {
-        console.warn("⚠️ Aucune Navbar ou Header détecté dans le DOM.");
       }
-
-      // Vérification des marges parasites
       const mainElement = document.querySelector('main');
       if (mainElement) {
-        console.log("%c5. Style du Main :", "color: #00ff00;", {
+        console.log("%c5. Espacement Main :", "color: #00ff00;", {
           paddingTop: window.getComputedStyle(mainElement).paddingTop,
-          marginTop: window.getComputedStyle(mainElement).marginTop
         });
       }
     }, 1000);
@@ -105,26 +95,28 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      {/* 1. Navbar */}
       <Navbar agency={agency} />
       
-      {/* 2. Zone de Correction : On utilise un padding contrôlé au lieu de div vides */}
-      <div className="pt-20 md:pt-28">
+      {/* pt-0 supprime le bandeau blanc parasite. 
+          L'espace pour la Navbar est géré uniquement par la section Galerie.
+      */}
+      <div className="pt-0">
         
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* 3. Ligne de Retour UNIQUE : stylisée pour être discrète mais claire */}
-          <div className="py-6 mb-2">
-            <button 
-              onClick={() => window.history.back()}
-              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold hover:opacity-70 transition-all"
-            >
-              <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la sélection"}
-            </button>
-          </div>
+          {/* GALERIE PHOTO (C'est ici qu'on gère l'espacement sous la Navbar) */}
+          <section className="pt-32 mb-16">
+            
+            {/* Ligne de Retour unique et stylisée */}
+            <div className="mb-8">
+              <button 
+                onClick={() => window.history.back()}
+                className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold hover:opacity-70 transition-all"
+              >
+                <ArrowLeft size={14} /> {t('propertyDetail.back') || "Retour à la sélection"}
+              </button>
+            </div>
 
-          {/* GALERIE PHOTO */}
-          <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:h-[550px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-slate-100 dark:bg-[#111] h-[400px] md:h-full">
                 <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
