@@ -9,6 +9,7 @@ interface AdvancedSearchProps {
   activeFilters?: any;
   onClose?: () => void;
   isLight?: boolean;
+  agency?: any; // Ajout de la prop agency pour le branding dynamique
 }
 
 export default function AdvancedSearch({
@@ -17,8 +18,12 @@ export default function AdvancedSearch({
   activeFilters = {}, 
   onClose,
   isLight = true,
+  agency, // Récupération de l'agence
 }: AdvancedSearchProps) {
   
+  // On définit la couleur de marque (Dashboard) ou une couleur par défaut
+  const brandColor = agency?.primary_color || '#0f172a';
+
   const MIN_VAL = 0;
   const MAX_VAL = 20000000;
   const STEP = 10000;
@@ -45,17 +50,16 @@ export default function AdvancedSearch({
     }
   }, [activeFilters]);
 
-  // CORRECTION : Extraction dynamique des Régions UNIQUES
+  // Extraction dynamique des Régions UNIQUES
   const uniqueRegions = useMemo(() => {
     const safeProps = Array.isArray(properties) ? properties : [];
     const rawRegions = safeProps.map((p) => p.region);
-    // Set() élimine les doublons automatiquement
     return [...new Set(rawRegions)]
       .filter((r) => r && typeof r === 'string' && r.trim() !== "")
       .sort();
   }, [properties]);
   
-  // CORRECTION : Extraction dynamique des Types UNIQUES avec traduction
+  // Extraction dynamique des Types UNIQUES avec traduction
   const uniqueTypes = useMemo(() => {
     const translation: { [key: string]: string } = {
       villa: "Villa", 
@@ -67,7 +71,6 @@ export default function AdvancedSearch({
     const safeProps = Array.isArray(properties) ? properties : [];
     const rawTypes = safeProps.map((p) => p.type);
     
-    // On crée un Set des types en minuscule pour l'unicité
     const distinctTypes = [...new Set(rawTypes.map(t => t?.toLowerCase().trim()))]
       .filter((t) => t && t !== "property");
 
@@ -94,11 +97,45 @@ export default function AdvancedSearch({
 
   const getSliderBackground = (value: number) => {
     const percentage = ((value - MIN_VAL) / (MAX_VAL - MIN_VAL)) * 100;
-    return `linear-gradient(to right, var(--brand-primary, #0f172a) ${percentage}%, #e2e8f0 ${percentage}%)`;
+    return `linear-gradient(to right, ${brandColor} ${percentage}%, #e2e8f0 ${percentage}%)`;
   };
 
   return (
     <div className="w-full relative">
+      {/* INJECTION DYNAMIQUE DE LA COULEUR DANS LES VARIABLES CSS */}
+      <style jsx global>{`
+        :root {
+          --brand-primary: ${brandColor};
+        }
+        .text-primary { color: ${brandColor} !important; }
+        .bg-primary { background-color: ${brandColor} !important; }
+        .focus-ring-primary:focus { --tw-ring-color: ${brandColor}20; }
+        
+        .sexy-slider {
+          -webkit-appearance: none;
+          width: 100%;
+          height: 5px;
+          border-radius: 10px;
+          outline: none;
+          cursor: pointer;
+        }
+        .sexy-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 20px;
+          height: 20px;
+          background: #fff;
+          border-radius: 50%;
+          border: 2px solid ${brandColor};
+          box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+        .sexy-slider::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: #fff;
+          border-radius: 50%;
+          border: 2px solid ${brandColor};
+        }
+      `}</style>
       
       <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
         <h3 className="text-2xl md:text-3xl font-serif italic text-slate-900">Recherche</h3>
@@ -127,7 +164,7 @@ export default function AdvancedSearch({
             />
           </div>
 
-          {/* RÉGION CORRIGÉE */}
+          {/* RÉGION */}
           <div className="space-y-3">
             <label className="flex items-center gap-3 text-[9px] uppercase font-black text-slate-500">
               <Map size={14} className="text-primary" /> Région
@@ -149,7 +186,7 @@ export default function AdvancedSearch({
             </div>
           </div>
 
-          {/* TYPE CORRIGÉ */}
+          {/* TYPE */}
           <div className="space-y-3">
             <label className="flex items-center gap-3 text-[9px] uppercase font-black text-slate-500">
               <Home size={14} className="text-primary" /> Type de Bien
@@ -196,7 +233,7 @@ export default function AdvancedSearch({
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-4">
                   <label className="text-[9px] uppercase font-black tracking-wider text-slate-500">Prix Minimum</label>
-                  <span className="text-xl font-serif italic text-slate-950 whitespace-nowrap">{formatPrice(parseInt(localFilters.minPrice))}</span>
+                  <span className="text-xl font-serif italic text-slate-950 whitespace-nowrap">{formatPrice(Number(localFilters.minPrice))}</span>
                 </div>
                 <input 
                   type="range" 
@@ -205,7 +242,7 @@ export default function AdvancedSearch({
                   step={STEP}
                   value={localFilters.minPrice}
                   onChange={(e) => setLocalFilters({ ...localFilters, minPrice: e.target.value })}
-                  style={{ background: getSliderBackground(parseInt(localFilters.minPrice)) }}
+                  style={{ background: getSliderBackground(Number(localFilters.minPrice)) }}
                   className="sexy-slider"
                 />
               </div>
@@ -214,7 +251,7 @@ export default function AdvancedSearch({
                 <div className="flex justify-between items-baseline gap-4">
                   <label className="text-[9px] uppercase font-black tracking-wider text-slate-500">Prix Maximum</label>
                   <span className="text-xl font-serif italic text-slate-950 whitespace-nowrap">
-                    {parseInt(localFilters.maxPrice) >= MAX_VAL - STEP ? "Illimité" : formatPrice(parseInt(localFilters.maxPrice))}
+                    {Number(localFilters.maxPrice) >= MAX_VAL - STEP ? "Illimité" : formatPrice(Number(localFilters.maxPrice))}
                   </span>
                 </div>
                 <input 
@@ -224,7 +261,7 @@ export default function AdvancedSearch({
                   step={STEP}
                   value={localFilters.maxPrice}
                   onChange={(e) => setLocalFilters({ ...localFilters, maxPrice: e.target.value })}
-                  style={{ background: getSliderBackground(parseInt(localFilters.maxPrice)) }}
+                  style={{ background: getSliderBackground(Number(localFilters.maxPrice)) }}
                   className="sexy-slider"
                 />
               </div>
@@ -243,33 +280,6 @@ export default function AdvancedSearch({
           </button>
         </div>
       </form>
-
-      <style jsx global>{`
-        .sexy-slider {
-          -webkit-appearance: none;
-          width: 100%;
-          height: 5px;
-          border-radius: 10px;
-          outline: none;
-          cursor: pointer;
-        }
-        .sexy-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          width: 20px;
-          height: 20px;
-          background: #fff;
-          border-radius: 50%;
-          border: 2px solid var(--brand-primary, #0f172a);
-          box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-        }
-        .sexy-slider::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          background: #fff;
-          border-radius: 50%;
-          border: 2px solid var(--brand-primary, #0f172a);
-        }
-      `}</style>
     </div>
   );
 }

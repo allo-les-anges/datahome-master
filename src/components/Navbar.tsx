@@ -7,7 +7,7 @@ import { Globe, Menu, X, User } from "lucide-react";
 import { createBrowserClient } from '@supabase/ssr';
 import { useTranslation } from "@/contexts/I18nContext";
 
-// Logo SVG avec gestion de la couleur dynamique
+// Logo SVG par défaut avec gestion de la couleur dynamique
 const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
   <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
     <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
@@ -29,6 +29,9 @@ export default function Navbar({ agency }: NavbarProps) {
   const pathname = usePathname();
   const { t, locale, setLocale } = useTranslation() as any;
 
+  // Récupération de la couleur du Dashboard (doré par défaut si vide)
+  const brandColor = agency?.primary_color || "#D4AF37";
+
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
@@ -41,14 +44,12 @@ export default function Navbar({ agency }: NavbarProps) {
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => {
-      // Transition dès 20px de scroll
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fermeture du menu langue au clic extérieur
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -61,9 +62,7 @@ export default function Navbar({ agency }: NavbarProps) {
 
   if (!mounted) return null;
 
-  // Logique de couleur : 
-  // Si on n'a pas scrollé (isScrolled = false), on est sur le Hero -> Texte blanc.
-  // Si on a scrollé (isScrolled = true), on est sur le fond blanc -> Texte sombre.
+  // Logique de couleur dynamique selon le scroll
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
@@ -71,6 +70,7 @@ export default function Navbar({ agency }: NavbarProps) {
     e.preventDefault();
     if (passwordInput === "1234") {
       setIsLoginModalOpen(false);
+      setPasswordInput("");
       router.push("/admin");
     } else {
       alert("PIN incorrect");
@@ -78,9 +78,9 @@ export default function Navbar({ agency }: NavbarProps) {
   };
 
   const navLinks = [
-    { name: t('nav.home'), href: "/" },
-    { name: t('nav.solution'), href: "/solution" },
-    { name: t('nav.contact'), href: "/contact" },
+    { name: t('nav.home') || "Accueil", href: "/" },
+    { name: t('nav.solution') || "Solution", href: "/solution" },
+    { name: t('nav.contact') || "Contact", href: "/contact" },
   ];
 
   return (
@@ -90,20 +90,22 @@ export default function Navbar({ agency }: NavbarProps) {
           isScrolled ? 'h-20 border-b border-black/5 shadow-lg' : 'h-28 border-none'
         }`}
         style={{
-          backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.85)' : 'transparent',
+          backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.90)' : 'transparent',
           backdropFilter: isScrolled ? 'blur(16px)' : 'none',
           WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
         }}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
           
-          {/* LOGO */}
-          <Link href="/" className="relative z-10 block">
-            {agency?.branding_url ? (
+          {/* LOGO DYNAMIQUE */}
+          <Link href="/" className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
+            {agency?.logo_url ? (
                <img 
-                 src={agency.branding_url} 
-                 alt={agency?.agency_name} 
-                 className="h-10 md:h-12 w-auto object-contain bg-transparent block" 
+                 src={agency.logo_url} 
+                 alt={agency?.name || "Logo"} 
+                 className={`h-10 md:h-12 w-auto object-contain transition-all duration-500 ${
+                   !isScrolled ? 'brightness-0 invert' : '' 
+                 }`} 
                />
             ) : (
                <DataHomeLogo 
@@ -119,9 +121,12 @@ export default function Navbar({ agency }: NavbarProps) {
               <Link 
                 key={link.href} 
                 href={link.href} 
-                className={`text-[10px] font-black uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-all ${textColor}`}
+                style={{ color: isScrolled ? undefined : 'white' }}
+                className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
               >
-                {link.name}
+                <span className="hover:border-b-2" style={{ borderColor: brandColor }}>
+                  {link.name}
+                </span>
               </Link>
             ))}
 
@@ -129,9 +134,9 @@ export default function Navbar({ agency }: NavbarProps) {
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsLangOpen(!isLangOpen)}
-                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-all ${textColor}`}
+                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${textColor}`}
               >
-                <Globe size={14} />
+                <Globe size={14} style={{ color: brandColor }} />
                 {locale}
               </button>
               
@@ -150,10 +155,11 @@ export default function Navbar({ agency }: NavbarProps) {
               )}
             </div>
 
-            {/* BOUTON CLIENT ACCESS */}
+            {/* BOUTON CLIENT ACCESS - Couleur Dashboard */}
             <button 
               onClick={() => setIsLoginModalOpen(true)}
-              className="group relative p-3 rounded-full bg-[#D4AF37] text-black hover:scale-110 hover:bg-white transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+              style={{ backgroundColor: brandColor, boxShadow: `0 0 20px ${brandColor}4d` }}
+              className="group relative p-3 rounded-full text-black hover:scale-110 hover:bg-white transition-all duration-300"
             >
               <User size={18} />
             </button>
@@ -180,19 +186,24 @@ export default function Navbar({ agency }: NavbarProps) {
               key={link.href}
               href={link.href} 
               onClick={() => setIsMenuOpen(false)} 
-              className="text-xl font-black uppercase tracking-[0.5em] text-white hover:text-[#D4AF37] transition-colors"
+              className="text-xl font-black uppercase tracking-[0.5em] text-white hover:opacity-60 transition-colors"
             >
               {link.name}
             </Link>
           ))}
           
-          {/* Mobile Language Selection */}
           <div className="flex gap-4 mt-4">
             {['fr', 'en', 'es'].map((lang) => (
               <button 
                 key={lang} 
                 onClick={() => { setLocale(lang as any); setIsMenuOpen(false); }}
-                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 border rounded-full ${locale === lang ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'text-white border-white/20'}`}
+                style={{ 
+                  backgroundColor: locale === lang ? brandColor : 'transparent',
+                  borderColor: locale === lang ? brandColor : 'rgba(255,255,255,0.2)'
+                }}
+                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 border rounded-full ${
+                  locale === lang ? 'text-black' : 'text-white'
+                }`}
               >
                 {lang}
               </button>
@@ -204,8 +215,11 @@ export default function Navbar({ agency }: NavbarProps) {
       {/* MODAL PIN LOGIN */}
       {isLoginModalOpen && (
         <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
-           <div className="absolute inset-0" onClick={() => setIsLoginModalOpen(false)} />
-           <div className="relative p-12 max-w-md w-full border border-[#D4AF37]/20 bg-slate-900 text-white rounded-[2.5rem] shadow-2xl">
+           <div className="absolute inset-0" onClick={() => { setIsLoginModalOpen(false); setPasswordInput(""); }} />
+           <div 
+             className="relative p-12 max-w-md w-full border bg-slate-900 text-white rounded-[2.5rem] shadow-2xl"
+             style={{ borderColor: `${brandColor}33` }}
+           >
               <h3 className="text-2xl font-serif italic mb-8 text-center">{t('nav.clientAccess') || "Accès Client"}</h3>
               <form onSubmit={handleAuthSubmit} className="space-y-8">
                 <input 
@@ -213,12 +227,14 @@ export default function Navbar({ agency }: NavbarProps) {
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="PIN" 
-                  className="w-full bg-transparent border-b border-white/10 py-4 text-center text-3xl tracking-[0.5em] outline-none focus:border-[#D4AF37] transition-all text-white"
+                  className="w-full bg-transparent border-b border-white/10 py-4 text-center text-3xl tracking-[0.5em] outline-none transition-all text-white"
+                  style={{ borderBottomColor: passwordInput ? brandColor : 'rgba(255,255,255,0.1)' }}
                   autoFocus
                 />
                 <button 
                   type="submit" 
-                  className="w-full bg-[#D4AF37] text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-[0.4em] hover:bg-white transition-all transform active:scale-95"
+                  style={{ backgroundColor: brandColor }}
+                  className="w-full text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-[0.4em] hover:bg-white transition-all transform active:scale-95 shadow-lg"
                 >
                   Accéder
                 </button>

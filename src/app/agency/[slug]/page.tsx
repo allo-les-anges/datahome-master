@@ -40,11 +40,9 @@ export default function AgencyDynamicPage() {
     reference: "",
   });
 
-  // --- 1. INITIALISATION ET SÉCURITÉ ANTI-BOUCLE ---
+  // --- 1. INITIALISATION ---
   useEffect(() => {
     setMounted(true);
-    
-    // Nettoyage visuel et scroll
     const meta = document.createElement('meta');
     meta.name = "google";
     meta.content = "notranslate";
@@ -52,34 +50,17 @@ export default function AgencyDynamicPage() {
     document.body.classList.add('notranslate');
     window.scrollTo(0, 0);
 
-    // LOG DE DÉMARRAGE (Warn pour percer les filtres Chrome)
-    console.warn("🚀 Page montée avec succès pour le slug :", slug);
-
     return () => {
       document.body.classList.remove('notranslate');
     };
   }, [slug]);
 
-  // --- 2. SURVEILLANCE DE LA PROPRIÉTÉ SÉLECTIONNÉE ---
-  useEffect(() => {
-    if (selectedProperty) {
-      console.warn("%c🔎 BIEN SÉLECTIONNÉ DANS LA PAGE PARENTE", "background: #2563eb; color: white; padding: 4px; border-radius: 4px;");
-      console.warn("ID:", selectedProperty.id);
-      console.warn("Titre:", selectedProperty.titre);
-      console.warn("Données:", selectedProperty);
-    }
-  }, [selectedProperty]);
-
-  // --- 3. CHARGEMENT DES FAVORIS ---
+  // --- 2. FAVORIS ---
   useEffect(() => {
     if (typeof window !== 'undefined' && slug) {
       const saved = localStorage.getItem(`fav_${slug}`);
       if (saved) {
-        try {
-          setFavorites(JSON.parse(saved));
-        } catch (e) {
-          console.error("Erreur lecture favoris", e);
-        }
+        try { setFavorites(JSON.parse(saved)); } catch (e) { console.error(e); }
       }
     }
   }, [slug]);
@@ -92,26 +73,20 @@ export default function AgencyDynamicPage() {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // --- 4. FORMATAGE DES DONNÉES ---
+  // --- 3. FORMATAGE DES DONNÉES ---
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
       try {
-        if (Array.isArray(v.images)) {
-          imageArray = v.images;
-        } else if (typeof v.images === 'string') {
-          imageArray = JSON.parse(v.images || '[]');
-        }
-      } catch (e) {
-        imageArray = [];
-      }
-      if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
+        if (Array.isArray(v.images)) imageArray = v.images;
+        else if (typeof v.images === 'string') imageArray = JSON.parse(v.images || '[]');
+      } catch (e) { imageArray = []; }
       
-      const uniqueId = v.id || `v-${index}`;
+      if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
       return {
         ...v,
-        id: uniqueId,
+        id: v.id || `v-${index}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
         ref: String(v.id_externe || v.ref || ""), 
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
@@ -121,19 +96,13 @@ export default function AgencyDynamicPage() {
         region: v.region || v.province || "",
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
-        surface_built: v.surface_built || v.m2_construit || "0",
-        surface_plot: v.surface_plot || v.m2_terrain || "0",
-        pool: v.pool || (v.piscine ? "Oui" : "Non"),
         type: v.type || "Villa",
         images: imageArray,
-        latitude: v.latitude ? parseFloat(v.latitude) : null,
-        longitude: v.longitude ? parseFloat(v.longitude) : null,
-        adresse: v.adresse || v.address || ""
       };
     });
   }, [locale]);
 
-  // --- 5. RÉCUPÉRATION DES DONNÉES (SUPABASE) ---
+  // --- 4. RÉCUPÉRATION SUPABASE ---
   useEffect(() => {
     let isMounted = true;
     async function init() {
@@ -141,18 +110,13 @@ export default function AgencyDynamicPage() {
       setLoading(true);
       
       try {
-        console.warn("📡 Récupération des paramètres pour :", slug);
         const { data: agencyData, error: agencyError } = await supabase
           .from('agency_settings')
           .select('*')
           .eq('subdomain', slug)
           .single();
 
-        if (agencyError || !agencyData) {
-          console.error("Agence introuvable dans la base");
-          if (isMounted) setLoading(false);
-          return;
-        }
+        if (agencyError || !agencyData) return;
 
         if (isMounted) {
           setAgency(agencyData);
@@ -167,17 +131,14 @@ export default function AgencyDynamicPage() {
           .eq('agency_id', agencyData.id)
           .eq('is_excluded', false);
 
-        if (villasError) throw villasError;
-
         if (isMounted && villasData) {
           const formatted = formatVillaData(villasData);
           const sorted = formatted.sort((a, b) => a.price - b.price);
           setAllProperties(sorted);
           setFilteredProperties(sorted);
-          console.warn(`✅ ${sorted.length} propriétés chargées.`);
         }
       } catch (err) {
-        console.error("Erreur critique initialisation:", err);
+        console.error("Erreur initialisation:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -186,11 +147,8 @@ export default function AgencyDynamicPage() {
     return () => { isMounted = false; };
   }, [slug, formatVillaData, locale, setLocale, mounted]);
 
-  // --- 6. GESTION DU CLIC (Stabilisée) ---
+  // --- 5. GESTION ACTIONS ---
   const handlePropertyClick = useCallback((property: Villa) => {
-    console.warn("%c🎯 ACTION : Ouverture du détail", "color: #D4AF37; font-weight: bold;");
-    
-    // On utilise un petit délai pour assurer que l'UI réagisse proprement
     setTimeout(() => {
       setSelectedProperty(property);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -220,32 +178,26 @@ export default function AgencyDynamicPage() {
     setSelectedProperty(null);
   };
 
-  // --- RENDU ---
-
   if (!mounted || loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-white">
       <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-        Chargement de l'agence...
-      </p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement...</p>
     </div>
   );
 
   const brandColor = agency?.primary_color || '#D4AF37';
   const isLight = agency?.package_level === 'light';
-  const fontFamily = agency?.font_family || 'Inter, sans-serif';
 
   return (
     <div className="min-h-screen bg-white flex flex-col relative overflow-x-hidden notranslate" translate="no">
       <style jsx global>{`
-        :root { 
-          --brand-primary: ${brandColor}; 
-          --font-main: ${fontFamily}; 
-        }
+        :root { --brand-primary: ${brandColor}; }
         .bg-primary { background-color: var(--brand-primary) !important; }
         .text-primary { color: var(--brand-primary) !important; }
         .border-primary { border-color: var(--brand-primary) !important; }
       `}</style>
+
+      {/* --- INJECTION DE AGENCY DANS TOUS LES COMPOSANTS --- */}
 
       <div className="absolute top-0 left-0 w-full z-[100]">
         <Navbar agency={agency} />
@@ -263,12 +215,14 @@ export default function AgencyDynamicPage() {
                 <ArrowLeft size={14} /> {t('nav.back')}
               </button>
             </div>
-            
+            {/* Passage de agency au détail */}
             <PropertyDetailClient property={selectedProperty} agency={agency} />
           </div>
         ) : (
           <div className="animate-in fade-in duration-700">
+            {/* Passage de agency au Hero pour l'image et les titres Dashboard */}
             <Hero 
+              agency={agency}
               title={agency?.hero_title} 
               subtitle={agency?.agency_name} 
               backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
@@ -293,7 +247,9 @@ export default function AgencyDynamicPage() {
                   <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                 </header>
                 
+                {/* Passage de agency à la grille pour les badges de prix */}
                 <PropertyGrid 
+                  agency={agency}
                   properties={filteredProperties.slice(0, displayLimit)} 
                   isLight={isLight} 
                   activeFilters={filters}
@@ -324,6 +280,7 @@ export default function AgencyDynamicPage() {
         <Footer agency={agency} />
       </footer>
 
+      {/* RECHERCHE MODALE */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl">
           <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
@@ -332,7 +289,9 @@ export default function AgencyDynamicPage() {
               <X size={20} />
             </button>
             <div className="flex-grow overflow-y-auto custom-scrollbar p-6 md:p-12 lg:p-16">
+              {/* Passage de agency à la recherche pour la couleur du slider */}
               <AdvancedSearch 
+                agency={agency}
                 onSearch={handleSearch} 
                 isLight={isLight} 
                 properties={allProperties} 
