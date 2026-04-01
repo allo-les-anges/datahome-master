@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
-import Footer from "@/components/Footer";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle, ArrowLeft 
+  Bed, Bath, Maximize, MessageCircle 
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
@@ -22,6 +21,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
+  // --- COULEURS DYNAMIQUES ---
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
@@ -56,22 +56,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-10 pb-20"> {/* Padding réduit car la Navbar est déjà là */}
+      {/* pt-0 car la Navbar globale gère l'espace en haut */}
+      <div className="pt-0 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* BOUTON RETOUR UNIQUE - S'affichera avec la couleur de l'agence */}
-          <div className="mb-12 relative z-20">
-            <button 
-              onClick={() => window.history.back()}
-              className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold hover:opacity-70 transition-all"
-              style={{ color: primaryColor }}
-            >
-              <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR À LA SÉLECTION"}
-            </button>
-          </div>
-
           {/* GALERIE IMAGES */}
-          <section className="mb-16 min-h-[400px]">
+          <section className="mb-16 min-h-[400px] pt-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
                 <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
@@ -109,7 +99,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* CONTENU ET SIDEBAR */}
+          {/* INFOS ET SIDEBAR */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-4xl md:text-7xl font-serif mb-8 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -138,22 +128,19 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* LOCALISATION - SANS OVERLAY NOIR OBSTRUANT */}
+              {/* LOCALISATION - CARTE VISIBLE SANS OVERLAY */}
               {property.latitude && property.longitude && (
                 <div className="mt-10">
                   <h2 className={`text-2xl font-serif mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     Localisation
                   </h2>
                   <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl group">
-                    {/* L'overlay est maintenant invisible au repos pour voir la carte */}
-                    <div className="absolute inset-0 bg-black/0 pointer-events-none z-10 group-hover:bg-black/10 transition-all duration-700" />
-                    
                     <iframe
                       width="100%"
                       height="400"
                       style={{ 
                         border: 0,
-                        filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" // Look luxe en mode sombre
+                        filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)"
                       }}
                       loading="lazy"
                       allowFullScreen
@@ -164,7 +151,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               )}
             </div>
 
-            {/* SIDEBAR */}
+            {/* SIDEBAR DE CONTACT */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] p-8 ${isLight ? 'bg-white border-slate-200' : 'bg-[#111] border-white/10'}`}>
                 <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">Prix</p>
@@ -192,7 +179,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           </section>
         </div>
       </div>
-      <Footer agency={agency} />
+      {/* Le Footer est géré par layout.tsx, donc supprimé d'ici */}
     </main>
   );
 }
