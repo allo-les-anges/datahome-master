@@ -40,7 +40,7 @@ export default function AgencyDynamicPage() {
     reference: "",
   });
 
-  // --- 1. INITIALISATION & SEO ---
+  // --- 1. INITIALISATION ---
   useEffect(() => {
     setMounted(true);
     const meta = document.createElement('meta');
@@ -73,7 +73,7 @@ export default function AgencyDynamicPage() {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // --- 3. FORMATAGE DES DONNÉES (Indispensable pour PropertyGrid) ---
+  // --- 3. FORMATAGE DES DONNÉES ---
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -102,11 +102,13 @@ export default function AgencyDynamicPage() {
     });
   }, [locale]);
 
-  // --- 4. RÉCUPÉRATION SUPABASE (Correction du chargement) ---
+  // --- 4. RÉCUPÉRATION SUPABASE (AVEC LOGS) ---
   useEffect(() => {
     let isMounted = true;
     async function init() {
       if (!slug || !mounted) return;
+      
+      console.log("🚀 [DEBUG] Chargement pour le slug:", slug);
       setLoading(true);
       
       try {
@@ -118,10 +120,12 @@ export default function AgencyDynamicPage() {
           .single();
 
         if (agencyError || !agencyData) {
-            console.error("Agence introuvable");
-            setLoading(false);
+            console.error("❌ [DEBUG] Agence introuvable ou erreur:", agencyError);
+            if (isMounted) setLoading(false);
             return;
         }
+
+        console.log("✅ [DEBUG] Agence chargée:", agencyData.agency_name, "ID:", agencyData.id);
 
         if (isMounted) {
           setAgency(agencyData);
@@ -130,21 +134,28 @@ export default function AgencyDynamicPage() {
           }
         }
 
-        // B. Récupérer les biens de cette agence spécifiquement
+        // B. Récupérer les biens de cette agence
+        console.log("📡 [DEBUG] Récupération des villas pour agency_id:", agencyData.id);
         const { data: villasData, error: villasError } = await supabase
           .from('villas')
           .select('*')
           .eq('agency_id', agencyData.id)
           .eq('is_excluded', false);
 
+        if (villasError) {
+          console.error("❌ [DEBUG] Erreur lors de la récupération des villas:", villasError);
+        }
+
         if (isMounted && villasData) {
+          console.log("📦 [DEBUG] Nombre de villas brutes reçues:", villasData.length);
           const formatted = formatVillaData(villasData);
-          const sorted = formatted.sort((a, b) => b.price - a.price); // Tri par prix décroissant
+          const sorted = formatted.sort((a, b) => b.price - a.price); 
           setAllProperties(sorted);
           setFilteredProperties(sorted);
+          console.log("✨ [DEBUG] Villas formatées et prêtes.");
         }
       } catch (err) {
-        console.error("Erreur initialisation page:", err);
+        console.error("🔥 [DEBUG] Erreur fatale:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -187,7 +198,7 @@ export default function AgencyDynamicPage() {
   if (!mounted || loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-white">
       <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement de votre univers...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Connexion à la base de données...</p>
     </div>
   );
 
