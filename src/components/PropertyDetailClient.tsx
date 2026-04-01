@@ -21,16 +21,32 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
+  // --- LOGIQUE D'EXTRACTION ULTRA-ROBUSTE ---
   const primaryColor = useMemo(() => {
-    const footerData = typeof agency?.footer_config === 'string' 
-      ? JSON.parse(agency.footer_config) 
-      : (agency?.footer_config || {});
+    // 1. Debug: On regarde ce qu'on reçoit vraiment
+    console.log("DEBUG AGENCY OBJECT:", agency);
 
-    return agency?.theme?.primary || 
-           agency?.colors?.primary || 
-           footerData?.primary_color || 
-           agency?.color || 
-           "#D4AF37"; 
+    // 2. On tente de parser le footer_config
+    let footerColor = null;
+    try {
+      const footerData = typeof agency?.footer_config === 'string' 
+        ? JSON.parse(agency.footer_config) 
+        : (agency?.footer_config || {});
+      footerColor = footerData?.primary_color;
+    } catch (e) {
+      console.error("Erreur de parsing footer_config", e);
+    }
+
+    // 3. Hiérarchie de récupération (on ajoute agency_color qui est souvent utilisé)
+    const color = agency?.theme?.primary || 
+                  agency?.colors?.primary || 
+                  footerColor || 
+                  agency?.agency_color || 
+                  agency?.color || 
+                  "#D4AF37"; // Or par défaut
+    
+    console.log("COULEUR APPLIQUÉE:", color);
+    return color;
   }, [agency]);
 
   useEffect(() => {
@@ -63,7 +79,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       <div className="pt-24 pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* GALERIE IMAGES */}
           <section className="mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
@@ -102,7 +117,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* CONTENU PRINCIPAL */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -162,7 +176,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
