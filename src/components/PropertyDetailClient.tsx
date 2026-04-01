@@ -22,7 +22,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isLight = searchParams.get('pack') === 'light';
 
-  // --- EXTRACTION DYNAMIQUE DES COULEURS ---
   const primaryColor = useMemo(() => {
     return agency?.theme?.primary || 
            agency?.colors?.primary || 
@@ -57,10 +56,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   return (
     <main className={`min-h-screen relative z-10 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-32 pb-20">
+      <div className="pt-24 pb-20"> {/* pt-24 réduit pour éviter le trop grand vide en haut */}
         <div className="max-w-7xl mx-auto px-6">
           
-          {/* BOUTON RETOUR UNIQUE */}
+          {/* BOUTON RETOUR UNIQUE - S'affichera avec la couleur de l'agence */}
           <div className="mb-12 relative z-20">
             <button 
               onClick={() => window.history.back()}
@@ -110,7 +109,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* INFOS ET SIDEBAR */}
+          {/* CONTENU ET SIDEBAR */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-4xl md:text-7xl font-serif mb-8 leading-[1.1] ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -139,30 +138,33 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* LOCALISATION AVEC OVERLAY SUBTIL */}
+              {/* LOCALISATION - SANS OVERLAY NOIR OBSTRUANT */}
               {property.latitude && property.longitude && (
                 <div className="mt-10">
                   <h2 className={`text-2xl font-serif mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     Localisation
                   </h2>
                   <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl group">
-                    {/* Overlay : bg-black/10 (très léger) pour garder la visibilité totale de la carte */}
-                    <div className="absolute inset-0 bg-black/10 pointer-events-none z-10 group-hover:bg-transparent transition-all duration-700" />
+                    {/* L'overlay est maintenant invisible au repos pour voir la carte */}
+                    <div className="absolute inset-0 bg-black/0 pointer-events-none z-10 group-hover:bg-black/10 transition-all duration-700" />
                     
                     <iframe
                       width="100%"
                       height="400"
-                      style={{ border: 0 }}
+                      style={{ 
+                        border: 0,
+                        filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" // Look luxe en mode sombre
+                      }}
                       loading="lazy"
                       allowFullScreen
-                      src={`http://googleusercontent.com/maps.google.com/maps?q=${property.latitude},${property.longitude}&z=10&output=embed`}
+                      src={`https://maps.google.com/maps?q=${property.latitude},${property.longitude}&z=14&output=embed`}
                     ></iframe>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* SIDEBAR DE CONTACT */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className={`sticky top-40 border rounded-[3rem] p-8 ${isLight ? 'bg-white border-slate-200' : 'bg-[#111] border-white/10'}`}>
                 <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">Prix</p>
