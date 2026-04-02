@@ -654,70 +654,58 @@ export default function AgencyDashboard() {
   // ============================================================
   // HANDLE SAVE - VERSION DÉFINITIVE AVEC CORRECTION JSONB
   // ============================================================
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAgency) {
-      console.error("❌ Aucune agence sélectionnée");
-      return;
+ const handleSave = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!selectedAgency) return;
+  setIsSaving(true);
+
+  try {
+    // Nettoyage profond pour éviter les Proxy React
+    const teamToSave = JSON.parse(JSON.stringify(team));
+    
+    // On prépare l'objet complet
+    const payload = {
+      agency_name: selectedAgency.agency_name,
+      subdomain: selectedAgency.subdomain,
+      primary_color: selectedAgency.primary_color,
+      button_color: selectedAgency.button_color,
+      font_family: selectedAgency.font_family,
+      hero_title: selectedAgency.hero_title,
+      hero_url: selectedAgency.hero_url,
+      about_title: selectedAgency.about_title,
+      about_text: selectedAgency.about_text,
+      whatsapp_number: selectedAgency.whatsapp_number,
+      footer_config: selectedAgency.footer_config,
+      team_data: teamToSave, // La colonne qui pose problème
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log("Envoi à Supabase pour l'ID:", selectedAgency.id);
+
+    const { data, error } = await supabase
+      .from('agency_settings')
+      .update(payload)
+      .eq('id', selectedAgency.id)
+      .select(); // Force Supabase à renvoyer la ligne après modification
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      console.log("✅ RÉUSSITE ! Retour base de données :", data[0].team_data);
+      setMessage({ type: 'success', text: "Modifications enregistrées !" });
+    } else {
+      console.warn("⚠️ Aucune erreur mais aucune ligne modifiée. Vérifiez l'ID de l'agence.");
     }
-    setIsSaving(true);
 
-    try {
-      // 1. On s'assure que 'team' est un tableau propre (Nettoyage JSON)
-      const teamDataToSave = Array.isArray(team) ? JSON.parse(JSON.stringify(team)) : [];
-      
-      console.log("ID de l'agence cible :", selectedAgency.id);
-      console.log("Contenu envoyé à team_data :", teamDataToSave);
-
-      // 2. L'appel Supabase avec .select() pour vérifier le retour immédiat
-      const { data, error, status } = await supabase
-        .from('agency_settings')
-        .update({
-          agency_name: selectedAgency.agency_name,
-          subdomain: selectedAgency.subdomain,
-          primary_color: selectedAgency.primary_color,
-          button_color: selectedAgency.button_color,
-          font_family: selectedAgency.font_family,
-          hero_title: selectedAgency.hero_title,
-          hero_url: selectedAgency.hero_url,
-          logo_url: selectedAgency.logo_url,
-          about_title: selectedAgency.about_title,
-          about_text: selectedAgency.about_text,
-          whatsapp_number: selectedAgency.whatsapp_number,
-          footer_config: selectedAgency.footer_config,
-          team_data: teamDataToSave, 
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedAgency.id)
-        .select();
-
-      if (error) {
-        console.error("❌ ERREUR API SUPABASE :", error.message);
-        throw error;
-      }
-
-      // 3. ANALYSE DU RÉSULTAT
-      if (data && data.length > 0) {
-        console.log("✅ RÉUSSITE ! Données enregistrées par Supabase :", data[0].team_data);
-        setMessage({ type: 'success', text: t.success_save });
-        
-        // On met à jour la liste locale avec la donnée fraîche
-        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
-        setSelectedAgency(data[0]);
-        setTeam(data[0].team_data || []);
-      } else {
-        console.warn(`⚠️ Supabase dit OK (Status: ${status}) mais aucune ligne n'a été trouvée avec l'ID ${selectedAgency.id}`);
-        setMessage({ type: 'error', text: "L'agence n'a pas pu être trouvée en base." });
-      }
-
-    } catch (err: any) {
-      console.error("❌ ERREUR CRITIQUE :", err.message);
-      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setMessage(null), 3000);
-    }
-  };
+  } catch (err: any) {
+    console.error("❌ ERREUR :");
+    console.dir(err); // Affiche l'objet d'erreur complet
+    setMessage({ type: 'error', text: "Erreur : " + err.message });
+  } finally {
+    setIsSaving(false);
+    setTimeout(() => setMessage(null), 3000);
+  }
+};
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};
