@@ -471,6 +471,9 @@ export default function AgencyDashboard() {
         
         if (error) throw error;
         
+        console.log("🔵 DONNÉES CHARGÉES DEPUIS SUPABASE:", data);
+        console.log("🔵 team_data de la première agence:", data?.[0]?.team_data);
+
         setAgencies(data || []);
         if (data && data.length > 0 && !selectedAgency) {
           setSelectedAgency(data[0]);
