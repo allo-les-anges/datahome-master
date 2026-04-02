@@ -495,27 +495,37 @@ export default function AgencyDashboard() {
   }, [selectedAgency]);
 
   // ============================================================
-  // FONCTIONS MANQUANTES AJOUTÉES - CORRECTION DE L'ERREUR DE BUILD
+  // FONCTIONS ROBUSTES POUR LE BUILD VERCEL
+  // Gestion des cas où footer_config pourrait être une chaîne JSON
   // ============================================================
   
   /**
    * Met à jour un champ imbriqué dans footer_config
-   * Utilisé pour les intégrations (Zoho, Taskade) et les réseaux sociaux
+   * Version robuste qui gère les chaînes JSON et les objets
    */
   const updateNestedConfig = (section: string, field: string, value: any) => {
     if (!selectedAgency) return;
-
+    
     setSelectedAgency((prev: any) => {
-      // On récupère la configuration actuelle ou un objet vide si null
-      const currentFooterConfig = prev.footer_config || {};
+      // On s'assure que footer_config est un objet utilisable
+      let currentConfig: any = {};
       
-      // On récupère la section spécifique (ex: 'integrations' ou 'socials')
-      const currentSection = currentFooterConfig[section] || {};
+      if (typeof prev.footer_config === 'string') {
+        try {
+          currentConfig = JSON.parse(prev.footer_config);
+        } catch (e) {
+          currentConfig = {};
+        }
+      } else {
+        currentConfig = prev.footer_config || {};
+      }
+
+      const currentSection = currentConfig[section] || {};
 
       return {
         ...prev,
         footer_config: {
-          ...currentFooterConfig,
+          ...currentConfig,
           [section]: {
             ...currentSection,
             [field]: value
@@ -527,18 +537,28 @@ export default function AgencyDashboard() {
 
   /**
    * Met à jour un champ à la racine de footer_config
-   * Utilisé pour email, phone, etc.
+   * Version robuste qui gère les chaînes JSON et les objets
    */
   const updateRootConfig = (field: string, value: any) => {
     if (!selectedAgency) return;
-
+    
     setSelectedAgency((prev: any) => {
-      const currentFooterConfig = prev.footer_config || {};
+      let currentConfig: any = {};
+      
+      if (typeof prev.footer_config === 'string') {
+        try {
+          currentConfig = JSON.parse(prev.footer_config);
+        } catch (e) {
+          currentConfig = {};
+        }
+      } else {
+        currentConfig = prev.footer_config || {};
+      }
       
       return {
         ...prev,
         footer_config: {
-          ...currentFooterConfig,
+          ...currentConfig,
           [field]: value
         }
       };
