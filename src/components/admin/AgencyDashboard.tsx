@@ -627,7 +627,7 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - VERSION ROBUSTE AVEC FORCE DE L'ÉTAT TEAM
+  // HANDLE SAVE - AVEC CONSOLE.LOG POUR DEBUG
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -636,13 +636,16 @@ export default function AgencyDashboard() {
 
     try {
       // 1. On prépare les données de l'équipe (on s'assure que c'est un tableau propre)
-      // 'team' est l'état local [team, setTeam] de votre dashboard
       const teamDataToSave = Array.isArray(team) ? team : [];
 
       // 2. On prépare le footer_config (on s'assure que c'est un objet JSON)
       const footerConfigToSave = typeof selectedAgency.footer_config === 'string' 
         ? JSON.parse(selectedAgency.footer_config) 
         : (selectedAgency.footer_config || {});
+
+      // AJOUT DU CONSOLE.LOG POUR DEBUG
+      console.log("Données envoyées :", teamDataToSave);
+      console.log("Nombre de membres dans l'équipe :", teamDataToSave.length);
 
       const { error } = await supabase
         .from('agency_settings')
@@ -662,8 +665,7 @@ export default function AgencyDashboard() {
           about_title: selectedAgency.about_title,
           about_text: selectedAgency.about_text,
           footer_config: footerConfigToSave,
-          // FORCE L'ENREGISTREMENT ICI
-          team_data: teamDataToSave, 
+          team_data: teamDataToSave,
           updated_at: new Date().toISOString(),
         })
         .eq('id', selectedAgency.id);
