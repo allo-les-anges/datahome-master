@@ -471,6 +471,7 @@ export default function AgencyDashboard() {
         
         console.log("🔵 CHARGEMENT - Données de Supabase:", data);
         console.log("🔵 CHARGEMENT - team_data de l'agence:", data?.[0]?.team_data);
+        console.log("🔍 IDs des agences chargées:", data?.map(a => ({ id: a.id, name: a.agency_name })));
         
         setAgencies(data || []);
         if (data && data.length > 0 && !selectedAgency) {
@@ -642,10 +643,9 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - VERSION CORRIGÉE
+  // HANDLE SAVE - VERSION CORRIGÉE AVEC LOGS ID
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
-    // BLOQUE TOUTE REDIRECTION OU RAFRAICHISSEMENT AUTO
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -659,10 +659,12 @@ export default function AgencyDashboard() {
     setIsSaving(true);
 
     try {
-      // SYNC STRICTE : On prend l'état 'team' actuel
       const teamDataToSave = JSON.parse(JSON.stringify(team));
 
       console.log("✅ team_data à sauvegarder:", teamDataToSave);
+      console.log("🔍 ID recherché dans Supabase:", selectedAgency.id);
+      console.log("🔍 Type de l'ID:", typeof selectedAgency.id);
+      console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
 
       const { data, error, status } = await supabase
         .from('agency_settings')
@@ -689,7 +691,6 @@ export default function AgencyDashboard() {
         .eq('id', selectedAgency.id)
         .select();
 
-      // LOGS APRÈS L'APPEL
       console.log("📊 RÉPONSE SUPABASE - status:", status);
       console.log("📊 RÉPONSE SUPABASE - error:", error);
       console.log("📊 RÉPONSE SUPABASE - data:", data);
@@ -703,14 +704,12 @@ export default function AgencyDashboard() {
         console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
         setMessage({ type: 'success', text: t.success_save });
         
-        // On met à jour l'état pour que le prochain F5 affiche les données
         setSelectedAgency(data[0]);
         setTeam(data[0].team_data || []);
-        
-        // Mettre à jour la liste des agences
         setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
       } else {
-        console.warn("⚠️ Aucune donnée retournée par Supabase");
+        console.warn("⚠️ Aucune donnée retournée par Supabase - L'ID n'existe peut-être pas");
+        setMessage({ type: 'error', text: "Erreur: Agence non trouvée en base" });
       }
     } catch (err: any) {
       console.error("❌ ERREUR:", err.message);
