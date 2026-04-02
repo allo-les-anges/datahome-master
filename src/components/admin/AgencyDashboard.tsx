@@ -556,7 +556,7 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // FONCTION TOGGLE XML SOURCE (AJOUTÉE)
+  // FONCTION TOGGLE XML SOURCE
   // ============================================================
   const toggleXmlSource = (url: string) => {
     if (!selectedAgency) return;
@@ -565,7 +565,6 @@ export default function AgencyDashboard() {
       const currentFooterConfig = prev.footer_config || {};
       const currentXmlUrls = currentFooterConfig.xml_urls || [];
 
-      // Si l'URL est déjà présente, on l'enlève, sinon on l'ajoute
       const newXmlUrls = currentXmlUrls.includes(url)
         ? currentXmlUrls.filter((u: string) => u !== url)
         : [...currentXmlUrls, url];
@@ -652,67 +651,80 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - VERSION DÉFINITIVE AVEC CORRECTION JSONB
+  // HANDLE SAVE - VERSION CORRIGÉE AVEC SYNC COMPLÈTE
   // ============================================================
- const handleSave = async (e: React.FormEvent) => {
-  // 1. Empêcher le comportement par défaut du formulaire et la propagation
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
+  const handleSave = async (e: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
-  if (!selectedAgency || !selectedAgency.id) {
-    console.error("❌ ID manquant");
-    return;
-  }
+    if (!selectedAgency || !selectedAgency.id) {
+      console.error("❌ ID manquant");
+      return;
+    }
 
-  setIsSaving(true);
-  console.log("🚀 Début de sauvegarde pour l'ID :", selectedAgency.id);
+    setIsSaving(true);
+    console.log("🚀 Début de sauvegarde pour l'ID :", selectedAgency.id);
+    console.log("📋 État team avant sauvegarde :", team);
 
-  try {
-    // Nettoyage des données
-    const teamDataToSave = JSON.parse(JSON.stringify(team));
-
-    // Exécution de la mise à jour
-    const { data, error } = await supabase
-      .from('agency_settings')
-      .update({
+    try {
+      // IMPORTANT: On crée un objet de mise à jour avec les données actuelles
+      const updateData = {
         agency_name: selectedAgency.agency_name,
         subdomain: selectedAgency.subdomain,
         primary_color: selectedAgency.primary_color,
         button_color: selectedAgency.button_color,
         font_family: selectedAgency.font_family,
         hero_title: selectedAgency.hero_title,
+        hero_type: selectedAgency.hero_type,
         hero_url: selectedAgency.hero_url,
+        logo_url: selectedAgency.logo_url,
+        default_lang: selectedAgency.default_lang,
+        cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+        privacy_policy: selectedAgency.privacy_policy,
         about_title: selectedAgency.about_title,
         about_text: selectedAgency.about_text,
         whatsapp_number: selectedAgency.whatsapp_number,
         footer_config: selectedAgency.footer_config,
-        team_data: teamDataToSave, // Enregistrement des agents
+        // CRUCIAL: On prend l'état team actuel, pas celui dans selectedAgency
+        team_data: JSON.parse(JSON.stringify(team)),
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', selectedAgency.id)
-      .select();
+      };
 
-    if (error) throw error;
+      console.log("📤 Données team_data envoyées à Supabase:", updateData.team_data);
 
-    if (data && data.length > 0) {
-      console.log("✅ RÉUSSITE SUPABASE :", data[0].team_data);
-      setMessage({ type: 'success', text: "Enregistré avec succès !" });
-      
-      // Mise à jour de l'état local SANS redirection
-      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+      const { data, error } = await supabase
+        .from('agency_settings')
+        .update(updateData)
+        .eq('id', selectedAgency.id)
+        .select();
+
+      if (error) {
+        console.error("❌ ERREUR SUPABASE:", error);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        console.log("✅ RÉUSSITE ! team_data sauvegardé:", data[0].team_data);
+        setMessage({ type: 'success', text: t.success_save });
+        
+        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+        setSelectedAgency(data[0]);
+        setTeam(data[0].team_data || []);
+      } else {
+        console.warn("⚠️ Aucune donnée retournée par Supabase");
+        setMessage({ type: 'error', text: "Erreur: Aucune donnée retournée" });
+      }
+
+    } catch (err: any) {
+      console.error("❌ ERREUR CRITIQUE:", err);
+      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setMessage(null), 3000);
     }
-
-  } catch (err: any) {
-    console.error("❌ ERREUR LORS DE LA SAUVEGARDE :", err.message);
-    setMessage({ type: 'error', text: "Erreur : " + err.message });
-  } finally {
-    setIsSaving(false);
-    // On ne redirige PAS ici pour laisser l'utilisateur voir le succès
-    setTimeout(() => setMessage(null), 3000);
-  }
-};
+  };
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};
@@ -1074,6 +1086,11 @@ export default function AgencyDashboard() {
                     >
                       <UserPlus size={14} /> {t.buttons.add_member}
                     </button>
+                  </div>
+
+                  {/* DEBUG: Affichage du nombre de membres */}
+                  <div className="text-xs text-slate-400 mb-2">
+                    Debug: Team length = {team.length}
                   </div>
 
                   {team.length === 0 ? (
