@@ -655,26 +655,26 @@ export default function AgencyDashboard() {
   // HANDLE SAVE - VERSION DÉFINITIVE AVEC CORRECTION JSONB
   // ============================================================
  const handleSave = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  // 1. Vérification de l'existence de l'agence sélectionnée
+  // 1. Empêcher le comportement par défaut du formulaire et la propagation
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   if (!selectedAgency || !selectedAgency.id) {
-    console.error("❌ Erreur : Aucune agence sélectionnée ou ID manquant");
-    setMessage({ type: 'error', text: "Erreur : ID de l'agence introuvable." });
+    console.error("❌ ID manquant");
     return;
   }
 
   setIsSaving(true);
+  console.log("🚀 Début de sauvegarde pour l'ID :", selectedAgency.id);
 
   try {
-    // 2. Nettoyage profond du tableau team pour éviter les proxies React
+    // Nettoyage des données
     const teamDataToSave = JSON.parse(JSON.stringify(team));
 
-    console.log("Cible de l'ID :", selectedAgency.id);
-    console.log("Données envoyées vers team_data :", teamDataToSave);
-
-    // 3. Mise à jour Supabase
-    const { data, error, status } = await supabase
+    // Exécution de la mise à jour
+    const { data, error } = await supabase
       .from('agency_settings')
       .update({
         agency_name: selectedAgency.agency_name,
@@ -684,41 +684,32 @@ export default function AgencyDashboard() {
         font_family: selectedAgency.font_family,
         hero_title: selectedAgency.hero_title,
         hero_url: selectedAgency.hero_url,
-        logo_url: selectedAgency.logo_url,
         about_title: selectedAgency.about_title,
         about_text: selectedAgency.about_text,
         whatsapp_number: selectedAgency.whatsapp_number,
         footer_config: selectedAgency.footer_config,
-        // Écriture forcée du JSONB
-        team_data: teamDataToSave, 
+        team_data: teamDataToSave, // Enregistrement des agents
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id)
-      .select(); // On force le retour pour voir ce qui a été écrit
+      .select();
 
-    if (error) {
-      console.error("❌ ERREUR SUPABASE :", error.message);
-      throw error;
-    }
+    if (error) throw error;
 
-    // 4. Analyse du retour de la base
     if (data && data.length > 0) {
-      console.log("✅ SUCCÈS : Données confirmées en base :", data[0].team_data);
-      setMessage({ type: 'success', text: "Configuration enregistrée !" });
+      console.log("✅ RÉUSSITE SUPABASE :", data[0].team_data);
+      setMessage({ type: 'success', text: "Enregistré avec succès !" });
       
-      // Mise à jour de la liste locale pour synchroniser l'affichage
+      // Mise à jour de l'état local SANS redirection
       setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
-    } else {
-      // Cas critique : status 200 mais data vide = l'ID n'existe pas dans la table
-      console.warn(`⚠️ Attention : Supabase n'a trouvé aucune ligne avec l'ID ${selectedAgency.id}`);
-      setMessage({ type: 'error', text: "Échec : L'agence n'existe pas en base de données." });
     }
 
   } catch (err: any) {
-    console.error("❌ ERREUR CRITIQUE :", err.message);
+    console.error("❌ ERREUR LORS DE LA SAUVEGARDE :", err.message);
     setMessage({ type: 'error', text: "Erreur : " + err.message });
   } finally {
     setIsSaving(false);
+    // On ne redirige PAS ici pour laisser l'utilisateur voir le succès
     setTimeout(() => setMessage(null), 3000);
   }
 };
