@@ -635,13 +635,12 @@ export default function AgencyDashboard() {
   setIsSaving(true);
 
   try {
-    // NETTOYAGE ABSOLU DES DONNÉES
-    // On recrée un tableau d'objets purs pour éviter tout conflit JSONB
-    const teamDataToSave = Array.isArray(team) 
-      ? JSON.parse(JSON.stringify(team)) 
-      : [];
+    // 1. NETTOYAGE RADICAL DU JSON
+    // On force la conversion en texte puis le retour en objet pour supprimer tout résidu React/Proxy
+    const cleanTeamData = JSON.parse(JSON.stringify(team));
+    const cleanFooterConfig = JSON.parse(JSON.stringify(selectedAgency.footer_config || {}));
 
-    console.log("🚀 Tentative d'envoi à Supabase...", teamDataToSave);
+    console.log("🚀 ENVOI FINAL VERS SUPABASE :", cleanTeamData);
 
     const { data, error } = await supabase
       .from('agency_settings')
@@ -656,33 +655,30 @@ export default function AgencyDashboard() {
         about_title: selectedAgency.about_title,
         about_text: selectedAgency.about_text,
         whatsapp_number: selectedAgency.whatsapp_number,
-        footer_config: selectedAgency.footer_config,
-        // On force l'envoi ici
-        team_data: teamDataToSave, 
+        footer_config: cleanFooterConfig,
+        // ÉCRITURE DE LA COLONNE CIBLE
+        team_data: cleanTeamData, 
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id)
-      .select(); // Très important pour confirmer l'écriture
+      .select();
 
     if (error) {
-      // Ce log va nous dire EXACTEMENT pourquoi Supabase refuse (ex: colonne inexistante, RLS, type invalide)
-      console.error("❌ ERREUR SUPABASE DÉTAILLÉE:", error);
+      console.error("❌ ERREUR SUPABASE :", error.message, error.details, error.hint);
       throw error;
     }
 
     if (data && data.length > 0) {
-      console.log("✅ CONFIRMATION SUPABASE:", data[0].team_data);
-      setMessage({ type: 'success', text: "Enregistré avec succès dans la base !" });
-    } else {
-      console.warn("⚠️ Aucune donnée retournée (Vérifiez l'ID de l'agence)");
+      console.log("✅ RÉUSSITE ! Données en base :", data[0].team_data);
+      setMessage({ type: 'success', text: "Modifications enregistrées !" });
     }
 
-    // Rafraîchir l'affichage local
-    const { data: refreshed } = await supabase.from('agency_settings').select('*').order('agency_name');
-    if (refreshed) setAgencies(refreshed);
+    // Rafraîchissement des données locales
+    const { data: refresh } = await supabase.from('agency_settings').select('*').order('agency_name');
+    if (refresh) setAgencies(refresh);
 
   } catch (err: any) {
-    console.error("Erreur critique:", err.message);
+    console.error("❌ ERREUR CRITIQUE :", err.message);
     setMessage({ type: 'error', text: "Erreur : " + err.message });
   } finally {
     setIsSaving(false);
