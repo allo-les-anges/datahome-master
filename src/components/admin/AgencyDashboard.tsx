@@ -29,7 +29,8 @@ const translations = {
       branding: "Identité Visuelle & Couleurs",
       hero: "Configuration du Hero Header",
       preview: "Aperçu en temps réel",
-      legal: "Conformité & Légal"
+      legal: "Conformité & Légal",
+      about: "Pages Statiques (About)"
     },
     fields: {
       allowed_langs: "Langues autorisées sur le site",
@@ -53,13 +54,15 @@ const translations = {
       email: "Email de contact",
       phone: "Téléphone Fixe",
       whatsapp: "Numéro WhatsApp (GSM)",
-      about_title: "Titre de la page À Propos",
-      about_text: "Texte de la page À Propos",
+      about_title: "Titre Page À Propos",
+      about_text: "Contenu Page À Propos",
       privacy_policy: "Politique de confidentialité"
     },
     placeholders: {
       slug: "nom-de-lagence",
       hero_text: "Découvrez nos biens d'exception...",
+      about_title: "L'art de vivre l'exceptionnel...",
+      about_text: "Décrivez votre agence...",
       click_upload: "Cliquer pour uploader",
       media_upload: "Charger le média",
       button: "Bouton",
@@ -83,7 +86,8 @@ const translations = {
       branding: "Visual Identity & Colors",
       hero: "Hero Header Setup",
       preview: "Live Preview",
-      legal: "Compliance & Legal"
+      legal: "Compliance & Legal",
+      about: "Static Pages (About)"
     },
     fields: {
       allowed_langs: "Allowed site languages",
@@ -108,12 +112,14 @@ const translations = {
       phone: "Landline Phone",
       whatsapp: "WhatsApp Number (Mobile)",
       about_title: "About Page Title",
-      about_text: "About Page Text",
+      about_text: "About Page Content",
       privacy_policy: "Privacy Policy"
     },
     placeholders: {
       slug: "agency-name",
       hero_text: "Discover our exceptional properties...",
+      about_title: "The art of exceptional living...",
+      about_text: "Describe your agency...",
       click_upload: "Click to upload",
       media_upload: "Upload media",
       button: "Button",
@@ -137,7 +143,8 @@ const translations = {
       branding: "Identidad Visual y Colores",
       hero: "Configuración del Hero Header",
       preview: "Vista previa en tiempo real",
-      legal: "Cumplimiento y Legal"
+      legal: "Cumplimiento y Legal",
+      about: "Páginas Estáticas (About)"
     },
     fields: {
       allowed_langs: "Idiomas permitidos en el sitio",
@@ -168,6 +175,8 @@ const translations = {
     placeholders: {
       slug: "nombre-de-la-agencia",
       hero_text: "Descubra nuestras propiedades excepcionales...",
+      about_title: "El arte de vivir excepcionalmente...",
+      about_text: "Describa su agencia...",
       click_upload: "Clic para subir",
       media_upload: "Cargar medio",
       button: "Botón",
@@ -191,7 +200,8 @@ const translations = {
       branding: "Tożsamość wizualna i kolory",
       hero: "Konfiguracja nagłówka Hero",
       preview: "Podgląd na żywo",
-      legal: "Zgodność i prawo"
+      legal: "Zgodność i prawo",
+      about: "Strony statyczne (O nas)"
     },
     fields: {
       allowed_langs: "Dozwolone języki witryny",
@@ -222,6 +232,8 @@ const translations = {
     placeholders: {
       slug: "nazwa-agencji",
       hero_text: "Odkryj nasze wyjątkowe nieruchomości...",
+      about_title: "Sztuka wyjątkowego życia...",
+      about_text: "Opisz swoją agencję...",
       click_upload: "Kliknij, aby przesłać",
       media_upload: "Prześlij media",
       button: "Przycisk",
@@ -245,7 +257,8 @@ const translations = {
       branding: "Visuele identiteit & Kleuren",
       hero: "Hero Header configuratie",
       preview: "Live voorbeeld",
-      legal: "Compliance & Wettelijk"
+      legal: "Compliance & Wettelijk",
+      about: "Statische Pagina's (Over ons)"
     },
     fields: {
       allowed_langs: "Toegestane talen op de site",
@@ -276,6 +289,8 @@ const translations = {
     placeholders: {
       slug: "naam-van-agentschap",
       hero_text: "Ontdek onze exclusieve panden...",
+      about_title: "De kunst van exceptioneel wonen...",
+      about_text: "Beschrijf uw agentschap...",
       click_upload: "Klik om te uploaden",
       media_upload: "Media uploaden",
       button: "Knop",
@@ -299,7 +314,8 @@ const translations = {
       branding: "الهوية البصرية والألوان",
       hero: "إعداد واجهة العرض (Hero)",
       preview: "معاينة مباشرة",
-      legal: "المطابقة والقانوني"
+      legal: "المطابقة والقانوني",
+      about: "الصفحات الثابتة (من نحن)"
     },
     fields: {
       allowed_langs: "اللغات المسموح بها في الموقع",
@@ -330,6 +346,8 @@ const translations = {
     placeholders: {
       slug: "اسم-الوكالة",
       hero_text: "اكتشف عقاراتنا الاستثنائية...",
+      about_title: "فن العيش الاستثنائي...",
+      about_text: "صف وكالتك...",
       click_upload: "انقر للتحميل",
       media_upload: "تحميل الوسائط",
       button: "زر",
@@ -368,7 +386,7 @@ export default function AgencyDashboard() {
     package_level: 'silver'
   });
 
-  // Chargement des agences depuis agency_settings - CORRIGÉ
+  // Chargement des agences depuis agency_settings
   useEffect(() => {
     const fetchAgencies = async () => {
       try {
@@ -390,7 +408,6 @@ export default function AgencyDashboard() {
     fetchAgencies();
   }, []);
 
-  // handleDelete avec la bonne table - CORRIGÉ
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Supprimer définitivement l'agence "${name}" ?`)) return;
     try {
@@ -405,7 +422,6 @@ export default function AgencyDashboard() {
       
       setMessage({ type: 'success', text: "Agence supprimée" });
       
-      // Recharger la liste
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
       if (data && data.length > 0) setSelectedAgency(data[0]);
@@ -419,7 +435,7 @@ export default function AgencyDashboard() {
     }
   };
 
-  // handleSave avec les bons noms de colonnes - CORRIGÉ
+  // handleSave avec les champs about_title et about_text
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAgency) return;
@@ -441,6 +457,9 @@ export default function AgencyDashboard() {
         cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
         privacy_policy: selectedAgency.privacy_policy,
         footer_config: selectedAgency.footer_config,
+        // NOUVEAUX CHAMPS pour la page About
+        about_title: selectedAgency.about_title,
+        about_text: selectedAgency.about_text,
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id);
@@ -450,7 +469,6 @@ export default function AgencyDashboard() {
       setMessage({ type: 'error', text: t.error_save });
     } else {
       setMessage({ type: 'success', text: t.success_save });
-      // Recharger les données
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
     }
@@ -537,7 +555,6 @@ export default function AgencyDashboard() {
       setShowCreateModal(false);
       setNewAgency({ agency_name: '', subdomain: '', package_level: 'silver' });
       
-      // Recharger les données
       const { data: agenciesData } = await supabase.from('agency_settings').select('*');
       setAgencies(agenciesData || []);
       if (data && data[0]) setSelectedAgency(data[0]);
@@ -562,7 +579,7 @@ export default function AgencyDashboard() {
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
       
-      {/* BANDEAU DE VERSION - AJOUTÉ POUR LE TÉMOIN DE MISE À JOUR */}
+      {/* BANDEAU DE VERSION */}
       <div className="bg-red-600 text-white text-[10px] py-1 text-center font-bold uppercase z-[9999] fixed top-0 left-0 right-0">
         V2 ACTIVE - TABLE: AGENCY_SETTINGS
       </div>
@@ -610,7 +627,6 @@ export default function AgencyDashboard() {
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-inner" style={{ backgroundColor: selectedAgency.primary_color || '#0f172a' }}>{selectedAgency.agency_name?.charAt(0)}</div>
                 )}
                 <div>
-                  {/* Input Nom de l'agence - CORRIGÉ avec agency_name */}
                   <input 
                     value={selectedAgency.agency_name || ''} 
                     onChange={(e) => setSelectedAgency({...selectedAgency, agency_name: e.target.value})}
@@ -716,7 +732,6 @@ export default function AgencyDashboard() {
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Logo Upload */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
                       <div className="relative group">
@@ -728,7 +743,6 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Subdomain - CORRIGÉ avec subdomain au lieu de slug */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
                       <div className="relative">
@@ -743,7 +757,6 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* FONT SELECTOR */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         Police d'écriture
@@ -764,7 +777,6 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Couleur Primaire */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
                       <div className="flex gap-4">
@@ -783,7 +795,6 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Couleur Boutons */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         <MousePointer2 size={12} /> {t.fields.button_color}
@@ -806,33 +817,38 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 3: CONTENU DES PAGES */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                    <FileCode size={18} className="text-blue-600" /> Pages Statiques (About & Contact)
+                {/* SECTION 3: PAGES STATIQUES (ABOUT) - NOUVEAU BLOC AVEC TITRE ET TEXTE */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                  <h3 className="text-sm font-bold flex items-center gap-2 border-b pb-4">
+                    <Type size={18} className="text-blue-600" /> {t.sections.about}
                   </h3>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Titre Page À Propos</label>
-                        <input 
-                          className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm"
-                          placeholder="Ex: Notre Vision de l'Immobilier"
-                          value={selectedAgency.footer_config?.about_page?.title || ''}
-                          onChange={(e) => updateNestedConfig('about_page', 'title', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Contenu Page À Propos</label>
-                        <textarea 
-                          rows={6}
-                          className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm"
-                          placeholder="Décrivez votre agence..."
-                          value={selectedAgency.footer_config?.about_page?.content || ''}
-                          onChange={(e) => updateNestedConfig('about_page', 'content', e.target.value)}
-                        />
-                      </div>
-                    </div>
+                  
+                  {/* CHAMP POUR LE TITRE */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+                      {t.fields.about_title}
+                    </label>
+                    <input 
+                      type="text"
+                      className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm"
+                      placeholder={t.placeholders.about_title}
+                      value={selectedAgency?.about_title || ''}
+                      onChange={(e) => setSelectedAgency({...selectedAgency, about_title: e.target.value})}
+                    />
+                  </div>
+
+                  {/* CHAMP POUR LE TEXTE */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+                      {t.fields.about_text}
+                    </label>
+                    <textarea 
+                      rows={6}
+                      className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm"
+                      placeholder={t.placeholders.about_text}
+                      value={selectedAgency?.about_text || ''}
+                      onChange={(e) => setSelectedAgency({...selectedAgency, about_text: e.target.value})}
+                    />
                   </div>
                 </div>
 
@@ -922,7 +938,6 @@ export default function AgencyDashboard() {
                       <input placeholder={t.fields.instagram} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.instagram || ''} onChange={(e) => updateNestedConfig('socials', 'instagram', e.target.value)} />
                     </div>
                     
-                    {/* WHATSAPP */}
                     <div className="relative">
                       <MessageCircle className="absolute left-4 top-4 text-green-500" size={16} />
                       <input 
@@ -953,7 +968,6 @@ export default function AgencyDashboard() {
                   </h3>
                   
                   <div className="space-y-6">
-                    {/* Toggle Cookie Banner */}
                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <div className="space-y-1">
                         <span className="text-sm font-bold text-slate-900">Bandeau de Cookies</span>
@@ -970,7 +984,6 @@ export default function AgencyDashboard() {
                       </label>
                     </div>
 
-                    {/* Privacy Policy Textarea */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         {t.fields.privacy_policy || "Politique de confidentialité"}
