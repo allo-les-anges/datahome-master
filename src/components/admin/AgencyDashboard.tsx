@@ -10,423 +10,7 @@ import {
   MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, UserMinus, Briefcase, FileText
 } from 'lucide-react';
 
-// --- DICTIONNAIRE DE TRADUCTION ---
-const translations = {
-  fr: {
-    admin: "Administration",
-    saas_title: "SaaS Agences",
-    new_agency: "Nouvelle Agence",
-    select_agency: "Sélectionnez une agence pour configurer son branding.",
-    save: "Enregistrer les modifications",
-    saving: "Enregistrement en cours...",
-    success_save: "Configuration enregistrée avec succès !",
-    error_save: "Erreur lors de la sauvegarde.",
-    generate: "Générer l'agence",
-    sections: {
-      lang_xml: "Langues & Flux XML",
-      socials: "Réseaux Sociaux & Contact",
-      integrations: "Intégrations (CRM & IA)",
-      branding: "Identité Visuelle & Couleurs",
-      hero: "Configuration du Hero Header",
-      preview: "Aperçu en temps réel",
-      legal: "Conformité & Légal",
-      about: "Pages Statiques (About)",
-      team: "Gestion de l'Équipe"
-    },
-    fields: {
-      allowed_langs: "Langues autorisées sur le site",
-      xml_sources: "Flux Immobilier (XML)",
-      facebook: "Lien Facebook",
-      instagram: "Lien Instagram",
-      linkedin: "Lien LinkedIn",
-      tiktok: "Lien TikTok",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Nom de l'enseigne",
-      subdomain: "URL du site (Slug)",
-      logo: "Logo de l'agence",
-      font: "Police de caractères",
-      font_family: "Police de caractères",
-      primary_color: "Couleur Principale (Accents)",
-      button_color: "Couleur des Boutons (CTA)",
-      hero_title: "Titre d'accroche (Hero)",
-      hero_type: "Type de média",
-      hero_file: "Fichier Média (Image/Vidéo)",
-      email: "Email de contact",
-      phone: "Téléphone Fixe",
-      whatsapp: "Numéro WhatsApp (GSM)",
-      about_title: "Titre Page À Propos",
-      about_text: "Contenu Page À Propos",
-      privacy_policy: "Politique de confidentialité",
-      member_name: "Nom complet",
-      member_role: "Poste / Rôle",
-      member_bio: "Biographie",
-      member_photo: "Photo du membre"
-    },
-    placeholders: {
-      slug: "nom-de-lagence",
-      hero_text: "Découvrez nos biens d'exception...",
-      about_title: "L'art de vivre l'exceptionnel...",
-      about_text: "Décrivez votre agence...",
-      click_upload: "Cliquer pour uploader",
-      media_upload: "Charger le média",
-      button: "Bouton",
-      whatsapp: "Ex: 33600000000 (sans +)",
-      member_name: "Jean Dupont",
-      member_role: "Agent Commercial",
-      member_bio: "Expert en immobilier depuis 15 ans..."
-    },
-    buttons: {
-      add_member: "Ajouter un membre",
-      remove_member: "Supprimer"
-    }
-  },
-  en: {
-    admin: "Administration",
-    saas_title: "SaaS Agencies",
-    new_agency: "New Agency",
-    select_agency: "Select an agency to configure its branding.",
-    save: "Save Settings",
-    saving: "Saving...",
-    success_save: "Settings saved successfully!",
-    error_save: "Error while saving.",
-    generate: "Generate Agency",
-    sections: {
-      lang_xml: "Languages & XML Feeds",
-      socials: "Social Networks & Contact",
-      integrations: "Integrations (CRM & AI)",
-      branding: "Visual Identity & Colors",
-      hero: "Hero Header Setup",
-      preview: "Live Preview",
-      legal: "Compliance & Legal",
-      about: "Static Pages (About)",
-      team: "Team Management"
-    },
-    fields: {
-      allowed_langs: "Allowed site languages",
-      xml_sources: "Real Estate Feeds (XML)",
-      facebook: "Facebook Link",
-      instagram: "Instagram Link",
-      linkedin: "LinkedIn Link",
-      tiktok: "TikTok Link",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Agency Name",
-      subdomain: "Site URL (Slug)",
-      logo: "Agency Logo",
-      font: "Font Family",
-      font_family: "Font Family",
-      primary_color: "Primary Color (Accents)",
-      button_color: "Button Color (CTA)",
-      hero_title: "Hero Title",
-      hero_type: "Media Type",
-      hero_file: "Hero Media (Image/Video)",
-      email: "Contact Email",
-      phone: "Landline Phone",
-      whatsapp: "WhatsApp Number (Mobile)",
-      about_title: "About Page Title",
-      about_text: "About Page Content",
-      privacy_policy: "Privacy Policy",
-      member_name: "Full Name",
-      member_role: "Position / Role",
-      member_bio: "Biography",
-      member_photo: "Member Photo"
-    },
-    placeholders: {
-      slug: "agency-name",
-      hero_text: "Discover our exceptional properties...",
-      about_title: "The art of exceptional living...",
-      about_text: "Describe your agency...",
-      click_upload: "Click to upload",
-      media_upload: "Upload media",
-      button: "Button",
-      whatsapp: "Ex: 44600000000 (no +)",
-      member_name: "John Doe",
-      member_role: "Real Estate Agent",
-      member_bio: "Real estate expert for 15 years..."
-    },
-    buttons: {
-      add_member: "Add member",
-      remove_member: "Remove"
-    }
-  },
-  es: {
-    admin: "Administración",
-    saas_title: "SaaS Agencias",
-    new_agency: "Nueva Agencia",
-    select_agency: "Seleccione una agencia para configurar su branding.",
-    save: "Guardar cambios",
-    saving: "Guardando...",
-    success_save: "¡Configuración guardada con éxito!",
-    error_save: "Error al guardar.",
-    generate: "Generar Agencia",
-    sections: {
-      lang_xml: "Idiomas y Flujos XML",
-      socials: "Redes Sociales y Contacto",
-      integrations: "Integraciones (CRM e IA)",
-      branding: "Identidad Visual y Colores",
-      hero: "Configuración del Hero Header",
-      preview: "Vista previa en tiempo real",
-      legal: "Cumplimiento y Legal",
-      about: "Páginas Estáticas (About)",
-      team: "Gestión de Equipo"
-    },
-    fields: {
-      allowed_langs: "Idiomas permitidos en el sitio",
-      xml_sources: "Flujos Inmobiliarios (XML)",
-      facebook: "Enlace Facebook",
-      instagram: "Enlace Instagram",
-      linkedin: "Enlace LinkedIn",
-      tiktok: "Enlace TikTok",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Nombre de la agencia",
-      subdomain: "URL del sitio (Slug)",
-      logo: "Logo de la agencia",
-      font: "Fuente tipográfica",
-      font_family: "Fuente tipográfica",
-      primary_color: "Color principal (Acentos)",
-      button_color: "Color de botones (CTA)",
-      hero_title: "Título de cabecera (Hero)",
-      hero_type: "Tipo de medio",
-      hero_file: "Archivo multimedia (Imagen/Video)",
-      email: "Correo de contacto",
-      phone: "Teléfono fijo",
-      whatsapp: "Número WhatsApp (Móvil)",
-      about_title: "Título de la página Sobre Nosotros",
-      about_text: "Texto de la página Sobre Nosotros",
-      privacy_policy: "Política de Privacidad",
-      member_name: "Nombre completo",
-      member_role: "Puesto / Rol",
-      member_bio: "Biografía",
-      member_photo: "Foto del miembro"
-    },
-    placeholders: {
-      slug: "nombre-de-la-agencia",
-      hero_text: "Descubra nuestras propiedades excepcionales...",
-      about_title: "El arte de vivir excepcionalmente...",
-      about_text: "Describa su agencia...",
-      click_upload: "Clic para subir",
-      media_upload: "Cargar medio",
-      button: "Botón",
-      whatsapp: "Ej: 34600000000 (sin +)",
-      member_name: "Juan Pérez",
-      member_role: "Agente Inmobiliario",
-      member_bio: "Experto en bienes raíces desde hace 15 años..."
-    },
-    buttons: {
-      add_member: "Añadir miembro",
-      remove_member: "Eliminar"
-    }
-  },
-  pl: {
-    admin: "Administracja",
-    saas_title: "SaaS Agencje",
-    new_agency: "Nowa Agencja",
-    select_agency: "Wybierz agencję, aby skonfigurować jej branding.",
-    save: "Zapisz zmiany",
-    saving: "Zapisywanie...",
-    success_save: "Konfiguracja zapisana pomyślnie!",
-    error_save: "Błąd podczas zapisywania.",
-    generate: "Generuj Agencję",
-    sections: {
-      lang_xml: "Języki i kanały XML",
-      socials: "Media społecznościowe i kontakt",
-      integrations: "Integracje (CRM i AI)",
-      branding: "Tożsamość wizualna i kolory",
-      hero: "Konfiguracja nagłówka Hero",
-      preview: "Podgląd na żywo",
-      legal: "Zgodność i prawo",
-      about: "Strony statyczne (O nas)",
-      team: "Zarządzanie zespołem"
-    },
-    fields: {
-      allowed_langs: "Dozwolone języki witryny",
-      xml_sources: "Kanały nieruchomości (XML)",
-      facebook: "Link do Facebooka",
-      instagram: "Link do Instagrama",
-      linkedin: "Link do LinkedIn",
-      tiktok: "Link do TikToka",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Nazwa agencji",
-      subdomain: "URL witryny (Slug)",
-      logo: "Logo agencji",
-      font: "Czcionka",
-      font_family: "Czcionka",
-      primary_color: "Kolor główny (Akcenty)",
-      button_color: "Kolor przycisków (CTA)",
-      hero_title: "Tytuł nagłówka (Hero)",
-      hero_type: "Typ mediów",
-      hero_file: "Plik multimedialny (Obraz/Wideo)",
-      email: "E-mail kontaktowy",
-      phone: "Telefon stacjonarny",
-      whatsapp: "Numer WhatsApp (Komórkowy)",
-      about_title: "Tytuł strony O nas",
-      about_text: "Tekst strony O nas",
-      privacy_policy: "Polityka prywatności",
-      member_name: "Imię i nazwisko",
-      member_role: "Stanowisko / Rola",
-      member_bio: "Biografia",
-      member_photo: "Zdjęcie członka"
-    },
-    placeholders: {
-      slug: "nazwa-agencji",
-      hero_text: "Odkryj nasze wyjątkowe nieruchomości...",
-      about_title: "Sztuka wyjątkowego życia...",
-      about_text: "Opisz swoją agencję...",
-      click_upload: "Kliknij, aby przesłać",
-      media_upload: "Prześlij media",
-      button: "Przycisk",
-      whatsapp: "Np: 48600000000 (bez +)",
-      member_name: "Jan Kowalski",
-      member_role: "Agent nieruchomości",
-      member_bio: "Ekspert nieruchomości od 15 lat..."
-    },
-    buttons: {
-      add_member: "Dodaj członka",
-      remove_member: "Usuń"
-    }
-  },
-  nl: {
-    admin: "Administratie",
-    saas_title: "SaaS Agentschappen",
-    new_agency: "Nieuw Agentschap",
-    select_agency: "Selecteer een agentschap om de branding te configureren.",
-    save: "Wijzigingen opslaan",
-    saving: "Opslaan...",
-    success_save: "Configuratie succesvol opgeslagen!",
-    error_save: "Fout bij het opslaan.",
-    generate: "Agentschap genereren",
-    sections: {
-      lang_xml: "Talen & XML-feeds",
-      socials: "Sociale netwerken & Contact",
-      integrations: "Integraties (CRM & AI)",
-      branding: "Visuele identiteit & Kleuren",
-      hero: "Hero Header configuratie",
-      preview: "Live voorbeeld",
-      legal: "Compliance & Wettelijk",
-      about: "Statische Pagina's (Over ons)",
-      team: "Teambeheer"
-    },
-    fields: {
-      allowed_langs: "Toegestane talen op de site",
-      xml_sources: "Vastgoedfeeds (XML)",
-      facebook: "Facebook-link",
-      instagram: "Instagram-link",
-      linkedin: "LinkedIn-link",
-      tiktok: "TikTok-link",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Naam van het agentschap",
-      subdomain: "Website URL (Slug)",
-      logo: "Logo van het agentschap",
-      font: "Lettertype",
-      font_family: "Lettertype",
-      primary_color: "Hoofdkleur (Accenten)",
-      button_color: "Kleur van knoppen (CTA)",
-      hero_title: "Hero titel",
-      hero_type: "Mediatype",
-      hero_file: "Mediabestand (Afbeelding/Video)",
-      email: "Contact e-mail",
-      phone: "Vaste lijn",
-      whatsapp: "WhatsApp-nummer (Mobiel)",
-      about_title: "Titel over ons pagina",
-      about_text: "Tekst over ons pagina",
-      privacy_policy: "Privacybeleid",
-      member_name: "Volledige naam",
-      member_role: "Functie / Rol",
-      member_bio: "Biografie",
-      member_photo: "Foto van het lid"
-    },
-    placeholders: {
-      slug: "naam-van-agentschap",
-      hero_text: "Ontdek onze exclusieve panden...",
-      about_title: "De kunst van exceptioneel wonen...",
-      about_text: "Beschrijf uw agentschap...",
-      click_upload: "Klik om te uploaden",
-      media_upload: "Media uploaden",
-      button: "Knop",
-      whatsapp: "Bijv: 31600000000 (zonder +)",
-      member_name: "Jan Jansen",
-      member_role: "Makelaar",
-      member_bio: "Vastgoedexpert sinds 15 jaar..."
-    },
-    buttons: {
-      add_member: "Lid toevoegen",
-      remove_member: "Verwijderen"
-    }
-  },
-  ar: {
-    admin: "الإدارة",
-    saas_title: "نظام إدارة الوكالات",
-    new_agency: "وكالة جديدة",
-    select_agency: "اختر وكالة لتكوين هويتها التجارية.",
-    save: "حفظ التغييرات",
-    saving: "جاري الحفظ...",
-    success_save: "تم حفظ الإعدادات بنجاح!",
-    error_save: "خطأ أثناء الحفظ.",
-    generate: "إنشاء الوكالة",
-    sections: {
-      lang_xml: "اللغات وخلاصات XML",
-      socials: "شبكات التواصل والاتصال",
-      integrations: "التكاملات (CRM وذكاء اصطناعي)",
-      branding: "الهوية البصرية والألوان",
-      hero: "إعداد واجهة العرض (Hero)",
-      preview: "معاينة مباشرة",
-      legal: "المطابقة والقانوني",
-      about: "الصفحات الثابتة (من نحن)",
-      team: "إدارة الفريق"
-    },
-    fields: {
-      allowed_langs: "اللغات المسموح بها في الموقع",
-      xml_sources: "خلاصات العقارات (XML)",
-      facebook: "رابط فيسبوك",
-      instagram: "رابط إنستغرام",
-      linkedin: "رابط لينكد إن",
-      tiktok: "رابط تيك توك",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "اسم الوكالة",
-      subdomain: "رابط الموقع (Slug)",
-      logo: "شعار الوكالة",
-      font: "نوع الخط",
-      font_family: "نوع الخط",
-      primary_color: "اللون الأساسي",
-      button_color: "لؤن الأزرار",
-      hero_title: "عنوان واجهة العرض",
-      hero_type: "نوع الوسائط",
-      hero_file: "ملف الوسائط (صورة/فيديو)",
-      email: "البريد الإلكتروني للاتصال",
-      phone: "الهاتف الثابت",
-      whatsapp: "رقم الواتساب (الجوال)",
-      about_title: "عنوان صفحة 'من نحن'",
-      about_text: "نص صفحة 'من نحن'",
-      privacy_policy: "سياسة الخصوصية",
-      member_name: "الاسم الكامل",
-      member_role: "المنصب / الدور",
-      member_bio: "السيرة الذاتية",
-      member_photo: "صورة العضو"
-    },
-    placeholders: {
-      slug: "اسم-الوكالة",
-      hero_text: "اكتشف عقاراتنا الاستثنائية...",
-      about_title: "فن العيش الاستثنائي...",
-      about_text: "صف وكالتك...",
-      click_upload: "انقر للتحميل",
-      media_upload: "تحميل الوسائط",
-      button: "زر",
-      whatsapp: "مثال: 966500000000 (بدون +)",
-      member_name: "أحمد محمد",
-      member_role: "وكيل عقاري",
-      member_bio: "خبير عقاري منذ 15 عاماً..."
-    },
-    buttons: {
-      add_member: "إضافة عضو",
-      remove_member: "حذف"
-    }
-  }
-};
+// --- DICTIONNAIRE DE TRADUCTION --- (gardez votre code existant, je ne le répète pas pour la lisibilité)
 
 const DISPONIBLE_XML_SOURCES = [
   { id: 'cb', name: "Costa Blanca", url: "https://medianewbuild.com/file/hh-media-bucket/agents/6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2/feed_blanca_calida.xml" },
@@ -643,17 +227,13 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - VERSION CORRIGÉE AVEC LOGS ID
+  // HANDLE SAVE - VERSION CORRIGÉE
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-
-     // Désactive la navigation Next.js temporairement
-    const originalPush = window.history.pushState;
-    window.history.pushState = function() {};
 
     if (!selectedAgency || !selectedAgency.id) {
       console.error("❌ ID manquant");
@@ -712,7 +292,7 @@ export default function AgencyDashboard() {
         setTeam(data[0].team_data || []);
         setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
       } else {
-        console.warn("⚠️ Aucune donnée retournée par Supabase - L'ID n'existe peut-être pas");
+        console.warn("⚠️ Aucune donnée retournée par Supabase");
         setMessage({ type: 'error', text: "Erreur: Agence non trouvée en base" });
       }
     } catch (err: any) {
@@ -720,10 +300,9 @@ export default function AgencyDashboard() {
       setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
       setIsSaving(false);
-      setTimeout(() => {
-    window.history.pushState = originalPush;
-  }, 1000)
-};
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};
@@ -895,6 +474,7 @@ export default function AgencyDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
                 
+                {/* SECTION 1: LANGUES & FLUX */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <FileCode size={18} className="text-blue-600" /> {t.sections.lang_xml}
@@ -943,6 +523,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
+                {/* SECTION 2: BRANDING & POLICE */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <Palette size={18} className="text-blue-600" /> {t.sections.branding}
@@ -1034,6 +615,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
+                {/* SECTION 3: PAGES STATIQUES (ABOUT) */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                   <h3 className="text-sm font-bold flex items-center gap-2 border-b pb-4">
                     <Type size={18} className="text-blue-600" /> {t.sections.about}
@@ -1066,7 +648,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION GESTION DE L'ÉQUIPE */}
+                {/* SECTION 4: GESTION DE L'ÉQUIPE */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex justify-between items-center border-b pb-4">
                     <h3 className="text-sm font-bold flex items-center gap-2">
@@ -1172,6 +754,7 @@ export default function AgencyDashboard() {
                   )}
                 </div>
 
+                {/* SECTION 5: HERO HEADER */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 border-b border-slate-100 pb-5 uppercase text-xs tracking-widest">
                     <Layout size={18} className="text-blue-600" /> {t.sections.hero}
@@ -1213,6 +796,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
+                {/* SECTION 6: INTEGRATIONS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-purple-500">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Zap size={18} className="text-purple-600" /> {t.sections.integrations}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1233,6 +817,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
+                {/* SECTION 7: CONTACT & SOCIALS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <Share2 size={18} className="text-blue-600" /> {t.sections.socials}
@@ -1278,6 +863,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
+                {/* SECTION 8: CONFORMITÉ & LÉGAL */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-slate-900">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <ShieldCheck size={18} className="text-slate-900" /> {t.sections.legal || "Conformité & Légal"}
@@ -1316,6 +902,7 @@ export default function AgencyDashboard() {
                 </div>
               </div>
               
+              {/* LIVE PREVIEW (STICKY) */}
               <div className="lg:col-span-1">
                 <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl sticky top-8 overflow-hidden">
                   <div className="flex items-center gap-2 mb-4 text-white/50 text-[10px] font-bold uppercase tracking-widest"><Monitor size={14} /> {t.sections.preview}</div>
