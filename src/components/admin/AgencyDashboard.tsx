@@ -368,7 +368,7 @@ export default function AgencyDashboard() {
     package_level: 'silver'
   });
 
-  // Chargement des agences depuis agency_settings
+  // Chargement des agences depuis agency_settings - CORRIGÉ
   useEffect(() => {
     const fetchAgencies = async () => {
       try {
@@ -390,6 +390,7 @@ export default function AgencyDashboard() {
     fetchAgencies();
   }, []);
 
+  // handleDelete avec la bonne table - CORRIGÉ
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Supprimer définitivement l'agence "${name}" ?`)) return;
     try {
@@ -418,7 +419,7 @@ export default function AgencyDashboard() {
     }
   };
 
-  // Fonction de sauvegarde corrigée avec les bons noms de colonnes
+  // handleSave avec les bons noms de colonnes - CORRIGÉ
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAgency) return;
@@ -440,7 +441,6 @@ export default function AgencyDashboard() {
         cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
         privacy_policy: selectedAgency.privacy_policy,
         footer_config: selectedAgency.footer_config,
-        package_level: selectedAgency.package_level,
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id);
@@ -562,8 +562,13 @@ export default function AgencyDashboard() {
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
       
+      {/* BANDEAU DE VERSION - AJOUTÉ POUR LE TÉMOIN DE MISE À JOUR */}
+      <div className="bg-red-600 text-white text-[10px] py-1 text-center font-bold uppercase z-[9999] fixed top-0 left-0 right-0">
+        V2 ACTIVE - TABLE: AGENCY_SETTINGS
+      </div>
+
       {/* SIDEBAR */}
-      <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-sm">
+      <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-sm mt-6">
         <div className="p-8 border-b border-slate-100 bg-white sticky top-0 z-10">
           <div className="flex justify-between items-center mb-6">
             <button 
@@ -594,7 +599,7 @@ export default function AgencyDashboard() {
       </aside>
 
       {/* MAIN FORM */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto mt-6">
         {selectedAgency ? (
           <form onSubmit={handleSave} className="max-w-6xl mx-auto p-12 space-y-8">
             <header className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm sticky top-0 z-20">
@@ -605,7 +610,12 @@ export default function AgencyDashboard() {
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-inner" style={{ backgroundColor: selectedAgency.primary_color || '#0f172a' }}>{selectedAgency.agency_name?.charAt(0)}</div>
                 )}
                 <div>
-                  <h1 className="text-4xl font-serif italic text-slate-900">{selectedAgency.agency_name}</h1>
+                  {/* Input Nom de l'agence - CORRIGÉ avec agency_name */}
+                  <input 
+                    value={selectedAgency.agency_name || ''} 
+                    onChange={(e) => setSelectedAgency({...selectedAgency, agency_name: e.target.value})}
+                    className="text-4xl font-serif italic text-slate-900 bg-transparent border-b border-slate-200 focus:border-slate-900 outline-none"
+                  />
                   <span className="inline-block mt-2 px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold uppercase tracking-tighter">{selectedAgency.package_level} plan</span>
                 </div>
               </div>
@@ -718,7 +728,7 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Subdomain - avec value et onChange */}
+                    {/* Subdomain - CORRIGÉ avec subdomain au lieu de slug */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
                       <div className="relative">
@@ -754,7 +764,7 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Couleur Primaire - avec value et onChange corrigés */}
+                    {/* Couleur Primaire */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
                       <div className="flex gap-4">
@@ -773,7 +783,7 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Couleur Boutons - avec value et onChange corrigés */}
+                    {/* Couleur Boutons */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         <MousePointer2 size={12} /> {t.fields.button_color}
