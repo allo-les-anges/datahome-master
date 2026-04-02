@@ -494,6 +494,57 @@ export default function AgencyDashboard() {
     }
   }, [selectedAgency]);
 
+  // ============================================================
+  // FONCTIONS MANQUANTES AJOUTÉES - CORRECTION DE L'ERREUR DE BUILD
+  // ============================================================
+  
+  /**
+   * Met à jour un champ imbriqué dans footer_config
+   * Utilisé pour les intégrations (Zoho, Taskade) et les réseaux sociaux
+   */
+  const updateNestedConfig = (section: string, field: string, value: any) => {
+    if (!selectedAgency) return;
+
+    setSelectedAgency((prev: any) => {
+      // On récupère la configuration actuelle ou un objet vide si null
+      const currentFooterConfig = prev.footer_config || {};
+      
+      // On récupère la section spécifique (ex: 'integrations' ou 'socials')
+      const currentSection = currentFooterConfig[section] || {};
+
+      return {
+        ...prev,
+        footer_config: {
+          ...currentFooterConfig,
+          [section]: {
+            ...currentSection,
+            [field]: value
+          }
+        }
+      };
+    });
+  };
+
+  /**
+   * Met à jour un champ à la racine de footer_config
+   * Utilisé pour email, phone, etc.
+   */
+  const updateRootConfig = (field: string, value: any) => {
+    if (!selectedAgency) return;
+
+    setSelectedAgency((prev: any) => {
+      const currentFooterConfig = prev.footer_config || {};
+      
+      return {
+        ...prev,
+        footer_config: {
+          ...currentFooterConfig,
+          [field]: value
+        }
+      };
+    });
+  };
+
   // Fonctions de gestion de l'équipe
   const addMember = () => {
     const newMember = { name: "", role: "", bio: "", photo: "" };
@@ -566,7 +617,7 @@ export default function AgencyDashboard() {
   };
 
   // handleSave avec gestion explicite des données d'équipe
-const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAgency) return;
     setIsSaving(true);
@@ -592,11 +643,11 @@ const handleSave = async (e: React.FormEvent) => {
             footer_config: selectedAgency.footer_config,
             about_title: selectedAgency.about_title,
             about_text: selectedAgency.about_text,
-            team_data: teamDataToSave, // Assurez-vous que c'est bien le nom de colonne exact
+            team_data: teamDataToSave,
             updated_at: new Date().toISOString(),
         };
 
-        console.log("Saving team data:", teamDataToSave); // Debug: vérifier les données envoyées
+        console.log("Saving team data:", teamDataToSave);
 
         const { error } = await supabase
             .from('agency_settings')
@@ -627,14 +678,6 @@ const handleSave = async (e: React.FormEvent) => {
         setIsSaving(false);
         setTimeout(() => setMessage(null), 3000);
     }
-};
-
-  const updateRootConfig = (field: string, value: any) => {
-    const currentConfig = selectedAgency.footer_config || {};
-    setSelectedAgency({
-      ...selectedAgency,
-      footer_config: { ...currentConfig, [field]: value }
-    });
   };
 
   const toggleXmlSource = (url: string) => {
@@ -687,7 +730,7 @@ const handleSave = async (e: React.FormEvent) => {
             socials: {},
             integrations: {}
           },
-          team_data: [], // Initialiser avec une équipe vide
+          team_data: [],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -993,7 +1036,7 @@ const handleSave = async (e: React.FormEvent) => {
                   </div>
                 </div>
 
-                {/* SECTION 4: GESTION DE L'ÉQUIPE - NOUVEAU */}
+                {/* SECTION 4: GESTION DE L'ÉQUIPE */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex justify-between items-center border-b pb-4">
                     <h3 className="text-sm font-bold flex items-center gap-2">
