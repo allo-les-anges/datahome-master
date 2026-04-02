@@ -7,7 +7,7 @@ import {
   CheckCircle2, AlertCircle, Palette, Phone, Mail, Layout, X,
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram, 
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
-  MousePointer2, MessageCircle
+  MousePointer2, MessageCircle, ShieldCheck
 } from 'lucide-react';
 
 // --- DICTIONNAIRE DE TRADUCTION ---
@@ -28,7 +28,8 @@ const translations = {
       integrations: "Intégrations (CRM & IA)",
       branding: "Identité Visuelle & Couleurs",
       hero: "Configuration du Hero Header",
-      preview: "Aperçu en temps réel"
+      preview: "Aperçu en temps réel",
+      legal: "Conformité & Légal"
     },
     fields: {
       allowed_langs: "Langues autorisées sur le site",
@@ -42,7 +43,7 @@ const translations = {
       agency_name: "Nom de l'enseigne",
       subdomain: "URL du site (Slug)",
       logo: "Logo de l'agence",
-      font: "Police de caractères", // Ajouté pour corriger l'erreur de build
+      font: "Police de caractères",
       font_family: "Police de caractères",
       primary_color: "Couleur Principale (Accents)",
       button_color: "Couleur des Boutons (CTA)",
@@ -53,7 +54,8 @@ const translations = {
       phone: "Téléphone Fixe",
       whatsapp: "Numéro WhatsApp (GSM)",
       about_title: "Titre de la page À Propos",
-      about_text: "Texte de la page À Propos"
+      about_text: "Texte de la page À Propos",
+      privacy_policy: "Politique de confidentialité"
     },
     placeholders: {
       slug: "nom-de-lagence",
@@ -80,7 +82,8 @@ const translations = {
       integrations: "Integrations (CRM & AI)",
       branding: "Visual Identity & Colors",
       hero: "Hero Header Setup",
-      preview: "Live Preview"
+      preview: "Live Preview",
+      legal: "Compliance & Legal"
     },
     fields: {
       allowed_langs: "Allowed site languages",
@@ -94,7 +97,7 @@ const translations = {
       agency_name: "Agency Name",
       subdomain: "Site URL (Slug)",
       logo: "Agency Logo",
-      font: "Font Family", // Ajouté
+      font: "Font Family",
       font_family: "Font Family",
       primary_color: "Primary Color (Accents)",
       button_color: "Button Color (CTA)",
@@ -105,7 +108,8 @@ const translations = {
       phone: "Landline Phone",
       whatsapp: "WhatsApp Number (Mobile)",
       about_title: "About Page Title",
-      about_text: "About Page Text"
+      about_text: "About Page Text",
+      privacy_policy: "Privacy Policy"
     },
     placeholders: {
       slug: "agency-name",
@@ -132,7 +136,8 @@ const translations = {
       integrations: "Integraciones (CRM e IA)",
       branding: "Identidad Visual y Colores",
       hero: "Configuración del Hero Header",
-      preview: "Vista previa en tiempo real"
+      preview: "Vista previa en tiempo real",
+      legal: "Cumplimiento y Legal"
     },
     fields: {
       allowed_langs: "Idiomas permitidos en el sitio",
@@ -146,7 +151,7 @@ const translations = {
       agency_name: "Nombre de la agencia",
       subdomain: "URL del sitio (Slug)",
       logo: "Logo de la agencia",
-      font: "Fuente tipográfica", // Ajouté
+      font: "Fuente tipográfica",
       font_family: "Fuente tipográfica",
       primary_color: "Color principal (Acentos)",
       button_color: "Color de botones (CTA)",
@@ -157,7 +162,8 @@ const translations = {
       phone: "Teléfono fijo",
       whatsapp: "Número WhatsApp (Móvil)",
       about_title: "Título de la página Sobre Nosotros",
-      about_text: "Texto de la página Sobre Nosotros"
+      about_text: "Texto de la página Sobre Nosotros",
+      privacy_policy: "Política de Privacidad"
     },
     placeholders: {
       slug: "nombre-de-la-agencia",
@@ -184,7 +190,8 @@ const translations = {
       integrations: "Integracje (CRM i AI)",
       branding: "Tożsamość wizualna i kolory",
       hero: "Konfiguracja nagłówka Hero",
-      preview: "Podgląd na żywo"
+      preview: "Podgląd na żywo",
+      legal: "Zgodność i prawo"
     },
     fields: {
       allowed_langs: "Dozwolone języki witryny",
@@ -198,7 +205,7 @@ const translations = {
       agency_name: "Nazwa agencji",
       subdomain: "URL witryny (Slug)",
       logo: "Logo agencji",
-      font: "Czcionka", // Ajouté
+      font: "Czcionka",
       font_family: "Czcionka",
       primary_color: "Kolor główny (Akcenty)",
       button_color: "Kolor przycisków (CTA)",
@@ -209,7 +216,8 @@ const translations = {
       phone: "Telefon stacjonarny",
       whatsapp: "Numer WhatsApp (Komórkowy)",
       about_title: "Tytuł strony O nas",
-      about_text: "Tekst strony O nas"
+      about_text: "Tekst strony O nas",
+      privacy_policy: "Polityka prywatności"
     },
     placeholders: {
       slug: "nazwa-agencji",
@@ -236,7 +244,8 @@ const translations = {
       integrations: "Integraties (CRM & AI)",
       branding: "Visuele identiteit & Kleuren",
       hero: "Hero Header configuratie",
-      preview: "Live voorbeeld"
+      preview: "Live voorbeeld",
+      legal: "Compliance & Wettelijk"
     },
     fields: {
       allowed_langs: "Toegestane talen op de site",
@@ -250,7 +259,7 @@ const translations = {
       agency_name: "Naam van het agentschap",
       subdomain: "Website URL (Slug)",
       logo: "Logo van het agentschap",
-      font: "Lettertype", // Ajouté
+      font: "Lettertype",
       font_family: "Lettertype",
       primary_color: "Hoofdkleur (Accenten)",
       button_color: "Kleur van knoppen (CTA)",
@@ -261,7 +270,8 @@ const translations = {
       phone: "Vaste lijn",
       whatsapp: "WhatsApp-nummer (Mobiel)",
       about_title: "Titel over ons pagina",
-      about_text: "Tekst over ons pagina"
+      about_text: "Tekst over ons pagina",
+      privacy_policy: "Privacybeleid"
     },
     placeholders: {
       slug: "naam-van-agentschap",
@@ -288,7 +298,8 @@ const translations = {
       integrations: "التكاملات (CRM وذكاء اصطناعي)",
       branding: "الهوية البصرية والألوان",
       hero: "إعداد واجهة العرض (Hero)",
-      preview: "معاينة مباشرة"
+      preview: "معاينة مباشرة",
+      legal: "المطابقة والقانوني"
     },
     fields: {
       allowed_langs: "اللغات المسموح بها في الموقع",
@@ -302,7 +313,7 @@ const translations = {
       agency_name: "اسم الوكالة",
       subdomain: "رابط الموقع (Slug)",
       logo: "شعار الوكالة",
-      font: "نوع الخط", // Ajouté
+      font: "نوع الخط",
       font_family: "نوع الخط",
       primary_color: "اللون الأساسي",
       button_color: "لؤن الأزرار",
@@ -313,7 +324,8 @@ const translations = {
       phone: "الهاتف الثابت",
       whatsapp: "رقم الواتساب (الجوال)",
       about_title: "عنوان صفحة 'من نحن'",
-      about_text: "نص صفحة 'من نحن'"
+      about_text: "نص صفحة 'من نحن'",
+      privacy_policy: "سياسة الخصوصية"
     },
     placeholders: {
       slug: "اسم-الوكالة",
@@ -572,136 +584,133 @@ export default function AgencyDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
+              <div className="lg:col-span-2 space-y-8">
+                
+                {/* SECTION 1: LANGUES & FLUX */}
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
+                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                    <FileCode size={18} className="text-blue-600" /> {t.sections.lang_xml}
+                  </h3>
                   
-                  {/* SECTION 1: LANGUES & FLUX */}
-                  <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
-                    <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                      <FileCode size={18} className="text-blue-600" /> {t.sections.lang_xml}
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {t.fields.allowed_langs}
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {SUPPORTED_LANGUAGES.map(l => (
-                          <button 
-                            key={l.code} 
-                            type="button" 
-                            onClick={() => toggleLanguage(l.code)} 
-                            className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${selectedAgency?.footer_config?.allowed_langs?.includes(l.code) ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}
-                          >
-                            {l.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {t.fields.xml_sources}
-                      </label>
-                      <div className="grid grid-cols-1 gap-2">
-                        {DISPONIBLE_XML_SOURCES.map((s) => (
-                          <button 
-                            key={s.id} 
-                            type="button" 
-                            onClick={() => toggleXmlSource(s.url)} 
-                            className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'border-blue-500 bg-blue-50/30' : 'border-slate-50'}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded flex items-center justify-center border ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-200'}`}>
-                                {selectedAgency?.footer_config?.xml_urls?.includes(s.url) && <CheckCircle2 size={12} className="text-white" />}
-                              </div>
-                              <span className="text-sm font-bold">{s.name}</span>
-                            </div>
-                            <span className="text-[9px] font-mono text-slate-300 truncate max-w-[150px]">{s.url}</span>
-                          </button>
-                        ))}
-                      </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      {t.fields.allowed_langs}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {SUPPORTED_LANGUAGES.map(l => (
+                        <button 
+                          key={l.code} 
+                          type="button" 
+                          onClick={() => toggleLanguage(l.code)} 
+                          className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${selectedAgency?.footer_config?.allowed_langs?.includes(l.code) ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}
+                        >
+                          {l.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* SECTION 2: BRANDING & POLICE */}
-                  <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
-                    <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                      <Palette size={18} className="text-blue-600" /> {t.sections.branding}
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {/* Logo Upload */}
-                      <div className="space-y-3">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
-                        <div className="relative group">
-                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'branding', 'logo_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                          <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
-                            <UploadCloud className="text-slate-300" size={24} />
-                            <span className="text-xs text-slate-500">{selectedAgency?.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      {t.fields.xml_sources}
+                    </label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {DISPONIBLE_XML_SOURCES.map((s) => (
+                        <button 
+                          key={s.id} 
+                          type="button" 
+                          onClick={() => toggleXmlSource(s.url)} 
+                          className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'border-blue-500 bg-blue-50/30' : 'border-slate-50'}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded flex items-center justify-center border ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-200'}`}>
+                              {selectedAgency?.footer_config?.xml_urls?.includes(s.url) && <CheckCircle2 size={12} className="text-white" />}
+                            </div>
+                            <span className="text-sm font-bold">{s.name}</span>
                           </div>
+                          <span className="text-[9px] font-mono text-slate-300 truncate max-w-[150px]">{s.url}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 2: BRANDING & POLICE */}
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
+                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                    <Palette size={18} className="text-blue-600" /> {t.sections.branding}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Logo Upload */}
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
+                      <div className="relative group">
+                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'branding', 'logo_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                        <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
+                          <UploadCloud className="text-slate-300" size={24} />
+                          <span className="text-xs text-slate-500">{selectedAgency?.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Subdomain */}
-                      <div className="space-y-3">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
-                        <div className="relative">
-                          <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                          <input 
-                            type="text" 
-                            value={selectedAgency?.subdomain || ''} 
-                            onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
-                            className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" 
-                            placeholder={t.placeholders.slug} 
-                          />
-                        </div>
+                    {/* Subdomain */}
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
+                      <div className="relative">
+                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                        <input 
+                          type="text" 
+                          value={selectedAgency?.subdomain || ''} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
+                          className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" 
+                          placeholder={t.placeholders.slug} 
+                        />
                       </div>
+                    </div>
 
-                      {/* FONT SELECTOR */}
-                      <div className="space-y-3">
-                        {/* CORRECTION ICI : Remplacement de t.fields.font par un texte statique ou clé sécurisée */}
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                          Police d'écriture
-                        </label>
-                        <div className="relative">
-                          <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                          <select 
-                            value={selectedAgency?.font_family || 'Montserrat'} 
-                            onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} 
-                            className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none bg-white font-medium"
-                          >
-                            <option value="Montserrat">Montserrat (Moderne)</option>
-                            <option value="Inter">Inter (Minimaliste)</option>
-                            <option value="'Playfair Display', serif">Playfair (Luxe)</option>
-                            <option value="Poppins">Poppins (Arrondi)</option>
-                            <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
-                          </select>
-                        </div>
+                    {/* FONT SELECTOR */}
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        Police d'écriture
+                      </label>
+                      <div className="relative">
+                        <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                        <select 
+                          value={selectedAgency?.font_family || 'Montserrat'} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} 
+                          className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none bg-white font-medium"
+                        >
+                          <option value="Montserrat">Montserrat (Moderne)</option>
+                          <option value="Inter">Inter (Minimaliste)</option>
+                          <option value="'Playfair Display', serif">Playfair (Luxe)</option>
+                          <option value="Poppins">Poppins (Arrondi)</option>
+                          <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
+                        </select>
                       </div>
+                    </div>
 
-                      {/* Couleur Primaire */}
-                      <div className="space-y-3">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
-                        <div className="flex gap-4">
-                          <input type="color" value={selectedAgency?.primary_color || '#0f172a'} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
-                          <input type="text" value={selectedAgency?.primary_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
-                        </div>
+                    {/* Couleur Primaire */}
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
+                      <div className="flex gap-4">
+                        <input type="color" value={selectedAgency?.primary_color || '#0f172a'} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
+                        <input type="text" value={selectedAgency?.primary_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
                       </div>
+                    </div>
 
-                      {/* Couleur Boutons */}
-                      <div className="space-y-3">
-                        <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                          <MousePointer2 size={12} /> {t.fields.button_color}
-                        </label>
-                        <div className="flex gap-4">
-                          <input type="color" value={selectedAgency?.button_color || '#2563eb'} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
-                          <input type="text" value={selectedAgency?.button_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
-                        </div>
+                    {/* Couleur Boutons */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        <MousePointer2 size={12} /> {t.fields.button_color}
+                      </label>
+                      <div className="flex gap-4">
+                        <input type="color" value={selectedAgency?.button_color || '#2563eb'} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
+                        <input type="text" value={selectedAgency?.button_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
                 {/* SECTION 3: CONTENU DES PAGES (Nouveau) */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
@@ -874,8 +883,9 @@ export default function AgencyDashboard() {
                         onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})}
                       />
                     </div>
-                  </div> 
-              </div> 
+                  </div>
+                </div>
+              </div>
               
               {/* LIVE PREVIEW (STICKY) */}
               <div className="lg:col-span-1">
@@ -896,21 +906,19 @@ export default function AgencyDashboard() {
                         </div>
                       </div>
                     </div>
-          </div>
+                  </div>
+                </div>
               </div>
             </div>
+          </form>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-slate-300 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center">
+              <Layout size={60} strokeWidth={1} />
+            </div>
+            <p className="text-sm font-medium">{t.select_agency}</p>
           </div>
-        </form>
-      ) : (
-        <div className="h-full flex flex-col items-center justify-center text-slate-300 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center">
-            <Layout size={60} strokeWidth={1} />
-          </div>
-          <p className="text-sm font-medium">{t.select_agency}</p>
-        </div>
-      )}
-    </div>
-    
+        )}
       </main>
 
       {/* CREATE MODAL */}
