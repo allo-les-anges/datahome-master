@@ -627,7 +627,7 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - AVEC CONSOLE.LOG POUR DEBUG
+  // HANDLE SAVE - VERSION DÉFINITIVE AVEC CORRECTION JSONB
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -635,19 +635,27 @@ export default function AgencyDashboard() {
     setIsSaving(true);
 
     try {
-      // 1. On prépare les données de l'équipe (on s'assure que c'est un tableau propre)
-      const teamDataToSave = Array.isArray(team) ? team : [];
+      // 1. On s'assure que team est un tableau d'objets simples (Clean JSON)
+      // Parfois, des proxies React empêchent l'écriture en base.
+      const teamDataToSave = Array.isArray(team) 
+        ? team.map((member: any) => ({
+            name: member.name || "",
+            role: member.role || "",
+            bio: member.bio || "",
+            photo: member.photo || null
+          }))
+        : [];
 
-      // 2. On prépare le footer_config (on s'assure que c'est un objet JSON)
+      console.log("Données d'équipe nettoyées :", teamDataToSave);
+      console.log("Nombre de membres :", teamDataToSave.length);
+
+      // 2. Préparation du footer_config
       const footerConfigToSave = typeof selectedAgency.footer_config === 'string' 
         ? JSON.parse(selectedAgency.footer_config) 
         : (selectedAgency.footer_config || {});
 
-      // AJOUT DU CONSOLE.LOG POUR DEBUG
-      console.log("Données envoyées :", teamDataToSave);
-      console.log("Nombre de membres dans l'équipe :", teamDataToSave.length);
-
-      const { error } = await supabase
+      // 3. Exécution de l'UPDATE avec .select() pour vérifier le retour
+      const { data, error } = await supabase
         .from('agency_settings')
         .update({
           agency_name: selectedAgency.agency_name,
@@ -662,24 +670,37 @@ export default function AgencyDashboard() {
           default_lang: selectedAgency.default_lang,
           cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
           privacy_policy: selectedAgency.privacy_policy,
+          footer_config: footerConfigToSave,
           about_title: selectedAgency.about_title,
           about_text: selectedAgency.about_text,
-          footer_config: footerConfigToSave,
+          // C'EST ICI QUE ÇA SE JOUE
           team_data: teamDataToSave,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', selectedAgency.id);
+        .eq('id', selectedAgency.id)
+        .select(); // On demande le retour des données pour vérifier
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur API Supabase détaillée:", error);
+        throw error;
+      }
+
+      if (data && data[0]) {
+        console.log("Confirmation de sauvegarde (Retour Supabase):", data[0].team_data);
+      }
 
       setMessage({ type: 'success', text: t.success_save });
       
-      // Rafraîchir la liste pour synchroniser
-      const { data } = await supabase.from('agency_settings').select('*');
-      if (data) {
-        setAgencies(data);
+      // Rafraîchir les agences locales avec ordre alphabétique
+      const { data: refreshedData } = await supabase
+        .from('agency_settings')
+        .select('*')
+        .order('agency_name');
+        
+      if (refreshedData) {
+        setAgencies(refreshedData);
         // Mettre à jour l'agence sélectionnée avec les données fraîches
-        const updatedAgency = data.find(a => a.id === selectedAgency.id);
+        const updatedAgency = refreshedData.find(a => a.id === selectedAgency.id);
         if (updatedAgency) {
           setSelectedAgency(updatedAgency);
           setTeam(updatedAgency.team_data || []);
@@ -687,7 +708,7 @@ export default function AgencyDashboard() {
       }
 
     } catch (err: any) {
-      console.error("Erreur de sauvegarde détaillée:", err.message);
+      console.error("Erreur de sauvegarde:", err.message);
       setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
       setIsSaving(false);
