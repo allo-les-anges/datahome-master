@@ -651,6 +651,10 @@ export default function AgencyDashboard() {
       e.stopPropagation();
     }
 
+     // Désactive la navigation Next.js temporairement
+    const originalPush = window.history.pushState;
+    window.history.pushState = function() {};
+
     if (!selectedAgency || !selectedAgency.id) {
       console.error("❌ ID manquant");
       return;
@@ -716,9 +720,10 @@ export default function AgencyDashboard() {
       setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
       setIsSaving(false);
-      setTimeout(() => setMessage(null), 3000);
-    }
-  };
+      setTimeout(() => {
+    window.history.pushState = originalPush;
+  }, 1000)
+};
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};
