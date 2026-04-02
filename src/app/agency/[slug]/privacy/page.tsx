@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import { Shield } from "lucide-react";
 
+export const revalidate = 0; // Force Next.js à ignorer le cache pour vos tests
 export default async function PrivacyPage({
   params,
 }: {
