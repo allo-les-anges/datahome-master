@@ -874,9 +874,8 @@ export default function AgencyDashboard() {
                         onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})}
                       />
                     </div>
-                  </div> {/* Ferme la section Branding */}
-                </div> 
-              </div> {/* Ferme la colonne lg:col-span-2 */}
+                  </div> 
+              </div> 
               
               {/* LIVE PREVIEW (STICKY) */}
               <div className="lg:col-span-1">
