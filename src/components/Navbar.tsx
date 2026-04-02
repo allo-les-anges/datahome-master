@@ -53,9 +53,10 @@ export default function Navbar({ agency }: NavbarProps) {
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
+  // CORRECTION : Liens avec routes réelles au lieu d'ancres #
   const navLinks = [
-    { name: t('nav.about') || "Qui sommes-nous", href: "#about" },
-    { name: t('nav.contact') || "Contact", href: "#contact-section" },
+    { name: t('nav.about') || "Qui sommes-nous", href: "/about" },
+    { name: t('nav.contact') || "Contact", href: "/contact" },
   ];
 
   return (
