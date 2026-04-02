@@ -418,47 +418,44 @@ export default function AgencyDashboard() {
     }
   };
 
+  // Fonction de sauvegarde corrigée avec les bons noms de colonnes
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAgency) return;
     setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from('agency_settings')
-        .update({
-          agency_name: selectedAgency.agency_name,
-          subdomain: selectedAgency.subdomain,
-          primary_color: selectedAgency.primary_color,
-          button_color: selectedAgency.button_color,
-          font_family: selectedAgency.font_family,
-          hero_title: selectedAgency.hero_title,
-          hero_type: selectedAgency.hero_type,
-          hero_url: selectedAgency.hero_url,
-          logo_url: selectedAgency.logo_url,
-          default_lang: selectedAgency.default_lang,
-          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-          privacy_policy: selectedAgency.privacy_policy,
-          footer_config: selectedAgency.footer_config,
-          package_level: selectedAgency.package_level,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedAgency.id);
-      
-      if (error) throw error;
-      
+
+    const { error } = await supabase
+      .from('agency_settings')
+      .update({
+        agency_name: selectedAgency.agency_name,
+        subdomain: selectedAgency.subdomain,
+        primary_color: selectedAgency.primary_color,
+        button_color: selectedAgency.button_color,
+        font_family: selectedAgency.font_family,
+        hero_title: selectedAgency.hero_title,
+        hero_type: selectedAgency.hero_type,
+        hero_url: selectedAgency.hero_url,
+        logo_url: selectedAgency.logo_url,
+        default_lang: selectedAgency.default_lang,
+        cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+        privacy_policy: selectedAgency.privacy_policy,
+        footer_config: selectedAgency.footer_config,
+        package_level: selectedAgency.package_level,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', selectedAgency.id);
+
+    if (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: t.error_save });
+    } else {
       setMessage({ type: 'success', text: t.success_save });
-      
       // Recharger les données
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
-      
-    } catch (err) {
-      console.error(err);
-      setMessage({ type: 'error', text: t.error_save });
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setMessage(null), 3000);
     }
+    setIsSaving(false);
+    setTimeout(() => setMessage(null), 3000);
   };
 
   const updateNestedConfig = (category: string, field: string, value: any) => {
@@ -721,7 +718,7 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Subdomain */}
+                    {/* Subdomain - avec value et onChange */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
                       <div className="relative">
@@ -757,29 +754,49 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
 
-                    {/* Couleur Primaire */}
+                    {/* Couleur Primaire - avec value et onChange corrigés */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
                       <div className="flex gap-4">
-                        <input type="color" value={selectedAgency?.primary_color || '#0f172a'} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
-                        <input type="text" value={selectedAgency?.primary_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
+                        <input 
+                          type="color" 
+                          value={selectedAgency?.primary_color || '#0f172a'} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} 
+                          className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" 
+                        />
+                        <input 
+                          type="text" 
+                          value={selectedAgency?.primary_color || ''} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} 
+                          className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" 
+                        />
                       </div>
                     </div>
 
-                    {/* Couleur Boutons */}
+                    {/* Couleur Boutons - avec value et onChange corrigés */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         <MousePointer2 size={12} /> {t.fields.button_color}
                       </label>
                       <div className="flex gap-4">
-                        <input type="color" value={selectedAgency?.button_color || '#2563eb'} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
-                        <input type="text" value={selectedAgency?.button_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
+                        <input 
+                          type="color" 
+                          value={selectedAgency?.button_color || '#2563eb'} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} 
+                          className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" 
+                        />
+                        <input 
+                          type="text" 
+                          value={selectedAgency?.button_color || ''} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} 
+                          className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" 
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* SECTION 3: CONTENU DES PAGES (Nouveau) */}
+                {/* SECTION 3: CONTENU DES PAGES */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <FileCode size={18} className="text-blue-600" /> Pages Statiques (About & Contact)
@@ -839,7 +856,13 @@ export default function AgencyDashboard() {
                       </div>
                       <div className="space-y-3">
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.hero_title}</label>
-                        <textarea rows={4} value={selectedAgency.hero_title || ''} onChange={(e) => setSelectedAgency({...selectedAgency, hero_title: e.target.value})} placeholder={t.placeholders.hero_text} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-serif italic text-lg" />
+                        <textarea 
+                          rows={4} 
+                          value={selectedAgency.hero_title || ''} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, hero_title: e.target.value})} 
+                          placeholder={t.placeholders.hero_text} 
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-serif italic text-lg" 
+                        />
                       </div>
                     </div>
                   </div>
