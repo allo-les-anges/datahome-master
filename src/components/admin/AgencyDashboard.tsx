@@ -635,22 +635,13 @@ export default function AgencyDashboard() {
   setIsSaving(true);
 
   try {
-    // NETTOYAGE STRICT : On crée un nouveau tableau propre sans résidus React
+    // NETTOYAGE ABSOLU DES DONNÉES
+    // On recrée un tableau d'objets purs pour éviter tout conflit JSONB
     const teamDataToSave = Array.isArray(team) 
-      ? team.map(member => ({
-          name: String(member.name || ""),
-          role: String(member.role || ""),
-          bio: String(member.bio || ""),
-          photo: member.photo ? String(member.photo) : null
-        }))
+      ? JSON.parse(JSON.stringify(team)) 
       : [];
 
-    console.log("Tentative d'écriture Supabase avec :", teamDataToSave);
-
-    // Préparation du footer
-    const footerToSave = typeof selectedAgency.footer_config === 'string'
-      ? JSON.parse(selectedAgency.footer_config)
-      : (selectedAgency.footer_config || {});
+    console.log("🚀 Tentative d'envoi à Supabase...", teamDataToSave);
 
     const { data, error } = await supabase
       .from('agency_settings')
@@ -665,27 +656,33 @@ export default function AgencyDashboard() {
         about_title: selectedAgency.about_title,
         about_text: selectedAgency.about_text,
         whatsapp_number: selectedAgency.whatsapp_number,
-        footer_config: footerToSave,
-        // ÉCRITURE CRUCIALE ICI
+        footer_config: selectedAgency.footer_config,
+        // On force l'envoi ici
         team_data: teamDataToSave, 
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id)
-      .select(); // On force le retour pour vérifier
+      .select(); // Très important pour confirmer l'écriture
 
-    if (error) throw error;
-
-    if (data) {
-      console.log("✅ RÉUSSITE : Supabase a confirmé l'enregistrement :", data[0].team_data);
-      setMessage({ type: 'success', text: "Configuration enregistrée avec succès !" });
+    if (error) {
+      // Ce log va nous dire EXACTEMENT pourquoi Supabase refuse (ex: colonne inexistante, RLS, type invalide)
+      console.error("❌ ERREUR SUPABASE DÉTAILLÉE:", error);
+      throw error;
     }
 
-    // Rafraîchissement des données locales
-    const { data: refresh } = await supabase.from('agency_settings').select('*').order('agency_name');
-    if (refresh) setAgencies(refresh);
+    if (data && data.length > 0) {
+      console.log("✅ CONFIRMATION SUPABASE:", data[0].team_data);
+      setMessage({ type: 'success', text: "Enregistré avec succès dans la base !" });
+    } else {
+      console.warn("⚠️ Aucune donnée retournée (Vérifiez l'ID de l'agence)");
+    }
+
+    // Rafraîchir l'affichage local
+    const { data: refreshed } = await supabase.from('agency_settings').select('*').order('agency_name');
+    if (refreshed) setAgencies(refreshed);
 
   } catch (err: any) {
-    console.error("❌ ERREUR SUPABASE :", err.message);
+    console.error("Erreur critique:", err.message);
     setMessage({ type: 'error', text: "Erreur : " + err.message });
   } finally {
     setIsSaving(false);
