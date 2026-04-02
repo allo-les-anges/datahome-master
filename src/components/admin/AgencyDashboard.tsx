@@ -896,17 +896,21 @@ export default function AgencyDashboard() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>  
-          </form>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-300 space-y-4">
-            <Layout size={60} strokeWidth={1} />
-            <p className="font-serif italic text-lg">{t.select_agency}</p>
           </div>
-        )}
+              </div>
+            </div>
+          </div>
+        </form>
+      ) : (
+        <div className="h-full flex flex-col items-center justify-center text-slate-300 space-y-4">
+          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center">
+            <Layout size={60} strokeWidth={1} />
+          </div>
+          <p className="text-sm font-medium">{t.select_agency}</p>
+        </div>
+      )}
+    </div>
+    
       </main>
 
       {/* CREATE MODAL */}
