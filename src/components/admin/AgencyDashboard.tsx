@@ -630,91 +630,68 @@ export default function AgencyDashboard() {
   // HANDLE SAVE - VERSION DÉFINITIVE AVEC CORRECTION JSONB
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAgency) return;
-    setIsSaving(true);
+  e.preventDefault();
+  if (!selectedAgency) return;
+  setIsSaving(true);
 
-    try {
-      // 1. On s'assure que team est un tableau d'objets simples (Clean JSON)
-      // Parfois, des proxies React empêchent l'écriture en base.
-      const teamDataToSave = Array.isArray(team) 
-        ? team.map((member: any) => ({
-            name: member.name || "",
-            role: member.role || "",
-            bio: member.bio || "",
-            photo: member.photo || null
-          }))
-        : [];
+  try {
+    // NETTOYAGE STRICT : On crée un nouveau tableau propre sans résidus React
+    const teamDataToSave = Array.isArray(team) 
+      ? team.map(member => ({
+          name: String(member.name || ""),
+          role: String(member.role || ""),
+          bio: String(member.bio || ""),
+          photo: member.photo ? String(member.photo) : null
+        }))
+      : [];
 
-      console.log("Données d'équipe nettoyées :", teamDataToSave);
-      console.log("Nombre de membres :", teamDataToSave.length);
+    console.log("Tentative d'écriture Supabase avec :", teamDataToSave);
 
-      // 2. Préparation du footer_config
-      const footerConfigToSave = typeof selectedAgency.footer_config === 'string' 
-        ? JSON.parse(selectedAgency.footer_config) 
-        : (selectedAgency.footer_config || {});
+    // Préparation du footer
+    const footerToSave = typeof selectedAgency.footer_config === 'string'
+      ? JSON.parse(selectedAgency.footer_config)
+      : (selectedAgency.footer_config || {});
 
-      // 3. Exécution de l'UPDATE avec .select() pour vérifier le retour
-      const { data, error } = await supabase
-        .from('agency_settings')
-        .update({
-          agency_name: selectedAgency.agency_name,
-          subdomain: selectedAgency.subdomain,
-          primary_color: selectedAgency.primary_color,
-          button_color: selectedAgency.button_color,
-          font_family: selectedAgency.font_family,
-          hero_title: selectedAgency.hero_title,
-          hero_type: selectedAgency.hero_type,
-          hero_url: selectedAgency.hero_url,
-          logo_url: selectedAgency.logo_url,
-          default_lang: selectedAgency.default_lang,
-          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-          privacy_policy: selectedAgency.privacy_policy,
-          footer_config: footerConfigToSave,
-          about_title: selectedAgency.about_title,
-          about_text: selectedAgency.about_text,
-          // C'EST ICI QUE ÇA SE JOUE
-          team_data: teamDataToSave,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedAgency.id)
-        .select(); // On demande le retour des données pour vérifier
+    const { data, error } = await supabase
+      .from('agency_settings')
+      .update({
+        agency_name: selectedAgency.agency_name,
+        subdomain: selectedAgency.subdomain,
+        primary_color: selectedAgency.primary_color,
+        button_color: selectedAgency.button_color,
+        font_family: selectedAgency.font_family,
+        hero_title: selectedAgency.hero_title,
+        hero_url: selectedAgency.hero_url,
+        about_title: selectedAgency.about_title,
+        about_text: selectedAgency.about_text,
+        whatsapp_number: selectedAgency.whatsapp_number,
+        footer_config: footerToSave,
+        // ÉCRITURE CRUCIALE ICI
+        team_data: teamDataToSave, 
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', selectedAgency.id)
+      .select(); // On force le retour pour vérifier
 
-      if (error) {
-        console.error("Erreur API Supabase détaillée:", error);
-        throw error;
-      }
+    if (error) throw error;
 
-      if (data && data[0]) {
-        console.log("Confirmation de sauvegarde (Retour Supabase):", data[0].team_data);
-      }
-
-      setMessage({ type: 'success', text: t.success_save });
-      
-      // Rafraîchir les agences locales avec ordre alphabétique
-      const { data: refreshedData } = await supabase
-        .from('agency_settings')
-        .select('*')
-        .order('agency_name');
-        
-      if (refreshedData) {
-        setAgencies(refreshedData);
-        // Mettre à jour l'agence sélectionnée avec les données fraîches
-        const updatedAgency = refreshedData.find(a => a.id === selectedAgency.id);
-        if (updatedAgency) {
-          setSelectedAgency(updatedAgency);
-          setTeam(updatedAgency.team_data || []);
-        }
-      }
-
-    } catch (err: any) {
-      console.error("Erreur de sauvegarde:", err.message);
-      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setMessage(null), 3000);
+    if (data) {
+      console.log("✅ RÉUSSITE : Supabase a confirmé l'enregistrement :", data[0].team_data);
+      setMessage({ type: 'success', text: "Configuration enregistrée avec succès !" });
     }
-  };
+
+    // Rafraîchissement des données locales
+    const { data: refresh } = await supabase.from('agency_settings').select('*').order('agency_name');
+    if (refresh) setAgencies(refresh);
+
+  } catch (err: any) {
+    console.error("❌ ERREUR SUPABASE :", err.message);
+    setMessage({ type: 'error', text: "Erreur : " + err.message });
+  } finally {
+    setIsSaving(false);
+    setTimeout(() => setMessage(null), 3000);
+  }
+};
 
   const toggleXmlSource = (url: string) => {
     const currentConfig = selectedAgency.footer_config || {};
