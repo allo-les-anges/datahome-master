@@ -656,50 +656,66 @@ export default function AgencyDashboard() {
   // ============================================================
  const handleSave = async (e: React.FormEvent) => {
   e.preventDefault();
-  if (!selectedAgency) return;
+  
+  // 1. Vérification de l'existence de l'agence sélectionnée
+  if (!selectedAgency || !selectedAgency.id) {
+    console.error("❌ Erreur : Aucune agence sélectionnée ou ID manquant");
+    setMessage({ type: 'error', text: "Erreur : ID de l'agence introuvable." });
+    return;
+  }
+
   setIsSaving(true);
 
   try {
-    // Nettoyage profond pour éviter les Proxy React
-    const teamToSave = JSON.parse(JSON.stringify(team));
-    
-    // On prépare l'objet complet
-    const payload = {
-      agency_name: selectedAgency.agency_name,
-      subdomain: selectedAgency.subdomain,
-      primary_color: selectedAgency.primary_color,
-      button_color: selectedAgency.button_color,
-      font_family: selectedAgency.font_family,
-      hero_title: selectedAgency.hero_title,
-      hero_url: selectedAgency.hero_url,
-      about_title: selectedAgency.about_title,
-      about_text: selectedAgency.about_text,
-      whatsapp_number: selectedAgency.whatsapp_number,
-      footer_config: selectedAgency.footer_config,
-      team_data: teamToSave, // La colonne qui pose problème
-      updated_at: new Date().toISOString(),
-    };
+    // 2. Nettoyage profond du tableau team pour éviter les proxies React
+    const teamDataToSave = JSON.parse(JSON.stringify(team));
 
-    console.log("Envoi à Supabase pour l'ID:", selectedAgency.id);
+    console.log("Cible de l'ID :", selectedAgency.id);
+    console.log("Données envoyées vers team_data :", teamDataToSave);
 
-    const { data, error } = await supabase
+    // 3. Mise à jour Supabase
+    const { data, error, status } = await supabase
       .from('agency_settings')
-      .update(payload)
+      .update({
+        agency_name: selectedAgency.agency_name,
+        subdomain: selectedAgency.subdomain,
+        primary_color: selectedAgency.primary_color,
+        button_color: selectedAgency.button_color,
+        font_family: selectedAgency.font_family,
+        hero_title: selectedAgency.hero_title,
+        hero_url: selectedAgency.hero_url,
+        logo_url: selectedAgency.logo_url,
+        about_title: selectedAgency.about_title,
+        about_text: selectedAgency.about_text,
+        whatsapp_number: selectedAgency.whatsapp_number,
+        footer_config: selectedAgency.footer_config,
+        // Écriture forcée du JSONB
+        team_data: teamDataToSave, 
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', selectedAgency.id)
-      .select(); // Force Supabase à renvoyer la ligne après modification
+      .select(); // On force le retour pour voir ce qui a été écrit
 
-    if (error) throw error;
+    if (error) {
+      console.error("❌ ERREUR SUPABASE :", error.message);
+      throw error;
+    }
 
+    // 4. Analyse du retour de la base
     if (data && data.length > 0) {
-      console.log("✅ RÉUSSITE ! Retour base de données :", data[0].team_data);
-      setMessage({ type: 'success', text: "Modifications enregistrées !" });
+      console.log("✅ SUCCÈS : Données confirmées en base :", data[0].team_data);
+      setMessage({ type: 'success', text: "Configuration enregistrée !" });
+      
+      // Mise à jour de la liste locale pour synchroniser l'affichage
+      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
     } else {
-      console.warn("⚠️ Aucune erreur mais aucune ligne modifiée. Vérifiez l'ID de l'agence.");
+      // Cas critique : status 200 mais data vide = l'ID n'existe pas dans la table
+      console.warn(`⚠️ Attention : Supabase n'a trouvé aucune ligne avec l'ID ${selectedAgency.id}`);
+      setMessage({ type: 'error', text: "Échec : L'agence n'existe pas en base de données." });
     }
 
   } catch (err: any) {
-    console.error("❌ ERREUR :");
-    console.dir(err); // Affiche l'objet d'erreur complet
+    console.error("❌ ERREUR CRITIQUE :", err.message);
     setMessage({ type: 'error', text: "Erreur : " + err.message });
   } finally {
     setIsSaving(false);
