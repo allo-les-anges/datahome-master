@@ -458,10 +458,8 @@ export default function AgencyDashboard() {
     package_level: 'silver'
   });
 
-  // État pour gérer l'équipe localement dans le dashboard
   const [team, setTeam] = useState<any[]>([]);
 
-  // Chargement des agences depuis agency_settings AVEC LOGS
   useEffect(() => {
     const fetchAgencies = async () => {
       try {
@@ -477,7 +475,7 @@ export default function AgencyDashboard() {
         setAgencies(data || []);
         if (data && data.length > 0 && !selectedAgency) {
           setSelectedAgency(data[0]);
-          setTeam(data[0].team_data ? data[0].team_data : []);
+          setTeam(data[0].team_data || []);
         }
       } catch (err) { 
         console.error(err); 
@@ -489,17 +487,12 @@ export default function AgencyDashboard() {
     fetchAgencies();
   }, []);
 
-  // Mettre à jour l'équipe quand l'agence sélectionnée change
   useEffect(() => {
     if (selectedAgency) {
       setTeam(selectedAgency.team_data || []);
     }
   }, [selectedAgency]);
 
-  // ============================================================
-  // FONCTIONS DE CONFIGURATION
-  // ============================================================
-  
   const updateNestedConfig = (section: string, field: string, value: any) => {
     if (!selectedAgency) return;
     
@@ -557,9 +550,6 @@ export default function AgencyDashboard() {
     });
   };
 
-  // ============================================================
-  // FONCTION TOGGLE XML SOURCE
-  // ============================================================
   const toggleXmlSource = (url: string) => {
     if (!selectedAgency) return;
 
@@ -581,7 +571,6 @@ export default function AgencyDashboard() {
     });
   };
 
-  // Fonctions de gestion de l'équipe
   const addMember = () => {
     const newMember = { name: "", role: "", bio: "", photo: "" };
     const newTeam = [...team, newMember];
@@ -653,73 +642,63 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - VERSION CORRIGÉE AVEC SYNC COMPLÈTE
+  // HANDLE SAVE - VERSION SPÉCIFIQUE AVEC BLOCAGE REDIRECTION
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
+    // BLOQUE TOUTE REDIRECTION OU RAFRAICHISSEMENT AUTO
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
 
-    if (!selectedAgency || !selectedAgency.id) {
-      console.error("❌ ID manquant");
-      return;
-    }
+    if (!selectedAgency || !selectedAgency.id) return;
 
     setIsSaving(true);
-    console.log("🚀 Début de sauvegarde pour l'ID :", selectedAgency.id);
-    console.log("📋 État team avant sauvegarde :", team);
 
     try {
-      const updateData = {
-        agency_name: selectedAgency.agency_name,
-        subdomain: selectedAgency.subdomain,
-        primary_color: selectedAgency.primary_color,
-        button_color: selectedAgency.button_color,
-        font_family: selectedAgency.font_family,
-        hero_title: selectedAgency.hero_title,
-        hero_type: selectedAgency.hero_type,
-        hero_url: selectedAgency.hero_url,
-        logo_url: selectedAgency.logo_url,
-        default_lang: selectedAgency.default_lang,
-        cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-        privacy_policy: selectedAgency.privacy_policy,
-        about_title: selectedAgency.about_title,
-        about_text: selectedAgency.about_text,
-        whatsapp_number: selectedAgency.whatsapp_number,
-        footer_config: selectedAgency.footer_config,
-        team_data: JSON.parse(JSON.stringify(team)),
-        updated_at: new Date().toISOString(),
-      };
+      // SYNC STRICTE : On prend l'état 'team' actuel (l'image 1)
+      const teamDataToSave = JSON.parse(JSON.stringify(team));
 
-      console.log("📤 Données team_data envoyées à Supabase:", updateData.team_data);
+      console.log("✅ team_data à sauvegarder:", teamDataToSave);
 
       const { data, error } = await supabase
         .from('agency_settings')
-        .update(updateData)
+        .update({
+          agency_name: selectedAgency.agency_name,
+          subdomain: selectedAgency.subdomain,
+          primary_color: selectedAgency.primary_color,
+          button_color: selectedAgency.button_color,
+          font_family: selectedAgency.font_family,
+          hero_title: selectedAgency.hero_title,
+          hero_type: selectedAgency.hero_type,
+          hero_url: selectedAgency.hero_url,
+          logo_url: selectedAgency.logo_url,
+          default_lang: selectedAgency.default_lang,
+          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+          privacy_policy: selectedAgency.privacy_policy,
+          about_title: selectedAgency.about_title,
+          about_text: selectedAgency.about_text,
+          whatsapp_number: selectedAgency.whatsapp_number,
+          footer_config: selectedAgency.footer_config,
+          team_data: teamDataToSave,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', selectedAgency.id)
         .select();
 
-      if (error) {
-        console.error("❌ ERREUR SUPABASE:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (data && data.length > 0) {
-        console.log("✅ RÉUSSITE ! team_data sauvegardé:", data[0].team_data);
-        setMessage({ type: 'success', text: t.success_save });
+        console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
+        setMessage({ type: 'success', text: "Enregistré !" });
         
-        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+        // On met à jour l'état pour que le prochain F5 affiche les données
         setSelectedAgency(data[0]);
         setTeam(data[0].team_data || []);
-      } else {
-        console.warn("⚠️ Aucune donnée retournée par Supabase");
-        setMessage({ type: 'error', text: "Erreur: Aucune donnée retournée" });
       }
-
     } catch (err: any) {
-      console.error("❌ ERREUR CRITIQUE:", err);
-      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
+      console.error("❌ ERREUR:", err.message);
+      setMessage({ type: 'error', text: "Erreur" });
     } finally {
       setIsSaving(false);
       setTimeout(() => setMessage(null), 3000);
@@ -807,7 +786,6 @@ export default function AgencyDashboard() {
         V2 ACTIVE - TABLE: AGENCY_SETTINGS
       </div>
 
-      {/* SIDEBAR */}
       <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-sm mt-6">
         <div className="p-8 border-b border-slate-100 bg-white sticky top-0 z-10">
           <div className="flex justify-between items-center mb-6">
@@ -838,7 +816,6 @@ export default function AgencyDashboard() {
         </nav>
       </aside>
 
-      {/* MAIN FORM */}
       <main className="flex-1 overflow-y-auto mt-6">
         {selectedAgency ? (
           <form onSubmit={handleSave} className="max-w-6xl mx-auto p-12 space-y-8">
@@ -873,7 +850,6 @@ export default function AgencyDashboard() {
               </div>
             </header>
 
-            {/* LANGUE PAR DÉFAUT */}
             <div className="space-y-4 border-t border-slate-50 pt-4">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Langue par défaut du site
@@ -899,7 +875,6 @@ export default function AgencyDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
                 
-                {/* SECTION 1: LANGUES & FLUX */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <FileCode size={18} className="text-blue-600" /> {t.sections.lang_xml}
@@ -948,7 +923,6 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 2: BRANDING & POLICE */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <Palette size={18} className="text-blue-600" /> {t.sections.branding}
@@ -1040,7 +1014,6 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 3: PAGES STATIQUES (ABOUT) */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                   <h3 className="text-sm font-bold flex items-center gap-2 border-b pb-4">
                     <Type size={18} className="text-blue-600" /> {t.sections.about}
@@ -1073,7 +1046,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 4: GESTION DE L'ÉQUIPE */}
+                {/* SECTION GESTION DE L'ÉQUIPE */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex justify-between items-center border-b pb-4">
                     <h3 className="text-sm font-bold flex items-center gap-2">
@@ -1179,7 +1152,6 @@ export default function AgencyDashboard() {
                   )}
                 </div>
 
-                {/* SECTION 5: HERO HEADER */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 border-b border-slate-100 pb-5 uppercase text-xs tracking-widest">
                     <Layout size={18} className="text-blue-600" /> {t.sections.hero}
@@ -1221,7 +1193,6 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 6: INTEGRATIONS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-purple-500">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Zap size={18} className="text-purple-600" /> {t.sections.integrations}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1242,7 +1213,6 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 7: CONTACT & SOCIALS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <Share2 size={18} className="text-blue-600" /> {t.sections.socials}
@@ -1288,7 +1258,6 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 8: CONFORMITÉ & LÉGAL */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-slate-900">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <ShieldCheck size={18} className="text-slate-900" /> {t.sections.legal || "Conformité & Légal"}
@@ -1327,7 +1296,6 @@ export default function AgencyDashboard() {
                 </div>
               </div>
               
-              {/* LIVE PREVIEW (STICKY) */}
               <div className="lg:col-span-1">
                 <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl sticky top-8 overflow-hidden">
                   <div className="flex items-center gap-2 mb-4 text-white/50 text-[10px] font-bold uppercase tracking-widest"><Monitor size={14} /> {t.sections.preview}</div>
@@ -1361,7 +1329,6 @@ export default function AgencyDashboard() {
         )}
       </main>
 
-      {/* CREATE MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl space-y-8 animate-in zoom-in duration-300">
