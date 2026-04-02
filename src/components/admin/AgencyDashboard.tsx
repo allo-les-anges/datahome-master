@@ -477,7 +477,7 @@ export default function AgencyDashboard() {
         setAgencies(data || []);
         if (data && data.length > 0 && !selectedAgency) {
           setSelectedAgency(data[0]);
-          setTeam(data[0].team_data || []);
+          setTeam(data[0].team_data ? data[0].team_data : []);
         }
       } catch (err) { 
         console.error(err); 
