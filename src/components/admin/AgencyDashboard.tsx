@@ -461,7 +461,7 @@ export default function AgencyDashboard() {
   // État pour gérer l'équipe localement dans le dashboard
   const [team, setTeam] = useState<any[]>([]);
 
-  // Chargement des agences depuis agency_settings
+  // Chargement des agences depuis agency_settings AVEC LOGS
   useEffect(() => {
     const fetchAgencies = async () => {
       try {
@@ -471,13 +471,12 @@ export default function AgencyDashboard() {
         
         if (error) throw error;
         
-        console.log("🔵 DONNÉES CHARGÉES DEPUIS SUPABASE:", data);
-        console.log("🔵 team_data de la première agence:", data?.[0]?.team_data);
-
+        console.log("🔵 CHARGEMENT - Données de Supabase:", data);
+        console.log("🔵 CHARGEMENT - team_data de l'agence:", data?.[0]?.team_data);
+        
         setAgencies(data || []);
         if (data && data.length > 0 && !selectedAgency) {
           setSelectedAgency(data[0]);
-          // Initialiser l'équipe avec les données de l'agence sélectionnée
           setTeam(data[0].team_data || []);
         }
       } catch (err) { 
@@ -672,7 +671,6 @@ export default function AgencyDashboard() {
     console.log("📋 État team avant sauvegarde :", team);
 
     try {
-      // IMPORTANT: On crée un objet de mise à jour avec les données actuelles
       const updateData = {
         agency_name: selectedAgency.agency_name,
         subdomain: selectedAgency.subdomain,
@@ -690,7 +688,6 @@ export default function AgencyDashboard() {
         about_text: selectedAgency.about_text,
         whatsapp_number: selectedAgency.whatsapp_number,
         footer_config: selectedAgency.footer_config,
-        // CRUCIAL: On prend l'état team actuel, pas celui dans selectedAgency
         team_data: JSON.parse(JSON.stringify(team)),
         updated_at: new Date().toISOString(),
       };
@@ -1091,7 +1088,6 @@ export default function AgencyDashboard() {
                     </button>
                   </div>
 
-                  {/* DEBUG: Affichage du nombre de membres */}
                   <div className="text-xs text-slate-400 mb-2">
                     Debug: Team length = {team.length}
                   </div>
@@ -1114,7 +1110,6 @@ export default function AgencyDashboard() {
                           </button>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Photo du membre */}
                             <div className="space-y-2">
                               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
                                 <ImageIcon size={12} /> {t.fields.member_photo}
@@ -1139,7 +1134,6 @@ export default function AgencyDashboard() {
                               </div>
                             </div>
 
-                            {/* Nom du membre */}
                             <div className="space-y-2">
                               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
                                 <Users size={12} /> {t.fields.member_name}
@@ -1153,7 +1147,6 @@ export default function AgencyDashboard() {
                               />
                             </div>
 
-                            {/* Rôle du membre */}
                             <div className="space-y-2">
                               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
                                 <Briefcase size={12} /> {t.fields.member_role}
@@ -1167,7 +1160,6 @@ export default function AgencyDashboard() {
                               />
                             </div>
 
-                            {/* Biographie du membre */}
                             <div className="space-y-2 md:col-span-2">
                               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
                                 <FileText size={12} /> {t.fields.member_bio}
