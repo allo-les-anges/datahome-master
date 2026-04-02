@@ -631,18 +631,21 @@ export default function AgencyDashboard() {
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
   e.preventDefault();
-  if (!selectedAgency) return;
+  if (!selectedAgency) {
+    console.error("❌ Aucune agence sélectionnée");
+    return;
+  }
   setIsSaving(true);
 
   try {
-    // ÉTAPE 1 : Nettoyage radical (Deep Clone)
-    // On transforme en texte puis on repasse en objet pour casser tout lien avec React
-    const teamDataToSave = JSON.parse(JSON.stringify(team));
+    // 1. On s'assure que 'team' est un tableau propre (Nettoyage JSON)
+    const teamDataToSave = Array.isArray(team) ? JSON.parse(JSON.stringify(team)) : [];
     
-    console.log("🚀 ENVOI VERS SUPABASE...", teamDataToSave);
+    console.log("ID de l'agence cible :", selectedAgency.id);
+    console.log("Contenu envoyé à team_data :", teamDataToSave);
 
-    // ÉTAPE 2 : Mise à jour avec vérification d'ID
-    const { data, error } = await supabase
+    // 2. L'appel Supabase avec .select() pour vérifier le retour immédiat
+    const { data, error, status } = await supabase
       .from('agency_settings')
       .update({
         agency_name: selectedAgency.agency_name,
@@ -657,28 +660,30 @@ export default function AgencyDashboard() {
         about_text: selectedAgency.about_text,
         whatsapp_number: selectedAgency.whatsapp_number,
         footer_config: selectedAgency.footer_config,
-        // LA LIGNE CRITIQUE
+        // On force l'écriture ici
         team_data: teamDataToSave, 
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id)
-      .select(); // On demande le retour immédiat pour preuve
+      .select(); // REÇOIT LA LIGNE MODIFIÉE EN RETOUR
 
     if (error) {
       console.error("❌ ERREUR API SUPABASE :", error.message);
       throw error;
     }
 
+    // 3. ANALYSE DU RÉSULTAT
     if (data && data.length > 0) {
-      console.log("✅ RÉUSSITE ! Données réellement en base :", data[0].team_data);
+      console.log("✅ RÉUSSITE ! Données enregistrées par Supabase :", data[0].team_data);
       setMessage({ type: 'success', text: "Enregistré avec succès !" });
+      
+      // On met à jour la liste locale avec la donnée fraîche
+      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
     } else {
-      console.warn("⚠️ Aucune ligne mise à jour. Vérifiez que l'ID de l'agence est correct.");
+      // Si status est 204 ou 200 mais data est vide, l'ID est probablement mauvais
+      console.warn(`⚠️ Supabase dit OK (Status: ${status}) mais aucune ligne n'a été trouvée avec l'ID ${selectedAgency.id}`);
+      setMessage({ type: 'error', text: "L'agence n'a pas pu être trouvée en base." });
     }
-
-    // Rafraîchir la liste locale
-    const { data: refreshed } = await supabase.from('agency_settings').select('*');
-    if (refreshed) setAgencies(refreshed);
 
   } catch (err: any) {
     console.error("❌ ERREUR CRITIQUE :", err.message);
@@ -688,15 +693,6 @@ export default function AgencyDashboard() {
     setTimeout(() => setMessage(null), 3000);
   }
 };
-
-  const toggleXmlSource = (url: string) => {
-    const currentConfig = selectedAgency.footer_config || {};
-    const currentUrls = currentConfig.xml_urls || [];
-    const newUrls = currentUrls.includes(url) 
-      ? currentUrls.filter((u: string) => u !== url) 
-      : [...currentUrls, url];
-    setSelectedAgency({ ...selectedAgency, footer_config: { ...currentConfig, xml_urls: newUrls } });
-  };
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};
