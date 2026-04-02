@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Phone, MapPin, User, Send, MessageCircle } from "lucide-react";
+import { Loader2, Mail, Phone, MapPin, User, MessageCircle } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "@/contexts/I18nContext";
 import { supabase } from "@/lib/supabase";
@@ -28,7 +28,7 @@ export default function ContactPage() {
         const hostname = window.location.hostname;
         let subdomain = hostname.split('.')[0];
 
-        // Gestion du local ou du domaine principal
+        // Normalisation du sous-domaine pour le développement et la production
         if (subdomain === 'localhost' || subdomain === 'www' || subdomain === 'datahome') {
           subdomain = 'lumina-prestige'; 
         }
@@ -39,9 +39,12 @@ export default function ContactPage() {
           .eq('subdomain', subdomain)
           .single();
 
-        if (data) setAgency(data);
+        if (data) {
+          console.log("Données de l'agence chargées:", data);
+          setAgency(data);
+        }
       } catch (err) {
-        console.error("Erreur de récupération:", err);
+        console.error("Erreur de récupération Supabase:", err);
       } finally {
         setLoading(false);
       }
@@ -57,59 +60,92 @@ export default function ContactPage() {
     );
   }
 
-  // --- EXTRACTION DES DONNÉES SELON VOTRE STRUCTURE ---
+  // --- CONFIGURATION DES COULEURS ---
   const brandColor = agency?.primary_color || "#c5a059";
   const buttonColor = agency?.button_color || brandColor;
 
-  // Analyse du JSON footer_config
+  // --- PARSING DU FOOTER (INFOS CONTACT) ---
   let contactInfo = { email: "", phone: "", address: "" };
   try {
-    contactInfo = typeof agency?.footer_config === 'string' 
-      ? JSON.parse(agency.footer_config) 
-      : (agency?.footer_config || {});
-  } catch (e) { console.error("Erreur parsing footer_config"); }
-
-  // Analyse du JSON team_data
-  let team = [];
-  try {
-    if (agency?.team_data) {
-      team = typeof agency.team_data === 'string' ? JSON.parse(agency.team_data) : agency.team_data;
+    if (agency?.footer_config) {
+      contactInfo = typeof agency.footer_config === 'string' 
+        ? JSON.parse(agency.footer_config) 
+        : agency.footer_config;
     }
-  } catch (e) { console.error("Erreur parsing team_data"); }
+  } catch (e) { 
+    console.error("Erreur parsing footer_config"); 
+  }
 
-  // Si team_data est vide en base, on utilise des placeholders pour l'affichage
+  // --- PARSING DE L'ÉQUIPE (JSONB) ---
+  const getTeam = () => {
+    if (!agency?.team_data) return [];
+    if (Array.isArray(agency.team_data)) return agency.team_data;
+    try {
+      if (typeof agency.team_data === 'string') {
+        return JSON.parse(agency.team_data);
+      }
+    } catch (e) {
+      console.error("Erreur parsing team_data");
+    }
+    return [];
+  };
+
+  const team = getTeam();
+
+  // Fallback si l'équipe est vide dans Supabase
   const displayTeam = team.length > 0 ? team : [
-    { name: "Direction Générale", role: "Expert Immobilier Luxe", bio: "Spécialiste de l'accompagnement sur-mesure depuis 15 ans.", photo: null },
-    { name: "Consultant Senior", role: "Relations Internationales", bio: "Expert en investissements résidentiels de prestige.", photo: null }
+    { 
+      name: "Direction Générale", 
+      role: "Expert Immobilier Luxe", 
+      bio: "Spécialiste de l'accompagnement sur-mesure pour vos projets d'exception.", 
+      photo: null 
+    },
+    { 
+      name: "Consultant Senior", 
+      role: "Relations Internationales", 
+      bio: "Expert en investissements résidentiels de prestige et gestion de patrimoine.", 
+      photo: null 
+    }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    // Simulation d'envoi
     setTimeout(() => {
       setIsSubmitting(false);
       setStatus("success");
+      setFormData({ name: "", email: "", message: "" });
     }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500">
+    <div className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500 font-sans">
       <Navbar agency={agency} />
 
       <main>
-        {/* HERO SECTION DYNAMIQUE */}
+        {/* HERO SECTION */}
         <section className="relative h-[55vh] flex items-center justify-center overflow-hidden bg-slate-900">
           {agency?.hero_url ? (
-            <img src={agency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-50 brightness-75" alt="Hero" />
+            <img 
+              src={agency.hero_url} 
+              className="absolute inset-0 w-full h-full object-cover opacity-50 brightness-75" 
+              alt="Lumina Prestige Hero" 
+            />
           ) : (
             <div className="absolute inset-0 bg-black opacity-80" />
           )}
           <div className="relative z-10 text-center px-6 max-w-4xl">
-            <h1 className="text-4xl md:text-7xl font-serif italic text-white mb-6" style={{ fontFamily: agency?.font_family }}>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl md:text-7xl font-serif italic text-white mb-6" 
+              style={{ fontFamily: agency?.font_family || 'serif' }}
+            >
               {agency?.hero_title || "Contactez-nous"}
-            </h1>
+            </motion.h1>
             <p className="text-white/80 text-lg font-light italic max-w-2xl mx-auto leading-relaxed">
-              {agency?.about_text || "L'excellence immobilière à votre écoute."}
+              {agency?.about_text || "L'excellence immobilière à votre écoute pour réaliser vos plus grands projets."}
             </p>
           </div>
         </section>
@@ -130,9 +166,10 @@ export default function ContactPage() {
                   key={idx}
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
                   className="p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex flex-col md:flex-row gap-10 items-center hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm"
                 >
-                  <div className="w-32 h-40 rounded-2xl bg-slate-200 dark:bg-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-32 h-40 rounded-2xl bg-slate-200 dark:bg-white/10 overflow-hidden shrink-0 flex items-center justify-center shadow-inner">
                     {member.photo ? (
                       <img src={member.photo} className="w-full h-full object-cover shadow-lg" alt={member.name} />
                     ) : (
@@ -151,7 +188,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* FORMULAIRE & INFORMATIONS */}
+          {/* FORMULAIRE & INFORMATIONS LATÉRALES */}
           <div className="xl:col-span-5">
             <div className="sticky top-32 space-y-8">
               <div className="p-10 rounded-[3rem] bg-slate-950 text-white shadow-2xl border border-white/5">
@@ -168,17 +205,19 @@ export default function ContactPage() {
                     <div className="p-4 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-colors">
                       <Mail size={20} style={{ color: brandColor }} />
                     </div>
-                    <span className="text-sm font-light tracking-widest">{contactInfo.email || "Non renseigné"}</span>
+                    <span className="text-sm font-light tracking-widest">{contactInfo.email || "contact@lumina-prestige.com"}</span>
                   </div>
                   <div className="flex items-center gap-5">
                     <div className="p-4 rounded-2xl bg-white/5">
                       <MapPin size={20} style={{ color: brandColor }} />
                     </div>
-                    <span className="text-sm font-light leading-relaxed opacity-70">{contactInfo.address || "Adresse de prestige"}</span>
+                    <span className="text-sm font-light leading-relaxed opacity-70">
+                      {contactInfo.address || "12 Place Vendôme, Paris"}
+                    </span>
                   </div>
                   {agency?.whatsapp_number && (
-                    <div className="flex items-center gap-5">
-                      <div className="p-4 rounded-2xl bg-green-500/10">
+                    <div className="flex items-center gap-5 group">
+                      <div className="p-4 rounded-2xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                         <MessageCircle size={20} className="text-green-500" />
                       </div>
                       <span className="text-sm font-light tracking-widest">WhatsApp Direct</span>
@@ -189,16 +228,25 @@ export default function ContactPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <input 
                     required
+                    type="text"
                     placeholder="VOTRE NOM"
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-widest outline-none focus:border-white/30 transition-all"
+                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
+                  <input 
+                    required
+                    type="email"
+                    placeholder="VOTRE EMAIL"
+                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
                   />
                   <textarea 
                     required
                     rows={4}
                     placeholder="VOTRE MESSAGE..."
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-widest outline-none focus:border-white/30 transition-all resize-none"
+                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all resize-none placeholder:text-white/20"
                     value={formData.message}
                     onChange={(e) => setFormData({...formData, message: e.target.value})}
                   />
@@ -208,10 +256,20 @@ export default function ContactPage() {
                     style={{ backgroundColor: buttonColor }}
                     className="w-full py-5 rounded-2xl text-black font-black text-[10px] tracking-[0.3em] hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
                   >
-                    {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : "ENVOYER"}
+                    {isSubmitting ? (
+                      <Loader2 className="animate-spin" size={16}/>
+                    ) : (
+                      "ENVOYER LE MESSAGE"
+                    )}
                   </button>
                   {status === "success" && (
-                    <p className="text-center text-green-400 text-[10px] font-black tracking-widest mt-4">DEMANDE ENVOYÉE</p>
+                    <motion.p 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      className="text-center text-green-400 text-[10px] font-black tracking-widest mt-4 uppercase"
+                    >
+                      Demande envoyée avec succès
+                    </motion.p>
                   )}
                 </form>
               </div>
