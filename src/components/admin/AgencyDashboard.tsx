@@ -662,6 +662,9 @@ export default function AgencyDashboard() {
       console.log("✅ team_data à sauvegarder:", teamDataToSave);
 
       const { data, error } = await supabase
+      console.log("📊 RÉPONSE SUPABASE - data:", data);
+      console.log("📊 RÉPONSE SUPABASE - error:", error);
+      console.log("📊 RÉPONSE SUPABASE - status:", status);
         .from('agency_settings')
         .update({
           agency_name: selectedAgency.agency_name,
