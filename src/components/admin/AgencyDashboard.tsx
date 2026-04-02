@@ -42,6 +42,7 @@ const translations = {
       agency_name: "Nom de l'enseigne",
       subdomain: "URL du site (Slug)",
       logo: "Logo de l'agence",
+      font: "Police de caractères", // Ajouté pour corriger l'erreur de build
       font_family: "Police de caractères",
       primary_color: "Couleur Principale (Accents)",
       button_color: "Couleur des Boutons (CTA)",
@@ -93,6 +94,7 @@ const translations = {
       agency_name: "Agency Name",
       subdomain: "Site URL (Slug)",
       logo: "Agency Logo",
+      font: "Font Family", // Ajouté
       font_family: "Font Family",
       primary_color: "Primary Color (Accents)",
       button_color: "Button Color (CTA)",
@@ -144,6 +146,7 @@ const translations = {
       agency_name: "Nombre de la agencia",
       subdomain: "URL del sitio (Slug)",
       logo: "Logo de la agencia",
+      font: "Fuente tipográfica", // Ajouté
       font_family: "Fuente tipográfica",
       primary_color: "Color principal (Acentos)",
       button_color: "Color de botones (CTA)",
@@ -195,6 +198,7 @@ const translations = {
       agency_name: "Nazwa agencji",
       subdomain: "URL witryny (Slug)",
       logo: "Logo agencji",
+      font: "Czcionka", // Ajouté
       font_family: "Czcionka",
       primary_color: "Kolor główny (Akcenty)",
       button_color: "Kolor przycisków (CTA)",
@@ -246,6 +250,7 @@ const translations = {
       agency_name: "Naam van het agentschap",
       subdomain: "Website URL (Slug)",
       logo: "Logo van het agentschap",
+      font: "Lettertype", // Ajouté
       font_family: "Lettertype",
       primary_color: "Hoofdkleur (Accenten)",
       button_color: "Kleur van knoppen (CTA)",
@@ -297,6 +302,7 @@ const translations = {
       agency_name: "اسم الوكالة",
       subdomain: "رابط الموقع (Slug)",
       logo: "شعار الوكالة",
+      font: "نوع الخط", // Ajouté
       font_family: "نوع الخط",
       primary_color: "اللون الأساسي",
       button_color: "لؤن الأزرار",
@@ -566,102 +572,136 @@ export default function AgencyDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                
-                {/* SECTION 1: LANGUES & FLUX */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><FileCode size={18} className="text-blue-600" /> {t.sections.lang_xml}</h3>
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.fields.allowed_langs}</label>
-                    <div className="flex flex-wrap gap-2">
-                      {SUPPORTED_LANGUAGES.map(l => (
-                        <button key={l.code} type="button" onClick={() => toggleLanguage(l.code)} className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${selectedAgency.footer_config?.allowed_langs?.includes(l.code) ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}>{l.label}</button>
-                      ))}
+                <div className="lg:col-span-2 space-y-8">
+                  
+                  {/* SECTION 1: LANGUES & FLUX */}
+                  <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
+                    <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                      <FileCode size={18} className="text-blue-600" /> {t.sections.lang_xml}
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {t.fields.allowed_langs}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {SUPPORTED_LANGUAGES.map(l => (
+                          <button 
+                            key={l.code} 
+                            type="button" 
+                            onClick={() => toggleLanguage(l.code)} 
+                            className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${selectedAgency?.footer_config?.allowed_langs?.includes(l.code) ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}
+                          >
+                            {l.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.fields.xml_sources}</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {DISPONIBLE_XML_SOURCES.map((s) => (
-                        <button key={s.id} type="button" onClick={() => toggleXmlSource(s.url)} className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedAgency.footer_config?.xml_urls?.includes(s.url) ? 'border-blue-500 bg-blue-50/30' : 'border-slate-50'}`}>
-                          <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded flex items-center justify-center border ${selectedAgency.footer_config?.xml_urls?.includes(s.url) ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-200'}`}>{selectedAgency.footer_config?.xml_urls?.includes(s.url) && <CheckCircle2 size={12} className="text-white" />}</div>
-                            <span className="text-sm font-bold">{s.name}</span>
-                          </div>
-                          <span className="text-[9px] font-mono text-slate-300 truncate max-w-[150px]">{s.url}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
 
-                {/* SECTION 2: BRANDING & POLICE */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                    <Palette size={18} className="text-blue-600" /> {t.sections.branding}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Logo Upload */}
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
-                      <div className="relative group">
-                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'branding', 'logo_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                        <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
-                          <UploadCloud className="text-slate-300" size={24} />
-                          <span className="text-xs text-slate-500">{selectedAgency.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {t.fields.xml_sources}
+                      </label>
+                      <div className="grid grid-cols-1 gap-2">
+                        {DISPONIBLE_XML_SOURCES.map((s) => (
+                          <button 
+                            key={s.id} 
+                            type="button" 
+                            onClick={() => toggleXmlSource(s.url)} 
+                            className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'border-blue-500 bg-blue-50/30' : 'border-slate-50'}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-5 h-5 rounded flex items-center justify-center border ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-200'}`}>
+                                {selectedAgency?.footer_config?.xml_urls?.includes(s.url) && <CheckCircle2 size={12} className="text-white" />}
+                              </div>
+                              <span className="text-sm font-bold">{s.name}</span>
+                            </div>
+                            <span className="text-[9px] font-mono text-slate-300 truncate max-w-[150px]">{s.url}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SECTION 2: BRANDING & POLICE */}
+                  <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
+                    <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                      <Palette size={18} className="text-blue-600" /> {t.sections.branding}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Logo Upload */}
+                      <div className="space-y-3">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
+                        <div className="relative group">
+                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'branding', 'logo_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                          <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
+                            <UploadCloud className="text-slate-300" size={24} />
+                            <span className="text-xs text-slate-500">{selectedAgency?.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Subdomain */}
+                      <div className="space-y-3">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
+                        <div className="relative">
+                          <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                          <input 
+                            type="text" 
+                            value={selectedAgency?.subdomain || ''} 
+                            onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
+                            className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" 
+                            placeholder={t.placeholders.slug} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* FONT SELECTOR */}
+                      <div className="space-y-3">
+                        {/* CORRECTION ICI : Remplacement de t.fields.font par un texte statique ou clé sécurisée */}
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                          Police d'écriture
+                        </label>
+                        <div className="relative">
+                          <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                          <select 
+                            value={selectedAgency?.font_family || 'Montserrat'} 
+                            onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} 
+                            className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none bg-white font-medium"
+                          >
+                            <option value="Montserrat">Montserrat (Moderne)</option>
+                            <option value="Inter">Inter (Minimaliste)</option>
+                            <option value="'Playfair Display', serif">Playfair (Luxe)</option>
+                            <option value="Poppins">Poppins (Arrondi)</option>
+                            <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Couleur Primaire */}
+                      <div className="space-y-3">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
+                        <div className="flex gap-4">
+                          <input type="color" value={selectedAgency?.primary_color || '#0f172a'} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
+                          <input type="text" value={selectedAgency?.primary_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
+                        </div>
+                      </div>
+
+                      {/* Couleur Boutons */}
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                          <MousePointer2 size={12} /> {t.fields.button_color}
+                        </label>
+                        <div className="flex gap-4">
+                          <input type="color" value={selectedAgency?.button_color || '#2563eb'} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
+                          <input type="text" value={selectedAgency?.button_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
                         </div>
                       </div>
                     </div>
-
-                    {/* Subdomain */}
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
-                      <div className="relative">
-                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <input type="text" value={selectedAgency.subdomain || ''} onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder={t.placeholders.slug} />
-                      </div>
-                    </div>
-
-                    {/* FONT SELECTOR (Choix multiple dont Montserrat) */}
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.font}</label>
-                      <div className="relative">
-                        <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <select 
-                          value={selectedAgency.font_family || 'Montserrat'} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} 
-                          className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none bg-white font-medium"
-                        >
-                          <option value="Montserrat">Montserrat (Moderne)</option>
-                          <option value="Inter">Inter (Minimaliste)</option>
-                          <option value="'Playfair Display', serif">Playfair (Luxe)</option>
-                          <option value="Poppins">Poppins (Arrondi)</option>
-                          <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Couleur Primaire */}
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
-                      <div className="flex gap-4">
-                        <input type="color" value={selectedAgency.primary_color || '#0f172a'} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
-                        <input type="text" value={selectedAgency.primary_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
-                      </div>
-                    </div>
-
-                    {/* Couleur Boutons */}
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                        <MousePointer2 size={12} /> {t.fields.button_color}
-                      </label>
-                      <div className="flex gap-4">
-                        <input type="color" value={selectedAgency.button_color || '#2563eb'} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" />
-                        <input type="text" value={selectedAgency.button_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
-                      </div>
-                    </div>
                   </div>
                 </div>
+              </div>
 
                 {/* SECTION 3: CONTENU DES PAGES (Nouveau) */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
