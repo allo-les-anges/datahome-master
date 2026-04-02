@@ -7,7 +7,7 @@ import {
   CheckCircle2, AlertCircle, Palette, Phone, Mail, Layout, X,
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram, 
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
-  MousePointer2, MessageCircle, ShieldCheck
+  MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, UserMinus, Briefcase, FileText
 } from 'lucide-react';
 
 // --- DICTIONNAIRE DE TRADUCTION ---
@@ -30,7 +30,8 @@ const translations = {
       hero: "Configuration du Hero Header",
       preview: "Aperçu en temps réel",
       legal: "Conformité & Légal",
-      about: "Pages Statiques (About)"
+      about: "Pages Statiques (About)",
+      team: "Gestion de l'Équipe"
     },
     fields: {
       allowed_langs: "Langues autorisées sur le site",
@@ -56,7 +57,11 @@ const translations = {
       whatsapp: "Numéro WhatsApp (GSM)",
       about_title: "Titre Page À Propos",
       about_text: "Contenu Page À Propos",
-      privacy_policy: "Politique de confidentialité"
+      privacy_policy: "Politique de confidentialité",
+      member_name: "Nom complet",
+      member_role: "Poste / Rôle",
+      member_bio: "Biographie",
+      member_photo: "Photo du membre"
     },
     placeholders: {
       slug: "nom-de-lagence",
@@ -66,7 +71,14 @@ const translations = {
       click_upload: "Cliquer pour uploader",
       media_upload: "Charger le média",
       button: "Bouton",
-      whatsapp: "Ex: 33600000000 (sans +)"
+      whatsapp: "Ex: 33600000000 (sans +)",
+      member_name: "Jean Dupont",
+      member_role: "Agent Commercial",
+      member_bio: "Expert en immobilier depuis 15 ans..."
+    },
+    buttons: {
+      add_member: "Ajouter un membre",
+      remove_member: "Supprimer"
     }
   },
   en: {
@@ -87,7 +99,8 @@ const translations = {
       hero: "Hero Header Setup",
       preview: "Live Preview",
       legal: "Compliance & Legal",
-      about: "Static Pages (About)"
+      about: "Static Pages (About)",
+      team: "Team Management"
     },
     fields: {
       allowed_langs: "Allowed site languages",
@@ -113,7 +126,11 @@ const translations = {
       whatsapp: "WhatsApp Number (Mobile)",
       about_title: "About Page Title",
       about_text: "About Page Content",
-      privacy_policy: "Privacy Policy"
+      privacy_policy: "Privacy Policy",
+      member_name: "Full Name",
+      member_role: "Position / Role",
+      member_bio: "Biography",
+      member_photo: "Member Photo"
     },
     placeholders: {
       slug: "agency-name",
@@ -123,7 +140,14 @@ const translations = {
       click_upload: "Click to upload",
       media_upload: "Upload media",
       button: "Button",
-      whatsapp: "Ex: 44600000000 (no +)"
+      whatsapp: "Ex: 44600000000 (no +)",
+      member_name: "John Doe",
+      member_role: "Real Estate Agent",
+      member_bio: "Real estate expert for 15 years..."
+    },
+    buttons: {
+      add_member: "Add member",
+      remove_member: "Remove"
     }
   },
   es: {
@@ -144,7 +168,8 @@ const translations = {
       hero: "Configuración del Hero Header",
       preview: "Vista previa en tiempo real",
       legal: "Cumplimiento y Legal",
-      about: "Páginas Estáticas (About)"
+      about: "Páginas Estáticas (About)",
+      team: "Gestión de Equipo"
     },
     fields: {
       allowed_langs: "Idiomas permitidos en el sitio",
@@ -170,7 +195,11 @@ const translations = {
       whatsapp: "Número WhatsApp (Móvil)",
       about_title: "Título de la página Sobre Nosotros",
       about_text: "Texto de la página Sobre Nosotros",
-      privacy_policy: "Política de Privacidad"
+      privacy_policy: "Política de Privacidad",
+      member_name: "Nombre completo",
+      member_role: "Puesto / Rol",
+      member_bio: "Biografía",
+      member_photo: "Foto del miembro"
     },
     placeholders: {
       slug: "nombre-de-la-agencia",
@@ -180,7 +209,14 @@ const translations = {
       click_upload: "Clic para subir",
       media_upload: "Cargar medio",
       button: "Botón",
-      whatsapp: "Ej: 34600000000 (sin +)"
+      whatsapp: "Ej: 34600000000 (sin +)",
+      member_name: "Juan Pérez",
+      member_role: "Agente Inmobiliario",
+      member_bio: "Experto en bienes raíces desde hace 15 años..."
+    },
+    buttons: {
+      add_member: "Añadir miembro",
+      remove_member: "Eliminar"
     }
   },
   pl: {
@@ -201,7 +237,8 @@ const translations = {
       hero: "Konfiguracja nagłówka Hero",
       preview: "Podgląd na żywo",
       legal: "Zgodność i prawo",
-      about: "Strony statyczne (O nas)"
+      about: "Strony statyczne (O nas)",
+      team: "Zarządzanie zespołem"
     },
     fields: {
       allowed_langs: "Dozwolone języki witryny",
@@ -227,7 +264,11 @@ const translations = {
       whatsapp: "Numer WhatsApp (Komórkowy)",
       about_title: "Tytuł strony O nas",
       about_text: "Tekst strony O nas",
-      privacy_policy: "Polityka prywatności"
+      privacy_policy: "Polityka prywatności",
+      member_name: "Imię i nazwisko",
+      member_role: "Stanowisko / Rola",
+      member_bio: "Biografia",
+      member_photo: "Zdjęcie członka"
     },
     placeholders: {
       slug: "nazwa-agencji",
@@ -237,7 +278,14 @@ const translations = {
       click_upload: "Kliknij, aby przesłać",
       media_upload: "Prześlij media",
       button: "Przycisk",
-      whatsapp: "Np: 48600000000 (bez +)"
+      whatsapp: "Np: 48600000000 (bez +)",
+      member_name: "Jan Kowalski",
+      member_role: "Agent nieruchomości",
+      member_bio: "Ekspert nieruchomości od 15 lat..."
+    },
+    buttons: {
+      add_member: "Dodaj członka",
+      remove_member: "Usuń"
     }
   },
   nl: {
@@ -258,7 +306,8 @@ const translations = {
       hero: "Hero Header configuratie",
       preview: "Live voorbeeld",
       legal: "Compliance & Wettelijk",
-      about: "Statische Pagina's (Over ons)"
+      about: "Statische Pagina's (Over ons)",
+      team: "Teambeheer"
     },
     fields: {
       allowed_langs: "Toegestane talen op de site",
@@ -284,7 +333,11 @@ const translations = {
       whatsapp: "WhatsApp-nummer (Mobiel)",
       about_title: "Titel over ons pagina",
       about_text: "Tekst over ons pagina",
-      privacy_policy: "Privacybeleid"
+      privacy_policy: "Privacybeleid",
+      member_name: "Volledige naam",
+      member_role: "Functie / Rol",
+      member_bio: "Biografie",
+      member_photo: "Foto van het lid"
     },
     placeholders: {
       slug: "naam-van-agentschap",
@@ -294,7 +347,14 @@ const translations = {
       click_upload: "Klik om te uploaden",
       media_upload: "Media uploaden",
       button: "Knop",
-      whatsapp: "Bijv: 31600000000 (zonder +)"
+      whatsapp: "Bijv: 31600000000 (zonder +)",
+      member_name: "Jan Jansen",
+      member_role: "Makelaar",
+      member_bio: "Vastgoedexpert sinds 15 jaar..."
+    },
+    buttons: {
+      add_member: "Lid toevoegen",
+      remove_member: "Verwijderen"
     }
   },
   ar: {
@@ -315,7 +375,8 @@ const translations = {
       hero: "إعداد واجهة العرض (Hero)",
       preview: "معاينة مباشرة",
       legal: "المطابقة والقانوني",
-      about: "الصفحات الثابتة (من نحن)"
+      about: "الصفحات الثابتة (من نحن)",
+      team: "إدارة الفريق"
     },
     fields: {
       allowed_langs: "اللغات المسموح بها في الموقع",
@@ -341,7 +402,11 @@ const translations = {
       whatsapp: "رقم الواتساب (الجوال)",
       about_title: "عنوان صفحة 'من نحن'",
       about_text: "نص صفحة 'من نحن'",
-      privacy_policy: "سياسة الخصوصية"
+      privacy_policy: "سياسة الخصوصية",
+      member_name: "الاسم الكامل",
+      member_role: "المنصب / الدور",
+      member_bio: "السيرة الذاتية",
+      member_photo: "صورة العضو"
     },
     placeholders: {
       slug: "اسم-الوكالة",
@@ -351,7 +416,14 @@ const translations = {
       click_upload: "انقر للتحميل",
       media_upload: "تحميل الوسائط",
       button: "زر",
-      whatsapp: "مثال: 966500000000 (بدون +)"
+      whatsapp: "مثال: 966500000000 (بدون +)",
+      member_name: "أحمد محمد",
+      member_role: "وكيل عقاري",
+      member_bio: "خبير عقاري منذ 15 عاماً..."
+    },
+    buttons: {
+      add_member: "إضافة عضو",
+      remove_member: "حذف"
     }
   }
 };
@@ -386,6 +458,9 @@ export default function AgencyDashboard() {
     package_level: 'silver'
   });
 
+  // État pour gérer l'équipe localement dans le dashboard
+  const [team, setTeam] = useState<any[]>([]);
+
   // Chargement des agences depuis agency_settings
   useEffect(() => {
     const fetchAgencies = async () => {
@@ -397,7 +472,11 @@ export default function AgencyDashboard() {
         if (error) throw error;
         
         setAgencies(data || []);
-        if (data && data.length > 0 && !selectedAgency) setSelectedAgency(data[0]);
+        if (data && data.length > 0 && !selectedAgency) {
+          setSelectedAgency(data[0]);
+          // Initialiser l'équipe avec les données de l'agence sélectionnée
+          setTeam(data[0].team_data || []);
+        }
       } catch (err) { 
         console.error(err); 
       } finally { 
@@ -407,6 +486,57 @@ export default function AgencyDashboard() {
     
     fetchAgencies();
   }, []);
+
+  // Mettre à jour l'équipe quand l'agence sélectionnée change
+  useEffect(() => {
+    if (selectedAgency) {
+      setTeam(selectedAgency.team_data || []);
+    }
+  }, [selectedAgency]);
+
+  // Fonctions de gestion de l'équipe
+  const addMember = () => {
+    const newMember = { name: "", role: "", bio: "", photo: "" };
+    const newTeam = [...team, newMember];
+    setTeam(newTeam);
+    setSelectedAgency({ ...selectedAgency, team_data: newTeam });
+  };
+
+  const updateMember = (index: number, field: string, value: string) => {
+    const newTeam = [...team];
+    newTeam[index][field] = value;
+    setTeam(newTeam);
+    setSelectedAgency({ ...selectedAgency, team_data: newTeam });
+  };
+
+  const removeMember = (index: number) => {
+    const newTeam = team.filter((_, i) => i !== index);
+    setTeam(newTeam);
+    setSelectedAgency({ ...selectedAgency, team_data: newTeam });
+  };
+
+  const handleMemberPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedAgency) return;
+    try {
+      setIsSaving(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `team_${Date.now()}_${Math.random()}.${fileExt}`;
+      const filePath = `${selectedAgency.subdomain}/team/${fileName}`;
+      const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
+      
+      const newTeam = [...team];
+      newTeam[index].photo = publicUrl;
+      setTeam(newTeam);
+      setSelectedAgency({ ...selectedAgency, team_data: newTeam });
+    } catch (err) { 
+      setMessage({ type: 'error', text: "Upload Error" }); 
+    } finally { 
+      setIsSaving(false); 
+    }
+  };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Supprimer définitivement l'agence "${name}" ?`)) return;
@@ -435,7 +565,7 @@ export default function AgencyDashboard() {
     }
   };
 
-  // handleSave avec les champs about_title et about_text
+  // handleSave avec les champs about_title, about_text et team_data
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAgency) return;
@@ -457,9 +587,9 @@ export default function AgencyDashboard() {
         cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
         privacy_policy: selectedAgency.privacy_policy,
         footer_config: selectedAgency.footer_config,
-        // NOUVEAUX CHAMPS pour la page About
         about_title: selectedAgency.about_title,
         about_text: selectedAgency.about_text,
+        team_data: team, // Sauvegarder les données de l'équipe
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id);
@@ -545,6 +675,7 @@ export default function AgencyDashboard() {
             socials: {},
             integrations: {}
           },
+          team_data: [], // Initialiser avec une équipe vide
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -817,13 +948,12 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 3: PAGES STATIQUES (ABOUT) - NOUVEAU BLOC AVEC TITRE ET TEXTE */}
+                {/* SECTION 3: PAGES STATIQUES (ABOUT) */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                   <h3 className="text-sm font-bold flex items-center gap-2 border-b pb-4">
                     <Type size={18} className="text-blue-600" /> {t.sections.about}
                   </h3>
                   
-                  {/* CHAMP POUR LE TITRE */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
                       {t.fields.about_title}
@@ -837,7 +967,6 @@ export default function AgencyDashboard() {
                     />
                   </div>
 
-                  {/* CHAMP POUR LE TEXTE */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
                       {t.fields.about_text}
@@ -852,7 +981,113 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 4: HERO HEADER */}
+                {/* SECTION 4: GESTION DE L'ÉQUIPE - NOUVEAU */}
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                  <div className="flex justify-between items-center border-b pb-4">
+                    <h3 className="text-sm font-bold flex items-center gap-2">
+                      <Users size={18} className="text-blue-600" /> {t.sections.team}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={addMember}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all"
+                    >
+                      <UserPlus size={14} /> {t.buttons.add_member}
+                    </button>
+                  </div>
+
+                  {team.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400">
+                      <Users size={48} className="mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">Aucun membre dans l'équipe. Cliquez sur "Ajouter un membre" pour commencer.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {team.map((member, index) => (
+                        <div key={index} className="border border-slate-100 rounded-2xl p-6 space-y-4 relative bg-slate-50/30">
+                          <button
+                            type="button"
+                            onClick={() => removeMember(index)}
+                            className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Photo du membre */}
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
+                                <ImageIcon size={12} /> {t.fields.member_photo}
+                              </label>
+                              <div className="relative group">
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={(e) => handleMemberPhotoUpload(e, index)} 
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                />
+                                <div className="flex items-center gap-4 p-3 bg-white border border-slate-200 rounded-xl">
+                                  {member.photo ? (
+                                    <img src={member.photo} className="w-12 h-12 rounded-full object-cover" alt={member.name} />
+                                  ) : (
+                                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                                      <UserPlus size={20} className="text-slate-400" />
+                                    </div>
+                                  )}
+                                  <span className="text-xs text-slate-500">Cliquer pour uploader une photo</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Nom du membre */}
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
+                                <Users size={12} /> {t.fields.member_name}
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm"
+                                placeholder={t.placeholders.member_name}
+                                value={member.name || ''}
+                                onChange={(e) => updateMember(index, 'name', e.target.value)}
+                              />
+                            </div>
+
+                            {/* Rôle du membre */}
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
+                                <Briefcase size={12} /> {t.fields.member_role}
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm"
+                                placeholder={t.placeholders.member_role}
+                                value={member.role || ''}
+                                onChange={(e) => updateMember(index, 'role', e.target.value)}
+                              />
+                            </div>
+
+                            {/* Biographie du membre */}
+                            <div className="space-y-2 md:col-span-2">
+                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
+                                <FileText size={12} /> {t.fields.member_bio}
+                              </label>
+                              <textarea
+                                rows={3}
+                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm"
+                                placeholder={t.placeholders.member_bio}
+                                value={member.bio || ''}
+                                onChange={(e) => updateMember(index, 'bio', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* SECTION 5: HERO HEADER */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 border-b border-slate-100 pb-5 uppercase text-xs tracking-widest">
                     <Layout size={18} className="text-blue-600" /> {t.sections.hero}
@@ -894,7 +1129,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 5: INTEGRATIONS */}
+                {/* SECTION 6: INTEGRATIONS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-purple-500">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Zap size={18} className="text-purple-600" /> {t.sections.integrations}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -915,7 +1150,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 6: CONTACT & SOCIALS */}
+                {/* SECTION 7: CONTACT & SOCIALS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <Share2 size={18} className="text-blue-600" /> {t.sections.socials}
@@ -961,7 +1196,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 7: CONFORMITÉ & LÉGAL */}
+                {/* SECTION 8: CONFORMITÉ & LÉGAL */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-slate-900">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
                     <ShieldCheck size={18} className="text-slate-900" /> {t.sections.legal || "Conformité & Légal"}
