@@ -565,68 +565,69 @@ export default function AgencyDashboard() {
     }
   };
 
-  // handleSave avec les champs about_title, about_text et team_data
-  const handleSave = async (e: React.FormEvent) => {
+  // handleSave avec gestion explicite des données d'équipe
+const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAgency) return;
     setIsSaving(true);
 
     try {
-        // IMPORTANT: Nettoyage des données pour le format JSONB
+        // Force l'utilisation de l'état 'team' actuel
         const teamDataToSave = Array.isArray(team) ? team : [];
+
+        // Préparer l'objet de mise à jour avec tous les champs
+        const updateData: any = {
+            agency_name: selectedAgency.agency_name,
+            subdomain: selectedAgency.subdomain,
+            primary_color: selectedAgency.primary_color,
+            button_color: selectedAgency.button_color,
+            font_family: selectedAgency.font_family,
+            hero_title: selectedAgency.hero_title,
+            hero_type: selectedAgency.hero_type,
+            hero_url: selectedAgency.hero_url,
+            logo_url: selectedAgency.logo_url,
+            default_lang: selectedAgency.default_lang,
+            cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+            privacy_policy: selectedAgency.privacy_policy,
+            footer_config: selectedAgency.footer_config,
+            about_title: selectedAgency.about_title,
+            about_text: selectedAgency.about_text,
+            team_data: teamDataToSave, // Assurez-vous que c'est bien le nom de colonne exact
+            updated_at: new Date().toISOString(),
+        };
+
+        console.log("Saving team data:", teamDataToSave); // Debug: vérifier les données envoyées
 
         const { error } = await supabase
             .from('agency_settings')
-            .update({
-                agency_name: selectedAgency.agency_name,
-                subdomain: selectedAgency.subdomain,
-                primary_color: selectedAgency.primary_color,
-                button_color: selectedAgency.button_color,
-                font_family: selectedAgency.font_family,
-                hero_title: selectedAgency.hero_title,
-                hero_type: selectedAgency.hero_type,
-                hero_url: selectedAgency.hero_url,
-                logo_url: selectedAgency.logo_url,
-                default_lang: selectedAgency.default_lang,
-                cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-                privacy_policy: selectedAgency.privacy_policy,
-                footer_config: selectedAgency.footer_config, // Assurez-vous que c'est un objet
-                about_title: selectedAgency.about_title,
-                about_text: selectedAgency.about_text,
-                whatsapp_number: selectedAgency.whatsapp_number,
-                // On envoie le tableau directement, Supabase s'occupe du cast JSONB
-                team_data: teamDataToSave, 
-                updated_at: new Date().toISOString(),
-            })
+            .update(updateData)
             .eq('id', selectedAgency.id);
 
         if (error) throw error;
-
-        setMessage({ type: 'success', text: "Configuration mise à jour !" });
         
-        // Rafraîchissement des données locales
-        const { data: refreshed } = await supabase.from('agency_settings').select('*');
-        if (refreshed) setAgencies(refreshed);
-
+        setMessage({ type: 'success', text: t.success_save });
+        
+        // Recharger les données pour synchroniser l'état
+        const { data } = await supabase.from('agency_settings').select('*');
+        setAgencies(data || []);
+        
+        // Mettre à jour l'agence sélectionnée avec les données sauvegardées
+        if (data && data.length > 0) {
+            const updatedAgency = data.find(a => a.id === selectedAgency.id);
+            if (updatedAgency) {
+                setSelectedAgency(updatedAgency);
+                setTeam(updatedAgency.team_data || []);
+            }
+        }
+        
     } catch (error: any) {
-        console.error("Erreur de sauvegarde Supabase:", error.message);
-        setMessage({ type: 'error', text: "Erreur lors de l'enregistrement" });
+        console.error("Erreur de sauvegarde:", error.message);
+        setMessage({ type: 'error', text: t.error_save });
     } finally {
         setIsSaving(false);
         setTimeout(() => setMessage(null), 3000);
     }
 };
-
-  const updateNestedConfig = (category: string, field: string, value: any) => {
-    const currentConfig = selectedAgency.footer_config || {};
-    setSelectedAgency({
-      ...selectedAgency,
-      footer_config: {
-        ...currentConfig,
-        [category]: { ...(currentConfig[category] || {}), [field]: value }
-      }
-    });
-  };
 
   const updateRootConfig = (field: string, value: any) => {
     const currentConfig = selectedAgency.footer_config || {};
