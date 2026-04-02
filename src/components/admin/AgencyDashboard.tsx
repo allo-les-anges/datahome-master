@@ -642,7 +642,7 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - VERSION SPÉCIFIQUE AVEC BLOCAGE REDIRECTION
+  // HANDLE SAVE - VERSION CORRIGÉE
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
     // BLOQUE TOUTE REDIRECTION OU RAFRAICHISSEMENT AUTO
@@ -651,20 +651,20 @@ export default function AgencyDashboard() {
       e.stopPropagation();
     }
 
-    if (!selectedAgency || !selectedAgency.id) return;
+    if (!selectedAgency || !selectedAgency.id) {
+      console.error("❌ ID manquant");
+      return;
+    }
 
     setIsSaving(true);
 
     try {
-      // SYNC STRICTE : On prend l'état 'team' actuel (l'image 1)
+      // SYNC STRICTE : On prend l'état 'team' actuel
       const teamDataToSave = JSON.parse(JSON.stringify(team));
 
       console.log("✅ team_data à sauvegarder:", teamDataToSave);
 
-      const { data, error } = await supabase
-      console.log("📊 RÉPONSE SUPABASE - data:", data);
-      console.log("📊 RÉPONSE SUPABASE - error:", error);
-      console.log("📊 RÉPONSE SUPABASE - status:", status);
+      const { data, error, status } = await supabase
         .from('agency_settings')
         .update({
           agency_name: selectedAgency.agency_name,
@@ -689,19 +689,32 @@ export default function AgencyDashboard() {
         .eq('id', selectedAgency.id)
         .select();
 
-      if (error) throw error;
+      // LOGS APRÈS L'APPEL
+      console.log("📊 RÉPONSE SUPABASE - status:", status);
+      console.log("📊 RÉPONSE SUPABASE - error:", error);
+      console.log("📊 RÉPONSE SUPABASE - data:", data);
+
+      if (error) {
+        console.error("❌ ERREUR SUPABASE:", error);
+        throw error;
+      }
 
       if (data && data.length > 0) {
         console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
-        setMessage({ type: 'success', text: "Enregistré !" });
+        setMessage({ type: 'success', text: t.success_save });
         
         // On met à jour l'état pour que le prochain F5 affiche les données
         setSelectedAgency(data[0]);
         setTeam(data[0].team_data || []);
+        
+        // Mettre à jour la liste des agences
+        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+      } else {
+        console.warn("⚠️ Aucune donnée retournée par Supabase");
       }
     } catch (err: any) {
       console.error("❌ ERREUR:", err.message);
-      setMessage({ type: 'error', text: "Erreur" });
+      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
       setIsSaving(false);
       setTimeout(() => setMessage(null), 3000);
