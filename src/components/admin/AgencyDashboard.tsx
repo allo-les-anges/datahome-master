@@ -496,18 +496,12 @@ export default function AgencyDashboard() {
 
   // ============================================================
   // FONCTIONS ROBUSTES POUR LE BUILD VERCEL
-  // Gestion des cas où footer_config pourrait être une chaîne JSON
   // ============================================================
   
-  /**
-   * Met à jour un champ imbriqué dans footer_config
-   * Version robuste qui gère les chaînes JSON et les objets
-   */
   const updateNestedConfig = (section: string, field: string, value: any) => {
     if (!selectedAgency) return;
     
     setSelectedAgency((prev: any) => {
-      // On s'assure que footer_config est un objet utilisable
       let currentConfig: any = {};
       
       if (typeof prev.footer_config === 'string') {
@@ -535,10 +529,6 @@ export default function AgencyDashboard() {
     });
   };
 
-  /**
-   * Met à jour un champ à la racine de footer_config
-   * Version robuste qui gère les chaînes JSON et les objets
-   */
   const updateRootConfig = (field: string, value: any) => {
     if (!selectedAgency) return;
     
@@ -636,67 +626,70 @@ export default function AgencyDashboard() {
     }
   };
 
-  // handleSave avec gestion explicite des données d'équipe
+  // ============================================================
+  // HANDLE SAVE - VERSION ROBUSTE AVEC FORCE DE L'ÉTAT TEAM
+  // ============================================================
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAgency) return;
     setIsSaving(true);
 
     try {
-        // Force l'utilisation de l'état 'team' actuel
-        const teamDataToSave = Array.isArray(team) ? team : [];
+      // 1. On prépare les données de l'équipe (on s'assure que c'est un tableau propre)
+      // 'team' est l'état local [team, setTeam] de votre dashboard
+      const teamDataToSave = Array.isArray(team) ? team : [];
 
-        // Préparer l'objet de mise à jour avec tous les champs
-        const updateData: any = {
-            agency_name: selectedAgency.agency_name,
-            subdomain: selectedAgency.subdomain,
-            primary_color: selectedAgency.primary_color,
-            button_color: selectedAgency.button_color,
-            font_family: selectedAgency.font_family,
-            hero_title: selectedAgency.hero_title,
-            hero_type: selectedAgency.hero_type,
-            hero_url: selectedAgency.hero_url,
-            logo_url: selectedAgency.logo_url,
-            default_lang: selectedAgency.default_lang,
-            cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-            privacy_policy: selectedAgency.privacy_policy,
-            footer_config: selectedAgency.footer_config,
-            about_title: selectedAgency.about_title,
-            about_text: selectedAgency.about_text,
-            team_data: teamDataToSave,
-            updated_at: new Date().toISOString(),
-        };
+      // 2. On prépare le footer_config (on s'assure que c'est un objet JSON)
+      const footerConfigToSave = typeof selectedAgency.footer_config === 'string' 
+        ? JSON.parse(selectedAgency.footer_config) 
+        : (selectedAgency.footer_config || {});
 
-        console.log("Saving team data:", teamDataToSave);
+      const { error } = await supabase
+        .from('agency_settings')
+        .update({
+          agency_name: selectedAgency.agency_name,
+          subdomain: selectedAgency.subdomain,
+          primary_color: selectedAgency.primary_color,
+          button_color: selectedAgency.button_color,
+          font_family: selectedAgency.font_family,
+          hero_title: selectedAgency.hero_title,
+          hero_type: selectedAgency.hero_type,
+          hero_url: selectedAgency.hero_url,
+          logo_url: selectedAgency.logo_url,
+          default_lang: selectedAgency.default_lang,
+          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+          privacy_policy: selectedAgency.privacy_policy,
+          about_title: selectedAgency.about_title,
+          about_text: selectedAgency.about_text,
+          footer_config: footerConfigToSave,
+          // FORCE L'ENREGISTREMENT ICI
+          team_data: teamDataToSave, 
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedAgency.id);
 
-        const { error } = await supabase
-            .from('agency_settings')
-            .update(updateData)
-            .eq('id', selectedAgency.id);
+      if (error) throw error;
 
-        if (error) throw error;
-        
-        setMessage({ type: 'success', text: t.success_save });
-        
-        // Recharger les données pour synchroniser l'état
-        const { data } = await supabase.from('agency_settings').select('*');
-        setAgencies(data || []);
-        
-        // Mettre à jour l'agence sélectionnée avec les données sauvegardées
-        if (data && data.length > 0) {
-            const updatedAgency = data.find(a => a.id === selectedAgency.id);
-            if (updatedAgency) {
-                setSelectedAgency(updatedAgency);
-                setTeam(updatedAgency.team_data || []);
-            }
+      setMessage({ type: 'success', text: t.success_save });
+      
+      // Rafraîchir la liste pour synchroniser
+      const { data } = await supabase.from('agency_settings').select('*');
+      if (data) {
+        setAgencies(data);
+        // Mettre à jour l'agence sélectionnée avec les données fraîches
+        const updatedAgency = data.find(a => a.id === selectedAgency.id);
+        if (updatedAgency) {
+          setSelectedAgency(updatedAgency);
+          setTeam(updatedAgency.team_data || []);
         }
-        
-    } catch (error: any) {
-        console.error("Erreur de sauvegarde:", error.message);
-        setMessage({ type: 'error', text: t.error_save });
+      }
+
+    } catch (err: any) {
+      console.error("Erreur de sauvegarde détaillée:", err.message);
+      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
-        setIsSaving(false);
-        setTimeout(() => setMessage(null), 3000);
+      setIsSaving(false);
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
