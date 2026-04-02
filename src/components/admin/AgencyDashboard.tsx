@@ -567,10 +567,16 @@ export default function AgencyDashboard() {
 
   // handleSave avec les champs about_title, about_text et team_data
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAgency) return;
-    setIsSaving(true);
+  e.preventDefault();
+  if (!selectedAgency) return;
+  setIsSaving(true);
 
+  try {
+    // 1. Préparation des données JSON (Sécurité)
+    // On s'assure que team est bien un tableau et footer_config un objet/string propre
+    const teamToSave = Array.isArray(team) ? team : [];
+    
+    // 2. Mise à jour dans Supabase
     const { error } = await supabase
       .from('agency_settings')
       .update({
@@ -586,25 +592,43 @@ export default function AgencyDashboard() {
         default_lang: selectedAgency.default_lang,
         cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
         privacy_policy: selectedAgency.privacy_policy,
-        footer_config: selectedAgency.footer_config,
+        // Si footer_config est un objet, Supabase accepte l'objet direct pour du JSONB
+        footer_config: selectedAgency.footer_config, 
         about_title: selectedAgency.about_title,
         about_text: selectedAgency.about_text,
-        team_data: team, // Sauvegarder les données de l'équipe
+        whatsapp_number: selectedAgency.whatsapp_number, // Ne pas oublier celui-ci
+        team_data: teamToSave, // On utilise la variable d'état "team" de votre dashboard
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedAgency.id);
 
-    if (error) {
-      console.error(error);
-      setMessage({ type: 'error', text: t.error_save });
-    } else {
-      setMessage({ type: 'success', text: t.success_save });
-      const { data } = await supabase.from('agency_settings').select('*');
-      setAgencies(data || []);
+    if (error) throw error;
+
+    // 3. Succès : Feedback et rafraîchissement de la liste locale
+    setMessage({ type: 'success', text: t.success_save });
+    
+    // On récupère les données fraîches pour synchroniser le dashboard
+    const { data: updatedAgencies } = await supabase
+      .from('agency_settings')
+      .select('*')
+      .order('agency_name', { ascending: true });
+      
+    if (updatedAgencies) {
+      setAgencies(updatedAgencies);
+      // Optionnel : Mettre à jour l'agence sélectionnée avec les données retournées
+      const current = updatedAgencies.find(a => a.id === selectedAgency.id);
+      if (current) setSelectedAgency(current);
     }
+
+  } catch (error: any) {
+    console.error("Erreur lors de la sauvegarde :", error);
+    setMessage({ type: 'error', text: t.error_save || "Erreur lors de la sauvegarde" });
+  } finally {
     setIsSaving(false);
+    // Effacer le message après 3 secondes
     setTimeout(() => setMessage(null), 3000);
-  };
+  }
+};
 
   const updateNestedConfig = (category: string, field: string, value: any) => {
     const currentConfig = selectedAgency.footer_config || {};
