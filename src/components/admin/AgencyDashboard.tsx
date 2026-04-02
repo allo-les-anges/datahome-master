@@ -368,31 +368,54 @@ export default function AgencyDashboard() {
     package_level: 'silver'
   });
 
+  // Chargement des agences depuis agency_settings
   useEffect(() => {
+    const fetchAgencies = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('agency_settings')
+          .select('*');
+        
+        if (error) throw error;
+        
+        setAgencies(data || []);
+        if (data && data.length > 0 && !selectedAgency) setSelectedAgency(data[0]);
+      } catch (err) { 
+        console.error(err); 
+      } finally { 
+        setLoading(false); 
+      }
+    };
+    
     fetchAgencies();
   }, []);
-
-  const fetchAgencies = async () => {
-    try {
-      const res = await fetch('/api/admin/agencies');
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setAgencies(data);
-      if (data.length > 0 && !selectedAgency) setSelectedAgency(data[0]);
-    } catch (err) { console.error(err); } 
-    finally { setLoading(false); }
-  };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Supprimer définitivement l'agence "${name}" ?`)) return;
     try {
       setIsSaving(true);
-      const res = await fetch(`/api/admin/agencies/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error();
+      
+      const { error } = await supabase
+        .from('agency_settings')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
       setMessage({ type: 'success', text: "Agence supprimée" });
-      fetchAgencies();
-    } catch (err) { setMessage({ type: 'error', text: t.error_save }); }
-    finally { setIsSaving(false); setTimeout(() => setMessage(null), 3000); }
+      
+      // Recharger la liste
+      const { data } = await supabase.from('agency_settings').select('*');
+      setAgencies(data || []);
+      if (data && data.length > 0) setSelectedAgency(data[0]);
+      else setSelectedAgency(null);
+      
+    } catch (err) { 
+      setMessage({ type: 'error', text: t.error_save }); 
+    } finally { 
+      setIsSaving(false); 
+      setTimeout(() => setMessage(null), 3000); 
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -400,15 +423,37 @@ export default function AgencyDashboard() {
     if (!selectedAgency) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/admin/agencies/${selectedAgency.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedAgency),
-      });
-      if (!res.ok) throw new Error();
+      const { error } = await supabase
+        .from('agency_settings')
+        .update({
+          agency_name: selectedAgency.agency_name,
+          subdomain: selectedAgency.subdomain,
+          primary_color: selectedAgency.primary_color,
+          button_color: selectedAgency.button_color,
+          font_family: selectedAgency.font_family,
+          hero_title: selectedAgency.hero_title,
+          hero_type: selectedAgency.hero_type,
+          hero_url: selectedAgency.hero_url,
+          logo_url: selectedAgency.logo_url,
+          default_lang: selectedAgency.default_lang,
+          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+          privacy_policy: selectedAgency.privacy_policy,
+          footer_config: selectedAgency.footer_config,
+          package_level: selectedAgency.package_level,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedAgency.id);
+      
+      if (error) throw error;
+      
       setMessage({ type: 'success', text: t.success_save });
-      fetchAgencies(); 
+      
+      // Recharger les données
+      const { data } = await supabase.from('agency_settings').select('*');
+      setAgencies(data || []);
+      
     } catch (err) {
+      console.error(err);
       setMessage({ type: 'error', text: t.error_save });
     } finally {
       setIsSaving(false);
@@ -473,17 +518,39 @@ export default function AgencyDashboard() {
     e.preventDefault();
     setIsCreating(true);
     try {
-      const res = await fetch('/api/admin/agencies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newAgency),
-      });
-      if (!res.ok) throw new Error();
+      const { data, error } = await supabase
+        .from('agency_settings')
+        .insert({
+          agency_name: newAgency.agency_name,
+          subdomain: newAgency.subdomain,
+          package_level: newAgency.package_level,
+          footer_config: {
+            allowed_langs: ['fr', 'en'],
+            xml_urls: [],
+            socials: {},
+            integrations: {}
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select();
+      
+      if (error) throw error;
+      
       setShowCreateModal(false);
       setNewAgency({ agency_name: '', subdomain: '', package_level: 'silver' });
-      fetchAgencies();
-    } catch (err) { setMessage({ type: 'error', text: "Create Error" }); }
-    finally { setIsCreating(false); }
+      
+      // Recharger les données
+      const { data: agenciesData } = await supabase.from('agency_settings').select('*');
+      setAgencies(agenciesData || []);
+      if (data && data[0]) setSelectedAgency(data[0]);
+      
+    } catch (err) { 
+      console.error(err);
+      setMessage({ type: 'error', text: "Create Error" }); 
+    } finally { 
+      setIsCreating(false); 
+    }
   };
 
   const setDefaultLang = (code: string) => {
