@@ -42,7 +42,7 @@ const translations = {
       agency_name: "Nom de l'enseigne",
       subdomain: "URL du site (Slug)",
       logo: "Logo de l'agence",
-      font: "Police de caractère",
+      font_family: "Police de caractères",
       primary_color: "Couleur Principale (Accents)",
       button_color: "Couleur des Boutons (CTA)",
       hero_title: "Titre d'accroche (Hero)",
@@ -50,7 +50,9 @@ const translations = {
       hero_file: "Fichier Média (Image/Vidéo)",
       email: "Email de contact",
       phone: "Téléphone Fixe",
-      whatsapp: "Numéro WhatsApp (GSM)"
+      whatsapp: "Numéro WhatsApp (GSM)",
+      about_title: "Titre de la page À Propos",
+      about_text: "Texte de la page À Propos"
     },
     placeholders: {
       slug: "nom-de-lagence",
@@ -58,7 +60,7 @@ const translations = {
       click_upload: "Cliquer pour uploader",
       media_upload: "Charger le média",
       button: "Bouton",
-      whatsapp: "Ex: 34600000000 (sans +)"
+      whatsapp: "Ex: 33600000000 (sans +)"
     }
   },
   en: {
@@ -91,7 +93,7 @@ const translations = {
       agency_name: "Agency Name",
       subdomain: "Site URL (Slug)",
       logo: "Agency Logo",
-      font: "Font Family",
+      font_family: "Font Family",
       primary_color: "Primary Color (Accents)",
       button_color: "Button Color (CTA)",
       hero_title: "Hero Title",
@@ -99,7 +101,9 @@ const translations = {
       hero_file: "Hero Media (Image/Video)",
       email: "Contact Email",
       phone: "Landline Phone",
-      whatsapp: "WhatsApp Number (Mobile)"
+      whatsapp: "WhatsApp Number (Mobile)",
+      about_title: "About Page Title",
+      about_text: "About Page Text"
     },
     placeholders: {
       slug: "agency-name",
@@ -107,7 +111,211 @@ const translations = {
       click_upload: "Click to upload",
       media_upload: "Upload media",
       button: "Button",
-      whatsapp: "Ex: 34600000000 (no +)"
+      whatsapp: "Ex: 44600000000 (no +)"
+    }
+  },
+  es: {
+    admin: "Administración",
+    saas_title: "SaaS Agencias",
+    new_agency: "Nueva Agencia",
+    select_agency: "Seleccione una agencia para configurar su branding.",
+    save: "Guardar cambios",
+    saving: "Guardando...",
+    success_save: "¡Configuración guardada con éxito!",
+    error_save: "Error al guardar.",
+    generate: "Generar Agencia",
+    sections: {
+      lang_xml: "Idiomas y Flujos XML",
+      socials: "Redes Sociales y Contacto",
+      integrations: "Integraciones (CRM e IA)",
+      branding: "Identidad Visual y Colores",
+      hero: "Configuración del Hero Header",
+      preview: "Vista previa en tiempo real"
+    },
+    fields: {
+      allowed_langs: "Idiomas permitidos en el sitio",
+      xml_sources: "Flujos Inmobiliarios (XML)",
+      facebook: "Enlace Facebook",
+      instagram: "Enlace Instagram",
+      linkedin: "Enlace LinkedIn",
+      tiktok: "Enlace TikTok",
+      zoho: "Zoho CRM (ID / Token)",
+      taskade: "Taskade AI Agent ID",
+      agency_name: "Nombre de la agencia",
+      subdomain: "URL del sitio (Slug)",
+      logo: "Logo de la agencia",
+      font_family: "Fuente tipográfica",
+      primary_color: "Color principal (Acentos)",
+      button_color: "Color de botones (CTA)",
+      hero_title: "Título de cabecera (Hero)",
+      hero_type: "Tipo de medio",
+      hero_file: "Archivo multimedia (Imagen/Video)",
+      email: "Correo de contacto",
+      phone: "Teléfono fijo",
+      whatsapp: "Número WhatsApp (Móvil)",
+      about_title: "Título de la página Sobre Nosotros",
+      about_text: "Texto de la página Sobre Nosotros"
+    },
+    placeholders: {
+      slug: "nombre-de-la-agencia",
+      hero_text: "Descubra nuestras propiedades excepcionales...",
+      click_upload: "Clic para subir",
+      media_upload: "Cargar medio",
+      button: "Botón",
+      whatsapp: "Ej: 34600000000 (sin +)"
+    }
+  },
+  pl: {
+    admin: "Administracja",
+    saas_title: "SaaS Agencje",
+    new_agency: "Nowa Agencja",
+    select_agency: "Wybierz agencję, aby skonfigurować jej branding.",
+    save: "Zapisz zmiany",
+    saving: "Zapisywanie...",
+    success_save: "Konfiguracja zapisana pomyślnie!",
+    error_save: "Błąd podczas zapisywania.",
+    generate: "Generuj Agencję",
+    sections: {
+      lang_xml: "Języki i kanały XML",
+      socials: "Media społecznościowe i kontakt",
+      integrations: "Integracje (CRM i AI)",
+      branding: "Tożsamość wizualna i kolory",
+      hero: "Konfiguracja nagłówka Hero",
+      preview: "Podgląd na żywo"
+    },
+    fields: {
+      allowed_langs: "Dozwolone języki witryny",
+      xml_sources: "Kanały nieruchomości (XML)",
+      facebook: "Link do Facebooka",
+      instagram: "Link do Instagrama",
+      linkedin: "Link do LinkedIn",
+      tiktok: "Link do TikToka",
+      zoho: "Zoho CRM (ID / Token)",
+      taskade: "Taskade AI Agent ID",
+      agency_name: "Nazwa agencji",
+      subdomain: "URL witryny (Slug)",
+      logo: "Logo agencji",
+      font_family: "Czcionka",
+      primary_color: "Kolor główny (Akcenty)",
+      button_color: "Kolor przycisków (CTA)",
+      hero_title: "Tytuł nagłówka (Hero)",
+      hero_type: "Typ mediów",
+      hero_file: "Plik multimedialny (Obraz/Wideo)",
+      email: "E-mail kontaktowy",
+      phone: "Telefon stacjonarny",
+      whatsapp: "Numer WhatsApp (Komórkowy)",
+      about_title: "Tytuł strony O nas",
+      about_text: "Tekst strony O nas"
+    },
+    placeholders: {
+      slug: "nazwa-agencji",
+      hero_text: "Odkryj nasze wyjątkowe nieruchomości...",
+      click_upload: "Kliknij, aby przesłać",
+      media_upload: "Prześlij media",
+      button: "Przycisk",
+      whatsapp: "Np: 48600000000 (bez +)"
+    }
+  },
+  nl: {
+    admin: "Administratie",
+    saas_title: "SaaS Agentschappen",
+    new_agency: "Nieuw Agentschap",
+    select_agency: "Selecteer een agentschap om de branding te configureren.",
+    save: "Wijzigingen opslaan",
+    saving: "Opslaan...",
+    success_save: "Configuratie succesvol opgeslagen!",
+    error_save: "Fout bij het opslaan.",
+    generate: "Agentschap genereren",
+    sections: {
+      lang_xml: "Talen & XML-feeds",
+      socials: "Sociale netwerken & Contact",
+      integrations: "Integraties (CRM & AI)",
+      branding: "Visuele identiteit & Kleuren",
+      hero: "Hero Header configuratie",
+      preview: "Live voorbeeld"
+    },
+    fields: {
+      allowed_langs: "Toegestane talen op de site",
+      xml_sources: "Vastgoedfeeds (XML)",
+      facebook: "Facebook-link",
+      instagram: "Instagram-link",
+      linkedin: "LinkedIn-link",
+      tiktok: "TikTok-link",
+      zoho: "Zoho CRM (ID / Token)",
+      taskade: "Taskade AI Agent ID",
+      agency_name: "Naam van het agentschap",
+      subdomain: "Website URL (Slug)",
+      logo: "Logo van het agentschap",
+      font_family: "Lettertype",
+      primary_color: "Hoofdkleur (Accenten)",
+      button_color: "Kleur van knoppen (CTA)",
+      hero_title: "Hero titel",
+      hero_type: "Mediatype",
+      hero_file: "Mediabestand (Afbeelding/Video)",
+      email: "Contact e-mail",
+      phone: "Vaste lijn",
+      whatsapp: "WhatsApp-nummer (Mobiel)",
+      about_title: "Titel over ons pagina",
+      about_text: "Tekst over ons pagina"
+    },
+    placeholders: {
+      slug: "naam-van-agentschap",
+      hero_text: "Ontdek onze exclusieve panden...",
+      click_upload: "Klik om te uploaden",
+      media_upload: "Media uploaden",
+      button: "Knop",
+      whatsapp: "Bijv: 31600000000 (zonder +)"
+    }
+  },
+  ar: {
+    admin: "الإدارة",
+    saas_title: "نظام إدارة الوكالات",
+    new_agency: "وكالة جديدة",
+    select_agency: "اختر وكالة لتكوين هويتها التجارية.",
+    save: "حفظ التغييرات",
+    saving: "جاري الحفظ...",
+    success_save: "تم حفظ الإعدادات بنجاح!",
+    error_save: "خطأ أثناء الحفظ.",
+    generate: "إنشاء الوكالة",
+    sections: {
+      lang_xml: "اللغات وخلاصات XML",
+      socials: "شبكات التواصل والاتصال",
+      integrations: "التكاملات (CRM وذكاء اصطناعي)",
+      branding: "الهوية البصرية والألوان",
+      hero: "إعداد واجهة العرض (Hero)",
+      preview: "معاينة مباشرة"
+    },
+    fields: {
+      allowed_langs: "اللغات المسموح بها في الموقع",
+      xml_sources: "خلاصات العقارات (XML)",
+      facebook: "رابط فيسبوك",
+      instagram: "رابط إنستغرام",
+      linkedin: "رابط لينكد إن",
+      tiktok: "رابط تيك توك",
+      zoho: "Zoho CRM (ID / Token)",
+      taskade: "Taskade AI Agent ID",
+      agency_name: "اسم الوكالة",
+      subdomain: "رابط الموقع (Slug)",
+      logo: "شعار الوكالة",
+      font_family: "نوع الخط",
+      primary_color: "اللون الأساسي",
+      button_color: "لؤن الأزرار",
+      hero_title: "عنوان واجهة العرض",
+      hero_type: "نوع الوسائط",
+      hero_file: "ملف الوسائط (صورة/فيديو)",
+      email: "البريد الإلكتروني للاتصال",
+      phone: "الهاتف الثابت",
+      whatsapp: "رقم الواتساب (الجوال)",
+      about_title: "عنوان صفحة 'من نحن'",
+      about_text: "نص صفحة 'من نحن'"
+    },
+    placeholders: {
+      slug: "اسم-الوكالة",
+      hero_text: "اكتشف عقاراتنا الاستثنائية...",
+      click_upload: "انقر للتحميل",
+      media_upload: "تحميل الوسائط",
+      button: "زر",
+      whatsapp: "مثال: 966500000000 (بدون +)"
     }
   }
 };
@@ -334,12 +542,12 @@ export default function AgencyDashboard() {
               </div>
             </header>
 
+            {/* LANGUE PAR DÉFAUT */}
             <div className="space-y-4 border-t border-slate-50 pt-4">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Langue par défaut du site
               </label>
               <div className="flex gap-2">
-                {/* On boucle sur les langues que l'agence a activées pour choisir la principale */}
                 {selectedAgency.footer_config?.allowed_langs?.map((code: string) => (
                   <button
                     key={code}
@@ -387,38 +595,53 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 2: BRANDING & COULEURS */}
+                {/* SECTION 2: BRANDING & POLICE */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Palette size={18} className="text-blue-600" /> {t.sections.branding}</h3>
+                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                    <Palette size={18} className="text-blue-600" /> {t.sections.branding}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Logo Upload */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
                       <div className="relative group">
                         <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'branding', 'logo_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                        <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50">
+                        <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
                           <UploadCloud className="text-slate-300" size={24} />
-                          <span className="text-xs text-slate-500">{t.placeholders.click_upload}</span>
+                          <span className="text-xs text-slate-500">{selectedAgency.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
                         </div>
                       </div>
                     </div>
+
+                    {/* Subdomain */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
                       <div className="relative">
                         <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <input type="text" value={selectedAgency.subdomain || ''} onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 text-sm font-mono bg-slate-50" placeholder={t.placeholders.slug} />
+                        <input type="text" value={selectedAgency.subdomain || ''} onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder={t.placeholders.slug} />
                       </div>
                     </div>
+
+                    {/* FONT SELECTOR (Choix multiple dont Montserrat) */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.font}</label>
                       <div className="relative">
                         <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <select value={selectedAgency.font_family || ''} onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none bg-white">
-                          <option value="Inter, sans-serif">Inter (Moderne)</option>
-                          <option value="'Playfair Display', serif">Playfair (Élégant)</option>
-                          <option value="'Roboto Mono', monospace">Roboto Mono (Technique)</option>
+                        <select 
+                          value={selectedAgency.font_family || 'Montserrat'} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} 
+                          className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none bg-white font-medium"
+                        >
+                          <option value="Montserrat">Montserrat (Moderne)</option>
+                          <option value="Inter">Inter (Minimaliste)</option>
+                          <option value="'Playfair Display', serif">Playfair (Luxe)</option>
+                          <option value="Poppins">Poppins (Arrondi)</option>
+                          <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
                         </select>
                       </div>
                     </div>
+
+                    {/* Couleur Primaire */}
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
                       <div className="flex gap-4">
@@ -426,6 +649,8 @@ export default function AgencyDashboard() {
                         <input type="text" value={selectedAgency.primary_color || ''} onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" />
                       </div>
                     </div>
+
+                    {/* Couleur Boutons */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         <MousePointer2 size={12} /> {t.fields.button_color}
@@ -438,7 +663,37 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 3: HERO HEADER */}
+                {/* SECTION 3: CONTENU DES PAGES (Nouveau) */}
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
+                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                    <FileCode size={18} className="text-blue-600" /> Pages Statiques (About & Contact)
+                  </h3>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Titre Page À Propos</label>
+                        <input 
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm"
+                          placeholder="Ex: Notre Vision de l'Immobilier"
+                          value={selectedAgency.footer_config?.about_page?.title || ''}
+                          onChange={(e) => updateNestedConfig('about_page', 'title', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Contenu Page À Propos</label>
+                        <textarea 
+                          rows={6}
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm"
+                          placeholder="Décrivez votre agence..."
+                          value={selectedAgency.footer_config?.about_page?.content || ''}
+                          onChange={(e) => updateNestedConfig('about_page', 'content', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 4: HERO HEADER */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 border-b border-slate-100 pb-5 uppercase text-xs tracking-widest">
                     <Layout size={18} className="text-blue-600" /> {t.sections.hero}
@@ -460,7 +715,7 @@ export default function AgencyDashboard() {
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.hero_file}</label>
                         <div className="relative group">
                           <input type="file" accept={selectedAgency.hero_type === 'video' ? 'video/mp4' : 'image/*'} onChange={(e) => handleFileUpload(e, 'hero', 'hero_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                          <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50">
+                          <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
                             <UploadCloud className="text-slate-300" size={24} />
                             <span className="text-xs text-slate-500 font-medium">{t.placeholders.media_upload}</span>
                           </div>
@@ -474,7 +729,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 4: INTEGRATIONS */}
+                {/* SECTION 5: INTEGRATIONS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-purple-500">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Zap size={18} className="text-purple-600" /> {t.sections.integrations}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -495,40 +750,100 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* SECTION 5: CONTACT & SOCIALS */}
+                {/* SECTION 6: CONTACT & SOCIALS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Share2 size={18} className="text-blue-600" /> {t.sections.socials}</h3>
+                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                    <Share2 size={18} className="text-blue-600" /> {t.sections.socials}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="relative"><Linkedin className="absolute left-4 top-4 text-slate-300" size={16} /><input placeholder={t.fields.linkedin} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.linkedin || ''} onChange={(e) => updateNestedConfig('socials', 'linkedin', e.target.value)} /></div>
-                    <div className="relative"><TikTokIcon className="absolute left-4 top-4 text-slate-300" size={16} /><input placeholder={t.fields.tiktok} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.tiktok || ''} onChange={(e) => updateNestedConfig('socials', 'tiktok', e.target.value)} /></div>
-                    <div className="relative"><Facebook className="absolute left-4 top-4 text-slate-300" size={16} /><input placeholder={t.fields.facebook} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.facebook || ''} onChange={(e) => updateNestedConfig('socials', 'facebook', e.target.value)} /></div>
-                    <div className="relative"><Instagram className="absolute left-4 top-4 text-slate-300" size={16} /><input placeholder={t.fields.instagram} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.instagram || ''} onChange={(e) => updateNestedConfig('socials', 'instagram', e.target.value)} /></div>
+                    <div className="relative">
+                      <Linkedin className="absolute left-4 top-4 text-slate-300" size={16} />
+                      <input placeholder={t.fields.linkedin} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.linkedin || ''} onChange={(e) => updateNestedConfig('socials', 'linkedin', e.target.value)} />
+                    </div>
+                    <div className="relative">
+                      <TikTokIcon className="absolute left-4 top-4 text-slate-300" size={16} />
+                      <input placeholder={t.fields.tiktok} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.tiktok || ''} onChange={(e) => updateNestedConfig('socials', 'tiktok', e.target.value)} />
+                    </div>
+                    <div className="relative">
+                      <Facebook className="absolute left-4 top-4 text-slate-300" size={16} />
+                      <input placeholder={t.fields.facebook} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.facebook || ''} onChange={(e) => updateNestedConfig('socials', 'facebook', e.target.value)} />
+                    </div>
+                    <div className="relative">
+                      <Instagram className="absolute left-4 top-4 text-slate-300" size={16} />
+                      <input placeholder={t.fields.instagram} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.instagram || ''} onChange={(e) => updateNestedConfig('socials', 'instagram', e.target.value)} />
+                    </div>
                     
-                    {/* NOUVEAU: CHAMP WHATSAPP */}
+                    {/* WHATSAPP */}
                     <div className="relative">
                       <MessageCircle className="absolute left-4 top-4 text-green-500" size={16} />
                       <input 
-                        placeholder={t.fields.whatsapp} 
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-green-50/30" 
+                        placeholder={t.placeholders.whatsapp} 
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-green-50/20 focus:ring-2 focus:ring-green-500 outline-none" 
                         value={selectedAgency.footer_config?.socials?.whatsapp || ''} 
                         onChange={(e) => updateNestedConfig('socials', 'whatsapp', e.target.value)} 
                       />
                     </div>
 
                     <div className="relative md:col-span-2 border-t border-slate-50 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="relative"><Mail className="absolute left-4 top-4 text-slate-300" size={16} /><input placeholder={t.fields.email} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.email || ''} onChange={(e) => updateRootConfig('email', e.target.value)} /></div>
-                      <div className="relative"><Phone className="absolute left-4 top-4 text-slate-300" size={16} /><input placeholder={t.fields.phone} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.phone || ''} onChange={(e) => updateRootConfig('phone', e.target.value)} /></div>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-4 text-slate-300" size={16} />
+                        <input placeholder={t.fields.email} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.email || ''} onChange={(e) => updateRootConfig('email', e.target.value)} />
+                      </div>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-4 text-slate-300" size={16} />
+                        <input placeholder={t.fields.phone} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.phone || ''} onChange={(e) => updateRootConfig('phone', e.target.value)} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 7: CONFORMITÉ & LÉGAL */}
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-slate-900">
+                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
+                    <ShieldCheck size={18} className="text-slate-900" /> {t.sections.legal || "Conformité & Légal"}
+                  </h3>
+                  
+                  <div className="space-y-6">
+                    {/* Toggle Cookie Banner */}
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="space-y-1">
+                        <span className="text-sm font-bold text-slate-900">Bandeau de Cookies</span>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold">Conformité RGPD</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer"
+                          checked={selectedAgency.cookie_consent_enabled || false}
+                          onChange={(e) => setSelectedAgency({...selectedAgency, cookie_consent_enabled: e.target.checked})}
+                        />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
+                      </label>
+                    </div>
+
+                    {/* Privacy Policy Textarea */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {t.fields.privacy_policy || "Politique de confidentialité"}
+                      </label>
+                      <textarea 
+                        rows={5}
+                        className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+                        placeholder="Saisissez ici les mentions légales..."
+                        value={selectedAgency.privacy_policy || ''}
+                        onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})}
+                      />
                     </div>
                   </div>
                 </div>
 
               </div>
               
-              {/* LIVE PREVIEW */}
+              {/* LIVE PREVIEW (STICKY) */}
               <div className="lg:col-span-1">
                 <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl sticky top-8 overflow-hidden">
                   <div className="flex items-center gap-2 mb-4 text-white/50 text-[10px] font-bold uppercase tracking-widest"><Monitor size={14} /> {t.sections.preview}</div>
-                  <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-slate-800" style={{ fontFamily: selectedAgency.font_family || 'inherit' }}>
+                  <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-slate-800" style={{ fontFamily: selectedAgency.font_family || 'Montserrat, sans-serif' }}>
                     {selectedAgency.hero_url && selectedAgency.hero_type !== 'video' && <img src={selectedAgency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="BG" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
                     <div className="absolute inset-0 p-6 flex flex-col justify-between">
