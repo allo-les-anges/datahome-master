@@ -113,8 +113,6 @@ src/app/agency/[slug]/layout.tsx
 src/app/agency/[slug]/page.tsx
 src/app/agency/[slug]/privacy/page.tsx
 src/app/AgencyPageClient.tsx
-src/app/api/admin/agencies/[id]/route.ts
-src/app/api/admin/agencies/route.ts
 src/app/api/admin/create-client/route.ts
 src/app/api/agency/route.ts
 src/app/api/config/route.ts
@@ -613,7 +611,7 @@ export default function AgencyDynamicPage() {
     reference: "",
   });
 
-  // --- 1. INITIALISATION ---
+  // --- 1. INITIALISATION & COMPORTEMENT ---
   useEffect(() => {
     setMounted(true);
     const meta = document.createElement('meta');
@@ -628,7 +626,7 @@ export default function AgencyDynamicPage() {
     };
   }, [slug]);
 
-  // --- 2. FAVORIS ---
+  // --- 2. GESTION DES FAVORIS ---
   useEffect(() => {
     if (typeof window !== 'undefined' && slug) {
       const saved = localStorage.getItem(`fav_${slug}`);
@@ -646,7 +644,7 @@ export default function AgencyDynamicPage() {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // --- 3. FORMATAGE DES DONNÉES ---
+  // --- 3. FORMATAGE DES DONNÉES (VILLAS) ---
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -675,13 +673,12 @@ export default function AgencyDynamicPage() {
     });
   }, [locale]);
 
-  // --- 4. RÉCUPÉRATION SUPABASE ---
+  // --- 4. RÉCUPÉRATION SUPABASE (AGENCE + BIENS) ---
   useEffect(() => {
     let isMounted = true;
     async function init() {
       if (!slug || !mounted) return;
       
-      console.log("🚀 [DEBUG] Chargement pour le slug:", slug);
       setLoading(true);
       
       try {
@@ -693,12 +690,9 @@ export default function AgencyDynamicPage() {
           .single();
 
         if (agencyError || !agencyData) {
-            console.error("❌ [DEBUG] Agence introuvable ou erreur:", agencyError);
             if (isMounted) setLoading(false);
             return;
         }
-
-        console.log("✅ [DEBUG] Agence chargée:", agencyData.agency_name);
 
         if (isMounted) {
           setAgency(agencyData);
@@ -707,7 +701,7 @@ export default function AgencyDynamicPage() {
           }
         }
 
-        // B. Analyse de la configuration XML de l'agence
+        // B. Analyse des flux XML autorisés
         let allowedXmlUrls: string[] = [];
         try {
           const footerConfig = typeof agencyData.footer_config === 'string' 
@@ -716,41 +710,33 @@ export default function AgencyDynamicPage() {
           
           allowedXmlUrls = footerConfig?.xml_urls || [];
         } catch (e) {
-          console.error("❌ [DEBUG] Erreur lors du parsing de footer_config:", e);
+          console.error("Erreur parsing footer_config:", e);
         }
 
-        console.log("📡 [DEBUG] Flux XML autorisés pour cette agence:", allowedXmlUrls);
-
-        // C. Récupérer les biens basés sur les flux XML
+        // C. Récupérer les biens filtrés par source XML
         let query = supabase
           .from('villas')
           .select('*')
           .eq('is_excluded', false);
 
-        // Si l'agence a des URLs spécifiées, on filtre. 
-        // Sinon, on n'affiche rien (ou on pourrait choisir d'afficher tout)
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
         } else {
-          console.warn("⚠️ [DEBUG] Aucun flux XML configuré pour cette agence.");
+          // Si aucune URL XML n'est configurée, on peut choisir de ne rien afficher
+          // ou de tout afficher. Ici on applique la restriction XML.
+          console.warn("Aucun flux XML configuré pour cette agence.");
         }
 
         const { data: villasData, error: villasError } = await query;
 
-        if (villasError) {
-          console.error("❌ [DEBUG] Erreur lors de la récupération des villas:", villasError);
-        }
-
         if (isMounted && villasData) {
-          console.log("📦 [DEBUG] Nombre de villas filtrées reçues:", villasData.length);
           const formatted = formatVillaData(villasData);
           const sorted = formatted.sort((a, b) => b.price - a.price); 
           setAllProperties(sorted);
           setFilteredProperties(sorted);
-          console.log("✨ [DEBUG] Villas formatées et prêtes.");
         }
       } catch (err) {
-        console.error("🔥 [DEBUG] Erreur fatale:", err);
+        console.error("Erreur d'initialisation:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -790,23 +776,37 @@ export default function AgencyDynamicPage() {
     setSelectedProperty(null);
   };
 
+  // --- 6. RENDU ---
   if (!mounted || loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-white">
       <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Connexion à la base de données...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Initialisation de l'agence...</p>
     </div>
   );
 
   const brandColor = agency?.primary_color || '#D4AF37';
+  const selectedFont = agency?.font_family || 'Montserrat, sans-serif';
+  const fontNameForUrl = selectedFont.split(',')[0].trim().replace(/\s+/g, '+');
   const isLight = agency?.package_level === 'light';
 
   return (
-    <div className="min-h-screen bg-white flex flex-col relative overflow-x-hidden notranslate" translate="no">
+    <div 
+      className="min-h-screen bg-white flex flex-col relative overflow-x-hidden notranslate" 
+      translate="no"
+      style={{ fontFamily: selectedFont }}
+    >
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=${fontNameForUrl}:wght@300;400;700;900&display=swap');
+        
         :root { --brand-primary: ${brandColor}; }
         .bg-primary { background-color: var(--brand-primary) !important; }
         .text-primary { color: var(--brand-primary) !important; }
         .border-primary { border-color: var(--brand-primary) !important; }
+
+        /* Application forcée de la police sur les éléments globaux */
+        h1, h2, h3, h4, button, span, p, input, select, textarea {
+          font-family: ${selectedFont}, sans-serif !important;
+        }
       `}</style>
 
       <div className="absolute top-0 left-0 w-full z-[100]">
@@ -3848,78 +3848,6 @@ export default async function AboutPage() {
 }
 </file>
 
-<file path="src/app/api/admin/agencies/[id]/route.ts">
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Pour Next.js 16 - signature correcte
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const body = await request.json();
-    const { id } = await params;
-
-    const updateData: any = {
-      agency_name: body.agency_name,
-      subdomain: body.subdomain,
-      logo_url: body.logo_url,
-      primary_color: body.primary_color,
-      hero_title: body.hero_title,
-      hero_url: body.hero_url,
-      hero_type: body.hero_type,
-      package_level: body.package_level,
-      footer_config: body.footer_config,
-      modules_active: body.modules_active,
-      font_family: body.font_family,
-      about_title: body.about_title,
-      about_text: body.about_text,
-      button_color: body.button_color,
-      default_lang: body.default_lang,
-      cookie_consent_enabled: body.cookie_consent_enabled,
-      privacy_policy: body.privacy_policy,
-      whatsapp_number: body.whatsapp_number,
-      team_data: body.team_data,
-      updated_at: new Date().toISOString(),
-    };
-
-    const { error } = await supabase
-      .from('agency_settings')
-      .update(updateData)
-      .eq('id', id);
-
-    if (error) throw error;
-    return NextResponse.json({ message: "Succès" });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const { error } = await supabase
-      .from('agency_settings')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    return NextResponse.json({ message: "Agence supprimée" });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-</file>
-
 <file path="src/app/page.tsx">
 "use client";
 
@@ -5184,55 +5112,6 @@ export default async function PrivacyPage({
 }
 </file>
 
-<file path="src/app/api/admin/agencies/route.ts">
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function GET() {
-  const { data, error } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .order('agency_name', { ascending: true });
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
-}
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { data, error } = await supabase
-      .from('agency_settings')
-      .insert([{ 
-        agency_name: body.agency_name, 
-        subdomain: body.subdomain,
-        package_level: body.package_level || 'silver',
-        footer_config: {
-          allowed_langs: ['fr', 'en'],
-          xml_urls: [],
-          socials: {},
-          integrations: {}
-        },
-        team_data: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data);
-  } catch (error) {
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
-  }
-}
-</file>
-
 <file path="src/app/developpement/[devId]/page.tsx">
 "use client";
 
@@ -5670,7 +5549,6 @@ export default function ContactPage() {
         const hostname = window.location.hostname;
         let subdomain = hostname.split('.')[0];
 
-        // Normalisation du sous-domaine pour le développement et la production
         if (subdomain === 'localhost' || subdomain === 'www' || subdomain === 'datahome') {
           subdomain = 'lumina-prestige'; 
         }
@@ -5682,7 +5560,6 @@ export default function ContactPage() {
           .single();
 
         if (data) {
-          console.log("Données de l'agence chargées:", data);
           setAgency(data);
         }
       } catch (err) {
@@ -5706,7 +5583,7 @@ export default function ContactPage() {
   const brandColor = agency?.primary_color || "#c5a059";
   const buttonColor = agency?.button_color || brandColor;
 
-  // --- PARSING DU FOOTER (INFOS CONTACT) ---
+  // --- PARSING DU FOOTER ---
   let contactInfo = { email: "", phone: "", address: "" };
   try {
     if (agency?.footer_config) {
@@ -5718,14 +5595,11 @@ export default function ContactPage() {
     console.error("Erreur parsing footer_config"); 
   }
 
-  // --- PARSING DE L'ÉQUIPE (JSONB) ---
   const getTeam = () => {
     if (!agency?.team_data) return [];
     if (Array.isArray(agency.team_data)) return agency.team_data;
     try {
-      if (typeof agency.team_data === 'string') {
-        return JSON.parse(agency.team_data);
-      }
+      if (typeof agency.team_data === 'string') return JSON.parse(agency.team_data);
     } catch (e) {
       console.error("Erreur parsing team_data");
     }
@@ -5733,8 +5607,6 @@ export default function ContactPage() {
   };
 
   const team = getTeam();
-
-  // Fallback si l'équipe est vide dans Supabase
   const displayTeam = team.length > 0 ? team : [
     { 
       name: "Direction Générale", 
@@ -5753,11 +5625,11 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulation d'envoi
     setTimeout(() => {
       setIsSubmitting(false);
       setStatus("success");
       setFormData({ name: "", email: "", message: "" });
+      setTimeout(() => setStatus("idle"), 5000);
     }, 1500);
   };
 
@@ -5772,7 +5644,7 @@ export default function ContactPage() {
             <img 
               src={agency.hero_url} 
               className="absolute inset-0 w-full h-full object-cover opacity-50 brightness-75" 
-              alt="Lumina Prestige Hero" 
+              alt="Hero" 
             />
           ) : (
             <div className="absolute inset-0 bg-black opacity-80" />
@@ -5794,7 +5666,7 @@ export default function ContactPage() {
 
         <section className="max-w-[1400px] mx-auto px-6 py-24 grid grid-cols-1 xl:grid-cols-12 gap-20">
           
-          {/* SECTION ÉQUIPE / PARTENAIRES */}
+          {/* SECTION ÉQUIPE */}
           <div className="xl:col-span-7 space-y-12">
             <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
               <h2 className="text-3xl font-serif italic uppercase tracking-widest">
@@ -5830,90 +5702,116 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* FORMULAIRE & INFORMATIONS LATÉRALES */}
-          <div className="xl:col-span-5">
-            <div className="sticky top-32 space-y-8">
-              <div className="p-10 rounded-[3rem] bg-slate-950 text-white shadow-2xl border border-white/5">
-                <h3 className="text-2xl font-serif italic mb-8">Informations</h3>
+          {/* SECTION SMARTPHONE (Informations + Formulaire) */}
+          <div className="xl:col-span-5 flex justify-center items-start">
+            <div className="sticky top-32">
+              
+              {/* COQUE DU SMARTPHONE */}
+              <div className="relative w-[320px] md:w-[380px] aspect-[9/18.5] rounded-[3.5rem] bg-slate-900 p-3 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] border-[8px] border-slate-800 ring-1 ring-white/10">
                 
-                <div className="space-y-6 mb-12">
-                  <div className="flex items-center gap-5 group">
-                    <div className="p-4 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-colors">
-                      <Phone size={20} style={{ color: brandColor }} />
-                    </div>
-                    <span className="text-sm font-light tracking-widest">{contactInfo.phone || "Non renseigné"}</span>
-                  </div>
-                  <div className="flex items-center gap-5 group">
-                    <div className="p-4 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-colors">
-                      <Mail size={20} style={{ color: brandColor }} />
-                    </div>
-                    <span className="text-sm font-light tracking-widest">{contactInfo.email || "contact@lumina-prestige.com"}</span>
-                  </div>
-                  <div className="flex items-center gap-5">
-                    <div className="p-4 rounded-2xl bg-white/5">
-                      <MapPin size={20} style={{ color: brandColor }} />
-                    </div>
-                    <span className="text-sm font-light leading-relaxed opacity-70">
-                      {contactInfo.address || "12 Place Vendôme, Paris"}
-                    </span>
-                  </div>
-                  {agency?.whatsapp_number && (
-                    <div className="flex items-center gap-5 group">
-                      <div className="p-4 rounded-2xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-                        <MessageCircle size={20} className="text-green-500" />
-                      </div>
-                      <span className="text-sm font-light tracking-widest">WhatsApp Direct</span>
-                    </div>
-                  )}
+                {/* Encoche (Notch) */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-800 rounded-b-2xl z-30 flex items-center justify-center gap-2">
+                  <div className="w-8 h-1 bg-slate-700 rounded-full"></div>
+                  <div className="w-2 h-2 bg-slate-700 rounded-full"></div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <input 
-                    required
-                    type="text"
-                    placeholder="VOTRE NOM"
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  />
-                  <input 
-                    required
-                    type="email"
-                    placeholder="VOTRE EMAIL"
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  />
-                  <textarea 
-                    required
-                    rows={4}
-                    placeholder="VOTRE MESSAGE..."
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all resize-none placeholder:text-white/20"
-                    value={formData.message}
-                    onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  />
-                  <button 
-                    type="submit"
-                    disabled={isSubmitting}
-                    style={{ backgroundColor: buttonColor }}
-                    className="w-full py-5 rounded-2xl text-black font-black text-[10px] tracking-[0.3em] hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="animate-spin" size={16}/>
-                    ) : (
-                      "ENVOYER LE MESSAGE"
-                    )}
-                  </button>
-                  {status === "success" && (
-                    <motion.p 
-                      initial={{ opacity: 0 }} 
-                      animate={{ opacity: 1 }} 
-                      className="text-center text-green-400 text-[10px] font-black tracking-widest mt-4 uppercase"
-                    >
-                      Demande envoyée avec succès
-                    </motion.p>
-                  )}
-                </form>
+                {/* ÉCRAN INTERNE */}
+                <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden bg-slate-950 flex flex-col border border-white/5">
+                  
+                  {/* Fond Interne */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-black opacity-60" />
+
+                  <div className="relative z-10 h-full flex flex-col p-8 pt-12">
+                    <h3 className="text-xl font-serif italic text-white mb-8 text-center tracking-widest">Informations</h3>
+                    
+                    {/* Infos Contact */}
+                    <div className="space-y-4 mb-10">
+                      <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                        <div className="p-2.5 rounded-xl bg-slate-800 shadow-lg">
+                          <Phone size={16} style={{ color: brandColor }} />
+                        </div>
+                        <span className="text-[11px] font-light tracking-wider text-white/90">
+                          {contactInfo.phone || "+33 1 45 22 33 44"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                        <div className="p-2.5 rounded-xl bg-slate-800 shadow-lg">
+                          <Mail size={16} style={{ color: brandColor }} />
+                        </div>
+                        <span className="text-[11px] font-light tracking-wider text-white/90 truncate">
+                          {contactInfo.email || "agence@lumina.com"}
+                        </span>
+                      </div>
+
+                      {agency?.whatsapp_number && (
+                        <div className="flex items-center gap-4 p-3 rounded-2xl bg-green-500/5 border border-green-500/10 hover:bg-green-500/10 transition-all">
+                          <div className="p-2.5 rounded-xl bg-green-500/20">
+                            <MessageCircle size={16} className="text-green-500" />
+                          </div>
+                          <span className="text-[11px] font-light tracking-wider text-green-500">WhatsApp Direct</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Formulaire */}
+                    <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-4">
+                      <div className="space-y-3">
+                        <input 
+                          required
+                          type="text"
+                          placeholder="VOTRE NOM"
+                          className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20 text-white"
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        />
+                        <input 
+                          required
+                          type="email"
+                          placeholder="VOTRE EMAIL"
+                          className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20 text-white"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        />
+                        <textarea 
+                          required
+                          rows={3}
+                          placeholder="VOTRE MESSAGE..."
+                          className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all resize-none placeholder:text-white/20 text-white"
+                          value={formData.message}
+                          onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        />
+                      </div>
+
+                      <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        style={{ backgroundColor: buttonColor }}
+                        className="mt-auto w-full py-4 rounded-xl text-black font-black text-[9px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
+                      >
+                        {isSubmitting ? <Loader2 className="animate-spin" size={14}/> : "ENVOYER LE MESSAGE"}
+                      </button>
+
+                      {status === "success" && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: 10 }} 
+                          animate={{ opacity: 1, y: 0 }} 
+                          className="text-center text-green-400 text-[8px] font-black tracking-widest mt-2 uppercase"
+                        >
+                          Demande envoyée avec succès
+                        </motion.p>
+                      )}
+                    </form>
+                  </div>
+
+                  {/* Barre Home (iOS style) */}
+                  <div className="relative z-10 h-10 w-full flex justify-center items-center">
+                    <div className="w-20 h-1 bg-white/20 rounded-full"></div>
+                  </div>
+                </div>
+
+                {/* Reflet Verre */}
+                <div className="absolute top-0 right-10 w-full h-full bg-gradient-to-br from-white/5 to-transparent pointer-events-none rounded-[3.5rem] z-20" />
               </div>
             </div>
           </div>
@@ -6774,82 +6672,84 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - UTILISE SUBDOMAIN AU LIEU DE ID
+  // HANDLE SAVE - UTILISE L'ID (PLUS FIABLE QUE SUBDOMAIN)
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  if (!selectedAgency || !selectedAgency.id) {
+    console.error("❌ ID de l'agence manquant");
+    setMessage({ type: 'error', text: "ID de l'agence manquant" });
+    return;
+  }
+
+  setIsSaving(true);
+
+  try {
+    const teamDataToSave = JSON.parse(JSON.stringify(team));
+
+    console.log("✅ team_data à sauvegarder:", teamDataToSave);
+    console.log("🔍 ID de l'agence à mettre à jour:", selectedAgency.id);
+    console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
+    console.log("🔍 Subdomain (pour info):", selectedAgency.subdomain);
+
+    // CORRECTION : Utiliser eq('id', selectedAgency.id) au lieu de eq('subdomain', ...)
+    const { data, error, status } = await supabase
+      .from('agency_settings')
+      .update({
+        agency_name: selectedAgency.agency_name,
+        subdomain: selectedAgency.subdomain,
+        primary_color: selectedAgency.primary_color,
+        button_color: selectedAgency.button_color,
+        font_family: selectedAgency.font_family,
+        hero_title: selectedAgency.hero_title,
+        hero_type: selectedAgency.hero_type,
+        hero_url: selectedAgency.hero_url,
+        logo_url: selectedAgency.logo_url,
+        default_lang: selectedAgency.default_lang,
+        cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+        privacy_policy: selectedAgency.privacy_policy,
+        about_title: selectedAgency.about_title,
+        about_text: selectedAgency.about_text,
+        whatsapp_number: selectedAgency.whatsapp_number,
+        footer_config: selectedAgency.footer_config,
+        team_data: teamDataToSave,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', selectedAgency.id)  // ← Utilise l'ID au lieu du subdomain
+      .select();
+
+    console.log("📊 RÉPONSE SUPABASE - status:", status);
+    console.log("📊 RÉPONSE SUPABASE - error:", error);
+    console.log("📊 RÉPONSE SUPABASE - data:", data);
+
+    if (error) {
+      console.error("❌ ERREUR SUPABASE:", error);
+      throw error;
     }
 
-    if (!selectedAgency || !selectedAgency.subdomain) {
-      console.error("❌ Subdomain manquant");
-      return;
+    if (data && data.length > 0) {
+      console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
+      setMessage({ type: 'success', text: t.success_save });
+      
+      setSelectedAgency(data[0]);
+      setTeam(data[0].team_data || []);
+      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+    } else {
+      console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez l'ID");
+      setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
     }
-
-    setIsSaving(true);
-
-    try {
-      const teamDataToSave = JSON.parse(JSON.stringify(team));
-
-      console.log("✅ team_data à sauvegarder:", teamDataToSave);
-      console.log("🔍 Subdomain recherché dans Supabase:", selectedAgency.subdomain);
-      console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
-      console.log("🔍 ID de l'agence (pour info):", selectedAgency.id);
-
-      const { data, error, status } = await supabase
-        .from('agency_settings')
-        .update({
-          agency_name: selectedAgency.agency_name,
-          subdomain: selectedAgency.subdomain,
-          primary_color: selectedAgency.primary_color,
-          button_color: selectedAgency.button_color,
-          font_family: selectedAgency.font_family,
-          hero_title: selectedAgency.hero_title,
-          hero_type: selectedAgency.hero_type,
-          hero_url: selectedAgency.hero_url,
-          logo_url: selectedAgency.logo_url,
-          default_lang: selectedAgency.default_lang,
-          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-          privacy_policy: selectedAgency.privacy_policy,
-          about_title: selectedAgency.about_title,
-          about_text: selectedAgency.about_text,
-          whatsapp_number: selectedAgency.whatsapp_number,
-          footer_config: selectedAgency.footer_config,
-          team_data: teamDataToSave,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('subdomain', selectedAgency.subdomain)  // ← Utilise subdomain au lieu de id
-        .select();
-
-      console.log("📊 RÉPONSE SUPABASE - status:", status);
-      console.log("📊 RÉPONSE SUPABASE - error:", error);
-      console.log("📊 RÉPONSE SUPABASE - data:", data);
-
-      if (error) {
-        console.error("❌ ERREUR SUPABASE:", error);
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
-        setMessage({ type: 'success', text: t.success_save });
-        
-        setSelectedAgency(data[0]);
-        setTeam(data[0].team_data || []);
-        setAgencies(prev => prev.map(a => a.subdomain === selectedAgency.subdomain ? data[0] : a));
-      } else {
-        console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez le subdomain");
-        setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec ce subdomain" });
-      }
-    } catch (err: any) {
-      console.error("❌ ERREUR:", err.message);
-      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setMessage(null), 3000);
-    }
-  };
+  } catch (err: any) {
+    console.error("❌ ERREUR:", err.message);
+    setMessage({ type: 'error', text: t.error_save + " : " + err.message });
+  } finally {
+    setIsSaving(false);
+    setTimeout(() => setMessage(null), 3000);
+  }
+};
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};

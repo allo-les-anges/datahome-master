@@ -40,7 +40,7 @@ export default function AgencyDynamicPage() {
     reference: "",
   });
 
-  // --- 1. INITIALISATION ---
+  // --- 1. INITIALISATION & COMPORTEMENT ---
   useEffect(() => {
     setMounted(true);
     const meta = document.createElement('meta');
@@ -55,7 +55,7 @@ export default function AgencyDynamicPage() {
     };
   }, [slug]);
 
-  // --- 2. FAVORIS ---
+  // --- 2. GESTION DES FAVORIS ---
   useEffect(() => {
     if (typeof window !== 'undefined' && slug) {
       const saved = localStorage.getItem(`fav_${slug}`);
@@ -73,7 +73,7 @@ export default function AgencyDynamicPage() {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // --- 3. FORMATAGE DES DONNÉES ---
+  // --- 3. FORMATAGE DES DONNÉES (VILLAS) ---
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -102,13 +102,12 @@ export default function AgencyDynamicPage() {
     });
   }, [locale]);
 
-  // --- 4. RÉCUPÉRATION SUPABASE ---
+  // --- 4. RÉCUPÉRATION SUPABASE (AGENCE + BIENS) ---
   useEffect(() => {
     let isMounted = true;
     async function init() {
       if (!slug || !mounted) return;
       
-      console.log("🚀 [DEBUG] Chargement pour le slug:", slug);
       setLoading(true);
       
       try {
@@ -120,12 +119,9 @@ export default function AgencyDynamicPage() {
           .single();
 
         if (agencyError || !agencyData) {
-            console.error("❌ [DEBUG] Agence introuvable ou erreur:", agencyError);
             if (isMounted) setLoading(false);
             return;
         }
-
-        console.log("✅ [DEBUG] Agence chargée:", agencyData.agency_name);
 
         if (isMounted) {
           setAgency(agencyData);
@@ -134,7 +130,7 @@ export default function AgencyDynamicPage() {
           }
         }
 
-        // B. Analyse de la configuration XML de l'agence
+        // B. Analyse des flux XML autorisés
         let allowedXmlUrls: string[] = [];
         try {
           const footerConfig = typeof agencyData.footer_config === 'string' 
@@ -143,41 +139,33 @@ export default function AgencyDynamicPage() {
           
           allowedXmlUrls = footerConfig?.xml_urls || [];
         } catch (e) {
-          console.error("❌ [DEBUG] Erreur lors du parsing de footer_config:", e);
+          console.error("Erreur parsing footer_config:", e);
         }
 
-        console.log("📡 [DEBUG] Flux XML autorisés pour cette agence:", allowedXmlUrls);
-
-        // C. Récupérer les biens basés sur les flux XML
+        // C. Récupérer les biens filtrés par source XML
         let query = supabase
           .from('villas')
           .select('*')
           .eq('is_excluded', false);
 
-        // Si l'agence a des URLs spécifiées, on filtre. 
-        // Sinon, on n'affiche rien (ou on pourrait choisir d'afficher tout)
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
         } else {
-          console.warn("⚠️ [DEBUG] Aucun flux XML configuré pour cette agence.");
+          // Si aucune URL XML n'est configurée, on peut choisir de ne rien afficher
+          // ou de tout afficher. Ici on applique la restriction XML.
+          console.warn("Aucun flux XML configuré pour cette agence.");
         }
 
         const { data: villasData, error: villasError } = await query;
 
-        if (villasError) {
-          console.error("❌ [DEBUG] Erreur lors de la récupération des villas:", villasError);
-        }
-
         if (isMounted && villasData) {
-          console.log("📦 [DEBUG] Nombre de villas filtrées reçues:", villasData.length);
           const formatted = formatVillaData(villasData);
           const sorted = formatted.sort((a, b) => b.price - a.price); 
           setAllProperties(sorted);
           setFilteredProperties(sorted);
-          console.log("✨ [DEBUG] Villas formatées et prêtes.");
         }
       } catch (err) {
-        console.error("🔥 [DEBUG] Erreur fatale:", err);
+        console.error("Erreur d'initialisation:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -217,23 +205,37 @@ export default function AgencyDynamicPage() {
     setSelectedProperty(null);
   };
 
+  // --- 6. RENDU ---
   if (!mounted || loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-white">
       <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Connexion à la base de données...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Initialisation de l'agence...</p>
     </div>
   );
 
   const brandColor = agency?.primary_color || '#D4AF37';
+  const selectedFont = agency?.font_family || 'Montserrat, sans-serif';
+  const fontNameForUrl = selectedFont.split(',')[0].trim().replace(/\s+/g, '+');
   const isLight = agency?.package_level === 'light';
 
   return (
-    <div className="min-h-screen bg-white flex flex-col relative overflow-x-hidden notranslate" translate="no">
+    <div 
+      className="min-h-screen bg-white flex flex-col relative overflow-x-hidden notranslate" 
+      translate="no"
+      style={{ fontFamily: selectedFont }}
+    >
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=${fontNameForUrl}:wght@300;400;700;900&display=swap');
+        
         :root { --brand-primary: ${brandColor}; }
         .bg-primary { background-color: var(--brand-primary) !important; }
         .text-primary { color: var(--brand-primary) !important; }
         .border-primary { border-color: var(--brand-primary) !important; }
+
+        /* Application forcée de la police sur les éléments globaux */
+        h1, h2, h3, h4, button, span, p, input, select, textarea {
+          font-family: ${selectedFont}, sans-serif !important;
+        }
       `}</style>
 
       <div className="absolute top-0 left-0 w-full z-[100]">
