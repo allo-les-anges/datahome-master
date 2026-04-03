@@ -28,7 +28,6 @@ export default function ContactPage() {
         const hostname = window.location.hostname;
         let subdomain = hostname.split('.')[0];
 
-        // Normalisation du sous-domaine pour le développement et la production
         if (subdomain === 'localhost' || subdomain === 'www' || subdomain === 'datahome') {
           subdomain = 'lumina-prestige'; 
         }
@@ -40,7 +39,6 @@ export default function ContactPage() {
           .single();
 
         if (data) {
-          console.log("Données de l'agence chargées:", data);
           setAgency(data);
         }
       } catch (err) {
@@ -64,7 +62,7 @@ export default function ContactPage() {
   const brandColor = agency?.primary_color || "#c5a059";
   const buttonColor = agency?.button_color || brandColor;
 
-  // --- PARSING DU FOOTER (INFOS CONTACT) ---
+  // --- PARSING DU FOOTER ---
   let contactInfo = { email: "", phone: "", address: "" };
   try {
     if (agency?.footer_config) {
@@ -76,14 +74,11 @@ export default function ContactPage() {
     console.error("Erreur parsing footer_config"); 
   }
 
-  // --- PARSING DE L'ÉQUIPE (JSONB) ---
   const getTeam = () => {
     if (!agency?.team_data) return [];
     if (Array.isArray(agency.team_data)) return agency.team_data;
     try {
-      if (typeof agency.team_data === 'string') {
-        return JSON.parse(agency.team_data);
-      }
+      if (typeof agency.team_data === 'string') return JSON.parse(agency.team_data);
     } catch (e) {
       console.error("Erreur parsing team_data");
     }
@@ -91,8 +86,6 @@ export default function ContactPage() {
   };
 
   const team = getTeam();
-
-  // Fallback si l'équipe est vide dans Supabase
   const displayTeam = team.length > 0 ? team : [
     { 
       name: "Direction Générale", 
@@ -111,11 +104,11 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulation d'envoi
     setTimeout(() => {
       setIsSubmitting(false);
       setStatus("success");
       setFormData({ name: "", email: "", message: "" });
+      setTimeout(() => setStatus("idle"), 5000);
     }, 1500);
   };
 
@@ -130,7 +123,7 @@ export default function ContactPage() {
             <img 
               src={agency.hero_url} 
               className="absolute inset-0 w-full h-full object-cover opacity-50 brightness-75" 
-              alt="Lumina Prestige Hero" 
+              alt="Hero" 
             />
           ) : (
             <div className="absolute inset-0 bg-black opacity-80" />
@@ -152,7 +145,7 @@ export default function ContactPage() {
 
         <section className="max-w-[1400px] mx-auto px-6 py-24 grid grid-cols-1 xl:grid-cols-12 gap-20">
           
-          {/* SECTION ÉQUIPE / PARTENAIRES */}
+          {/* SECTION ÉQUIPE */}
           <div className="xl:col-span-7 space-y-12">
             <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
               <h2 className="text-3xl font-serif italic uppercase tracking-widest">
@@ -188,90 +181,116 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* FORMULAIRE & INFORMATIONS LATÉRALES */}
-          <div className="xl:col-span-5">
-            <div className="sticky top-32 space-y-8">
-              <div className="p-10 rounded-[3rem] bg-slate-950 text-white shadow-2xl border border-white/5">
-                <h3 className="text-2xl font-serif italic mb-8">Informations</h3>
+          {/* SECTION SMARTPHONE (Informations + Formulaire) */}
+          <div className="xl:col-span-5 flex justify-center items-start">
+            <div className="sticky top-32">
+              
+              {/* COQUE DU SMARTPHONE */}
+              <div className="relative w-[320px] md:w-[380px] aspect-[9/18.5] rounded-[3.5rem] bg-slate-900 p-3 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] border-[8px] border-slate-800 ring-1 ring-white/10">
                 
-                <div className="space-y-6 mb-12">
-                  <div className="flex items-center gap-5 group">
-                    <div className="p-4 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-colors">
-                      <Phone size={20} style={{ color: brandColor }} />
-                    </div>
-                    <span className="text-sm font-light tracking-widest">{contactInfo.phone || "Non renseigné"}</span>
-                  </div>
-                  <div className="flex items-center gap-5 group">
-                    <div className="p-4 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-colors">
-                      <Mail size={20} style={{ color: brandColor }} />
-                    </div>
-                    <span className="text-sm font-light tracking-widest">{contactInfo.email || "contact@lumina-prestige.com"}</span>
-                  </div>
-                  <div className="flex items-center gap-5">
-                    <div className="p-4 rounded-2xl bg-white/5">
-                      <MapPin size={20} style={{ color: brandColor }} />
-                    </div>
-                    <span className="text-sm font-light leading-relaxed opacity-70">
-                      {contactInfo.address || "12 Place Vendôme, Paris"}
-                    </span>
-                  </div>
-                  {agency?.whatsapp_number && (
-                    <div className="flex items-center gap-5 group">
-                      <div className="p-4 rounded-2xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-                        <MessageCircle size={20} className="text-green-500" />
-                      </div>
-                      <span className="text-sm font-light tracking-widest">WhatsApp Direct</span>
-                    </div>
-                  )}
+                {/* Encoche (Notch) */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-800 rounded-b-2xl z-30 flex items-center justify-center gap-2">
+                  <div className="w-8 h-1 bg-slate-700 rounded-full"></div>
+                  <div className="w-2 h-2 bg-slate-700 rounded-full"></div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <input 
-                    required
-                    type="text"
-                    placeholder="VOTRE NOM"
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  />
-                  <input 
-                    required
-                    type="email"
-                    placeholder="VOTRE EMAIL"
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  />
-                  <textarea 
-                    required
-                    rows={4}
-                    placeholder="VOTRE MESSAGE..."
-                    className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] tracking-[0.2em] outline-none focus:border-white/30 transition-all resize-none placeholder:text-white/20"
-                    value={formData.message}
-                    onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  />
-                  <button 
-                    type="submit"
-                    disabled={isSubmitting}
-                    style={{ backgroundColor: buttonColor }}
-                    className="w-full py-5 rounded-2xl text-black font-black text-[10px] tracking-[0.3em] hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="animate-spin" size={16}/>
-                    ) : (
-                      "ENVOYER LE MESSAGE"
-                    )}
-                  </button>
-                  {status === "success" && (
-                    <motion.p 
-                      initial={{ opacity: 0 }} 
-                      animate={{ opacity: 1 }} 
-                      className="text-center text-green-400 text-[10px] font-black tracking-widest mt-4 uppercase"
-                    >
-                      Demande envoyée avec succès
-                    </motion.p>
-                  )}
-                </form>
+                {/* ÉCRAN INTERNE */}
+                <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden bg-slate-950 flex flex-col border border-white/5">
+                  
+                  {/* Fond Interne */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-black opacity-60" />
+
+                  <div className="relative z-10 h-full flex flex-col p-8 pt-12">
+                    <h3 className="text-xl font-serif italic text-white mb-8 text-center tracking-widest">Informations</h3>
+                    
+                    {/* Infos Contact */}
+                    <div className="space-y-4 mb-10">
+                      <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                        <div className="p-2.5 rounded-xl bg-slate-800 shadow-lg">
+                          <Phone size={16} style={{ color: brandColor }} />
+                        </div>
+                        <span className="text-[11px] font-light tracking-wider text-white/90">
+                          {contactInfo.phone || "+33 1 45 22 33 44"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                        <div className="p-2.5 rounded-xl bg-slate-800 shadow-lg">
+                          <Mail size={16} style={{ color: brandColor }} />
+                        </div>
+                        <span className="text-[11px] font-light tracking-wider text-white/90 truncate">
+                          {contactInfo.email || "agence@lumina.com"}
+                        </span>
+                      </div>
+
+                      {agency?.whatsapp_number && (
+                        <div className="flex items-center gap-4 p-3 rounded-2xl bg-green-500/5 border border-green-500/10 hover:bg-green-500/10 transition-all">
+                          <div className="p-2.5 rounded-xl bg-green-500/20">
+                            <MessageCircle size={16} className="text-green-500" />
+                          </div>
+                          <span className="text-[11px] font-light tracking-wider text-green-500">WhatsApp Direct</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Formulaire */}
+                    <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-4">
+                      <div className="space-y-3">
+                        <input 
+                          required
+                          type="text"
+                          placeholder="VOTRE NOM"
+                          className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20 text-white"
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        />
+                        <input 
+                          required
+                          type="email"
+                          placeholder="VOTRE EMAIL"
+                          className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20 text-white"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        />
+                        <textarea 
+                          required
+                          rows={3}
+                          placeholder="VOTRE MESSAGE..."
+                          className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all resize-none placeholder:text-white/20 text-white"
+                          value={formData.message}
+                          onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        />
+                      </div>
+
+                      <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        style={{ backgroundColor: buttonColor }}
+                        className="mt-auto w-full py-4 rounded-xl text-black font-black text-[9px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
+                      >
+                        {isSubmitting ? <Loader2 className="animate-spin" size={14}/> : "ENVOYER LE MESSAGE"}
+                      </button>
+
+                      {status === "success" && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: 10 }} 
+                          animate={{ opacity: 1, y: 0 }} 
+                          className="text-center text-green-400 text-[8px] font-black tracking-widest mt-2 uppercase"
+                        >
+                          Demande envoyée avec succès
+                        </motion.p>
+                      )}
+                    </form>
+                  </div>
+
+                  {/* Barre Home (iOS style) */}
+                  <div className="relative z-10 h-10 w-full flex justify-center items-center">
+                    <div className="w-20 h-1 bg-white/20 rounded-full"></div>
+                  </div>
+                </div>
+
+                {/* Reflet Verre */}
+                <div className="absolute top-0 right-10 w-full h-full bg-gradient-to-br from-white/5 to-transparent pointer-events-none rounded-[3.5rem] z-20" />
               </div>
             </div>
           </div>
