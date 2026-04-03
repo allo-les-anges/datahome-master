@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion'; // Ajout pour les animations
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PropertyGrid from '@/components/PropertyGrid';
@@ -19,7 +20,7 @@ export default function AgencyDynamicPage() {
   
   const { t, setLocale, locale } = useTranslation() as any;
   
-  const [agency, setAgency] = useState<Agency | null>(null);
+  const [agency, setAgency] = useState<any>(null);
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,11 +108,8 @@ export default function AgencyDynamicPage() {
     let isMounted = true;
     async function init() {
       if (!slug || !mounted) return;
-      
       setLoading(true);
-      
       try {
-        // A. Récupérer l'agence
         const { data: agencyData, error: agencyError } = await supabase
           .from('agency_settings')
           .select('*')
@@ -130,33 +128,20 @@ export default function AgencyDynamicPage() {
           }
         }
 
-        // B. Analyse des flux XML autorisés
         let allowedXmlUrls: string[] = [];
         try {
           const footerConfig = typeof agencyData.footer_config === 'string' 
             ? JSON.parse(agencyData.footer_config) 
             : agencyData.footer_config;
-          
           allowedXmlUrls = footerConfig?.xml_urls || [];
-        } catch (e) {
-          console.error("Erreur parsing footer_config:", e);
-        }
+        } catch (e) { console.error(e); }
 
-        // C. Récupérer les biens filtrés par source XML
-        let query = supabase
-          .from('villas')
-          .select('*')
-          .eq('is_excluded', false);
-
+        let query = supabase.from('villas').select('*').eq('is_excluded', false);
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
-        } else {
-          // Si aucune URL XML n'est configurée, on peut choisir de ne rien afficher
-          // ou de tout afficher. Ici on applique la restriction XML.
-          console.warn("Aucun flux XML configuré pour cette agence.");
         }
 
-        const { data: villasData, error: villasError } = await query;
+        const { data: villasData } = await query;
 
         if (isMounted && villasData) {
           const formatted = formatVillaData(villasData);
@@ -165,7 +150,7 @@ export default function AgencyDynamicPage() {
           setFilteredProperties(sorted);
         }
       } catch (err) {
-        console.error("Erreur d'initialisation:", err);
+        console.error(err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -174,14 +159,7 @@ export default function AgencyDynamicPage() {
     return () => { isMounted = false; };
   }, [slug, formatVillaData, locale, setLocale, mounted]);
 
-  // --- 5. GESTION ACTIONS ---
-  const handlePropertyClick = useCallback((property: Villa) => {
-    setTimeout(() => {
-      setSelectedProperty(property);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
-  }, []);
-
+  // --- 5. GESTION RECHERCHE ---
   const handleSearch = (newFilters: Filters) => {
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 20000000;
@@ -196,7 +174,6 @@ export default function AgencyDynamicPage() {
         p.region?.toLowerCase().includes(newFilters.region.toLowerCase()) || 
         p.town?.toLowerCase().includes(newFilters.region.toLowerCase());
       const matchRef = !(newFilters.reference) || String(p.id_externe).toLowerCase().includes(newFilters.reference.toLowerCase());
-      
       return matchPrice && matchBeds && matchType && matchRegion && matchRef;
     });
 
@@ -205,34 +182,33 @@ export default function AgencyDynamicPage() {
     setSelectedProperty(null);
   };
 
-  // --- 6. RENDU ---
   if (!mounted || loading) return (
     <div className="h-screen flex flex-col items-center justify-center bg-white">
       <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Initialisation de l'agence...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement...</p>
     </div>
   );
 
+  // --- CONFIGURATION DYNAMIQUE ---
   const brandColor = agency?.primary_color || '#D4AF37';
   const selectedFont = agency?.font_family || 'Montserrat, sans-serif';
+  const buttonRadius = agency?.button_style || 'rounded-full'; // 'rounded-none' ou 'rounded-full'
   const fontNameForUrl = selectedFont.split(',')[0].trim().replace(/\s+/g, '+');
-  const isLight = agency?.package_level === 'light';
+
+  // Variantes d'animation pour les boutons
+  const buttonVariants = {
+    hover: { scale: 1.05, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" },
+    tap: { scale: 0.95 }
+  };
 
   return (
-    <div 
-      className="min-h-screen bg-white flex flex-col relative overflow-x-hidden notranslate" 
-      translate="no"
-      style={{ fontFamily: selectedFont }}
-    >
+    <div className="min-h-screen bg-white flex flex-col relative overflow-x-hidden notranslate" translate="no" style={{ fontFamily: selectedFont }}>
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=${fontNameForUrl}:wght@300;400;700;900&display=swap');
-        
         :root { --brand-primary: ${brandColor}; }
         .bg-primary { background-color: var(--brand-primary) !important; }
         .text-primary { color: var(--brand-primary) !important; }
         .border-primary { border-color: var(--brand-primary) !important; }
-
-        /* Application forcée de la police sur les éléments globaux */
         h1, h2, h3, h4, button, span, p, input, select, textarea {
           font-family: ${selectedFont}, sans-serif !important;
         }
@@ -257,7 +233,7 @@ export default function AgencyDynamicPage() {
             <PropertyDetailClient property={selectedProperty} agency={agency} />
           </div>
         ) : (
-          <div className="animate-in fade-in duration-700">
+          <div className="animate-in fade-in duration-1000">
             <Hero 
               agency={agency}
               title={agency?.hero_title} 
@@ -266,44 +242,57 @@ export default function AgencyDynamicPage() {
               agencyName={agency?.agency_name} 
             />
             
+            {/* BOUTON DE RECHERCHE ANIMÉ ET DYNAMIQUE */}
             <div className="flex justify-center -mt-12 relative z-40">
-              <button 
+              <motion.button 
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
                 onClick={() => setIsSearchOpen(true)} 
-                className="group flex items-center gap-6 px-12 py-7 text-white rounded-full transition-all shadow-xl hover:scale-105 bg-primary"
+                className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl bg-primary ${buttonRadius}`}
               >
                 <Search size={20} />
                 <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
-              </button>
+              </motion.button>
             </div>
 
             <section id="collection" className="py-24 bg-slate-50 relative z-10">
               <div className="max-w-7xl mx-auto px-6">
                 <header className="mb-24 text-center">
                   <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                  <h2 className="text-5xl font-serif italic mb-8 text-slate-900">{t('nav.results') || 'Notre Sélection'}</h2>
+                  <motion.h2 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-5xl font-serif italic mb-8 text-slate-900"
+                  >
+                    {t('nav.results') || 'Notre Sélection'}
+                  </motion.h2>
                   <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                 </header>
                 
                 <PropertyGrid 
                   agency={agency}
                   properties={filteredProperties.slice(0, displayLimit)} 
-                  isLight={isLight} 
+                  isLight={agency?.package_level === 'light'} 
                   activeFilters={filters}
                   favorites={favorites}
                   onToggleFavorite={toggleFavorite}
-                  onPropertyClick={handlePropertyClick}
+                  onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 />
 
+                {/* BOUTON VOIR PLUS DYNAMIQUE */}
                 {filteredProperties.length > displayLimit && (
                   <div className="mt-20 flex justify-center">
-                    <button 
+                    <motion.button 
+                      whileHover={{ y: -5 }}
                       onClick={() => setDisplayLimit(prev => prev + 12)}
-                      className="px-14 py-7 bg-primary text-white rounded-full transition-all shadow-2xl hover:scale-105"
+                      className={`px-14 py-7 bg-primary text-white transition-all shadow-2xl ${buttonRadius}`}
                     >
                       <span className="text-[11px] font-black uppercase tracking-[0.4em]">
                         {t('common.showMore') || "Voir plus"}
                       </span>
-                    </button>
+                    </motion.button>
                   </div>
                 )}
               </div>
@@ -316,26 +305,38 @@ export default function AgencyDynamicPage() {
         <Footer agency={agency} />
       </footer>
 
-      {isSearchOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl">
-          <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
-          <div className="relative w-full max-w-5xl bg-white rounded-[24px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-            <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-4 p-3 bg-slate-100 rounded-full text-slate-500 z-[220]">
-              <X size={20} />
-            </button>
-            <div className="flex-grow overflow-y-auto custom-scrollbar p-6 md:p-12 lg:p-16">
-              <AdvancedSearch 
-                agency={agency}
-                onSearch={handleSearch} 
-                isLight={isLight} 
-                properties={allProperties} 
-                activeFilters={filters} 
-                onClose={() => setIsSearchOpen(false)} 
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl"
+          >
+            <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="relative w-full max-w-5xl bg-white rounded-[24px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+            >
+              <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-4 p-3 bg-slate-100 rounded-full text-slate-500 z-[220]">
+                <X size={20} />
+              </button>
+              <div className="flex-grow overflow-y-auto custom-scrollbar p-6 md:p-12 lg:p-16">
+                <AdvancedSearch 
+                  agency={agency}
+                  onSearch={handleSearch} 
+                  isLight={agency?.package_level === 'light'} 
+                  properties={allProperties} 
+                  activeFilters={filters} 
+                  onClose={() => setIsSearchOpen(false)} 
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

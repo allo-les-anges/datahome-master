@@ -51,6 +51,8 @@ const translations = {
       font_family: "Police de caractères",
       primary_color: "Couleur Principale (Accents)",
       button_color: "Couleur des Boutons (CTA)",
+      button_style: "Style des boutons",
+      button_animation: "Animation des boutons",
       hero_title: "Titre d'accroche (Hero)",
       hero_type: "Type de média",
       hero_file: "Fichier Média (Image/Vidéo)",
@@ -120,6 +122,8 @@ const translations = {
       font_family: "Font Family",
       primary_color: "Primary Color (Accents)",
       button_color: "Button Color (CTA)",
+      button_style: "Button Style",
+      button_animation: "Button Animation",
       hero_title: "Hero Title",
       hero_type: "Media Type",
       hero_file: "Hero Media (Image/Video)",
@@ -189,6 +193,8 @@ const translations = {
       font_family: "Fuente tipográfica",
       primary_color: "Color principal (Acentos)",
       button_color: "Color de botones (CTA)",
+      button_style: "Estilo de botones",
+      button_animation: "Animación de botones",
       hero_title: "Título de cabecera (Hero)",
       hero_type: "Tipo de medio",
       hero_file: "Archivo multimedia (Imagen/Video)",
@@ -258,6 +264,8 @@ const translations = {
       font_family: "Czcionka",
       primary_color: "Kolor główny (Akcenty)",
       button_color: "Kolor przycisków (CTA)",
+      button_style: "Styl przycisków",
+      button_animation: "Animacja przycisków",
       hero_title: "Tytuł nagłówka (Hero)",
       hero_type: "Typ mediów",
       hero_file: "Plik multimedialny (Obraz/Wideo)",
@@ -327,6 +335,8 @@ const translations = {
       font_family: "Lettertype",
       primary_color: "Hoofdkleur (Accenten)",
       button_color: "Kleur van knoppen (CTA)",
+      button_style: "Stijl van knoppen",
+      button_animation: "Animatie van knoppen",
       hero_title: "Hero titel",
       hero_type: "Mediatype",
       hero_file: "Mediabestand (Afbeelding/Video)",
@@ -395,7 +405,9 @@ const translations = {
       font: "نوع الخط",
       font_family: "نوع الخط",
       primary_color: "اللون الأساسي",
-      button_color: "لؤن الأزرار",
+      button_color: "لون الأزرار",
+      button_style: "نمط الأزرار",
+      button_animation: "حركة الأزرار",
       hero_title: "عنوان واجهة العرض",
       hero_type: "نوع الوسائط",
       hero_file: "ملف الوسائط (صورة/فيديو)",
@@ -648,81 +660,82 @@ export default function AgencyDashboard() {
   // HANDLE SAVE - UTILISE L'ID (PLUS FIABLE QUE SUBDOMAIN)
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  if (!selectedAgency || !selectedAgency.id) {
-    console.error("❌ ID de l'agence manquant");
-    setMessage({ type: 'error', text: "ID de l'agence manquant" });
-    return;
-  }
-
-  setIsSaving(true);
-
-  try {
-    const teamDataToSave = JSON.parse(JSON.stringify(team));
-
-    console.log("✅ team_data à sauvegarder:", teamDataToSave);
-    console.log("🔍 ID de l'agence à mettre à jour:", selectedAgency.id);
-    console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
-    console.log("🔍 Subdomain (pour info):", selectedAgency.subdomain);
-
-    // CORRECTION : Utiliser eq('id', selectedAgency.id) au lieu de eq('subdomain', ...)
-    const { data, error, status } = await supabase
-      .from('agency_settings')
-      .update({
-        agency_name: selectedAgency.agency_name,
-        subdomain: selectedAgency.subdomain,
-        primary_color: selectedAgency.primary_color,
-        button_color: selectedAgency.button_color,
-        font_family: selectedAgency.font_family,
-        hero_title: selectedAgency.hero_title,
-        hero_type: selectedAgency.hero_type,
-        hero_url: selectedAgency.hero_url,
-        logo_url: selectedAgency.logo_url,
-        default_lang: selectedAgency.default_lang,
-        cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-        privacy_policy: selectedAgency.privacy_policy,
-        about_title: selectedAgency.about_title,
-        about_text: selectedAgency.about_text,
-        whatsapp_number: selectedAgency.whatsapp_number,
-        footer_config: selectedAgency.footer_config,
-        team_data: teamDataToSave,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', selectedAgency.id)  // ← Utilise l'ID au lieu du subdomain
-      .select();
-
-    console.log("📊 RÉPONSE SUPABASE - status:", status);
-    console.log("📊 RÉPONSE SUPABASE - error:", error);
-    console.log("📊 RÉPONSE SUPABASE - data:", data);
-
-    if (error) {
-      console.error("❌ ERREUR SUPABASE:", error);
-      throw error;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
 
-    if (data && data.length > 0) {
-      console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
-      setMessage({ type: 'success', text: t.success_save });
-      
-      setSelectedAgency(data[0]);
-      setTeam(data[0].team_data || []);
-      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
-    } else {
-      console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez l'ID");
-      setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
+    if (!selectedAgency || !selectedAgency.id) {
+      console.error("❌ ID de l'agence manquant");
+      setMessage({ type: 'error', text: "ID de l'agence manquant" });
+      return;
     }
-  } catch (err: any) {
-    console.error("❌ ERREUR:", err.message);
-    setMessage({ type: 'error', text: t.error_save + " : " + err.message });
-  } finally {
-    setIsSaving(false);
-    setTimeout(() => setMessage(null), 3000);
-  }
-};
+
+    setIsSaving(true);
+
+    try {
+      const teamDataToSave = JSON.parse(JSON.stringify(team));
+
+      console.log("✅ team_data à sauvegarder:", teamDataToSave);
+      console.log("🔍 ID de l'agence à mettre à jour:", selectedAgency.id);
+      console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
+      console.log("🔍 Subdomain (pour info):", selectedAgency.subdomain);
+
+      const { data, error, status } = await supabase
+        .from('agency_settings')
+        .update({
+          agency_name: selectedAgency.agency_name,
+          subdomain: selectedAgency.subdomain,
+          primary_color: selectedAgency.primary_color,
+          button_color: selectedAgency.button_color,
+          button_style: selectedAgency.button_style || 'rounded-full',
+          button_animation: selectedAgency.button_animation || 'none',
+          font_family: selectedAgency.font_family,
+          hero_title: selectedAgency.hero_title,
+          hero_type: selectedAgency.hero_type,
+          hero_url: selectedAgency.hero_url,
+          logo_url: selectedAgency.logo_url,
+          default_lang: selectedAgency.default_lang,
+          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+          privacy_policy: selectedAgency.privacy_policy,
+          about_title: selectedAgency.about_title,
+          about_text: selectedAgency.about_text,
+          whatsapp_number: selectedAgency.whatsapp_number,
+          footer_config: selectedAgency.footer_config,
+          team_data: teamDataToSave,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedAgency.id)
+        .select();
+
+      console.log("📊 RÉPONSE SUPABASE - status:", status);
+      console.log("📊 RÉPONSE SUPABASE - error:", error);
+      console.log("📊 RÉPONSE SUPABASE - data:", data);
+
+      if (error) {
+        console.error("❌ ERREUR SUPABASE:", error);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
+        setMessage({ type: 'success', text: t.success_save });
+        
+        setSelectedAgency(data[0]);
+        setTeam(data[0].team_data || []);
+        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+      } else {
+        console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez l'ID");
+        setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
+      }
+    } catch (err: any) {
+      console.error("❌ ERREUR:", err.message);
+      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};
@@ -759,6 +772,8 @@ export default function AgencyDashboard() {
           agency_name: newAgency.agency_name,
           subdomain: newAgency.subdomain,
           package_level: newAgency.package_level,
+          button_style: 'rounded-full',
+          button_animation: 'none',
           footer_config: {
             allowed_langs: ['fr', 'en'],
             xml_urls: [],
@@ -1031,6 +1046,100 @@ export default function AgencyDashboard() {
                           className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" 
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Style des boutons */}
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      {t.fields.button_style}
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-none'})}
+                        className={`p-4 border-2 transition-all ${
+                          selectedAgency.button_style === 'rounded-none' 
+                            ? 'border-black bg-slate-100' 
+                            : 'border-slate-100 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="text-center">
+                          <div className="w-full h-10 bg-slate-800 mb-2" style={{ borderRadius: 0 }}></div>
+                          <span className="text-[9px] font-bold uppercase">Bords Droits</span>
+                        </div>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-full'})}
+                        className={`p-4 border-2 transition-all ${
+                          selectedAgency.button_style === 'rounded-full' 
+                            ? 'border-black bg-slate-100' 
+                            : 'border-slate-100 hover:border-slate-300'
+                        } rounded-full`}
+                      >
+                        <div className="text-center">
+                          <div className="w-full h-10 bg-slate-800 mb-2 rounded-full"></div>
+                          <span className="text-[9px] font-bold uppercase">Bords Arrondis</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Animation des boutons */}
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      {t.fields.button_animation}
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'none'})}
+                        className={`p-4 border-2 transition-all ${
+                          selectedAgency.button_animation === 'none' 
+                            ? 'border-black bg-slate-100' 
+                            : 'border-slate-100 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-[9px] font-bold uppercase">Aucune</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'scale'})}
+                        className={`p-4 border-2 transition-all ${
+                          selectedAgency.button_animation === 'scale' 
+                            ? 'border-black bg-slate-100' 
+                            : 'border-slate-100 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-[9px] font-bold uppercase">Scale (Zoom)</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'glow'})}
+                        className={`p-4 border-2 transition-all ${
+                          selectedAgency.button_animation === 'glow' 
+                            ? 'border-black bg-slate-100' 
+                            : 'border-slate-100 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-[9px] font-bold uppercase">Glow (Lueur)</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'slide'})}
+                        className={`p-4 border-2 transition-all ${
+                          selectedAgency.button_animation === 'slide' 
+                            ? 'border-black bg-slate-100' 
+                            : 'border-slate-100 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-[9px] font-bold uppercase">Slide (Glissement)</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1335,8 +1444,17 @@ export default function AgencyDashboard() {
                       </div>
                       <div className="space-y-3">
                         <h4 className="text-white text-xl font-serif italic leading-tight">{selectedAgency.hero_title || t.placeholders.hero_text}</h4>
-                        <div className="h-10 w-24 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-widest shadow-lg transition-all" 
-                             style={{ backgroundColor: selectedAgency.button_color || '#3b82f6' }}>
+                        <div 
+                          className={`h-10 w-24 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-widest shadow-lg transition-all ${
+                            selectedAgency.button_animation === 'scale' ? 'hover:scale-105' : 
+                            selectedAgency.button_animation === 'glow' ? 'hover:shadow-lg hover:shadow-white/20' : 
+                            selectedAgency.button_animation === 'slide' ? 'hover:translate-x-1' : ''
+                          }`}
+                          style={{ 
+                            backgroundColor: selectedAgency.button_color || '#3b82f6',
+                            borderRadius: selectedAgency.button_style === 'rounded-full' ? '9999px' : '0px'
+                          }}
+                        >
                           {t.placeholders.button}
                         </div>
                       </div>
