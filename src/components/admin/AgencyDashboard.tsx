@@ -645,7 +645,7 @@ export default function AgencyDashboard() {
   };
 
   // ============================================================
-  // HANDLE SAVE - UTILISE SUBDOMAIN AU LIEU DE ID
+  // HANDLE SAVE - UTILISE L'ID (PLUS FIABLE QUE SUBDOMAIN)
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
     if (e) {
@@ -653,8 +653,8 @@ export default function AgencyDashboard() {
       e.stopPropagation();
     }
 
-    if (!selectedAgency || !selectedAgency.subdomain) {
-      console.error("❌ Subdomain manquant");
+    if (!selectedAgency || !selectedAgency.id) {
+      console.error("❌ ID manquant");
       return;
     }
 
@@ -664,9 +664,9 @@ export default function AgencyDashboard() {
       const teamDataToSave = JSON.parse(JSON.stringify(team));
 
       console.log("✅ team_data à sauvegarder:", teamDataToSave);
-      console.log("🔍 Subdomain recherché dans Supabase:", selectedAgency.subdomain);
+      console.log("🔍 ID recherché dans Supabase:", selectedAgency.id);
       console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
-      console.log("🔍 ID de l'agence (pour info):", selectedAgency.id);
+      console.log("🔍 Subdomain (pour info):", selectedAgency.subdomain);
 
       const { data, error, status } = await supabase
         .from('agency_settings')
@@ -690,7 +690,7 @@ export default function AgencyDashboard() {
           team_data: teamDataToSave,
           updated_at: new Date().toISOString(),
         })
-        .eq('subdomain', selectedAgency.subdomain)  // ← Utilise subdomain au lieu de id
+        .eq('id', selectedAgency.id)  // ← Utilise l'ID (plus fiable)
         .select();
 
       console.log("📊 RÉPONSE SUPABASE - status:", status);
@@ -708,10 +708,10 @@ export default function AgencyDashboard() {
         
         setSelectedAgency(data[0]);
         setTeam(data[0].team_data || []);
-        setAgencies(prev => prev.map(a => a.subdomain === selectedAgency.subdomain ? data[0] : a));
+        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
       } else {
-        console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez le subdomain");
-        setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec ce subdomain" });
+        console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez l'ID");
+        setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
       }
     } catch (err: any) {
       console.error("❌ ERREUR:", err.message);
