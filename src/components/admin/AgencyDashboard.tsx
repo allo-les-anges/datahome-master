@@ -648,79 +648,81 @@ export default function AgencyDashboard() {
   // HANDLE SAVE - UTILISE L'ID (PLUS FIABLE QUE SUBDOMAIN)
   // ============================================================
   const handleSave = async (e: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  if (!selectedAgency || !selectedAgency.id) {
+    console.error("❌ ID de l'agence manquant");
+    setMessage({ type: 'error', text: "ID de l'agence manquant" });
+    return;
+  }
+
+  setIsSaving(true);
+
+  try {
+    const teamDataToSave = JSON.parse(JSON.stringify(team));
+
+    console.log("✅ team_data à sauvegarder:", teamDataToSave);
+    console.log("🔍 ID de l'agence à mettre à jour:", selectedAgency.id);
+    console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
+    console.log("🔍 Subdomain (pour info):", selectedAgency.subdomain);
+
+    // CORRECTION : Utiliser eq('id', selectedAgency.id) au lieu de eq('subdomain', ...)
+    const { data, error, status } = await supabase
+      .from('agency_settings')
+      .update({
+        agency_name: selectedAgency.agency_name,
+        subdomain: selectedAgency.subdomain,
+        primary_color: selectedAgency.primary_color,
+        button_color: selectedAgency.button_color,
+        font_family: selectedAgency.font_family,
+        hero_title: selectedAgency.hero_title,
+        hero_type: selectedAgency.hero_type,
+        hero_url: selectedAgency.hero_url,
+        logo_url: selectedAgency.logo_url,
+        default_lang: selectedAgency.default_lang,
+        cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+        privacy_policy: selectedAgency.privacy_policy,
+        about_title: selectedAgency.about_title,
+        about_text: selectedAgency.about_text,
+        whatsapp_number: selectedAgency.whatsapp_number,
+        footer_config: selectedAgency.footer_config,
+        team_data: teamDataToSave,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', selectedAgency.id)  // ← Utilise l'ID au lieu du subdomain
+      .select();
+
+    console.log("📊 RÉPONSE SUPABASE - status:", status);
+    console.log("📊 RÉPONSE SUPABASE - error:", error);
+    console.log("📊 RÉPONSE SUPABASE - data:", data);
+
+    if (error) {
+      console.error("❌ ERREUR SUPABASE:", error);
+      throw error;
     }
 
-    if (!selectedAgency || !selectedAgency.id) {
-      console.error("❌ ID manquant");
-      return;
+    if (data && data.length > 0) {
+      console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
+      setMessage({ type: 'success', text: t.success_save });
+      
+      setSelectedAgency(data[0]);
+      setTeam(data[0].team_data || []);
+      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+    } else {
+      console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez l'ID");
+      setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
     }
-
-    setIsSaving(true);
-
-    try {
-      const teamDataToSave = JSON.parse(JSON.stringify(team));
-
-      console.log("✅ team_data à sauvegarder:", teamDataToSave);
-      console.log("🔍 ID recherché dans Supabase:", selectedAgency.id);
-      console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
-      console.log("🔍 Subdomain (pour info):", selectedAgency.subdomain);
-
-      const { data, error, status } = await supabase
-        .from('agency_settings')
-        .update({
-          agency_name: selectedAgency.agency_name,
-          subdomain: selectedAgency.subdomain,
-          primary_color: selectedAgency.primary_color,
-          button_color: selectedAgency.button_color,
-          font_family: selectedAgency.font_family,
-          hero_title: selectedAgency.hero_title,
-          hero_type: selectedAgency.hero_type,
-          hero_url: selectedAgency.hero_url,
-          logo_url: selectedAgency.logo_url,
-          default_lang: selectedAgency.default_lang,
-          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-          privacy_policy: selectedAgency.privacy_policy,
-          about_title: selectedAgency.about_title,
-          about_text: selectedAgency.about_text,
-          whatsapp_number: selectedAgency.whatsapp_number,
-          footer_config: selectedAgency.footer_config,
-          team_data: teamDataToSave,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedAgency.id)  // ← Utilise l'ID (plus fiable)
-        .select();
-
-      console.log("📊 RÉPONSE SUPABASE - status:", status);
-      console.log("📊 RÉPONSE SUPABASE - error:", error);
-      console.log("📊 RÉPONSE SUPABASE - data:", data);
-
-      if (error) {
-        console.error("❌ ERREUR SUPABASE:", error);
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
-        setMessage({ type: 'success', text: t.success_save });
-        
-        setSelectedAgency(data[0]);
-        setTeam(data[0].team_data || []);
-        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
-      } else {
-        console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez l'ID");
-        setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
-      }
-    } catch (err: any) {
-      console.error("❌ ERREUR:", err.message);
-      setMessage({ type: 'error', text: t.error_save + " : " + err.message });
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setMessage(null), 3000);
-    }
-  };
+  } catch (err: any) {
+    console.error("❌ ERREUR:", err.message);
+    setMessage({ type: 'error', text: t.error_save + " : " + err.message });
+  } finally {
+    setIsSaving(false);
+    setTimeout(() => setMessage(null), 3000);
+  }
+};
 
   const toggleLanguage = (code: string) => {
     const currentConfig = selectedAgency.footer_config || {};
