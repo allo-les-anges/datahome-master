@@ -1170,105 +1170,6 @@ export default function AgencyPageClient({ slug }: AgencyPageProps) {
 }
 </file>
 
-<file path="src/app/api/admin/agencies/[id]/route.ts">
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const body = await request.json();
-    const { id } = await params;
-
-    const { error } = await supabase
-      .from('agency_settings')
-      .update({
-        agency_name: body.agency_name,
-        subdomain: body.subdomain,
-        logo_url: body.logo_url,
-        primary_color: body.primary_color,
-        hero_title: body.hero_title,
-        hero_url: body.hero_url,
-        hero_type: body.hero_type,
-        package_level: body.package_level,
-        footer_config: body.footer_config,
-        modules_active: body.modules_active,
-        font_family: body.font_family,
-      })
-      .eq('id', id);
-
-    if (error) throw error;
-    return NextResponse.json({ message: "Succès" });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const { error } = await supabase
-      .from('agency_settings')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    return NextResponse.json({ message: "Agence supprimée" });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-</file>
-
-<file path="src/app/api/admin/agencies/route.ts">
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!, 
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function GET() {
-  const { data, error } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .order('agency_name', { ascending: true });
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
-}
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { data, error } = await supabase
-      .from('agency_settings')
-      .insert([{ 
-        agency_name: body.agency_name, 
-        subdomain: body.subdomain,
-        package_level: body.package_level || 'silver'
-      }])
-      .select().single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data);
-  } catch (error) {
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
-  }
-}
-</file>
-
 <file path="src/app/api/admin/create-client/route.ts">
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
@@ -3348,6 +3249,110 @@ const DataHomeLogo = ({ className }: { className?: string }) => (
 );
 </file>
 
+<file path="src/components/PropertyGrid.tsx">
+"use client";
+
+import React from 'react';
+import { useTranslation } from "@/contexts/I18nContext";
+import { Bed, Bath, Maximize, MapPin, Waves, Map, Car } from "lucide-react";
+import type { Villa, Agency, Filters } from '@/types';  
+
+interface PropertyGridProps {
+  agency?: Agency | null;
+  properties: Villa[];
+  onPropertyClick: (property: Villa) => void;
+  isLight?: boolean;
+  favorites?: string[];
+  onToggleFavorite?: (id: string) => void;
+  activeFilters?: Filters; 
+  locale?: string;
+}
+
+const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
+  const price = Number(property.price || 0);
+  const brandColor = agency?.primary_color || "#10b981";
+  const showDark = !isLight;
+
+  return (
+    <div 
+      onClick={() => onClick(property)}
+      className={`group cursor-pointer rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
+        showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
+      }`}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <img 
+          src={property.images?.[0] || '/placeholder-villa.jpg'} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          alt={property.titre_fr}
+        />
+        <div className="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 shadow-sm">
+          {property.type}
+        </div>
+      </div>
+
+      <div className="p-8 space-y-4">
+        <div className="flex justify-between items-start">
+          <div className="text-2xl font-serif italic" style={{ color: showDark ? 'white' : '#0f172a' }}>
+            {price.toLocaleString()} €
+          </div>
+        </div>
+        <h3 className={`text-lg font-medium leading-tight ${showDark ? 'text-white/90' : 'text-slate-800'}`}>
+          {property.titre_fr}
+        </h3>
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <MapPin size={14} style={{ color: brandColor }} />
+          {property.town} <span className="opacity-30">|</span> {property.region}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
+        {[
+          { icon: Maximize, value: `${property.surface_built} m²` },
+          { icon: Bed, value: `${property.beds}` },
+          { icon: Bath, value: `${property.baths}` },
+          { icon: Waves, value: property.pool === "Oui" ? "Piscine" : "Non" },
+          { icon: Map, value: `${property.surface_plot} m²` },
+          { icon: Car, value: "Garage" }
+        ].map((item, idx) => (
+          <div key={idx} className="flex flex-col items-center gap-1">
+            <item.icon size={16} className="text-slate-400" />
+            <span className="text-[10px] font-bold text-slate-400">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default function PropertyGrid({ 
+  properties, 
+  agency, 
+  onPropertyClick, 
+  isLight, 
+  locale 
+}: PropertyGridProps) {
+  
+  // Suppression de visibleCount et du bouton "Voir plus" interne.
+  // Ce composant affiche désormais simplement TOUT ce que AgencyPageClient lui envoie.
+  
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {properties.map((property: Villa) => (
+        <PropertyCard 
+          key={property.id} 
+          property={property} 
+          agency={agency}
+          onClick={onPropertyClick}
+          isLight={isLight}
+          locale={locale}
+        />
+      ))}
+    </div>
+  );
+}
+</file>
+
 <file path="src/components/RegionGrid.tsx">
 "use client";
 
@@ -3840,6 +3845,78 @@ export default async function AboutPage() {
       </div>
     </main>
   );
+}
+</file>
+
+<file path="src/app/api/admin/agencies/[id]/route.ts">
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Pour Next.js 16 - signature correcte
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const body = await request.json();
+    const { id } = await params;
+
+    const updateData: any = {
+      agency_name: body.agency_name,
+      subdomain: body.subdomain,
+      logo_url: body.logo_url,
+      primary_color: body.primary_color,
+      hero_title: body.hero_title,
+      hero_url: body.hero_url,
+      hero_type: body.hero_type,
+      package_level: body.package_level,
+      footer_config: body.footer_config,
+      modules_active: body.modules_active,
+      font_family: body.font_family,
+      about_title: body.about_title,
+      about_text: body.about_text,
+      button_color: body.button_color,
+      default_lang: body.default_lang,
+      cookie_consent_enabled: body.cookie_consent_enabled,
+      privacy_policy: body.privacy_policy,
+      whatsapp_number: body.whatsapp_number,
+      team_data: body.team_data,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from('agency_settings')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) throw error;
+    return NextResponse.json({ message: "Succès" });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { error } = await supabase
+      .from('agency_settings')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return NextResponse.json({ message: "Agence supprimée" });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 </file>
 
@@ -4397,110 +4474,6 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
         ))}
       </div>
     </Link>
-  );
-}
-</file>
-
-<file path="src/components/PropertyGrid.tsx">
-"use client";
-
-import React from 'react';
-import { useTranslation } from "@/contexts/I18nContext";
-import { Bed, Bath, Maximize, MapPin, Waves, Map, Car } from "lucide-react";
-import type { Villa, Agency, Filters } from '@/types';  
-
-interface PropertyGridProps {
-  agency?: Agency | null;
-  properties: Villa[];
-  onPropertyClick: (property: Villa) => void;
-  isLight?: boolean;
-  favorites?: string[];
-  onToggleFavorite?: (id: string) => void;
-  activeFilters?: Filters; 
-  locale?: string;
-}
-
-const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
-  const price = Number(property.price || 0);
-  const brandColor = agency?.primary_color || "#10b981";
-  const showDark = !isLight;
-
-  return (
-    <div 
-      onClick={() => onClick(property)}
-      className={`group cursor-pointer rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
-        showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
-      }`}
-    >
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img 
-          src={property.images?.[0] || '/placeholder-villa.jpg'} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          alt={property.titre_fr}
-        />
-        <div className="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 shadow-sm">
-          {property.type}
-        </div>
-      </div>
-
-      <div className="p-8 space-y-4">
-        <div className="flex justify-between items-start">
-          <div className="text-2xl font-serif italic" style={{ color: showDark ? 'white' : '#0f172a' }}>
-            {price.toLocaleString()} €
-          </div>
-        </div>
-        <h3 className={`text-lg font-medium leading-tight ${showDark ? 'text-white/90' : 'text-slate-800'}`}>
-          {property.titre_fr}
-        </h3>
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-          <MapPin size={14} style={{ color: brandColor }} />
-          {property.town} <span className="opacity-30">|</span> {property.region}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
-        {[
-          { icon: Maximize, value: `${property.surface_built} m²` },
-          { icon: Bed, value: `${property.beds}` },
-          { icon: Bath, value: `${property.baths}` },
-          { icon: Waves, value: property.pool === "Oui" ? "Piscine" : "Non" },
-          { icon: Map, value: `${property.surface_plot} m²` },
-          { icon: Car, value: "Garage" }
-        ].map((item, idx) => (
-          <div key={idx} className="flex flex-col items-center gap-1">
-            <item.icon size={16} className="text-slate-400" />
-            <span className="text-[10px] font-bold text-slate-400">{item.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default function PropertyGrid({ 
-  properties, 
-  agency, 
-  onPropertyClick, 
-  isLight, 
-  locale 
-}: PropertyGridProps) {
-  
-  // Suppression de visibleCount et du bouton "Voir plus" interne.
-  // Ce composant affiche désormais simplement TOUT ce que AgencyPageClient lui envoie.
-  
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {properties.map((property: Villa) => (
-        <PropertyCard 
-          key={property.id} 
-          property={property} 
-          agency={agency}
-          onClick={onPropertyClick}
-          isLight={isLight}
-          locale={locale}
-        />
-      ))}
-    </div>
   );
 }
 </file>
@@ -5208,6 +5181,55 @@ export default async function PrivacyPage({
       </main>
     </div>
   );
+}
+</file>
+
+<file path="src/app/api/admin/agencies/route.ts">
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function GET() {
+  const { data, error } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .order('agency_name', { ascending: true });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { data, error } = await supabase
+      .from('agency_settings')
+      .insert([{ 
+        agency_name: body.agency_name, 
+        subdomain: body.subdomain,
+        package_level: body.package_level || 'silver',
+        footer_config: {
+          allowed_langs: ['fr', 'en'],
+          xml_urls: [],
+          socials: {},
+          integrations: {}
+        },
+        team_data: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
+  } catch (error) {
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
 }
 </file>
 
