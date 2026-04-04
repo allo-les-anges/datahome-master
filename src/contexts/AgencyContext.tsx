@@ -3,28 +3,24 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
-// 1. Définition de l'interface pour TypeScript
 interface AgencyContextType {
   agency: any;
   loading: boolean;
-  setAgencyBySlug: (slug: string) => Promise<void>; // Ajout de la fonction manquante
+  setAgencyBySlug: (slug: string) => Promise<void>;
 }
 
-// 2. Initialisation du contexte avec les types
 const AgencyContext = createContext<AgencyContextType>({
   agency: null,
   loading: true,
-  setAgencyBySlug: async () => {}, // Valeur par défaut vide
+  setAgencyBySlug: async () => {},
 });
 
 export function AgencyProvider({ children }: { children: React.ReactNode }) {
   const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fonction pour forcer le changement d'agence via le slug (utile pour les routes [slug])
   const setAgencyBySlug = async (slug: string) => {
     try {
-      // Si l'agence actuelle correspond déjà au slug, on ne refait pas l'appel
       if (agency?.slug === slug) return;
 
       const { data, error } = await supabase
@@ -43,31 +39,40 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function fetchAgency() {
+      setLoading(true); // On s'assure d'être en chargement au début
       try {
         const host = window.location.hostname;
-        // On isole le sous-domaine (ex: agence1.habihub.com -> agence1)
         const subdomain = host.split('.')[0];
+        
+        console.log("🔍 Recherche agence pour hôte:", host, "sous-domaine:", subdomain);
 
-        // On cherche l'agence par sous-domaine OU par domaine complet (si custom domain)
-        const { data, error } = await supabase
+        // Tentative 1 : Domaine ou sous-domaine
+        let { data, error } = await supabase
           .from('agency_settings')
           .select('*')
           .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
-          .single();
+          .maybeSingle(); // maybeSingle évite une erreur si rien n'est trouvé
 
-        if (data) {
-          setAgency(data);
-        } else {
-          // Fallback : Agence par défaut si rien n'est trouvé
-          const { data: defaultData } = await supabase
+        // Tentative 2 : Fallback si rien n'est trouvé
+        if (!data) {
+          console.warn("⚠️ Aucune agence trouvée pour ce domaine, tentative fallback...");
+          const { data: fallbackData } = await supabase
             .from('agency_settings')
             .select('*')
             .eq('subdomain', 'lumina-prestige')
-            .single();
-          setAgency(defaultData);
+            .maybeSingle();
+          
+          data = fallbackData;
+        }
+
+        if (data) {
+          console.log("✅ Agence chargée:", data.agency_name);
+          setAgency(data);
+        } else {
+          console.error("❌ Échec total : Aucune agence trouvée, même en fallback.");
         }
       } catch (err) {
-        console.error("Erreur AgencyContext:", err);
+        console.error("💥 Erreur critique AgencyContext:", err);
       } finally {
         setLoading(false);
       }
