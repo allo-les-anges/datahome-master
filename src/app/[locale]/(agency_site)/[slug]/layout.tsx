@@ -1,3 +1,4 @@
+// src/app/[locale]/(agency_site)/[slug]/layout.tsx
 import { supabase } from "@/lib/supabase";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import CookieBanner from "@/components/CookieBanner";
@@ -7,15 +8,16 @@ export default async function AgencyLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ slug: string; locale: string }>; // Ajout de locale ici
+  params: Promise<{ slug: string; locale: string }>;
 }) {
-  const { slug } = await params; // On récupère le slug de l'agence
+  const { slug } = await params;
 
+  // On cherche par SLUG (car c'est ce qui est dans l'URL /[locale]/[slug])
   const { data: agency } = await supabase
     .from('agency_settings') 
     .select('*')
-    .eq('subdomain', slug)
-    .single();
+    .eq('slug', slug) // ✅ Correction : on utilise le slug
+    .maybeSingle();  // ✅ Sécurité : ne crash pas si non trouvé
 
   const dynamicStyles = {
     '--brand-primary': agency?.primary_color || '#10b981',
@@ -25,6 +27,9 @@ export default async function AgencyLayout({
 
   return (
     <div style={dynamicStyles} className="min-h-screen">
+      {/* IMPORTANT : children DOIT être rendu ici. 
+          C'est ce qui contient tes pages /about et /contact.
+      */}
       {children}
       
       {agency && (
