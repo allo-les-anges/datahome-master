@@ -1,56 +1,24 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2, Mail, Phone, MapPin, User, MessageCircle } from "lucide-react";
-import { useTheme } from "next-themes";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Mail, Phone, User, MessageCircle } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
-import { supabase } from "@/lib/supabase";
+import { useAgency } from "@/contexts/AgencyContext";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function ContactPage() {
-  const { resolvedTheme } = useTheme();
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { agency, loading } = useAgency(); // Utilisation du contexte global
   
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-  useEffect(() => {
-    setMounted(true);
-    async function fetchAgencyData() {
-      try {
-        const hostname = window.location.hostname;
-        let subdomain = hostname.split('.')[0];
-
-        if (subdomain === 'localhost' || subdomain === 'www' || subdomain === 'datahome') {
-          subdomain = 'lumina-prestige'; 
-        }
-
-        const { data, error } = await supabase
-          .from('agency_settings')
-          .select('*')
-          .eq('subdomain', subdomain)
-          .single();
-
-        if (data) {
-          setAgency(data);
-        }
-      } catch (err) {
-        console.error("Erreur de récupération Supabase:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchAgencyData();
-  }, []);
-
-  if (!mounted || loading) {
+  // --- GESTION DU CHARGEMENT ---
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0A0A0A]">
         <Loader2 className="animate-spin text-slate-400" size={40} />
@@ -58,11 +26,12 @@ export default function ContactPage() {
     );
   }
 
-  // --- CONFIGURATION DES COULEURS ---
+  // --- CONFIGURATION DYNAMIQUE ---
   const brandColor = agency?.primary_color || "#c5a059";
   const buttonColor = agency?.button_color || brandColor;
+  const selectedFont = agency?.font_family || 'Montserrat';
 
-  // --- PARSING DU FOOTER ---
+  // --- PARSING DES DONNÉES AGENCE ---
   let contactInfo = { email: "", phone: "", address: "" };
   try {
     if (agency?.footer_config) {
@@ -104,6 +73,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    // Simulation d'envoi
     setTimeout(() => {
       setIsSubmitting(false);
       setStatus("success");
@@ -113,7 +83,10 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500 font-sans">
+    <div 
+      className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500"
+      style={{ fontFamily: selectedFont }}
+    >
       <Navbar agency={agency} />
 
       <main>
@@ -133,7 +106,6 @@ export default function ContactPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-4xl md:text-7xl font-serif italic text-white mb-6" 
-              style={{ fontFamily: agency?.font_family || 'serif' }}
             >
               {agency?.hero_title || "Contactez-nous"}
             </motion.h1>
@@ -181,29 +153,23 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* SECTION SMARTPHONE (Informations + Formulaire) */}
+          {/* SECTION SMARTPHONE */}
           <div className="xl:col-span-5 flex justify-center items-start">
             <div className="sticky top-32">
-              
-              {/* COQUE DU SMARTPHONE */}
               <div className="relative w-[320px] md:w-[380px] aspect-[9/18.5] rounded-[3.5rem] bg-slate-900 p-3 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] border-[8px] border-slate-800 ring-1 ring-white/10">
                 
-                {/* Encoche (Notch) */}
+                {/* Notch */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-800 rounded-b-2xl z-30 flex items-center justify-center gap-2">
                   <div className="w-8 h-1 bg-slate-700 rounded-full"></div>
                   <div className="w-2 h-2 bg-slate-700 rounded-full"></div>
                 </div>
 
-                {/* ÉCRAN INTERNE */}
                 <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden bg-slate-950 flex flex-col border border-white/5">
-                  
-                  {/* Fond Interne */}
                   <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-black opacity-60" />
 
                   <div className="relative z-10 h-full flex flex-col p-8 pt-12">
-                    <h3 className="text-xl font-serif italic text-white mb-8 text-center tracking-widest">Informations</h3>
+                    <h3 className="text-xl font-serif italic text-white mb-8 text-center tracking-widest uppercase">Informations</h3>
                     
-                    {/* Infos Contact */}
                     <div className="space-y-4 mb-10">
                       <div className="flex items-center gap-4 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
                         <div className="p-2.5 rounded-xl bg-slate-800 shadow-lg">
@@ -233,13 +199,12 @@ export default function ContactPage() {
                       )}
                     </div>
 
-                    {/* Formulaire */}
                     <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-4">
                       <div className="space-y-3">
                         <input 
                           required
                           type="text"
-                          placeholder="VOTRE NOM"
+                          placeholder={t('contact.form.name') || "VOTRE NOM"}
                           className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20 text-white"
                           value={formData.name}
                           onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -247,7 +212,7 @@ export default function ContactPage() {
                         <input 
                           required
                           type="email"
-                          placeholder="VOTRE EMAIL"
+                          placeholder={t('contact.form.email') || "VOTRE EMAIL"}
                           className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all placeholder:text-white/20 text-white"
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -255,7 +220,7 @@ export default function ContactPage() {
                         <textarea 
                           required
                           rows={3}
-                          placeholder="VOTRE MESSAGE..."
+                          placeholder={t('contact.form.message') || "VOTRE MESSAGE..."}
                           className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[9px] tracking-[0.2em] outline-none focus:border-white/30 transition-all resize-none placeholder:text-white/20 text-white"
                           value={formData.message}
                           onChange={(e) => setFormData({...formData, message: e.target.value})}
@@ -268,28 +233,30 @@ export default function ContactPage() {
                         style={{ backgroundColor: buttonColor }}
                         className="mt-auto w-full py-4 rounded-xl text-black font-black text-[9px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
                       >
-                        {isSubmitting ? <Loader2 className="animate-spin" size={14}/> : "ENVOYER LE MESSAGE"}
+                        {isSubmitting ? <Loader2 className="animate-spin" size={14}/> : (t('contact.form.send') || "ENVOYER LE MESSAGE")}
                       </button>
 
-                      {status === "success" && (
-                        <motion.p 
-                          initial={{ opacity: 0, y: 10 }} 
-                          animate={{ opacity: 1, y: 0 }} 
-                          className="text-center text-green-400 text-[8px] font-black tracking-widest mt-2 uppercase"
-                        >
-                          Demande envoyée avec succès
-                        </motion.p>
-                      )}
+                      <AnimatePresence>
+                        {status === "success" && (
+                          <motion.p 
+                            initial={{ opacity: 0, y: 10 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0 }}
+                            className="text-center text-green-400 text-[8px] font-black tracking-widest mt-2 uppercase"
+                          >
+                            {t('contact.form.success_msg') || "Demande envoyée avec succès"}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
                     </form>
                   </div>
 
-                  {/* Barre Home (iOS style) */}
+                  {/* Home Bar (iOS style) */}
                   <div className="relative z-10 h-10 w-full flex justify-center items-center">
                     <div className="w-20 h-1 bg-white/20 rounded-full"></div>
                   </div>
                 </div>
 
-                {/* Reflet Verre */}
                 <div className="absolute top-0 right-10 w-full h-full bg-gradient-to-br from-white/5 to-transparent pointer-events-none rounded-[3.5rem] z-20" />
               </div>
             </div>
