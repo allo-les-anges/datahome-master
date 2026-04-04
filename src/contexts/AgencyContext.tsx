@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 interface AgencyContextType {
@@ -19,49 +19,48 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
   const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fonction pour charger manuellement une agence via son slug
-  const setAgencyBySlug = async (slug: string) => {
+  // Utilisation de useCallback pour éviter de recréer la fonction à chaque rendu
+  const setAgencyBySlug = useCallback(async (slug: string) => {
     if (!slug) return;
     try {
-      // Si l'agence est déjà la bonne, on ne recharge pas
       if (agency?.slug === slug) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('agency_settings')
         .select('*')
         .eq('slug', slug)
         .maybeSingle();
 
       if (data) {
-        console.log("🎯 Agence synchronisée par slug:", data.agency_name);
         setAgency(data);
       }
     } catch (err) {
       console.error("Erreur setAgencyBySlug:", err);
     }
-  };
+  }, [agency?.slug]);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchAgency() {
+      if (!isMounted) return;
       setLoading(true);
+
       try {
         const host = window.location.hostname;
         const path = window.location.pathname;
         
-        // 1. Extraction du sous-domaine
-        const subdomain = host.split('.')[0];
-        
-        // 2. Extraction du slug depuis l'URL (ex: /nl/schmidt-privilege/contact -> schmidt-privilege)
+        // 1. Extraction du slug depuis le chemin (ex: /fr/schmidt-privilege/about)
         const pathParts = path.split('/').filter(Boolean);
-        // On cherche le segment après la locale (index 1 si l'URL commence par /fr/ ou /nl/)
         const urlSlug = pathParts.length >= 2 ? pathParts[1] : null;
 
-        console.log("🔍 Détection Context - Hôte:", host, "| Sous-domaine:", subdomain, "| Slug URL:", urlSlug);
+        // 2. Extraction du sous-domaine
+        const subdomain = host.split('.')[0];
 
         let agencyData = null;
 
-        // PRIORITÉ 1 : Si on est sur Vercel ou Localhost, on utilise le slug de l'URL
-        if ((host.includes('vercel.app') || host.includes('localhost')) && urlSlug) {
+        // PRIORITÉ 1 : Slug dans l'URL (pour Vercel/Localhost)
+        if (urlSlug && (host.includes('vercel.app') || host.includes('localhost'))) {
           const { data } = await supabase
             .from('agency_settings')
             .select('*')
@@ -70,8 +69,8 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
           agencyData = data;
         }
 
-        // PRIORITÉ 2 : Recherche par domaine ou sous-domaine (Production)
-        if (!agencyData) {
+        // PRIORITÉ 2 : Domaine personnalisé ou sous-domaine réel (Production)
+        if (!agencyData && subdomain !== 'datahome') {
           const { data } = await supabase
             .from('agency_settings')
             .select('*')
@@ -80,30 +79,28 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
           agencyData = data;
         }
 
-        // PRIORITÉ 3 : Fallback si rien n'est trouvé
+        // PRIORITÉ 3 : Fallback final
         if (!agencyData) {
-          console.warn("⚠️ Aucune agence trouvée, chargement du fallback...");
           const { data } = await supabase
             .from('agency_settings')
             .select('*')
-            .eq('subdomain', 'schmidt-privilege') // Remplacez par votre vrai slug par défaut
+            .eq('slug', 'schmidt-privilege')
             .maybeSingle();
           agencyData = data;
         }
 
-        if (agencyData) {
+        if (isMounted && agencyData) {
           setAgency(agencyData);
-        } else {
-          console.error("❌ Échec total : Aucune agence trouvée.");
         }
       } catch (err) {
-        console.error("💥 Erreur critique AgencyContext:", err);
+        console.error("💥 Erreur AgencyContext:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
     
     fetchAgency();
+    return () => { isMounted = false; };
   }, []);
 
   return (
