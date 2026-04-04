@@ -29,6 +29,10 @@ export default function Navbar({ agency }: NavbarProps) {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // --- LOGIQUE DE ROUTAGE DYNAMIQUE ---
+  // On construit la base de l'URL pour l'agence actuelle (ex: /fr/schmidt-privilege)
+  const baseUrl = agency?.subdomain ? `/${locale}/${agency.subdomain}` : `/${locale}`;
+
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => {
@@ -53,10 +57,10 @@ export default function Navbar({ agency }: NavbarProps) {
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
-  // CORRECTION : Liens avec routes réelles au lieu d'ancres #
+  // Navigation dynamique basée sur la baseUrl de l'agence
   const navLinks = [
-    { name: t('nav.about') || "Qui sommes-nous", href: "/about" },
-    { name: t('nav.contact') || "Contact", href: "/contact" },
+    { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
+    { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
   ];
 
   return (
@@ -72,11 +76,12 @@ export default function Navbar({ agency }: NavbarProps) {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
           
-          <Link href="/" className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
+          {/* Logo pointe vers l'accueil de l'agence */}
+          <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
                  src={agency.logo_url} 
-                 alt={agency?.name || "Logo"} 
+                 alt={agency?.agency_name || "Logo"} 
                  className="h-24 md:h-32 w-auto object-contain transition-all duration-500" 
                />
             ) : (
@@ -114,7 +119,13 @@ export default function Navbar({ agency }: NavbarProps) {
                   {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
                     <button
                       key={lang}
-                      onClick={() => { setLocale(lang as any); setIsLangOpen(false); }}
+                      onClick={() => { 
+                        // Lors du changement de langue, on redirige vers la même page mais dans la nouvelle langue
+                        const newPath = pathname.replace(`/${locale}/`, `/${lang}/`);
+                        setLocale(lang as any); 
+                        setIsLangOpen(false);
+                        window.location.href = newPath;
+                      }}
                       className="w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-colors"
                     >
                       {lang}
@@ -134,11 +145,22 @@ export default function Navbar({ agency }: NavbarProps) {
         </div>
       </nav>
 
+      {/* Menu Mobile */}
       {isMenuOpen && (
         <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
           <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
             <X size={35} />
           </button>
+          
+          {/* Lien Accueil Agence */}
+          <Link 
+            href={baseUrl}
+            onClick={() => setIsMenuOpen(false)}
+            className="text-xl font-black uppercase tracking-[0.5em] text-white"
+          >
+            Accueil
+          </Link>
+
           {navLinks.map((link) => (
             <Link 
               key={link.href}
