@@ -1,4 +1,3 @@
-// src/app/[locale]/(agency_site)/[slug]/layout.tsx
 import { supabase } from "@/lib/supabase";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import CookieBanner from "@/components/CookieBanner";
@@ -12,13 +11,14 @@ export default async function AgencyLayout({
 }) {
   const { slug } = await params;
 
-  // On cherche par SLUG (car c'est ce qui est dans l'URL /[locale]/[slug])
+  // 1. On récupère l'agence en utilisant le SLUG (qui correspond au segment d'URL)
   const { data: agency } = await supabase
     .from('agency_settings') 
     .select('*')
-    .eq('slug', slug) // ✅ Correction : on utilise le slug
-    .maybeSingle();  // ✅ Sécurité : ne crash pas si non trouvé
+    .eq('slug', slug) // CHANGEMENT ICI : 'slug' au lieu de 'subdomain'
+    .maybeSingle();
 
+  // 2. Préparation des styles
   const dynamicStyles = {
     '--brand-primary': agency?.primary_color || '#10b981',
     '--font-main': agency?.font_family || 'Inter, sans-serif',
@@ -27,10 +27,10 @@ export default async function AgencyLayout({
 
   return (
     <div style={dynamicStyles} className="min-h-screen">
-      {/* IMPORTANT : children DOIT être rendu ici. 
-          C'est ce qui contient tes pages /about et /contact.
+      {/* IMPORTANT : On doit TOUJOURS rendre {children}. 
+         Si on ne le fait pas, /about et /contact ne s'afficheront JAMAIS.
       */}
-      {children}
+      {children} 
       
       {agency && (
         <>
