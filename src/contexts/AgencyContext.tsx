@@ -19,21 +19,16 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
   const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Utilisation de useCallback pour éviter de recréer la fonction à chaque rendu
   const setAgencyBySlug = useCallback(async (slug: string) => {
     if (!slug) return;
     try {
       if (agency?.slug === slug) return;
-
       const { data } = await supabase
         .from('agency_settings')
         .select('*')
         .eq('slug', slug)
         .maybeSingle();
-
-      if (data) {
-        setAgency(data);
-      }
+      if (data) setAgency(data);
     } catch (err) {
       console.error("Erreur setAgencyBySlug:", err);
     }
@@ -50,16 +45,17 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
         const host = window.location.hostname;
         const path = window.location.pathname;
         
-        // 1. Extraction du slug depuis le chemin (ex: /fr/schmidt-privilege/about)
+        // On découpe l'URL et on ignore les segments vides
         const pathParts = path.split('/').filter(Boolean);
+        
+        // Logique de détection du slug :
+        // Dans /fr/schmidt-privilege/about -> pathParts[1] est le slug
         const urlSlug = pathParts.length >= 2 ? pathParts[1] : null;
 
-        // 2. Extraction du sous-domaine
         const subdomain = host.split('.')[0];
-
         let agencyData = null;
 
-        // PRIORITÉ 1 : Slug dans l'URL (pour Vercel/Localhost)
+        // 1. Recherche par le slug de l'URL (Priorité Vercel/Local)
         if (urlSlug && (host.includes('vercel.app') || host.includes('localhost'))) {
           const { data } = await supabase
             .from('agency_settings')
@@ -69,7 +65,7 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
           agencyData = data;
         }
 
-        // PRIORITÉ 2 : Domaine personnalisé ou sous-domaine réel (Production)
+        // 2. Recherche par domaine (Production)
         if (!agencyData && subdomain !== 'datahome') {
           const { data } = await supabase
             .from('agency_settings')
@@ -79,7 +75,7 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
           agencyData = data;
         }
 
-        // PRIORITÉ 3 : Fallback final
+        // 3. Fallback (Si rien n'est trouvé)
         if (!agencyData) {
           const { data } = await supabase
             .from('agency_settings')

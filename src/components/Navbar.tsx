@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
 
 const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
   <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
@@ -17,10 +18,15 @@ interface NavbarProps {
   agency?: any;
 }
 
-export default function Navbar({ agency }: NavbarProps) {
+export default function Navbar({ agency: propsAgency }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { t, locale, setLocale } = useTranslation() as any;
+  const { t, locale } = useTranslation() as any;
+  
+  // On récupère l'agence du contexte si elle n'est pas passée en props
+  const { agency: contextAgency } = useAgency();
+  const agency = propsAgency || contextAgency;
+
   const brandColor = agency?.primary_color || "#D4AF37";
 
   const [mounted, setMounted] = useState(false);
@@ -31,6 +37,8 @@ export default function Navbar({ agency }: NavbarProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // --- LOGIQUE DE ROUTAGE DYNAMIQUE SÉCURISÉE ---
+  // Important : On ne met JAMAIS "agency" en dur ici. 
+  // La structure doit être /locale/slug-agence
   const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
   const baseUrl = `/${locale}/${agencySlug}`;
 
@@ -67,14 +75,17 @@ export default function Navbar({ agency }: NavbarProps) {
     
     // On reconstruit l'URL proprement : /lang/slug/page
     const pathSegments = pathname.split('/').filter(Boolean);
-    // pathSegments[0] est l'ancienne locale, on la remplace
-    pathSegments[0] = newLang;
     
-    const newPath = `/${pathSegments.join('/')}`;
-    
-    setIsLangOpen(false);
-    // On utilise router.push pour éviter le rafraîchissement brutal de la page
-    router.push(newPath);
+    // On remplace le premier segment (la langue)
+    if (pathSegments.length > 0) {
+      pathSegments[0] = newLang;
+      const newPath = `/${pathSegments.join('/')}`;
+      setIsLangOpen(false);
+      router.push(newPath);
+    } else {
+      // Si on est à la racine
+      router.push(`/${newLang}/${agencySlug}`);
+    }
   };
 
   return (
