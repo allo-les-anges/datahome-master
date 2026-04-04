@@ -13,10 +13,10 @@ export default async function AgencyLayout({
 
   // On cherche par slug (et non subdomain)
   const { data: agency } = await supabase
-    .from('agency_settings') 
-    .select('*')
-    .eq('slug', slug)
-    .maybeSingle();
+  .from('agency_settings') 
+  .select('*')
+  .eq('subdomain', slug) 
+  .maybeSingle();
 
   const dynamicStyles = {
     '--brand-primary': agency?.primary_color || '#10b981',

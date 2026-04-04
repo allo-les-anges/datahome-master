@@ -25,12 +25,11 @@ export default function ContactPage({ params }: ContactPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // On synchronise le slug dès le montage
-  useEffect(() => {
-    if (resolvedParams.slug) {
-      setAgencyBySlug(resolvedParams.slug);
-    }
-  }, [resolvedParams.slug, setAgencyBySlug]);
+   useEffect(() => {
+   if (resolvedParams.slug && agency?.subdomain !== resolvedParams.slug) {
+    setAgencyBySlug(resolvedParams.slug);
+  }
+}, [resolvedParams.slug, agency?.subdomain, setAgencyBySlug]);
 
   // 1. GESTION DU CHARGEMENT : On affiche un loader propre
   if (loading && !agency) {

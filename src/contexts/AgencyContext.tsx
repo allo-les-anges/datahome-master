@@ -22,19 +22,17 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const fetchAgencyData = useCallback(async (slug: string) => {
-    console.log(`🔍 [Supabase] Tentative de récupération pour le slug: "${slug}"`);
-    const { data, error } = await supabase
-      .from('agency_settings')
-      .select('*')
-      .eq('slug', slug)
-      .maybeSingle();
-    
-    if (error) console.error("❌ [Supabase] Erreur:", error);
-    if (!data) console.warn(`⚠️ [Supabase] Aucune agence trouvée pour le slug: "${slug}"`);
-    else console.log("✅ [Supabase] Agence récupérée avec succès:", data.agency_name);
-    
-    return data;
-  }, []);
+  console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
+  
+  const { data, error } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug) // <-- CHANGEMENT ICI (slug -> subdomain)
+    .maybeSingle();
+  
+  if (error) console.error("❌ [Supabase] Erreur:", error);
+  return data;
+}, []);
 
   useEffect(() => {
     let isMounted = true;
