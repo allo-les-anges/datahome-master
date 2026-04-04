@@ -30,8 +30,9 @@ export default function Navbar({ agency }: NavbarProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // --- LOGIQUE DE ROUTAGE DYNAMIQUE ---
-  // On construit la base de l'URL pour l'agence actuelle (ex: /fr/schmidt-privilege)
-  const baseUrl = agency?.subdomain ? `/${locale}/${agency.subdomain}` : `/${locale}`;
+  // On utilise le slug de l'agence pour construire les liens internes
+  const agencySlug = agency?.slug || agency?.subdomain;
+  const baseUrl = `/${locale}/${agencySlug}`;
 
   useEffect(() => {
     setMounted(true);
@@ -57,7 +58,6 @@ export default function Navbar({ agency }: NavbarProps) {
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
-  // Navigation dynamique basée sur la baseUrl de l'agence
   const navLinks = [
     { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
     { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
@@ -76,17 +76,16 @@ export default function Navbar({ agency }: NavbarProps) {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
           
-          {/* Logo pointe vers l'accueil de l'agence */}
           <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
                  src={agency.logo_url} 
                  alt={agency?.agency_name || "Logo"} 
-                 className="h-24 md:h-32 w-auto object-contain transition-all duration-500" 
+                 className="h-20 md:h-24 w-auto object-contain transition-all duration-500" 
                />
             ) : (
                <DataHomeLogo 
-                 className="h-20 md:h-24 w-auto transition-colors duration-500" 
+                 className="h-16 md:h-20 w-auto transition-colors duration-500" 
                  style={{ color: logoHexColor }}
                />
             )}
@@ -120,7 +119,6 @@ export default function Navbar({ agency }: NavbarProps) {
                     <button
                       key={lang}
                       onClick={() => { 
-                        // Lors du changement de langue, on redirige vers la même page mais dans la nouvelle langue
                         const newPath = pathname.replace(`/${locale}/`, `/${lang}/`);
                         setLocale(lang as any); 
                         setIsLangOpen(false);
@@ -152,12 +150,7 @@ export default function Navbar({ agency }: NavbarProps) {
             <X size={35} />
           </button>
           
-          {/* Lien Accueil Agence */}
-          <Link 
-            href={baseUrl}
-            onClick={() => setIsMenuOpen(false)}
-            className="text-xl font-black uppercase tracking-[0.5em] text-white"
-          >
+          <Link href={baseUrl} onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-[0.5em] text-white">
             Accueil
           </Link>
 

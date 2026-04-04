@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-// On définit le type des paramètres pour Next.js
 interface AboutPageProps {
   params: Promise<{
     slug: string;
@@ -14,14 +13,13 @@ interface AboutPageProps {
 export default async function AboutPage({ params }: AboutPageProps) {
   const { slug } = await params;
 
-  // 1. Récupérer les données de l'agence spécifique au slug
+  // Récupération de l'agence par slug
   const { data: agency, error } = await supabase
     .from('agency_settings')
     .select('*')
-    .eq('slug', slug) // CRITIQUE : On filtre par le slug de l'URL
-    .single();
+    .eq('slug', slug)
+    .maybeSingle();
 
-  // Si l'agence n'existe pas, on renvoie une 404
   if (error || !agency) {
     notFound();
   }
@@ -31,27 +29,34 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   return (
     <div 
-      className="min-h-screen bg-white dark:bg-[#0A0A0A] transition-colors duration-500"
+      className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500"
       style={{ fontFamily: selectedFont }}
     >
-      {/* On passe l'objet agency à la Navbar et au Footer pour la cohérence visuelle */}
       <Navbar agency={agency} />
 
       <main className="relative">
-        {/* Header de la page About */}
-        <section className="pt-40 pb-20 px-6">
-          <div className="max-w-4xl mx-auto">
-            <h1 
-              className="text-5xl md:text-7xl font-serif italic mb-12 border-l-4 pl-8" 
-              style={{ borderColor: brandColor, color: agency.dark_mode ? '#white' : '#1e293b' }}
-            >
-              {agency.about_title || "Notre Histoire"}
-            </h1>
-            
-            <div className="grid grid-cols-1 gap-12">
-              {/* Image de présentation si disponible */}
+        {/* Header / Hero Section */}
+        <section className="pt-52 pb-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row items-start gap-16">
+              
+              <div className="flex-1 space-y-8">
+                <h1 
+                  className="text-5xl md:text-7xl font-serif italic border-l-4 pl-8" 
+                  style={{ borderColor: brandColor }}
+                >
+                  {agency.about_title || "Notre Histoire"}
+                </h1>
+                
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                  <div className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-light text-xl italic">
+                    {agency.about_text || "L'excellence immobilière à votre service."}
+                  </div>
+                </div>
+              </div>
+
               {agency.hero_url && (
-                <div className="w-full h-[400px] rounded-[2rem] overflow-hidden shadow-2xl">
+                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
                   <img 
                     src={agency.hero_url} 
                     alt={agency.agency_name} 
@@ -59,27 +64,18 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   />
                 </div>
               )}
-
-              {/* Texte de présentation */}
-              <div className="prose prose-lg dark:prose-invert max-w-none">
-                <div 
-                  className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-light text-xl italic"
-                >
-                  {agency.about_text || "L'excellence immobilière à votre service."}
-                </div>
-              </div>
             </div>
           </div>
         </section>
 
-        {/* Section optionnelle : Valeurs ou Vision */}
-        <section className="py-20 bg-slate-50 dark:bg-white/5">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-             <h2 className="text-2xl font-serif italic mb-6" style={{ color: brandColor }}>
-                {agency.agency_name}
+        {/* Section Signature */}
+        <section className="py-32 bg-slate-50 dark:bg-white/5 border-y border-black/5 dark:border-white/5">
+          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
+             <h2 className="text-3xl font-serif italic" style={{ color: brandColor }}>
+               {agency.agency_name}
              </h2>
-             <p className="text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] text-xs">
-                Une signature d'exception
+             <p className="text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold">
+               L'immobilier sous un nouveau regard
              </p>
           </div>
         </section>
