@@ -1,5 +1,5 @@
 import { Inter, Montserrat, Playfair_Display, Poppins, Roboto_Mono } from "next/font/google";
-import "./globals.css";
+import "@/app/globals.css";
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
 
