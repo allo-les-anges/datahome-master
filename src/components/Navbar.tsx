@@ -23,7 +23,7 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   const router = useRouter();
   const { t, locale } = useTranslation() as any;
   
-  // On récupère l'agence du contexte si elle n'est pas passée en props
+  // Récupération de l'agence via le contexte si non fournie en props
   const { agency: contextAgency } = useAgency();
   const agency = propsAgency || contextAgency;
 
@@ -36,9 +36,7 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // --- LOGIQUE DE ROUTAGE DYNAMIQUE SÉCURISÉE ---
-  // Important : On ne met JAMAIS "agency" en dur ici. 
-  // La structure doit être /locale/slug-agence
+  // Construction dynamique de l'URL de base selon l'agence actuelle
   const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
   const baseUrl = `/${locale}/${agencySlug}`;
 
@@ -69,21 +67,18 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
     { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
   ];
 
-  // Fonction de changement de langue sécurisée
   const handleLangChange = (newLang: string) => {
     if (newLang === locale) return;
     
-    // On reconstruit l'URL proprement : /lang/slug/page
+    // On décompose le chemin actuel pour remplacer la locale (segment index 0)
     const pathSegments = pathname.split('/').filter(Boolean);
     
-    // On remplace le premier segment (la langue)
     if (pathSegments.length > 0) {
       pathSegments[0] = newLang;
       const newPath = `/${pathSegments.join('/')}`;
       setIsLangOpen(false);
       router.push(newPath);
     } else {
-      // Si on est à la racine
       router.push(`/${newLang}/${agencySlug}`);
     }
   };
@@ -101,6 +96,7 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
           
+          {/* Logo */}
           <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
@@ -116,6 +112,7 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
             )}
           </Link>
 
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-12">
             {navLinks.map((link) => (
               <Link 
@@ -123,12 +120,16 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
                 href={link.href} 
                 className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
               >
-                <span className="pb-1" style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}>
+                <span 
+                  className="pb-1" 
+                  style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}
+                >
                   {link.name}
                 </span>
               </Link>
             ))}
 
+            {/* Language Selector */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsLangOpen(!isLangOpen)}
@@ -156,6 +157,7 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
             </div>
           </div>
 
+          {/* Mobile Menu Toggle */}
           <button 
             className={`md:hidden p-2 transition-colors ${textColor}`} 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -165,14 +167,18 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Menu Mobile */}
+      {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
           <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
             <X size={35} />
           </button>
           
-          <Link href={baseUrl} onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-[0.5em] text-white">
+          <Link 
+            href={baseUrl} 
+            onClick={() => setIsMenuOpen(false)} 
+            className="text-xl font-black uppercase tracking-[0.5em] text-white"
+          >
             Accueil
           </Link>
 

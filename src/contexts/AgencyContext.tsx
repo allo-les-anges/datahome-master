@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
 
 interface AgencyContextType {
   agency: any;
@@ -18,89 +19,77 @@ const AgencyContext = createContext<AgencyContextType>({
 export function AgencyProvider({ children }: { children: React.ReactNode }) {
   const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
-  const setAgencyBySlug = useCallback(async (slug: string) => {
-    if (!slug) return;
-    try {
-      if (agency?.slug === slug) return;
-      const { data } = await supabase
-        .from('agency_settings')
-        .select('*')
-        .eq('slug', slug)
-        .maybeSingle();
-      if (data) setAgency(data);
-    } catch (err) {
-      console.error("Erreur setAgencyBySlug:", err);
-    }
-  }, [agency?.slug]);
+  const fetchAgencyData = useCallback(async (slug: string) => {
+    const { data } = await supabase
+      .from('agency_settings')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+    return data;
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchAgency() {
+    async function loadAgency() {
       if (!isMounted) return;
       setLoading(true);
 
       try {
         const host = window.location.hostname;
-        const path = window.location.pathname;
+        const segments = pathname.split('/').filter(Boolean);
         
-        // On découpe l'URL et on ignore les segments vides
-        const pathParts = path.split('/').filter(Boolean);
-        
-        // Logique de détection du slug :
-        // Dans /fr/schmidt-privilege/about -> pathParts[1] est le slug
-        const urlSlug = pathParts.length >= 2 ? pathParts[1] : null;
-
+        // Structure: /[locale]/[slug]/... -> slug est en index 1
+        const urlSlug = segments.length >= 2 ? segments[1] : null;
         const subdomain = host.split('.')[0];
-        let agencyData = null;
 
-        // 1. Recherche par le slug de l'URL (Priorité Vercel/Local)
+        let data = null;
+
+        // 1. Priorité URL (Vercel/Local)
         if (urlSlug && (host.includes('vercel.app') || host.includes('localhost'))) {
-          const { data } = await supabase
-            .from('agency_settings')
-            .select('*')
-            .eq('slug', urlSlug)
-            .maybeSingle();
-          agencyData = data;
+          data = await fetchAgencyData(urlSlug);
         }
 
-        // 2. Recherche par domaine (Production)
-        if (!agencyData && subdomain !== 'datahome') {
-          const { data } = await supabase
+        // 2. Priorité Domaine/Sous-domaine
+        if (!data && subdomain !== 'datahome') {
+          const { data: domainData } = await supabase
             .from('agency_settings')
             .select('*')
             .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
             .maybeSingle();
-          agencyData = data;
+          data = domainData;
         }
 
-        // 3. Fallback (Si rien n'est trouvé)
-        if (!agencyData) {
-          const { data } = await supabase
-            .from('agency_settings')
-            .select('*')
-            .eq('slug', 'schmidt-privilege')
-            .maybeSingle();
-          agencyData = data;
+        // 3. Fallback final
+        if (!data) {
+          data = await fetchAgencyData('schmidt-privilege');
         }
 
-        if (isMounted && agencyData) {
-          setAgency(agencyData);
+        if (isMounted && data) {
+          setAgency(data);
         }
       } catch (err) {
-        console.error("💥 Erreur AgencyContext:", err);
+        console.error("💥 AgencyContext Error:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     }
-    
-    fetchAgency();
+
+    loadAgency();
     return () => { isMounted = false; };
-  }, []);
+  }, [pathname, fetchAgencyData]); // Se redéclenche si le chemin change
 
   return (
-    <AgencyContext.Provider value={{ agency, loading, setAgencyBySlug }}>
+    <AgencyContext.Provider value={{ 
+      agency, 
+      loading, 
+      setAgencyBySlug: async (slug) => {
+        const d = await fetchAgencyData(slug);
+        if (d) setAgency(d);
+      } 
+    }}>
       {children}
     </AgencyContext.Provider>
   );
