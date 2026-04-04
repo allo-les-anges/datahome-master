@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { usePathname } from "next/navigation";
 
@@ -21,23 +21,30 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
 
+  // On utilise useCallback pour que la fonction ne change pas à chaque rendu
   const fetchAgencyData = useCallback(async (slug: string) => {
-  console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
-  
-  const { data, error } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .eq('subdomain', slug) // <-- CHANGEMENT ICI (slug -> subdomain)
-    .maybeSingle();
-  
-  if (error) console.error("❌ [Supabase] Erreur:", error);
-  return data;
-}, []);
+    if (!slug) return null;
+    
+    console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
+    const { data, error } = await supabase
+      .from('agency_settings')
+      .select('*')
+      .eq('subdomain', slug) // On interroge la colonne subdomain
+      .maybeSingle();
+    
+    if (error) {
+      console.error("❌ [Supabase] Erreur:", error);
+      return null;
+    }
+    return data;
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
     async function initAgency() {
+      if (!isMounted) return;
+      
       console.log("🚀 [AgencyContext] Initialisation...");
       setLoading(true);
       
@@ -45,30 +52,21 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
         const host = window.location.hostname;
         const segments = pathname.split('/').filter(Boolean);
         
-        console.log("📍 https://www.merriam-webster.com/dictionary/context", {
-          fullPath: pathname,
-          segments: segments,
-          hostname: host
-        });
-
-        // Détection du slug
+        // Détection du slug dans l'URL (ex: /fr/schmidt-privilege -> schmidt-privilege)
         const locales = ['fr', 'en', 'nl', 'es', 'ar', 'pl'];
         const urlSlug = segments.find(s => !locales.includes(s));
         
-        console.log(`🎯 [Analyse] Slug détecté dans l'URL: "${urlSlug}"`);
-
         let data = null;
 
-        // 1. Test via le slug de l'URL
+        // 1. Priorité au slug détecté dans l'URL
         if (urlSlug) {
           data = await fetchAgencyData(urlSlug);
         }
 
-        // 2. Test via le domaine (si pas de slug ou slug invalide)
+        // 2. Si pas de slug, test via le domaine/sous-domaine (SaaS mode)
         if (!data) {
           const subdomain = host.split('.')[0];
-          if (subdomain !== 'datahome' && subdomain !== 'localhost') {
-            console.log(`🌐 [Domaine] Test du sous-domaine: "${subdomain}"`);
+          if (subdomain !== 'datahome' && subdomain !== 'localhost' && subdomain !== 'www') {
             const { data: subData } = await supabase
               .from('agency_settings')
               .select('*')
@@ -78,9 +76,9 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // 3. Fallback
+        // 3. Fallback ultime si rien n'est trouvé
         if (!data) {
-          console.log("🏠 [Fallback] Utilisation de l'agence par défaut: schmidt-privilege");
+          console.log("🏠 [Fallback] Utilisation de l'agence par défaut");
           data = await fetchAgencyData('schmidt-privilege');
         }
 
@@ -100,18 +98,25 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
 
     initAgency();
     return () => { isMounted = false; };
-  }, [pathname, fetchAgencyData]);
+  }, [pathname, fetchAgencyData]); // fetchAgencyData est stable grâce au useCallback
+
+  // Mémoïsation de la valeur du contexte pour optimiser les performances
+  const contextValue = useMemo(() => ({
+    agency,
+    loading,
+    setAgencyBySlug: async (slug: string) => {
+      // Éviter de recharger si c'est déjà la même agence
+      if (agency?.subdomain === slug) return;
+      
+      setLoading(true);
+      const d = await fetchAgencyData(slug);
+      if (d) setAgency(d);
+      setLoading(false);
+    }
+  }), [agency, loading, fetchAgencyData]);
 
   return (
-    <AgencyContext.Provider value={{ 
-      agency, 
-      loading, 
-      setAgencyBySlug: async (slug) => {
-        console.log(`Manual override pour le slug: ${slug}`);
-        const d = await fetchAgencyData(slug);
-        if (d) setAgency(d);
-      } 
-    }}>
+    <AgencyContext.Provider value={contextValue}>
       {children}
     </AgencyContext.Provider>
   );

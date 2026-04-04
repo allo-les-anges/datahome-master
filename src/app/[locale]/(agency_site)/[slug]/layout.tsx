@@ -11,28 +11,41 @@ export default async function AgencyLayout({
 }) {
   const { slug } = await params;
 
-  // On cherche par slug (et non subdomain)
+  // Récupération des paramètres de l'agence via la colonne subdomain
   const { data: agency } = await supabase
-  .from('agency_settings') 
-  .select('*')
-  .eq('subdomain', slug) 
-  .maybeSingle();
+    .from('agency_settings') 
+    .select('*')
+    .eq('subdomain', slug) 
+    .maybeSingle();
 
+  // Définition des variables CSS dynamiques pour le thème de l'agence
   const dynamicStyles = {
     '--brand-primary': agency?.primary_color || '#10b981',
     '--font-main': agency?.font_family || 'Inter, sans-serif',
     '--font-serif': 'Playfair Display, serif',
   } as React.CSSProperties;
 
+  // Parsing sécurisé de footer_config (au cas où il arrive en string JSON)
+  const getFooterData = (config: any) => {
+    if (!config) return {};
+    if (typeof config === 'object') return config;
+    try { return JSON.parse(config); } catch { return {}; }
+  };
+
+  const footerConfig = getFooterData(agency?.footer_config);
+
   return (
     <div style={dynamicStyles} className="min-h-screen">
-      {/* 🟢 CRITIQUE : children doit TOUJOURS être là pour afficher /about et /contact */}
+      {/* IMPORTANT : children permet d'afficher les pages enfants 
+          (/contact, /about, etc.) à l'intérieur de ce layout.
+      */}
       {children} 
       
       {agency && (
         <>
+          {/* Widgets flottants spécifiques à l'agence */}
           <FloatingWhatsApp 
-            phone={agency.footer_config?.socials?.whatsapp || agency.whatsapp_number} 
+            phone={footerConfig?.socials?.whatsapp || agency.whatsapp_number} 
             color={agency.primary_color} 
           />
           <CookieBanner 
