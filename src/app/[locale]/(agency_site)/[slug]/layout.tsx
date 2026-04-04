@@ -11,14 +11,13 @@ export default async function AgencyLayout({
 }) {
   const { slug } = await params;
 
-  // 1. On récupère l'agence en utilisant le SLUG (qui correspond au segment d'URL)
+  // On cherche par slug (et non subdomain)
   const { data: agency } = await supabase
     .from('agency_settings') 
     .select('*')
-    .eq('slug', slug) // CHANGEMENT ICI : 'slug' au lieu de 'subdomain'
+    .eq('slug', slug)
     .maybeSingle();
 
-  // 2. Préparation des styles
   const dynamicStyles = {
     '--brand-primary': agency?.primary_color || '#10b981',
     '--font-main': agency?.font_family || 'Inter, sans-serif',
@@ -27,9 +26,7 @@ export default async function AgencyLayout({
 
   return (
     <div style={dynamicStyles} className="min-h-screen">
-      {/* IMPORTANT : On doit TOUJOURS rendre {children}. 
-         Si on ne le fait pas, /about et /contact ne s'afficheront JAMAIS.
-      */}
+      {/* 🟢 CRITIQUE : children doit TOUJOURS être là pour afficher /about et /contact */}
       {children} 
       
       {agency && (
