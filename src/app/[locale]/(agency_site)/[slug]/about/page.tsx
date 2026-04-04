@@ -11,16 +11,20 @@ interface AboutPageProps {
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {
-  const { slug } = await params;
+  // On attend la résolution des paramètres
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
 
-  // Récupération de l'agence par slug
+  // Récupération de l'agence par slug dans Supabase
   const { data: agency, error } = await supabase
     .from('agency_settings')
     .select('*')
     .eq('slug', slug)
     .maybeSingle();
 
+  // Si l'erreur est présente ou l'agence inexistante -> 404
   if (error || !agency) {
+    console.error("❌ Agence non trouvée pour le slug:", slug);
     notFound();
   }
 
