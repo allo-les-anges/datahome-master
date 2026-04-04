@@ -7,26 +7,23 @@ export default async function AgencyLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>; // Ajout de locale ici
 }) {
-  const { slug } = await params;
+  const { slug } = await params; // On récupère le slug de l'agence
 
-  // 1. Correction du nom de la table : 'agency_settings' au lieu de 'agencies'
   const { data: agency } = await supabase
     .from('agency_settings') 
     .select('*')
     .eq('subdomain', slug)
     .single();
 
-  // 2. Préparation des variables CSS pour Tailwind
   const dynamicStyles = {
     '--brand-primary': agency?.primary_color || '#10b981',
     '--font-main': agency?.font_family || 'Inter, sans-serif',
-    '--font-serif': 'Playfair Display, serif', // Tu peux aussi le rendre dynamique
+    '--font-serif': 'Playfair Display, serif',
   } as React.CSSProperties;
 
   return (
-    // 3. On applique les variables ici pour qu'elles soient disponibles dans tout le site
     <div style={dynamicStyles} className="min-h-screen">
       {children}
       
