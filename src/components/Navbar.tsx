@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
@@ -19,6 +19,7 @@ interface NavbarProps {
 
 export default function Navbar({ agency }: NavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { t, locale, setLocale } = useTranslation() as any;
   const brandColor = agency?.primary_color || "#D4AF37";
 
@@ -29,16 +30,13 @@ export default function Navbar({ agency }: NavbarProps) {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // --- LOGIQUE DE ROUTAGE DYNAMIQUE ---
-  // On utilise le slug de l'agence pour construire les liens internes
-  const agencySlug = agency?.slug || agency?.subdomain;
+  // --- LOGIQUE DE ROUTAGE DYNAMIQUE SÉCURISÉE ---
+  const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
   const baseUrl = `/${locale}/${agencySlug}`;
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -63,6 +61,22 @@ export default function Navbar({ agency }: NavbarProps) {
     { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
   ];
 
+  // Fonction de changement de langue sécurisée
+  const handleLangChange = (newLang: string) => {
+    if (newLang === locale) return;
+    
+    // On reconstruit l'URL proprement : /lang/slug/page
+    const pathSegments = pathname.split('/').filter(Boolean);
+    // pathSegments[0] est l'ancienne locale, on la remplace
+    pathSegments[0] = newLang;
+    
+    const newPath = `/${pathSegments.join('/')}`;
+    
+    setIsLangOpen(false);
+    // On utilise router.push pour éviter le rafraîchissement brutal de la page
+    router.push(newPath);
+  };
+
   return (
     <>
       <nav 
@@ -81,11 +95,11 @@ export default function Navbar({ agency }: NavbarProps) {
                <img 
                  src={agency.logo_url} 
                  alt={agency?.agency_name || "Logo"} 
-                 className="h-20 md:h-24 w-auto object-contain transition-all duration-500" 
+                 className="h-16 md:h-20 w-auto object-contain transition-all duration-500" 
                />
             ) : (
                <DataHomeLogo 
-                 className="h-16 md:h-20 w-auto transition-colors duration-500" 
+                 className="h-12 md:h-16 w-auto transition-colors duration-500" 
                  style={{ color: logoHexColor }}
                />
             )}
@@ -118,13 +132,10 @@ export default function Navbar({ agency }: NavbarProps) {
                   {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
                     <button
                       key={lang}
-                      onClick={() => { 
-                        const newPath = pathname.replace(`/${locale}/`, `/${lang}/`);
-                        setLocale(lang as any); 
-                        setIsLangOpen(false);
-                        window.location.href = newPath;
-                      }}
-                      className="w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-colors"
+                      onClick={() => handleLangChange(lang)}
+                      className={`w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        locale === lang ? 'text-blue-400' : 'text-white hover:bg-white/10'
+                      }`}
                     >
                       {lang}
                     </button>
