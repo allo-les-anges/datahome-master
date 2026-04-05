@@ -19,6 +19,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0); // État pour la progression
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
@@ -90,17 +91,21 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     });
   }, [locale]);
 
-  // 4. Chargement des propriétés depuis Supabase
+  // 4. Chargement des propriétés avec barre de progression
   useEffect(() => {
     async function fetchProperties() {
       if (!agency) return;
 
       setLoadingProperties(true);
+      setLoadingProgress(10); // Début du processus
+      
       try {
         let allowedXmlUrls: string[] = [];
         const config = agency.footer_config;
         const footerConfig = typeof config === 'string' ? JSON.parse(config || '{}') : (config || {});
         allowedXmlUrls = footerConfig?.xml_urls || [];
+
+        setLoadingProgress(30); // Configuration chargée
 
         let query = supabase.from('villas').select('*').eq('is_excluded', false);
         
@@ -109,6 +114,9 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
         }
 
         const { data: villasData, error } = await query;
+        
+        setLoadingProgress(70); // Données récupérées de Supabase
+
         if (error) throw error;
 
         if (villasData) {
@@ -116,11 +124,13 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           const sorted = formatted.sort((a, b) => b.price - a.price); 
           setAllProperties(sorted);
           setFilteredProperties(sorted);
+          setLoadingProgress(100); // Formatage terminé
         }
       } catch (err) {
         console.error("Erreur chargement villas:", err);
       } finally {
-        setLoadingProperties(false);
+        // Petit délai pour l'effet visuel de fin de barre
+        setTimeout(() => setLoadingProperties(false), 500);
       }
     }
 
@@ -160,6 +170,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
   }
 
   const buttonRadius = agency?.button_style || 'rounded-full';
+  const primaryBrandColor = agency?.primary_color || '#FF8C00'; // Orange par défaut si non défini
 
   return (
     <div className="flex flex-col relative notranslate">
@@ -173,7 +184,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
               exit={{ opacity: 0 }}
               className="pb-20 bg-white min-h-screen"
             >
-              {/* CORRECTION : Conteneur du bouton Retour avec padding top pour éviter la Navbar */}
               <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
                 <button 
                   onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
@@ -183,8 +193,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                   <ArrowLeft size={14} /> {t('nav.back')}
                 </button>
               </div>
-              
-              {/* Le composant de détail (assurez-vous d'avoir retiré le pt-24/32 à l'intérieur de celui-ci) */}
               <PropertyDetailClient property={selectedProperty} agency={agency} />
             </motion.div>
           ) : (
@@ -207,7 +215,8 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsSearchOpen(true)} 
-                  className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl bg-primary ${buttonRadius}`}
+                  className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl ${buttonRadius}`}
+                  style={{ backgroundColor: primaryBrandColor }}
                 >
                   <Search size={20} />
                   <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
@@ -230,16 +239,25 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                   </header>
                   
                   {loadingProperties ? (
-                    <div className="flex flex-col items-center justify-center py-32 space-y-6">
-                      <div className="relative">
-                        <div className="w-16 h-16 border-2 border-slate-100 border-t-primary rounded-full animate-spin"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-2 h-2 bg-primary rounded-full animate-ping"></div>
-                        </div>
+                    <div className="flex flex-col items-center justify-center py-32 space-y-8">
+                      {/* BARRE DE PROGRESSION ÉLÉGANTE */}
+                      <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
+                        <motion.div 
+                          className="absolute inset-y-0 left-0"
+                          style={{ backgroundColor: primaryBrandColor }}
+                          initial={{ width: "0%" }}
+                          animate={{ width: `${loadingProgress}%` }}
+                          transition={{ duration: 0.5, ease: "circOut" }}
+                        />
                       </div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">
-                        {t('common.loadingProperties') || "Recherche des propriétés..."}
-                      </p>
+                      <div className="text-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-900 mb-2">
+                           {loadingProgress}%
+                        </p>
+                        <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-slate-400 italic">
+                          {t('common.loadingProperties') || "Chargement de la collection..."}
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -271,7 +289,11 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                     <div className="mt-20 flex justify-center">
                       <button 
                         onClick={() => setDisplayLimit(prev => prev + 12)}
-                        className={`px-14 py-7 bg-primary text-white transition-all shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 ${buttonRadius}`}
+                        className={`px-14 py-7 text-white transition-all shadow-2xl hover:-translate-y-1 ${buttonRadius}`}
+                        style={{ 
+                          backgroundColor: primaryBrandColor,
+                          boxShadow: `0 20px 40px ${primaryBrandColor}33` 
+                        }}
                       >
                         <span className="text-[11px] font-black uppercase tracking-[0.4em]">
                           {t('common.showMore')}
