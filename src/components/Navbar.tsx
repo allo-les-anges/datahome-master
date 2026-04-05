@@ -68,20 +68,15 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   ];
 
   const handleLangChange = (newLang: string) => {
-    if (newLang === locale) return;
-    
-    // On décompose le chemin actuel pour remplacer la locale (segment index 0)
-    const pathSegments = pathname.split('/').filter(Boolean);
-    
-    if (pathSegments.length > 0) {
-      pathSegments[0] = newLang;
-      const newPath = `/${pathSegments.join('/')}`;
-      setIsLangOpen(false);
-      router.push(newPath);
-    } else {
-      router.push(`/${newLang}/${agencySlug}`);
-    }
-  };
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const slug = agency?.subdomain || pathSegments[1] || "default";
+  
+  // Reconstruction sécurisée : /nouvelle-langue/slug-agence/reste-du-chemin
+  const remainingPath = pathSegments.slice(2).join('/');
+  const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
+  
+  router.push(newPath);
+};
 
   return (
     <>

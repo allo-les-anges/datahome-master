@@ -1,7 +1,7 @@
 {
   "common": {
-    "back": "عودة",
-    "backToHome": "العودة للرئيسية",
+    "back": "رجوع",
+    "backToHome": "العودة إلى الرئيسية",
     "loading": "جاري التحميل...",
     "error": "حدث خطأ ما",
     "search": "بحث",
@@ -12,6 +12,7 @@
     "showMore": "عرض المزيد من العقارات"
   },
   "nav": {
+    "home": "الرئيسية",
     "about": "من نحن",
     "results": "عقاراتنا",
     "contact": "اتصل بنا",
@@ -30,7 +31,7 @@
   "propertyCard": {
     "ref": "مرجع: {ref}",
     "beds": "غرف",
-    "baths": "حمام",
+    "baths": "حمامات",
     "surface": "م²",
     "plot": "م² أرض"
   },
@@ -39,18 +40,36 @@
     "ref": "مرجع: {ref}",
     "bedrooms": "غرف النوم",
     "bathrooms": "الحمامات",
-    "built": "مساحة البناء م²",
+    "built": "م² مبني",
     "plot": "مساحة الأرض م²",
     "pool": "مسبح",
     "description": "الوصف",
+    "features": "المميزات",
     "parking": "موقف سيارات",
     "price": "سعر البيع",
     "brochure": "ملف PDF",
     "whatsapp": "تواصل عبر واتساب",
     "bookVisit": "حجز زيارة",
     "location": "الموقع",
-    "distanceSea": "البحر على بعد {distance} كم",
-    "propertyNotFound": "العقار غير موجود"
+    "distanceSea": "البحر على بعد {distance}كم",
+    "propertyNotFound": "لم يتم العثور على العقار"
+  },
+  "contact": {
+    "formTitle": "تواصل معنا",
+    "directContact": "اتصال مباشر",
+    "teamTitle": "الفريق",
+    "namePlaceholder": "الاسم الكامل",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "messagePlaceholder": "تفاصيل مشروعك...",
+    "submit": "إرسال الطلب",
+    "sending": "جاري الإرسال...",
+    "success": "تم إرسال الرسالة بنجاح!",
+    "error": "خطأ أثناء الإرسال."
+  },
+  "footer": {
+    "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتك وأرقى العقارات.",
+    "city": "أوريويلا كوستا، إسبانيا",
+    "eliteEdition": "Elite Edition v2.0"
   },
   "projectTracker": {
     "title": "متابعة مشروعك",
@@ -60,27 +79,6 @@
     "technicalReports": "تقارير الموقع",
     "visitDate": "تاريخ الزيارة: {date}",
     "statusConforme": "الحالة: مطابق",
-    "certification": "معلومات معتمدة من القسم الفني في ERA."
-  },
-  "contact": {
-    "formTitle": "اتصل بنا",
-    "namePlaceholder": "الاسم الكامل",
-    "emailPlaceholder": "البريد الإلكتروني",
-    "messagePlaceholder": "تفاصيل مشروعك...",
-    "submit": "إرسال الطلب",
-    "success": "تم إرسال الرسالة بنجاح!",
-    "error": "خطأ أثناء الإرسال."
-  },
-  "login": {
-    "title": "منطقة العملاء",
-    "subtitle": "دخول آمن",
-    "pinPlaceholder": "رمز PIN",
-    "connect": "تسجيل الدخول",
-    "invalidPin": "رمز PIN غير صحيح"
-  },
-  "footer": {
-    "description": "فن العقارات الاستثنائية. نبني جسوراً بين طموحاتكم وأرقى العقارات.",
-    "city": "أوريويلا كوستا، إسبانيا",
-    "eliteEdition": "Elite Edition v2.0"
+    "certification": "معلومات معتمدة من القسم الفني."
   }
 }

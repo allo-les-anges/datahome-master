@@ -9,19 +9,20 @@
     "cancel": "Anuluj",
     "save": "Zapisz",
     "close": "Zamknij",
-    "showMore": "Pokaż więcej nieruchomości"
+    "showMore": "Pokaż więcej ofert"
   },
   "nav": {
+    "home": "Strona główna",
     "about": "O nas",
-    "results": "Nasze Nieruchomości",
+    "results": "Nasze oferty",
     "contact": "Kontakt",
     "back": "Powrót do listy",
-    "search": "Znajdź nieruchomość",
-    "clientAccess": "Monitorowanie Budowy"
+    "search": "Szukaj nieruchomości",
+    "clientAccess": "Śledzenie projektu"
   },
   "home": {
-    "heroTitleLine1": "Luksusowe Wille i",
-    "heroTitleLine2": "Wyjątkowe Posiadłości",
+    "heroTitleLine1": "Luksusowe Wille &",
+    "heroTitleLine2": "Wyjątkowe Nieruchomości",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Znajdź swoją willę",
     "noMatch": "Nie znaleziono dopasowań",
@@ -32,55 +33,52 @@
     "beds": "sypialnie",
     "baths": "łazienki",
     "surface": "m²",
-    "plot": "m² działka"
+    "plot": "m² działki"
   },
   "propertyDetail": {
     "back": "Powrót do wyboru",
-    "ref": "Nr ref: {ref}",
+    "ref": "Ref: {ref}",
     "bedrooms": "Sypialnie",
     "bathrooms": "Łazienki",
-    "built": "Pow. zabudowy m²",
-    "plot": "Działka m²",
+    "built": "m² Pow. zabudowy",
+    "plot": "Pow. działki m²",
     "pool": "Basen",
     "description": "Opis",
+    "features": "Cechy",
     "parking": "Parking",
     "price": "Cena sprzedaży",
     "brochure": "Broszura PDF",
     "whatsapp": "Kontakt WhatsApp",
-    "bookVisit": "Umów wizytę",
+    "bookVisit": "Zarezerwuj wizytę",
     "location": "Lokalizacja",
     "distanceSea": "Morze w odległości {distance}km",
     "propertyNotFound": "Nie znaleziono nieruchomości"
   },
-  "projectTracker": {
-    "title": "Monitorowanie Twojego Projektu",
-    "phaseLabel": "Aktualna Faza:",
-    "quit": "Wyloguj się",
-    "documents": "Dokumenty Administracyjne",
-    "technicalReports": "Raporty z Budowy",
-    "visitDate": "Data wizyty: {date}",
-    "statusConforme": "STATUS: ZGODNY",
-    "certification": "Informacje certyfikowane przez dział techniczny ERA."
-  },
   "contact": {
     "formTitle": "Skontaktuj się z nami",
-    "namePlaceholder": "IMIĘ I NAZWISKO",
-    "emailPlaceholder": "E-MAIL",
-    "messagePlaceholder": "SZCZEGÓŁY TWOJEGO PROJEKTU...",
+    "directContact": "Kontakt bezpośredni",
+    "teamTitle": "Zespół",
+    "namePlaceholder": "TWOJE IMIĘ",
+    "emailPlaceholder": "TWÓJ EMAIL",
+    "messagePlaceholder": "SZCZEGÓŁY PROJEKTU...",
     "submit": "Wyślij zapytanie",
+    "sending": "Wysyłanie...",
     "success": "Wiadomość wysłana pomyślnie!",
     "error": "Błąd podczas wysyłania."
   },
-  "login": {
-    "title": "Strefa Klienta",
-    "subtitle": "Bezpieczne Logowanie",
-    "pinPlaceholder": "KOD PIN",
-    "connect": "Zaloguj się",
-    "invalidPin": "Nieprawidłowy kod PIN"
-  },
   "footer": {
-    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi posiadłościami.",
+    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi ofertami.",
     "city": "Orihuela Costa, Hiszpania",
     "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Śledzenie Twojego projektu",
+    "phaseLabel": "Aktualna faza:",
+    "quit": "Wyloguj się",
+    "documents": "Dokumenty administracyjne",
+    "technicalReports": "Raporty z budowy",
+    "visitDate": "Data wizyty: {date}",
+    "statusConforme": "STATUS: ZGODNY",
+    "certification": "Informacje certyfikowane przez dział techniczny."
   }
 }

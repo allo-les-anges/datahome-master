@@ -12,19 +12,20 @@
     "showMore": "Ver más propiedades"
   },
   "nav": {
-    "about": "Quiénes somos",
-    "results": "Nuestras Propiedades",
+    "home": "Inicio",
+    "about": "Sobre nosotros",
+    "results": "Nuestras propiedades",
     "contact": "Contacto",
     "back": "Volver a la lista",
     "search": "Buscar una propiedad",
-    "clientAccess": "Seguimiento de Obra"
+    "clientAccess": "Seguimiento de obra"
   },
   "home": {
-    "heroTitleLine1": "Villas de Lujo y",
-    "heroTitleLine2": "Propiedades Excepcionales",
+    "heroTitleLine1": "Villas de lujo &",
+    "heroTitleLine2": "Propiedades excepcionales",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Encuentre su villa",
-    "noMatch": "No se encontraron coincidencias",
+    "noMatch": "No se encontraron resultados",
     "reset": "Restablecer filtros"
   },
   "propertyCard": {
@@ -43,7 +44,8 @@
     "plot": "Parcela m²",
     "pool": "Piscina",
     "description": "Descripción",
-    "parking": "Parking",
+    "features": "Características",
+    "parking": "Aparcamiento",
     "price": "Precio de venta",
     "brochure": "Folleto PDF",
     "whatsapp": "Contacto WhatsApp",
@@ -52,35 +54,31 @@
     "distanceSea": "Mar a {distance}km",
     "propertyNotFound": "Propiedad no encontrada"
   },
-  "projectTracker": {
-    "title": "Seguimiento de su Proyecto",
-    "phaseLabel": "Fase Actual:",
-    "quit": "Salir del espacio",
-    "documents": "Documentos Administrativos",
-    "technicalReports": "Informes de Obra",
-    "visitDate": "Fecha de visita: {date}",
-    "statusConforme": "ESTADO: CONFORME",
-    "certification": "Información certificada por el departamento técnico de ERA."
-  },
   "contact": {
     "formTitle": "Contáctenos",
-    "namePlaceholder": "NOMBRE COMPLETO",
-    "emailPlaceholder": "CORREO ELECTRÓNICO",
+    "directContact": "Contacto directo",
+    "teamTitle": "El equipo",
+    "namePlaceholder": "SU NOMBRE",
+    "emailPlaceholder": "SU EMAIL",
     "messagePlaceholder": "DETALLES DE SU PROYECTO...",
     "submit": "Enviar solicitud",
+    "sending": "Enviando...",
     "success": "¡Mensaje enviado con éxito!",
     "error": "Error al enviar."
   },
-  "login": {
-    "title": "Área de Clientes",
-    "subtitle": "Autenticación Segura",
-    "pinPlaceholder": "CÓDIGO PIN",
-    "connect": "Iniciar sesión",
-    "invalidPin": "Código PIN incorrecto"
-  },
   "footer": {
-    "description": "El arte de las propiedades inmobiliarias excepcionales. Forjamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
+    "description": "El arte de las propiedades inmobiliarias excepcionales. Creamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
     "city": "Orihuela Costa, España",
     "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Seguimiento de su proyecto",
+    "phaseLabel": "Fase actual:",
+    "quit": "Salir del espacio",
+    "documents": "Documentos administrativos",
+    "technicalReports": "Informes de obra",
+    "visitDate": "Fecha de visita: {date}",
+    "statusConforme": "ESTADO: CONFORME",
+    "certification": "Información certificada por el departamento técnico."
   }
 }

@@ -1450,6 +1450,92 @@ html[data-package="light"] .theme-toggle-component {
 }
 </file>
 
+<file path="src/app/page.tsx">
+"use client";
+
+import { useEffect, useState } from "react";
+import PropertyCard from "@/components/PropertyCard";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Loader2 } from "lucide-react";
+
+export default function HomePage() {
+  const [properties, setProperties] = useState<any[]>([]);
+  const [agency, setAgency] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // Chargement parallèle des propriétés et des infos agence
+        const [propRes, agencyRes] = await Promise.all([
+          fetch("/api/properties"),
+          fetch("/api/agency")
+        ]);
+
+        if (propRes.ok && agencyRes.ok) {
+          const propData = await propRes.json();
+          const agencyData = await agencyRes.json();
+          
+          setProperties(propData);
+          setAgency(agencyData);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement initial:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-[#0A0A0A]">
+        <Loader2 className="animate-spin text-[#D4AF37] mb-4" size={40} />
+      </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[#0A0A0A]">
+      <Navbar agency={agency} />
+      
+      {/* Hero Section ou Header */}
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-5xl md:text-8xl font-serif text-white mb-12">
+            Notre Sélection <br />
+            <span className="text-zinc-500 italic">Exclusive</span>
+          </h1>
+
+          {/* Grille des propriétés */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {properties.map((property) => (
+              <PropertyCard 
+                key={property.id} 
+                property={property} 
+                agency={agency} 
+              />
+            ))}
+          </div>
+
+          {properties.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-zinc-500 font-serif text-xl">
+                Aucune propriété disponible pour le moment.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <Footer agency={agency} />
+    </main>
+  );
+}
+</file>
+
 <file path="src/app/solution/page.tsx">
 "use client";
 
@@ -2619,6 +2705,143 @@ export default function AdvancedSearch({
 }
 </file>
 
+<file path="src/components/ContactForm.tsx">
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { Send, CheckCircle, Loader2, User, Mail, MessageSquare } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface ContactFormProps {
+  agency: any;
+  propertyRef: string;
+  isLight?: boolean;
+}
+
+export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
+  const { t } = useTranslation() as any;
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  // Extraction de la couleur de l'agence
+  const primaryColor = useMemo(() => {
+    return agency?.theme?.primary || 
+           agency?.colors?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus('loading');
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      message: formData.get('message'),
+      region: propertyRef, 
+    };
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    } catch (err) {
+      setStatus('error');
+    }
+  };
+
+  if (status === 'success') {
+    return (
+      <div className="p-10 text-center space-y-4 animate-in fade-in zoom-in duration-500">
+        <CheckCircle className="mx-auto text-green-500" size={48} />
+        <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
+          {t('contact.success_title') || 'Message envoyé'}
+        </h3>
+        <p className="text-xs text-slate-400">
+          Référence {propertyRef} bien reçue.
+        </p>
+      </div>
+    );
+  }
+
+  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
+  const themeStyles = isLight 
+    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-500' 
+    : 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:bg-white/10';
+
+  return (
+    <form onSubmit={handleSubmit} className="p-8 space-y-5">
+      <div className="mb-4">
+        <h3 className={`text-xl font-serif italic mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+          {t('contact.title') || "Demande d'informations"}
+        </h3>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
+          Réf : {propertyRef}
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="relative">
+          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            name="name"
+            type="text" 
+            placeholder="Votre nom complet" 
+            required
+            className={`${inputBaseStyles} ${themeStyles}`}
+            style={{ borderColor: status === 'idle' ? undefined : primaryColor }}
+          />
+        </div>
+
+        <div className="relative">
+          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            name="email"
+            type="email" 
+            placeholder="votre@email.com" 
+            required
+            className={`${inputBaseStyles} ${themeStyles}`}
+          />
+        </div>
+
+        <div className="relative">
+          <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
+          <textarea 
+            name="message"
+            placeholder="Je souhaite plus d'informations..." 
+            rows={4}
+            required
+            className={`w-full p-4 pl-12 rounded-2xl border text-sm outline-none transition-all resize-none ${themeStyles} h-auto`}
+          ></textarea>
+        </div>
+      </div>
+      
+      <button 
+        type="submit"
+        disabled={status === 'loading'}
+        className="w-full py-5 text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all mt-4"
+        style={{ backgroundColor: primaryColor }}
+      >
+        {status === 'loading' ? (
+          <Loader2 className="animate-spin" size={18} />
+        ) : (
+          <><Send size={16} /> Envoyer</>
+        )}
+      </button>
+    </form>
+  );
+}
+</file>
+
 <file path="src/components/Footer.tsx">
 "use client";
 
@@ -2833,6 +3056,150 @@ const DataHomeLogo = ({ className }: { className?: string }) => (
     </text>
   </svg>
 );
+</file>
+
+<file path="src/components/PropertyCard.tsx">
+"use client";
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Bed, Bath, Waves, Car, Maximize, Map, ChevronRight, Heart } from 'lucide-react';
+import Link from 'next/link';
+import { useTheme } from "next-themes";
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface PropertyCardProps {
+  property: any;
+  agency?: any; // Ajout pour corriger l'erreur de build
+  isLight?: boolean;
+}
+
+export default function PropertyCard({ property, agency, isLight = false }: PropertyCardProps) {
+  const { resolvedTheme } = useTheme();
+  const { t } = useTranslation() as any;
+  const [mounted, setMounted] = useState(false);
+  const priceFormatted = new Intl.NumberFormat('de-DE').format(property.price || 0);
+
+  // --- EXTRACTION DE LA COULEUR DYNAMIQUE ---
+  const primaryColor = useMemo(() => {
+    return agency?.theme?.primary || 
+           agency?.colors?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const translate = (key: string, params?: Record<string, string>) => {
+    let text = t(key);
+    if (params && text) {
+      Object.entries(params).forEach(([k, v]) => {
+        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+      });
+    }
+    return text || key;
+  };
+
+  if (!mounted) return null;
+  const showDark = resolvedTheme === 'dark' && !isLight;
+  
+  // Correction du chemin vers la page détail (doit correspondre à votre structure [id])
+  const detailUrl = `/bien/${property.id}${isLight ? '?pack=light' : ''}`;
+
+  return (
+    <Link href={detailUrl} className="group flex flex-col w-full transition-all duration-500">
+      <div 
+        className="relative h-[380px] overflow-hidden rounded-none border transition-colors duration-500"
+        style={{ 
+          backgroundColor: showDark ? '#0f172a' : '#f1f5f9',
+          borderColor: showDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'
+        }}
+      >
+        <img 
+          src={property.images?.[0] || "/placeholder-house.jpg"} 
+          alt={property.titre}
+          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90" />
+
+        {/* BADGES GAUCHE - Utilise primaryColor */}
+        <div className="absolute bottom-6 left-6 flex flex-wrap gap-2 max-w-[70%] z-10">
+          <span 
+            className="text-[9px] font-black px-4 py-2 rounded-none uppercase tracking-widest shadow-xl border border-white/10"
+            style={{ 
+              backgroundColor: isLight ? 'black' : primaryColor,
+              color: isLight ? 'white' : 'black' 
+            }}
+          >
+            {translate('propertyCard.ref', { ref: property.ref || property.id_externe })}
+          </span>
+          <span className="bg-black/60 backdrop-blur-md text-white border border-white/30 text-[8px] font-bold px-4 py-2 rounded-none uppercase tracking-[0.2em]">
+            {property.type || t('propertyCard.exclusivity')}
+          </span>
+        </div>
+
+        {/* BOUTONS DROITE */}
+        <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-10">
+          <button className="bg-black/40 backdrop-blur-md p-3 rounded-none border border-white/20 text-white hover:bg-opacity-100 transition-all">
+            <Heart size={18} strokeWidth={1.5} />
+          </button>
+          <div 
+            className="p-3 rounded-none shadow-xl transform group-hover:translate-x-1 transition-all border border-white/10"
+            style={{ 
+              backgroundColor: isLight ? 'black' : primaryColor,
+              color: isLight ? 'white' : 'black'
+            }}
+          >
+            <ChevronRight size={20} strokeWidth={2.5} />
+          </div>
+        </div>
+      </div>
+
+      <div className="py-8 px-2">
+        <div className="flex justify-between items-start gap-4 mb-3">
+          <h3 className="font-serif text-2xl italic leading-tight flex-grow line-clamp-1" style={{ color: showDark ? '#ffffff' : '#0f172a' }}>
+            {property.titre}
+          </h3>
+          <span className="text-xl font-bold pt-1" style={{ color: isLight ? 'black' : primaryColor }}>
+            {priceFormatted} €
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-bold" style={{ color: showDark ? '#e2e8f0' : '#475569' }}>
+          <span style={{ color: isLight ? 'black' : primaryColor }}>●</span>
+          {property.town} <span className="opacity-30">|</span> {property.region}
+        </div>
+      </div>
+
+      {/* ICONES TECHNIQUES */}
+      <div className="grid grid-cols-3 gap-y-6 pt-6 border-t" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
+        {[
+          { icon: Maximize, value: `${property.surface_built || 0} m²` },
+          { icon: Bed, value: `${property.beds || 0} ${t('propertyCard.beds') || 'Beds'}` },
+          { icon: Bath, value: `${property.baths || 0} ${t('propertyCard.baths') || 'Baths'}` },
+          { icon: Waves, value: (property.pool === "Oui" || property.pool === true) ? (t('propertyCard.pool') || 'Piscine') : (t('propertyCard.noPool') || 'Sans Piscine') },
+          { icon: Map, value: `${property.surface_plot || 0} m²` },
+          { icon: Car, value: t('propertyCard.garage') || 'Parking' }
+        ].map((item, idx) => (
+          <div key={idx} className="flex items-center gap-3">
+            <div 
+              className="w-8 h-8 flex items-center justify-center border"
+              style={{ 
+                backgroundColor: showDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'
+              }}
+            >
+              <item.icon size={14} style={{ color: isLight ? 'black' : primaryColor }} />
+            </div>
+            <span className="text-[11px] font-medium" style={{ color: showDark ? '#f1f5f9' : '#1e293b' }}>
+              {item.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Link>
+  );
+}
 </file>
 
 <file path="src/components/PropertyGrid.tsx">
@@ -3841,229 +4208,6 @@ export default async function RootLayout({
 }
 </file>
 
-<file path="src/app/page.tsx">
-"use client";
-
-import { useEffect, useState } from "react";
-import PropertyCard from "@/components/PropertyCard";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { Loader2 } from "lucide-react";
-
-export default function HomePage() {
-  const [properties, setProperties] = useState<any[]>([]);
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Chargement parallèle des propriétés et des infos agence
-        const [propRes, agencyRes] = await Promise.all([
-          fetch("/api/properties"),
-          fetch("/api/agency")
-        ]);
-
-        if (propRes.ok && agencyRes.ok) {
-          const propData = await propRes.json();
-          const agencyData = await agencyRes.json();
-          
-          setProperties(propData);
-          setAgency(agencyData);
-        }
-      } catch (err) {
-        console.error("Erreur lors du chargement initial:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-[#0A0A0A]">
-        <Loader2 className="animate-spin text-[#D4AF37] mb-4" size={40} />
-      </div>
-    );
-  }
-
-  return (
-    <main className="min-h-screen bg-[#0A0A0A]">
-      <Navbar agency={agency} />
-      
-      {/* Hero Section ou Header */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-5xl md:text-8xl font-serif text-white mb-12">
-            Notre Sélection <br />
-            <span className="text-zinc-500 italic">Exclusive</span>
-          </h1>
-
-          {/* Grille des propriétés */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {properties.map((property) => (
-              <PropertyCard 
-                key={property.id} 
-                property={property} 
-                agency={agency} 
-              />
-            ))}
-          </div>
-
-          {properties.length === 0 && (
-            <div className="text-center py-20">
-              <p className="text-zinc-500 font-serif text-xl">
-                Aucune propriété disponible pour le moment.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <Footer agency={agency} />
-    </main>
-  );
-}
-</file>
-
-<file path="src/components/ContactForm.tsx">
-"use client";
-
-import React, { useState, useMemo } from "react";
-import { Send, CheckCircle, Loader2, User, Mail, MessageSquare } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface ContactFormProps {
-  agency: any;
-  propertyRef: string;
-  isLight?: boolean;
-}
-
-export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
-  const { t } = useTranslation() as any;
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-  // Extraction de la couleur de l'agence
-  const primaryColor = useMemo(() => {
-    return agency?.theme?.primary || 
-           agency?.colors?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('loading');
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      message: formData.get('message'),
-      region: propertyRef, 
-    };
-
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (res.ok) {
-        setStatus('success');
-      } else {
-        setStatus('error');
-      }
-    } catch (err) {
-      setStatus('error');
-    }
-  };
-
-  if (status === 'success') {
-    return (
-      <div className="p-10 text-center space-y-4 animate-in fade-in zoom-in duration-500">
-        <CheckCircle className="mx-auto text-green-500" size={48} />
-        <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.success_title') || 'Message envoyé'}
-        </h3>
-        <p className="text-xs text-slate-400">
-          Référence {propertyRef} bien reçue.
-        </p>
-      </div>
-    );
-  }
-
-  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
-  const themeStyles = isLight 
-    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-500' 
-    : 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:bg-white/10';
-
-  return (
-    <form onSubmit={handleSubmit} className="p-8 space-y-5">
-      <div className="mb-4">
-        <h3 className={`text-xl font-serif italic mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.title') || "Demande d'informations"}
-        </h3>
-        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
-          Réf : {propertyRef}
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="relative">
-          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            name="name"
-            type="text" 
-            placeholder="Votre nom complet" 
-            required
-            className={`${inputBaseStyles} ${themeStyles}`}
-            style={{ borderColor: status === 'idle' ? undefined : primaryColor }}
-          />
-        </div>
-
-        <div className="relative">
-          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            name="email"
-            type="email" 
-            placeholder="votre@email.com" 
-            required
-            className={`${inputBaseStyles} ${themeStyles}`}
-          />
-        </div>
-
-        <div className="relative">
-          <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
-          <textarea 
-            name="message"
-            placeholder="Je souhaite plus d'informations..." 
-            rows={4}
-            required
-            className={`w-full p-4 pl-12 rounded-2xl border text-sm outline-none transition-all resize-none ${themeStyles} h-auto`}
-          ></textarea>
-        </div>
-      </div>
-      
-      <button 
-        type="submit"
-        disabled={status === 'loading'}
-        className="w-full py-5 text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all mt-4"
-        style={{ backgroundColor: primaryColor }}
-      >
-        {status === 'loading' ? (
-          <Loader2 className="animate-spin" size={18} />
-        ) : (
-          <><Send size={16} /> Envoyer</>
-        )}
-      </button>
-    </form>
-  );
-}
-</file>
-
 <file path="src/components/CookieBanner.tsx">
 "use client";
 
@@ -4251,150 +4395,6 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
       {/* GRADIENT DE TRANSITION VERS LE CONTENU SUIVANT */}
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-50 via-slate-50/20 to-transparent z-20" />
     </div>
-  );
-}
-</file>
-
-<file path="src/components/PropertyCard.tsx">
-"use client";
-
-import React, { useState, useEffect, useMemo } from 'react';
-import { Bed, Bath, Waves, Car, Maximize, Map, ChevronRight, Heart } from 'lucide-react';
-import Link from 'next/link';
-import { useTheme } from "next-themes";
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface PropertyCardProps {
-  property: any;
-  agency?: any; // Ajout pour corriger l'erreur de build
-  isLight?: boolean;
-}
-
-export default function PropertyCard({ property, agency, isLight = false }: PropertyCardProps) {
-  const { resolvedTheme } = useTheme();
-  const { t } = useTranslation() as any;
-  const [mounted, setMounted] = useState(false);
-  const priceFormatted = new Intl.NumberFormat('de-DE').format(property.price || 0);
-
-  // --- EXTRACTION DE LA COULEUR DYNAMIQUE ---
-  const primaryColor = useMemo(() => {
-    return agency?.theme?.primary || 
-           agency?.colors?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const translate = (key: string, params?: Record<string, string>) => {
-    let text = t(key);
-    if (params && text) {
-      Object.entries(params).forEach(([k, v]) => {
-        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
-      });
-    }
-    return text || key;
-  };
-
-  if (!mounted) return null;
-  const showDark = resolvedTheme === 'dark' && !isLight;
-  
-  // Correction du chemin vers la page détail (doit correspondre à votre structure [id])
-  const detailUrl = `/bien/${property.id}${isLight ? '?pack=light' : ''}`;
-
-  return (
-    <Link href={detailUrl} className="group flex flex-col w-full transition-all duration-500">
-      <div 
-        className="relative h-[380px] overflow-hidden rounded-none border transition-colors duration-500"
-        style={{ 
-          backgroundColor: showDark ? '#0f172a' : '#f1f5f9',
-          borderColor: showDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'
-        }}
-      >
-        <img 
-          src={property.images?.[0] || "/placeholder-house.jpg"} 
-          alt={property.titre}
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90" />
-
-        {/* BADGES GAUCHE - Utilise primaryColor */}
-        <div className="absolute bottom-6 left-6 flex flex-wrap gap-2 max-w-[70%] z-10">
-          <span 
-            className="text-[9px] font-black px-4 py-2 rounded-none uppercase tracking-widest shadow-xl border border-white/10"
-            style={{ 
-              backgroundColor: isLight ? 'black' : primaryColor,
-              color: isLight ? 'white' : 'black' 
-            }}
-          >
-            {translate('propertyCard.ref', { ref: property.ref || property.id_externe })}
-          </span>
-          <span className="bg-black/60 backdrop-blur-md text-white border border-white/30 text-[8px] font-bold px-4 py-2 rounded-none uppercase tracking-[0.2em]">
-            {property.type || t('propertyCard.exclusivity')}
-          </span>
-        </div>
-
-        {/* BOUTONS DROITE */}
-        <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-10">
-          <button className="bg-black/40 backdrop-blur-md p-3 rounded-none border border-white/20 text-white hover:bg-opacity-100 transition-all">
-            <Heart size={18} strokeWidth={1.5} />
-          </button>
-          <div 
-            className="p-3 rounded-none shadow-xl transform group-hover:translate-x-1 transition-all border border-white/10"
-            style={{ 
-              backgroundColor: isLight ? 'black' : primaryColor,
-              color: isLight ? 'white' : 'black'
-            }}
-          >
-            <ChevronRight size={20} strokeWidth={2.5} />
-          </div>
-        </div>
-      </div>
-
-      <div className="py-8 px-2">
-        <div className="flex justify-between items-start gap-4 mb-3">
-          <h3 className="font-serif text-2xl italic leading-tight flex-grow line-clamp-1" style={{ color: showDark ? '#ffffff' : '#0f172a' }}>
-            {property.titre}
-          </h3>
-          <span className="text-xl font-bold pt-1" style={{ color: isLight ? 'black' : primaryColor }}>
-            {priceFormatted} €
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-bold" style={{ color: showDark ? '#e2e8f0' : '#475569' }}>
-          <span style={{ color: isLight ? 'black' : primaryColor }}>●</span>
-          {property.town} <span className="opacity-30">|</span> {property.region}
-        </div>
-      </div>
-
-      {/* ICONES TECHNIQUES */}
-      <div className="grid grid-cols-3 gap-y-6 pt-6 border-t" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
-        {[
-          { icon: Maximize, value: `${property.surface_built || 0} m²` },
-          { icon: Bed, value: `${property.beds || 0} ${t('propertyCard.beds') || 'Beds'}` },
-          { icon: Bath, value: `${property.baths || 0} ${t('propertyCard.baths') || 'Baths'}` },
-          { icon: Waves, value: (property.pool === "Oui" || property.pool === true) ? (t('propertyCard.pool') || 'Piscine') : (t('propertyCard.noPool') || 'Sans Piscine') },
-          { icon: Map, value: `${property.surface_plot || 0} m²` },
-          { icon: Car, value: t('propertyCard.garage') || 'Parking' }
-        ].map((item, idx) => (
-          <div key={idx} className="flex items-center gap-3">
-            <div 
-              className="w-8 h-8 flex items-center justify-center border"
-              style={{ 
-                backgroundColor: showDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-                borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'
-              }}
-            >
-              <item.icon size={14} style={{ color: isLight ? 'black' : primaryColor }} />
-            </div>
-            <span className="text-[11px] font-medium" style={{ color: showDark ? '#f1f5f9' : '#1e293b' }}>
-              {item.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </Link>
   );
 }
 </file>
@@ -4933,284 +4933,6 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
 }
 </file>
 
-<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
-import { supabase } from "@/lib/supabase";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import CookieBanner from "@/components/CookieBanner";
-
-export default async function AgencyLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ slug: string; locale: string }>; // Ajout de locale ici
-}) {
-  const { slug } = await params; // On récupère le slug de l'agence
-
-  const { data: agency } = await supabase
-    .from('agency_settings') 
-    .select('*')
-    .eq('subdomain', slug)
-    .single();
-
-  const dynamicStyles = {
-    '--brand-primary': agency?.primary_color || '#10b981',
-    '--font-main': agency?.font_family || 'Inter, sans-serif',
-    '--font-serif': 'Playfair Display, serif',
-  } as React.CSSProperties;
-
-  return (
-    <div style={dynamicStyles} className="min-h-screen">
-      {children}
-      
-      {agency && (
-        <>
-          <FloatingWhatsApp 
-            phone={agency.footer_config?.socials?.whatsapp || agency.whatsapp_number} 
-            color={agency.primary_color} 
-          />
-          <CookieBanner 
-            enabled={agency.cookie_consent_enabled} 
-            agencyName={agency.agency_name} 
-          />
-        </>
-      )}
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/contact/page.tsx">
-"use client";
-
-import React, { useState, useEffect, use } from "react";
-import { motion } from "framer-motion";
-import { Loader2, Mail, Phone, User } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext";
-
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
-interface ContactPageProps {
-  params: Promise<{
-    slug: string;
-    locale: string;
-  }>;
-}
-
-export default function ContactPage({ params }: ContactPageProps) {
-  // Déballe les params de manière réactive
-  const resolvedParams = use(params);
-  const { t } = useTranslation();
-  const { agency, loading, setAgencyBySlug } = useAgency(); 
-  
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-
-  // Synchronisation avec le slug de l'URL
-  useEffect(() => {
-    if (resolvedParams.slug) {
-      setAgencyBySlug(resolvedParams.slug);
-    }
-  }, [resolvedParams.slug, setAgencyBySlug]);
-
-  // --- GESTION DU CHARGEMENT ---
-  // On ne bloque que si on charge ET qu'on a strictement aucune donnée d'agence
-  if (loading && !agency) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0A0A0A]">
-        <Loader2 className="animate-spin text-slate-400" size={40} />
-      </div>
-    );
-  }
-
-  // --- FALLBACK SI L'AGENCE EST INTROUVABLE ---
-  if (!agency) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0A0A0A]">
-        <p className="text-slate-500 font-serif italic">Agence non répertoriée...</p>
-      </div>
-    );
-  }
-
-  // --- CONFIGURATION DYNAMIQUE ---
-  const brandColor = agency.primary_color || "#c5a059";
-  const buttonColor = agency.button_color || brandColor;
-  const selectedFont = agency.font_family || 'Montserrat';
-
-  // --- PARSING DES DONNÉES ---
-  const getParsedData = (data: any) => {
-    if (!data) return {};
-    if (typeof data === 'object') return data;
-    try {
-      return JSON.parse(data);
-    } catch (e) {
-      return {};
-    }
-  };
-
-  const contactInfo = getParsedData(agency.footer_config);
-  const teamData = getParsedData(agency.team_data);
-  
-  const displayTeam = Array.isArray(teamData) && teamData.length > 0 
-    ? teamData 
-    : [{ 
-        name: "Direction Générale", 
-        role: "Expert Immobilier Luxe", 
-        bio: "Spécialiste de l'accompagnement sur-mesure pour vos projets d'exception.", 
-        photo: null 
-      }];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simulation d'envoi
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setStatus("success");
-      setFormData({ name: "", email: "", message: "" });
-      setTimeout(() => setStatus("idle"), 5000);
-    }, 1500);
-  };
-
-  return (
-    <div 
-      className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500"
-      style={{ fontFamily: selectedFont }}
-    >
-      <Navbar agency={agency} />
-
-      <main>
-        {/* HERO SECTION */}
-        <section className="relative h-[45vh] flex items-center justify-center overflow-hidden bg-slate-900">
-          {agency.hero_url ? (
-            <img 
-              src={agency.hero_url} 
-              className="absolute inset-0 w-full h-full object-cover opacity-40 brightness-50" 
-              alt="Hero" 
-            />
-          ) : (
-            <div className="absolute inset-0 bg-black opacity-80" />
-          )}
-          <div className="relative z-10 text-center px-6 max-w-4xl">
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-6xl font-serif italic text-white mb-4" 
-            >
-              {t('nav.contact') || "Contactez-nous"}
-            </motion.h1>
-            <p className="text-white/80 text-lg font-light italic max-w-2xl mx-auto">
-              {agency.agency_name}
-            </p>
-          </div>
-        </section>
-
-        <section className="max-w-[1400px] mx-auto px-6 py-20 grid grid-cols-1 xl:grid-cols-12 gap-16">
-          
-          {/* SECTION ÉQUIPE */}
-          <div className="xl:col-span-7 space-y-10">
-            <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
-              <h2 className="text-3xl font-serif italic uppercase tracking-widest">
-                {agency.about_title || "L'Équipe"}
-              </h2>
-            </div>
-            
-            <div className="grid gap-8">
-              {displayTeam.map((member: any, idx: number) => (
-                <motion.div 
-                  key={idx}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className="p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex flex-col md:flex-row gap-8 items-center shadow-sm"
-                >
-                  <div className="w-24 h-32 rounded-2xl bg-slate-200 dark:bg-white/10 overflow-hidden shrink-0 flex items-center justify-center">
-                    {member.photo ? (
-                      <img src={member.photo} className="w-full h-full object-cover" alt={member.name} />
-                    ) : (
-                      <User size={30} className="text-slate-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 text-center md:text-left space-y-2">
-                    <h3 className="text-xl font-bold" style={{ color: brandColor }}>{member.name}</h3>
-                    <p className="text-[9px] uppercase tracking-widest font-black opacity-50">{member.role}</p>
-                    <p className="text-sm font-light leading-relaxed italic text-slate-600 dark:text-slate-400">
-                      {member.bio}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* SECTION FORMULAIRE (IPHONE DESIGN) */}
-          <div className="xl:col-span-5 flex justify-center">
-            <div className="relative w-full max-w-[380px] aspect-[9/18.5] rounded-[3.5rem] bg-slate-900 p-3 shadow-2xl border-[8px] border-slate-800 ring-1 ring-white/10">
-              <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden bg-slate-950 flex flex-col">
-                <div className="relative z-10 h-full flex flex-col p-8 pt-12">
-                  <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">Direct Contact</h3>
-                  
-                  <div className="space-y-3 mb-8">
-                    <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px]">
-                        <Phone size={14} style={{ color: brandColor }} />
-                        {contactInfo.phone || agency.phone || "+33 1 00 00 00 00"}
-                    </div>
-                    <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px] truncate">
-                        <Mail size={14} style={{ color: brandColor }} />
-                        {contactInfo.email || agency.email || "contact@agence.com"}
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-3">
-                    <input 
-                      required
-                      className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all"
-                      placeholder="VOTRE NOM"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
-                    <input 
-                      required
-                      type="email"
-                      className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all"
-                      placeholder="VOTRE EMAIL"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    />
-                    <textarea 
-                      required
-                      rows={4}
-                      className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none transition-all"
-                      placeholder="VOTRE MESSAGE..."
-                      value={formData.message}
-                      onChange={(e) => setFormData({...formData, message: e.target.value})}
-                    />
-                    
-                    <button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      style={{ backgroundColor: buttonColor }}
-                      className="mt-auto w-full py-4 rounded-xl text-black font-black text-[10px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                      {isSubmitting ? <Loader2 className="animate-spin" size={14}/> : (status === "success" ? "ENVOYÉ !" : "ENVOYER")}
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <Footer agency={agency} />
-    </div>
-  );
-}
-</file>
-
 <file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
 import AgencyPageClient from "@/app/AgencyPageClient";
 
@@ -5289,19 +5011,18 @@ interface AboutPageProps {
 
 export default async function AboutPage({ params }: AboutPageProps) {
   // On attend la résolution des paramètres
-  const resolvedParams = await params;
-  const { slug } = resolvedParams;
+  const { slug } = await params;
 
-  // Récupération de l'agence par slug dans Supabase
+  // 🟢 CORRECTION : On utilise 'subdomain' au lieu de 'slug'
   const { data: agency, error } = await supabase
     .from('agency_settings')
     .select('*')
-    .eq('slug', slug)
+    .eq('subdomain', slug) 
     .maybeSingle();
 
   // Si l'erreur est présente ou l'agence inexistante -> 404
   if (error || !agency) {
-    console.error("❌ Agence non trouvée pour le slug:", slug);
+    console.error("❌ [AboutPage] Agence non trouvée pour le subdomain:", slug);
     notFound();
   }
 
@@ -5368,294 +5089,239 @@ export default async function AboutPage({ params }: AboutPageProps) {
 }
 </file>
 
-<file path="src/components/Navbar.tsx">
+<file path="src/app/[locale]/(agency_site)/[slug]/contact/page.tsx">
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Globe, Menu, X } from "lucide-react";
+import React, { useState, useEffect, use, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Mail, Phone, User } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
 
-const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
-  <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
-    <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
-    <text x="10" y="28" fontFamily="sans-serif" fontSize="22" fontWeight="300" fill="currentColor" letterSpacing="-0.02em">data home</text>
-  </svg>
-);
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
-interface NavbarProps {
-  agency?: any;
+interface ContactPageProps {
+  params: Promise<{
+    slug: string;
+    locale: string;
+  }>;
 }
 
-export default function Navbar({ agency }: NavbarProps) {
-  const pathname = usePathname();
-  const { t, locale, setLocale } = useTranslation() as any;
-  const brandColor = agency?.primary_color || "#D4AF37";
+export default function ContactPage({ params }: ContactPageProps) {
+  const resolvedParams = use(params);
+  const { t } = useTranslation() as any;
+  const { agency, loading, setAgencyBySlug } = useAgency(); 
+  
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-  const [mounted, setMounted] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // --- LOGIQUE DE ROUTAGE DYNAMIQUE ---
-  // On utilise le slug de l'agence pour construire les liens internes
-  const agencySlug = agency?.slug || agency?.subdomain;
-  const baseUrl = `/${locale}/${agencySlug}`;
-
+  // Synchronisation sécurisée du slug
   useEffect(() => {
-    setMounted(true);
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+    const currentSlug = resolvedParams.slug;
+    // On ne déclenche l'appel que si le slug de l'URL est différent de celui chargé en mémoire
+    if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
+      setAgencyBySlug(currentSlug);
+    }
+  }, [resolvedParams.slug, agency?.subdomain, loading]); // Retrait de setAgencyBySlug des dépendances si non-callback
+
+  // Parsing des données avec useMemo pour éviter de recalculer à chaque rendu
+  const { contactInfo, displayTeam, brandColor, buttonColor, selectedFont } = useMemo(() => {
+    const getParsed = (data: any) => {
+      if (!data) return {};
+      if (typeof data === 'object') return data;
+      try { return JSON.parse(data); } catch (e) { return {}; }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsLangOpen(false);
-      }
+    const cInfo = getParsed(agency?.footer_config);
+    const tData = getParsed(agency?.team_data);
+    
+    const team = Array.isArray(tData) && tData.length > 0 
+      ? tData 
+      : [{ 
+          name: agency?.agency_name || "Direction", 
+          role: "Expert Immobilier", 
+          bio: "Spécialiste de l'accompagnement sur-mesure.", 
+          photo: null 
+        }];
+
+    return {
+      contactInfo: cInfo,
+      displayTeam: team,
+      brandColor: agency?.primary_color || "#c5a059",
+      buttonColor: agency?.button_color || agency?.primary_color || "#c5a059",
+      selectedFont: agency?.font_family || 'Montserrat'
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [agency]);
 
-  if (!mounted) return null;
+  if (loading && !agency) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement...</p>
+      </div>
+    );
+  }
 
-  const textColor = isScrolled ? "text-slate-900" : "text-white";
-  const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
+  if (!agency && !loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white text-center">
+        <div>
+           <p className="text-slate-500 font-serif italic mb-4">Agence non répertoriée...</p>
+           <button onClick={() => window.location.reload()} className="text-[10px] font-black uppercase border-b border-black">Réessayer</button>
+        </div>
+      </div>
+    );
+  }
 
-  const navLinks = [
-    { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
-    { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Simulez l'envoi ici
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setStatus("success");
+      setFormData({ name: "", email: "", message: "" });
+      setTimeout(() => setStatus("idle"), 5000);
+    }, 1500);
+  };
 
   return (
-    <>
-      <nav 
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
-          isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
-        }`}
-        style={{
-          backdropFilter: isScrolled ? 'blur(16px)' : 'none',
-          WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
-          
-          <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
-            {agency?.logo_url ? (
-               <img 
-                 src={agency.logo_url} 
-                 alt={agency?.agency_name || "Logo"} 
-                 className="h-20 md:h-24 w-auto object-contain transition-all duration-500" 
-               />
-            ) : (
-               <DataHomeLogo 
-                 className="h-16 md:h-20 w-auto transition-colors duration-500" 
-                 style={{ color: logoHexColor }}
-               />
-            )}
-          </Link>
+    <div className="min-h-screen bg-white text-slate-900" style={{ fontFamily: selectedFont }}>
+      <Navbar />
+      <main>
+        {/* Hero */}
+        <section className="relative h-[45vh] flex items-center justify-center overflow-hidden bg-slate-900">
+          {agency?.hero_url && (
+            <img src={agency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-40 brightness-50" alt="Hero" />
+          )}
+          <div className="relative z-10 text-center px-6">
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-6xl font-serif italic text-white mb-4">
+              {t('nav.contact') || "Contactez-nous"}
+            </motion.h1>
+            <p className="text-white/80 text-lg font-light italic uppercase tracking-widest">{agency?.agency_name}</p>
+          </div>
+        </section>
 
-          <div className="hidden md:flex items-center gap-12">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
-                href={link.href} 
-                className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
-              >
-                <span className="pb-1" style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}>
-                  {link.name}
-                </span>
-              </Link>
-            ))}
-
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setIsLangOpen(!isLangOpen)}
-                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${textColor}`}
-              >
-                <Globe size={14} style={{ color: brandColor }} />
-                {locale}
-              </button>
-              
-              {isLangOpen && (
-                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => { 
-                        const newPath = pathname.replace(`/${locale}/`, `/${lang}/`);
-                        setLocale(lang as any); 
-                        setIsLangOpen(false);
-                        window.location.href = newPath;
-                      }}
-                      className="w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-colors"
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              )}
+        {/* Content */}
+        <section className="max-w-[1400px] mx-auto px-6 py-20 grid grid-cols-1 xl:grid-cols-12 gap-16">
+          <div className="xl:col-span-7 space-y-10">
+            <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
+              <h2 className="text-3xl font-serif italic uppercase tracking-widest">{agency?.about_title || "L'Équipe"}</h2>
+            </div>
+            
+            <div className="grid gap-8">
+              {displayTeam.map((member: any, idx: number) => (
+                <motion.div key={idx} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} className="p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-8 items-center shadow-sm">
+                  <div className="w-24 h-32 rounded-2xl bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                    {member.photo ? <img src={member.photo} className="w-full h-full object-cover" alt={member.name} /> : <User size={30} className="text-slate-400" />}
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-xl font-bold" style={{ color: brandColor }}>{member.name}</h3>
+                    <p className="text-[9px] uppercase tracking-widest font-black opacity-50 mb-2">{member.role}</p>
+                    <p className="text-sm font-light italic text-slate-600 leading-relaxed">{member.bio}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
 
-          <button 
-            className={`md:hidden p-2 transition-colors ${textColor}`} 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
-        </div>
-      </nav>
+          {/* Form Card (Design iPhone-style) */}
+          <div className="xl:col-span-5 flex justify-center">
+            <div className="relative w-full max-w-[380px] aspect-[9/18.5] rounded-[3.5rem] bg-slate-900 p-3 shadow-2xl border-[8px] border-slate-800">
+              <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden bg-slate-950 flex flex-col p-8 pt-12">
+                <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">Direct Contact</h3>
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px]">
+                    <Phone size={14} style={{ color: brandColor }} />
+                    {contactInfo?.phone || agency?.phone || "+33 1 00 00 00 00"}
+                  </div>
+                  <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px] truncate">
+                    <Mail size={14} style={{ color: brandColor }} />
+                    {contactInfo?.email || agency?.email || "contact@agence.com"}
+                  </div>
+                </div>
 
-      {/* Menu Mobile */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
-          <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
-            <X size={35} />
-          </button>
-          
-          <Link href={baseUrl} onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-[0.5em] text-white">
-            Accueil
-          </Link>
-
-          {navLinks.map((link) => (
-            <Link 
-              key={link.href}
-              href={link.href} 
-              onClick={() => setIsMenuOpen(false)} 
-              className="text-xl font-black uppercase tracking-[0.5em] text-white"
-            >
-              {link.name}
-            </Link>
-          ))}
-        </div>
-      )}
-    </>
+                <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-3">
+                  <input required className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30" placeholder="VOTRE NOM" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                  <input required type="email" className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30" placeholder="VOTRE EMAIL" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+                  <textarea required rows={4} className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none" placeholder="VOTRE MESSAGE..." value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} />
+                  <button type="submit" disabled={isSubmitting} style={{ backgroundColor: buttonColor }} className="mt-auto w-full py-4 rounded-xl text-black font-black text-[10px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2">
+                    {isSubmitting ? <Loader2 className="animate-spin" size={14}/> : (status === "success" ? "ENVOYÉ !" : "ENVOYER")}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer agency={agency} />
+    </div>
   );
 }
 </file>
 
-<file path="src/contexts/AgencyContext.tsx">
-"use client";
-
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
 import { supabase } from "@/lib/supabase";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import CookieBanner from "@/components/CookieBanner";
 
-interface AgencyContextType {
-  agency: any;
-  loading: boolean;
-  setAgencyBySlug: (slug: string) => Promise<void>;
-}
+export default async function AgencyLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug } = await params;
 
-const AgencyContext = createContext<AgencyContextType>({
-  agency: null,
-  loading: true,
-  setAgencyBySlug: async () => {},
-});
+  // Récupération des paramètres de l'agence via la colonne subdomain
+  const { data: agency } = await supabase
+    .from('agency_settings') 
+    .select('*')
+    .eq('subdomain', slug) 
+    .maybeSingle();
 
-export function AgencyProvider({ children }: { children: React.ReactNode }) {
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // Définition des variables CSS dynamiques pour le thème de l'agence
+  const dynamicStyles = {
+    '--brand-primary': agency?.primary_color || '#10b981',
+    '--font-main': agency?.font_family || 'Inter, sans-serif',
+    '--font-serif': 'Playfair Display, serif',
+  } as React.CSSProperties;
 
-  // Utilisation de useCallback pour éviter de recréer la fonction à chaque rendu
-  const setAgencyBySlug = useCallback(async (slug: string) => {
-    if (!slug) return;
-    try {
-      if (agency?.slug === slug) return;
+  // Parsing sécurisé de footer_config (au cas où il arrive en string JSON)
+  const getFooterData = (config: any) => {
+    if (!config) return {};
+    if (typeof config === 'object') return config;
+    try { return JSON.parse(config); } catch { return {}; }
+  };
 
-      const { data } = await supabase
-        .from('agency_settings')
-        .select('*')
-        .eq('slug', slug)
-        .maybeSingle();
-
-      if (data) {
-        setAgency(data);
-      }
-    } catch (err) {
-      console.error("Erreur setAgencyBySlug:", err);
-    }
-  }, [agency?.slug]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function fetchAgency() {
-      if (!isMounted) return;
-      setLoading(true);
-
-      try {
-        const host = window.location.hostname;
-        const path = window.location.pathname;
-        
-        // 1. Extraction du slug depuis le chemin (ex: /fr/schmidt-privilege/about)
-        const pathParts = path.split('/').filter(Boolean);
-        const urlSlug = pathParts.length >= 2 ? pathParts[1] : null;
-
-        // 2. Extraction du sous-domaine
-        const subdomain = host.split('.')[0];
-
-        let agencyData = null;
-
-        // PRIORITÉ 1 : Slug dans l'URL (pour Vercel/Localhost)
-        if (urlSlug && (host.includes('vercel.app') || host.includes('localhost'))) {
-          const { data } = await supabase
-            .from('agency_settings')
-            .select('*')
-            .eq('slug', urlSlug)
-            .maybeSingle();
-          agencyData = data;
-        }
-
-        // PRIORITÉ 2 : Domaine personnalisé ou sous-domaine réel (Production)
-        if (!agencyData && subdomain !== 'datahome') {
-          const { data } = await supabase
-            .from('agency_settings')
-            .select('*')
-            .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
-            .maybeSingle();
-          agencyData = data;
-        }
-
-        // PRIORITÉ 3 : Fallback final
-        if (!agencyData) {
-          const { data } = await supabase
-            .from('agency_settings')
-            .select('*')
-            .eq('slug', 'schmidt-privilege')
-            .maybeSingle();
-          agencyData = data;
-        }
-
-        if (isMounted && agencyData) {
-          setAgency(agencyData);
-        }
-      } catch (err) {
-        console.error("💥 Erreur AgencyContext:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    
-    fetchAgency();
-    return () => { isMounted = false; };
-  }, []);
+  const footerConfig = getFooterData(agency?.footer_config);
 
   return (
-    <AgencyContext.Provider value={{ agency, loading, setAgencyBySlug }}>
-      {children}
-    </AgencyContext.Provider>
+    <div style={dynamicStyles} className="min-h-screen">
+      {/* IMPORTANT : children permet d'afficher les pages enfants 
+          (/contact, /about, etc.) à l'intérieur de ce layout.
+      */}
+      {children} 
+      
+      {agency && (
+        <>
+          {/* Widgets flottants spécifiques à l'agence */}
+          <FloatingWhatsApp 
+            phone={footerConfig?.socials?.whatsapp || agency.whatsapp_number} 
+            color={agency.primary_color} 
+          />
+          <CookieBanner 
+            enabled={agency.cookie_consent_enabled} 
+            agencyName={agency.agency_name} 
+          />
+        </>
+      )}
+    </div>
   );
 }
-
-export const useAgency = () => useContext(AgencyContext);
 </file>
 
 <file path="src/components/PropertyDetailClient.tsx">
@@ -5856,6 +5522,336 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     </main>
   );
 }
+</file>
+
+<file path="src/components/Navbar.tsx">
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Globe, Menu, X } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
+
+const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
+    <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
+    <text x="10" y="28" fontFamily="sans-serif" fontSize="22" fontWeight="300" fill="currentColor" letterSpacing="-0.02em">data home</text>
+  </svg>
+);
+
+interface NavbarProps {
+  agency?: any;
+}
+
+export default function Navbar({ agency: propsAgency }: NavbarProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { t, locale } = useTranslation() as any;
+  
+  // Récupération de l'agence via le contexte si non fournie en props
+  const { agency: contextAgency } = useAgency();
+  const agency = propsAgency || contextAgency;
+
+  const brandColor = agency?.primary_color || "#D4AF37";
+
+  const [mounted, setMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Construction dynamique de l'URL de base selon l'agence actuelle
+  const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
+  const baseUrl = `/${locale}/${agencySlug}`;
+
+  useEffect(() => {
+    setMounted(true);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (!mounted) return null;
+
+  const textColor = isScrolled ? "text-slate-900" : "text-white";
+  const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
+
+  const navLinks = [
+    { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
+    { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
+  ];
+
+  const handleLangChange = (newLang: string) => {
+    if (newLang === locale) return;
+    
+    // On décompose le chemin actuel pour remplacer la locale (segment index 0)
+    const pathSegments = pathname.split('/').filter(Boolean);
+    
+    if (pathSegments.length > 0) {
+      pathSegments[0] = newLang;
+      const newPath = `/${pathSegments.join('/')}`;
+      setIsLangOpen(false);
+      router.push(newPath);
+    } else {
+      router.push(`/${newLang}/${agencySlug}`);
+    }
+  };
+
+  return (
+    <>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
+          isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
+        }`}
+        style={{
+          backdropFilter: isScrolled ? 'blur(16px)' : 'none',
+          WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
+          
+          {/* Logo */}
+          <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
+            {agency?.logo_url ? (
+               <img 
+                 src={agency.logo_url} 
+                 alt={agency?.agency_name || "Logo"} 
+                 className="h-16 md:h-20 w-auto object-contain transition-all duration-500" 
+               />
+            ) : (
+               <DataHomeLogo 
+                 className="h-12 md:h-16 w-auto transition-colors duration-500" 
+                 style={{ color: logoHexColor }}
+               />
+            )}
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-12">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.href} 
+                href={link.href} 
+                className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
+              >
+                <span 
+                  className="pb-1" 
+                  style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}
+                >
+                  {link.name}
+                </span>
+              </Link>
+            ))}
+
+            {/* Language Selector */}
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsLangOpen(!isLangOpen)}
+                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${textColor}`}
+              >
+                <Globe size={14} style={{ color: brandColor }} />
+                {locale}
+              </button>
+              
+              {isLangOpen && (
+                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLangChange(lang)}
+                      className={`w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        locale === lang ? 'text-blue-400' : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className={`md:hidden p-2 transition-colors ${textColor}`} 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
+          <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
+            <X size={35} />
+          </button>
+          
+          <Link 
+            href={baseUrl} 
+            onClick={() => setIsMenuOpen(false)} 
+            className="text-xl font-black uppercase tracking-[0.5em] text-white"
+          >
+            Accueil
+          </Link>
+
+          {navLinks.map((link) => (
+            <Link 
+              key={link.href}
+              href={link.href} 
+              onClick={() => setIsMenuOpen(false)} 
+              className="text-xl font-black uppercase tracking-[0.5em] text-white"
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+</file>
+
+<file path="src/contexts/AgencyContext.tsx">
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
+
+interface AgencyContextType {
+  agency: any;
+  loading: boolean;
+  setAgencyBySlug: (slug: string) => Promise<void>;
+}
+
+const AgencyContext = createContext<AgencyContextType>({
+  agency: null,
+  loading: true,
+  setAgencyBySlug: async () => {},
+});
+
+export function AgencyProvider({ children }: { children: React.ReactNode }) {
+  const [agency, setAgency] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+
+  // On utilise useCallback pour que la fonction ne change pas à chaque rendu
+  const fetchAgencyData = useCallback(async (slug: string) => {
+    if (!slug) return null;
+    
+    console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
+    const { data, error } = await supabase
+      .from('agency_settings')
+      .select('*')
+      .eq('subdomain', slug) // On interroge la colonne subdomain
+      .maybeSingle();
+    
+    if (error) {
+      console.error("❌ [Supabase] Erreur:", error);
+      return null;
+    }
+    return data;
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initAgency() {
+      if (!isMounted) return;
+      
+      console.log("🚀 [AgencyContext] Initialisation...");
+      setLoading(true);
+      
+      try {
+        const host = window.location.hostname;
+        const segments = pathname.split('/').filter(Boolean);
+        
+        // Détection du slug dans l'URL (ex: /fr/schmidt-privilege -> schmidt-privilege)
+        const locales = ['fr', 'en', 'nl', 'es', 'ar', 'pl'];
+        const urlSlug = segments.find(s => !locales.includes(s));
+        
+        let data = null;
+
+        // 1. Priorité au slug détecté dans l'URL
+        if (urlSlug) {
+          data = await fetchAgencyData(urlSlug);
+        }
+
+        // 2. Si pas de slug, test via le domaine/sous-domaine (SaaS mode)
+        if (!data) {
+          const subdomain = host.split('.')[0];
+          if (subdomain !== 'datahome' && subdomain !== 'localhost' && subdomain !== 'www') {
+            const { data: subData } = await supabase
+              .from('agency_settings')
+              .select('*')
+              .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
+              .maybeSingle();
+            data = subData;
+          }
+        }
+
+        // 3. Fallback ultime si rien n'est trouvé
+        if (!data) {
+          console.log("🏠 [Fallback] Utilisation de l'agence par défaut");
+          data = await fetchAgencyData('schmidt-privilege');
+        }
+
+        if (isMounted) {
+          setAgency(data);
+          console.log("💾 [State] AgencyContext mis à jour.");
+        }
+      } catch (err) {
+        console.error("💥 [AgencyContext] Erreur critique:", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          console.log("🏁 [AgencyContext] Chargement terminé.");
+        }
+      }
+    }
+
+    initAgency();
+    return () => { isMounted = false; };
+  }, [pathname, fetchAgencyData]); // fetchAgencyData est stable grâce au useCallback
+
+  // Mémoïsation de la valeur du contexte pour optimiser les performances
+  const contextValue = useMemo(() => ({
+    agency,
+    loading,
+    setAgencyBySlug: async (slug: string) => {
+      // Éviter de recharger si c'est déjà la même agence
+      if (agency?.subdomain === slug) return;
+      
+      setLoading(true);
+      const d = await fetchAgencyData(slug);
+      if (d) setAgency(d);
+      setLoading(false);
+    }
+  }), [agency, loading, fetchAgencyData]);
+
+  return (
+    <AgencyContext.Provider value={contextValue}>
+      {children}
+    </AgencyContext.Provider>
+  );
+}
+
+export const useAgency = () => useContext(AgencyContext);
 </file>
 
 <file path="src/components/admin/AgencyDashboard.tsx">

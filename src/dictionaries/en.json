@@ -12,11 +12,12 @@
     "showMore": "Show more properties"
   },
   "nav": {
+    "home": "Home",
     "about": "About Us",
     "results": "Our Properties",
     "contact": "Contact",
     "back": "Back to list",
-    "search": "Search for a property",
+    "search": "Search a property",
     "clientAccess": "Project Tracking"
   },
   "home": {
@@ -39,48 +40,45 @@
     "ref": "Ref: {ref}",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
-    "built": "Built sqm",
+    "built": "Sqm Built",
     "plot": "Plot sqm",
     "pool": "Pool",
     "description": "Description",
+    "features": "Features",
     "parking": "Parking",
     "price": "Sale price",
     "brochure": "PDF Brochure",
     "whatsapp": "Contact WhatsApp",
-    "bookVisit": "Book a viewing",
+    "bookVisit": "Book a visit",
     "location": "Location",
     "distanceSea": "Sea at {distance}km",
     "propertyNotFound": "Property not found"
   },
+  "contact": {
+    "formTitle": "Contact us",
+    "directContact": "Direct Contact",
+    "teamTitle": "The Team",
+    "namePlaceholder": "YOUR NAME",
+    "emailPlaceholder": "YOUR EMAIL",
+    "messagePlaceholder": "PROJECT DETAILS...",
+    "submit": "Send request",
+    "sending": "Sending...",
+    "success": "Message sent successfully!",
+    "error": "Error while sending."
+  },
+  "footer": {
+    "description": "The art of exceptional real estate. We build bridges between your ambitions and the most prestigious properties.",
+    "city": "Orihuela Costa, Spain",
+    "eliteEdition": "Elite Edition v2.0"
+  },
   "projectTracker": {
-    "title": "Project Tracking",
+    "title": "Your Project Tracking",
     "phaseLabel": "Current Phase:",
-    "quit": "Exit area",
+    "quit": "Leave area",
     "documents": "Administrative Documents",
     "technicalReports": "Site Reports",
     "visitDate": "Visit date: {date}",
     "statusConforme": "STATUS: COMPLIANT",
-    "certification": "Information certified by the ERA technical department."
-  },
-  "contact": {
-    "formTitle": "Contact Us",
-    "namePlaceholder": "FULL NAME",
-    "emailPlaceholder": "EMAIL",
-    "messagePlaceholder": "YOUR PROJECT DETAILS...",
-    "submit": "Send Request",
-    "success": "Message sent successfully!",
-    "error": "Error while sending."
-  },
-  "login": {
-    "title": "Client Area",
-    "subtitle": "Secure Authentication",
-    "pinPlaceholder": "PIN CODE",
-    "connect": "Login",
-    "invalidPin": "Incorrect PIN code"
-  },
-  "footer": {
-    "description": "The art of exceptional real estate. We forge bridges between your ambitions and the most prestigious properties.",
-    "city": "Orihuela Costa, Spain",
-    "eliteEdition": "Elite Edition v2.0"
+    "certification": "Information certified by the technical department."
   }
 }

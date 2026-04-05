@@ -1,7 +1,7 @@
 {
   "common": {
     "back": "Terug",
-    "backToHome": "Terug naar Home",
+    "backToHome": "Terug naar home",
     "loading": "Laden...",
     "error": "Er is een fout opgetreden",
     "search": "Zoeken",
@@ -12,6 +12,7 @@
     "showMore": "Meer woningen weergeven"
   },
   "nav": {
+    "home": "Home",
     "about": "Over ons",
     "results": "Ons aanbod",
     "contact": "Contact",
@@ -21,29 +22,30 @@
   },
   "home": {
     "heroTitleLine1": "Luxe Villa's &",
-    "heroTitleLine2": "Exclusief Vastgoed",
+    "heroTitleLine2": "Uitzonderlijk Vastgoed",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Vind uw villa",
-    "noMatch": "Geen resultaten gevonden",
-    "reset": "Filters resetten"
+    "noMatch": "Geen overeenkomsten gevonden",
+    "reset": "Filters wissen"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
-    "beds": "slpk",
-    "baths": "badk",
+    "beds": "slpks",
+    "baths": "badks",
     "surface": "m²",
-    "plot": "m² grond"
+    "plot": "m² perceel"
   },
   "propertyDetail": {
     "back": "Terug naar selectie",
     "ref": "Ref: {ref}",
     "bedrooms": "Slaapkamers",
     "bathrooms": "Badkamers",
-    "built": "Bebouwde m²",
-    "plot": "Grond m²",
+    "built": "m² Bebouwd",
+    "plot": "Perceel m²",
     "pool": "Zwembad",
     "description": "Beschrijving",
-    "parking": "Parking",
+    "features": "Kenmerken",
+    "parking": "Parkeergelegenheid",
     "price": "Verkoopprijs",
     "brochure": "PDF Brochure",
     "whatsapp": "Contact WhatsApp",
@@ -52,35 +54,31 @@
     "distanceSea": "Zee op {distance}km",
     "propertyNotFound": "Woning niet gevonden"
   },
-  "projectTracker": {
-    "title": "Opvolging van uw Project",
-    "phaseLabel": "Huidige Fase:",
-    "quit": "Sessie beëindigen",
-    "documents": "Administratieve Documenten",
-    "technicalReports": "Werfverslagen",
-    "visitDate": "Bezoeksdatum: {date}",
-    "statusConforme": "STATUS: CONFORM",
-    "certification": "Informatie gecertificeerd door de technische afdeling van ERA."
-  },
   "contact": {
     "formTitle": "Contacteer ons",
-    "namePlaceholder": "VOLLEDIGE NAAM",
-    "emailPlaceholder": "E-MAIL",
+    "directContact": "Direct contact",
+    "teamTitle": "Het Team",
+    "namePlaceholder": "UW NAAM",
+    "emailPlaceholder": "UW EMAIL",
     "messagePlaceholder": "DETAILS VAN UW PROJECT...",
-    "submit": "Aanvraag verzenden",
+    "submit": "Aanvraag versturen",
+    "sending": "Verzenden...",
     "success": "Bericht succesvol verzonden!",
     "error": "Fout bij verzenden."
   },
-  "login": {
-    "title": "Klantenzone",
-    "subtitle": "Beveiligde Toegang",
-    "pinPlaceholder": "PINCODE",
-    "connect": "Inloggen",
-    "invalidPin": "Onjuiste pincode"
-  },
   "footer": {
-    "description": "De kunst van exclusief vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
+    "description": "De kunst van uitzonderlijk vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
     "city": "Orihuela Costa, Spanje",
     "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Uw projectopvolging",
+    "phaseLabel": "Huidige fase:",
+    "quit": "Ruimte verlaten",
+    "documents": "Administratieve documenten",
+    "technicalReports": "Werfverslagen",
+    "visitDate": "Bezoekdatum: {date}",
+    "statusConforme": "STATUS: CONFORM",
+    "certification": "Informatie gecertificeerd door de technische afdeling."
   }
 }

@@ -12,6 +12,7 @@
     "showMore": "Afficher plus de biens"
   },
   "nav": {
+    "home": "Accueil",
     "about": "Qui sommes-nous",
     "results": "Nos Biens",
     "contact": "Contact",
@@ -43,6 +44,7 @@
     "plot": "Terrain m²",
     "pool": "Piscine",
     "description": "Description",
+    "features": "Caractéristiques",
     "parking": "Parking",
     "price": "Prix de vente",
     "brochure": "Brochure PDF",
@@ -52,6 +54,23 @@
     "distanceSea": "Mer à {distance}km",
     "propertyNotFound": "Propriété non trouvée"
   },
+  "contact": {
+    "formTitle": "Contactez-nous",
+    "directContact": "Direct Contact",
+    "teamTitle": "L'Équipe",
+    "namePlaceholder": "VOTRE NOM",
+    "emailPlaceholder": "VOTRE EMAIL",
+    "messagePlaceholder": "DÉTAILS DE VOTRE PROJET...",
+    "submit": "Envoyer la demande",
+    "sending": "Envoi en cours...",
+    "success": "Message envoyé avec succès !",
+    "error": "Erreur lors de l'envoi."
+  },
+  "footer": {
+    "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
+    "city": "Orihuela Costa, Espagne",
+    "eliteEdition": "Elite Edition v2.0"
+  },
   "projectTracker": {
     "title": "Suivi de votre Projet",
     "phaseLabel": "Phase Actuelle :",
@@ -60,27 +79,6 @@
     "technicalReports": "Rapports de Chantier",
     "visitDate": "Date de visite : {date}",
     "statusConforme": "STATUT : CONFORME",
-    "certification": "Informations certifiées par le département technique ERA."
-  },
-  "contact": {
-    "formTitle": "Contactez-nous",
-    "namePlaceholder": "NOM COMPLET",
-    "emailPlaceholder": "EMAIL",
-    "messagePlaceholder": "DÉTAILS DE VOTRE PROJET...",
-    "submit": "Envoyer la demande",
-    "success": "Message envoyé avec succès !",
-    "error": "Erreur lors de l'envoi."
-  },
-  "login": {
-    "title": "Espace Client",
-    "subtitle": "Authentification Sécurisée",
-    "pinPlaceholder": "CODE PIN",
-    "connect": "Se connecter",
-    "invalidPin": "Code PIN incorrect"
-  },
-  "footer": {
-    "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
-    "city": "Orihuela Costa, Espagne",
-    "eliteEdition": "Elite Edition v2.0"
+    "certification": "Informations certifiées par le département technique."
   }
 }
