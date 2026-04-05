@@ -168,20 +168,23 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           {selectedProperty ? (
             <motion.div 
               key="detail"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="pb-20 pt-10 bg-white min-h-screen"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="pb-20 bg-white min-h-screen"
             >
-              <div className="max-w-7xl mx-auto px-6 py-8">
+              {/* CORRECTION : Conteneur du bouton Retour avec padding top pour éviter la Navbar */}
+              <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
                 <button 
                   onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
-                  className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all"
+                  className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all relative z-50"
                 >
                   <div className="w-8 h-[1px] bg-slate-200 group-hover:w-12 group-hover:bg-black transition-all"></div>
                   <ArrowLeft size={14} /> {t('nav.back')}
                 </button>
               </div>
+              
+              {/* Le composant de détail (assurez-vous d'avoir retiré le pt-24/32 à l'intérieur de celui-ci) */}
               <PropertyDetailClient property={selectedProperty} agency={agency} />
             </motion.div>
           ) : (
