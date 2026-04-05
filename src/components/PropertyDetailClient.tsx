@@ -20,10 +20,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const [mounted, setMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  // Détection du mode light via l'URL ou les paramètres de l'agence
   const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
 
-  // Extraction de la couleur primaire avec priorité à primary_color (vu dans page.tsx)
   const primaryColor = useMemo(() => {
     return agency?.primary_color || 
            agency?.theme?.primary || 
@@ -57,8 +55,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   if (!mounted || !property) return null;
 
   return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-12 pb-20"> 
+    // Ajout de mt-20 ou pt-24 pour laisser de la place à la Navbar et au bouton retour
+    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
+      <div className="pb-20"> 
         <div className="max-w-7xl mx-auto px-6">
           
           {/* GALERIE D'IMAGES */}
@@ -103,7 +102,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           {/* GRILLE DE CONTENU */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2">
-              <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`text-4xl md:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
@@ -112,7 +111,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 {property.town || property.ville} • {property.region}
               </div>
               
-              {/* CARACTÉRISTIQUES AVEC ICÔNES COLORÉES */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
@@ -133,13 +131,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* DESCRIPTION */}
               <div 
                 className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              {/* LOCALISATION / CARTE */}
               <div className="mt-10 border-t pt-10 border-white/10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
@@ -163,18 +159,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* SIDEBAR (PRIX & CONTACT) */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
-              <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
+              <div className={`sticky top-32 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-10 pb-4">
                   <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-6xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  <p className={`text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
                 
                 <div className="px-2">
-                   <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
+                    <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
                 </div>
 
                 <div className="px-10 pb-10">
