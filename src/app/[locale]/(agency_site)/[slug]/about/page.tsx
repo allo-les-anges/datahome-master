@@ -1,8 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
+// On retire l'import de Navbar et Footer car ils sont dans le layout global
 interface AboutPageProps {
   params: Promise<{
     slug: string;
@@ -11,19 +10,16 @@ interface AboutPageProps {
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {
-  // On attend la résolution des paramètres
   const { slug } = await params;
 
-  // 🟢 CORRECTION : On utilise 'subdomain' au lieu de 'slug'
+  // Récupération de l'agence
   const { data: agency, error } = await supabase
     .from('agency_settings')
     .select('*')
     .eq('subdomain', slug) 
     .maybeSingle();
 
-  // Si l'erreur est présente ou l'agence inexistante -> 404
   if (error || !agency) {
-    console.error("❌ [AboutPage] Agence non trouvée pour le subdomain:", slug);
     notFound();
   }
 
@@ -35,7 +31,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
       className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500"
       style={{ fontFamily: selectedFont }}
     >
-      <Navbar agency={agency} />
+      {/* ❌ NAVBAR SUPPRIMÉE : Elle est déjà dans le layout */}
 
       <main className="relative">
         {/* Header / Hero Section */}
@@ -84,7 +80,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
         </section>
       </main>
 
-      <Footer agency={agency} />
+      {/* ❌ FOOTER SUPPRIMÉ : Il est déjà dans le layout */}
     </div>
   );
 }
