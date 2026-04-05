@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyGrid from '@/components/PropertyGrid';
@@ -35,7 +35,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     reference: "",
   });
 
-  // 1. Synchronisation forcée du slug au montage
+  // 1. Initialisation et Scroll
   useEffect(() => {
     if (slug) {
       setAgencyBySlug(slug);
@@ -43,7 +43,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     window.scrollTo(0, 0);
   }, [slug, setAgencyBySlug]);
 
-  // 2. Gestion des favoris
+  // 2. Gestion des favoris locaux
   useEffect(() => {
     if (typeof window !== 'undefined' && slug) {
       const saved = localStorage.getItem(`fav_${slug}`);
@@ -61,7 +61,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // 3. Formateur de données
+  // 3. Formateur de données Villa
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -90,10 +90,9 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     });
   }, [locale]);
 
-  // 4. RÉCUPÉRATION DES BIENS (Logique corrigée)
+  // 4. Chargement des propriétés depuis Supabase
   useEffect(() => {
     async function fetchProperties() {
-      // On attend d'avoir l'agence pour connaître ses filtres XML
       if (!agency) return;
 
       setLoadingProperties(true);
@@ -105,13 +104,11 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
 
         let query = supabase.from('villas').select('*').eq('is_excluded', false);
         
-        // Filtrage par source XML si spécifié par l'agence
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
         }
 
         const { data: villasData, error } = await query;
-        
         if (error) throw error;
 
         if (villasData) {
@@ -128,9 +125,9 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     }
 
     fetchProperties();
-  }, [agency, formatVillaData]); // Se déclenche dès que 'agency' est chargé par le contexte
+  }, [agency, formatVillaData]);
 
-  // 5. GESTION RECHERCHE
+  // 5. Logique de filtrage
   const handleSearch = (newFilters: Filters) => {
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 20000000;
@@ -152,12 +149,12 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     setSelectedProperty(null);
   };
 
-  // Loader d'attente de l'agence
+  // Écran de chargement initial (Agence)
   if (agencyLoading && !agency) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
         <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Initialisation...</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">Initialisation de l'agence...</p>
       </div>
     );
   }
@@ -167,95 +164,123 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
   return (
     <div className="flex flex-col relative notranslate">
       <main className="flex-grow"> 
-        {selectedProperty ? (
-          <div className="animate-in fade-in duration-700 pb-20 pt-10 bg-white min-h-screen">
-            <div className="max-w-7xl mx-auto px-6 py-8">
-              <button 
-                onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
-                className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all"
-              >
-                <div className="w-8 h-[1px] bg-slate-200 group-hover:w-12 group-hover:bg-black transition-all"></div>
-                <ArrowLeft size={14} /> {t('nav.back')}
-              </button>
-            </div>
-            <PropertyDetailClient property={selectedProperty} agency={agency} />
-          </div>
-        ) : (
-          <div className="animate-in fade-in duration-1000">
-            <Hero 
-              agency={agency}
-              title={agency?.hero_title} 
-              subtitle={agency?.agency_name} 
-              backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
-              agencyName={agency?.agency_name} 
-            />
-            
-            <div className="flex justify-center -mt-12 relative z-40">
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsSearchOpen(true)} 
-                className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl bg-primary ${buttonRadius}`}
-              >
-                <Search size={20} />
-                <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
-              </motion.button>
-            </div>
-
-            <section id="collection" className="py-24 bg-slate-50 relative z-10">
-              <div className="max-w-7xl mx-auto px-6">
-                <header className="mb-24 text-center">
-                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                  <motion.h2 
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-5xl font-serif italic mb-8 text-slate-900"
-                  >
-                    {t('nav.results') || 'Notre Sélection'}
-                  </motion.h2>
-                  <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
-                </header>
-                
-                {loadingProperties ? (
-                  <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <Loader2 className="animate-spin text-slate-200" size={40} />
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Recherche des propriétés...</p>
-                  </div>
-                ) : (
-                  <>
-                    {filteredProperties.length > 0 ? (
-                      <PropertyGrid 
-                        agency={agency}
-                        properties={filteredProperties.slice(0, displayLimit)} 
-                        favorites={favorites}
-                        onToggleFavorite={toggleFavorite}
-                        onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                      />
-                    ) : (
-                      <div className="text-center py-20">
-                        <p className="text-slate-400 italic">Aucun bien ne correspond à votre recherche.</p>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {filteredProperties.length > displayLimit && (
-                  <div className="mt-20 flex justify-center">
-                    <button 
-                      onClick={() => setDisplayLimit(prev => prev + 12)}
-                      className={`px-14 py-7 bg-primary text-white transition-all shadow-2xl ${buttonRadius}`}
-                    >
-                      <span className="text-[11px] font-black uppercase tracking-[0.4em]">
-                        {t('common.showMore')}
-                      </span>
-                    </button>
-                  </div>
-                )}
+        <AnimatePresence mode="wait">
+          {selectedProperty ? (
+            <motion.div 
+              key="detail"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="pb-20 pt-10 bg-white min-h-screen"
+            >
+              <div className="max-w-7xl mx-auto px-6 py-8">
+                <button 
+                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
+                  className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all"
+                >
+                  <div className="w-8 h-[1px] bg-slate-200 group-hover:w-12 group-hover:bg-black transition-all"></div>
+                  <ArrowLeft size={14} /> {t('nav.back')}
+                </button>
               </div>
-            </section>
-          </div>
-        )}
+              <PropertyDetailClient property={selectedProperty} agency={agency} />
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="animate-in fade-in duration-1000"
+            >
+              <Hero 
+                agency={agency}
+                title={agency?.hero_title} 
+                subtitle={agency?.agency_name} 
+                backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
+                agencyName={agency?.agency_name} 
+              />
+              
+              <div className="flex justify-center -mt-12 relative z-40">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsSearchOpen(true)} 
+                  className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl bg-primary ${buttonRadius}`}
+                >
+                  <Search size={20} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
+                </motion.button>
+              </div>
+
+              <section id="collection" className="py-24 bg-slate-50 relative z-10">
+                <div className="max-w-7xl mx-auto px-6">
+                  <header className="mb-24 text-center">
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
+                    <motion.h2 
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="text-5xl font-serif italic mb-8 text-slate-900"
+                    >
+                      {t('nav.results') || 'Notre Sélection'}
+                    </motion.h2>
+                    <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
+                  </header>
+                  
+                  {loadingProperties ? (
+                    <div className="flex flex-col items-center justify-center py-32 space-y-6">
+                      <div className="relative">
+                        <div className="w-16 h-16 border-2 border-slate-100 border-t-primary rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-primary rounded-full animate-ping"></div>
+                        </div>
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">
+                        {t('common.loadingProperties') || "Recherche des propriétés..."}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {filteredProperties.length > 0 ? (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          <PropertyGrid 
+                            agency={agency}
+                            properties={filteredProperties.slice(0, displayLimit)} 
+                            favorites={favorites}
+                            onToggleFavorite={toggleFavorite}
+                            onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="text-center py-20 border border-dashed border-slate-200 rounded-3xl">
+                          <p className="text-slate-400 italic font-serif">
+                            {t('common.noResults') || "Aucun bien ne correspond à votre recherche."}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {!loadingProperties && filteredProperties.length > displayLimit && (
+                    <div className="mt-20 flex justify-center">
+                      <button 
+                        onClick={() => setDisplayLimit(prev => prev + 12)}
+                        className={`px-14 py-7 bg-primary text-white transition-all shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 ${buttonRadius}`}
+                      >
+                        <span className="text-[11px] font-black uppercase tracking-[0.4em]">
+                          {t('common.showMore')}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <AnimatePresence>
