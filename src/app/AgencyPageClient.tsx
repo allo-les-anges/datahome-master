@@ -9,12 +9,12 @@ import AdvancedSearch from '@/components/AdvancedSearch';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
 import { Search, Loader2, X, ArrowLeft } from 'lucide-react';
 import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext"; // Utilisation du context centralisé
+import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
 
 export default function AgencyPageClient({ slug }: { slug: string }) {
-  const { t, locale } = useTranslation();
-  const { agency, loading: agencyLoading } = useAgency(); // Récupération via le context
+  const { t, locale } = useTranslation() as any;
+  const { agency, loading: agencyLoading, setAgencyBySlug } = useAgency(); 
   
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
@@ -35,12 +35,15 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     reference: "",
   });
 
-  // --- 1. INITIALISATION ---
+  // 1. Synchronisation forcée du slug au montage
   useEffect(() => {
+    if (slug) {
+      setAgencyBySlug(slug);
+    }
     window.scrollTo(0, 0);
-  }, []);
+  }, [slug, setAgencyBySlug]);
 
-  // --- 2. GESTION DES FAVORIS ---
+  // 2. Gestion des favoris
   useEffect(() => {
     if (typeof window !== 'undefined' && slug) {
       const saved = localStorage.getItem(`fav_${slug}`);
@@ -58,7 +61,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // --- 3. FORMATAGE DES DONNÉES ---
+  // 3. Formateur de données
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -87,24 +90,30 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     });
   }, [locale]);
 
-  // --- 4. RÉCUPÉRATION DES PROPRIÉTÉS ---
+  // 4. RÉCUPÉRATION DES BIENS (Logique corrigée)
   useEffect(() => {
     async function fetchProperties() {
+      // On attend d'avoir l'agence pour connaître ses filtres XML
       if (!agency) return;
+
       setLoadingProperties(true);
       try {
         let allowedXmlUrls: string[] = [];
-        const footerConfig = typeof agency.footer_config === 'string' 
-          ? JSON.parse(agency.footer_config) 
-          : agency.footer_config;
+        const config = agency.footer_config;
+        const footerConfig = typeof config === 'string' ? JSON.parse(config || '{}') : (config || {});
         allowedXmlUrls = footerConfig?.xml_urls || [];
 
         let query = supabase.from('villas').select('*').eq('is_excluded', false);
+        
+        // Filtrage par source XML si spécifié par l'agence
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
         }
 
-        const { data: villasData } = await query;
+        const { data: villasData, error } = await query;
+        
+        if (error) throw error;
+
         if (villasData) {
           const formatted = formatVillaData(villasData);
           const sorted = formatted.sort((a, b) => b.price - a.price); 
@@ -112,15 +121,16 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           setFilteredProperties(sorted);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Erreur chargement villas:", err);
       } finally {
         setLoadingProperties(false);
       }
     }
-    fetchProperties();
-  }, [agency, formatVillaData]);
 
-  // --- 5. GESTION RECHERCHE ---
+    fetchProperties();
+  }, [agency, formatVillaData]); // Se déclenche dès que 'agency' est chargé par le contexte
+
+  // 5. GESTION RECHERCHE
   const handleSearch = (newFilters: Filters) => {
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 20000000;
@@ -142,12 +152,15 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     setSelectedProperty(null);
   };
 
-  if (agencyLoading && !agency) return (
-    <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
-      <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('common.loading')}</p>
-    </div>
-  );
+  // Loader d'attente de l'agence
+  if (agencyLoading && !agency) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Initialisation...</p>
+      </div>
+    );
+  }
 
   const buttonRadius = agency?.button_style || 'rounded-full';
 
@@ -205,17 +218,26 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                 </header>
                 
                 {loadingProperties ? (
-                  <div className="flex justify-center py-20">
+                  <div className="flex flex-col items-center justify-center py-20 gap-4">
                     <Loader2 className="animate-spin text-slate-200" size={40} />
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Recherche des propriétés...</p>
                   </div>
                 ) : (
-                  <PropertyGrid 
-                    agency={agency}
-                    properties={filteredProperties.slice(0, displayLimit)} 
-                    favorites={favorites}
-                    onToggleFavorite={toggleFavorite}
-                    onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  />
+                  <>
+                    {filteredProperties.length > 0 ? (
+                      <PropertyGrid 
+                        agency={agency}
+                        properties={filteredProperties.slice(0, displayLimit)} 
+                        favorites={favorites}
+                        onToggleFavorite={toggleFavorite}
+                        onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      />
+                    ) : (
+                      <div className="text-center py-20">
+                        <p className="text-slate-400 italic">Aucun bien ne correspond à votre recherche.</p>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {filteredProperties.length > displayLimit && (
