@@ -1,14 +1,17 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams } from 'next/navigation'; // 🟢 Import crucial
 
-// Imports statiques pour la rapidité
+// Imports statiques
 import fr from '@/dictionaries/fr.json';
 import en from '@/dictionaries/en.json';
 import nl from '@/dictionaries/nl.json';
 import es from '@/dictionaries/es.json';
+import pl from '@/dictionaries/pl.json'; // 🟢 Ajouté
+import ar from '@/dictionaries/ar.json'; // 🟢 Ajouté
 
-const dictionaries: any = { fr, en, nl, es };
+const dictionaries: any = { fr, en, nl, es, pl, ar };
 type Language = 'fr' | 'en' | 'nl' | 'es' | 'pl' | 'ar';
 
 interface I18nContextType {
@@ -21,23 +24,30 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export const I18nProvider = ({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Language }) => {
-  // On initialise strictement avec ce que le serveur nous donne
-  const [locale, setLocaleState] = useState<Language>(initialLocale || 'fr');
+  const params = useParams();
+  
+  // 🟢 On synchronise la locale avec l'URL en priorité
+  const localeFromUrl = (params?.locale as Language);
+  
+  const [locale, setLocaleState] = useState<Language>(localeFromUrl || initialLocale || 'fr');
+
+  // 🟢 Effet de synchronisation : si l'URL change, on met à jour l'état
+  useEffect(() => {
+    if (localeFromUrl && localeFromUrl !== locale) {
+      setLocaleState(localeFromUrl);
+    }
+  }, [localeFromUrl, locale]);
 
   const dictionary = useMemo(() => dictionaries[locale] || dictionaries.fr, [locale]);
 
   const setLocale = useCallback((newLang: Language) => {
-    if (newLang === locale) return; // Évite les boucles si la langue est déjà la même
+    if (newLang === locale) return;
 
-    // 1. On met à jour le cookie pour le prochain passage serveur
+    // Mise à jour du cookie pour le SSR
     document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
     
-    // 2. On met à jour l'état local pour changer les textes immédiatement
     setLocaleState(newLang);
-    
-    // 3. AU LIEU DE RELOAD : On laisse React faire son travail. 
-    // Si tu as vraiment besoin d'un reload, fais-le dans le composant Navbar 
-    // après un petit timeout, mais pas ici.
+    // Note : Le changement d'URL réel doit être géré dans la Navbar via router.push
   }, [locale]);
 
   const t = useCallback((key: string, params?: Record<string, string | number>) => {
@@ -57,14 +67,21 @@ export const I18nProvider = ({ children, initialLocale }: { children: React.Reac
   }, [dictionary]);
 
   return (
-    <I18nContext.Provider value={{ locale, setLocale, t, dir: locale === 'ar' ? 'rtl' : 'ltr' }}>
-      {children}
+    <I18nContext.Provider value={{ 
+      locale, 
+      setLocale, 
+      t, 
+      dir: locale === 'ar' ? 'rtl' : 'ltr' 
+    }}>
+      <div dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+        {children}
+      </div>
     </I18nContext.Provider>
   );
 };
 
 export const useTranslation = () => {
   const context = useContext(I18nContext);
-  if (!context) return { locale: 'fr', t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
+  if (!context) return { locale: 'fr' as Language, t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
   return context;
 };
