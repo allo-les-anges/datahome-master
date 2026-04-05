@@ -1,26 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import PropertyGrid from '@/components/PropertyGrid';
 import Hero from '@/components/Hero';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
 import { Search, Loader2, X, ArrowLeft } from 'lucide-react';
 import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext"; // Utilisation du context centralisé
 import { Villa, Filters } from '@/types';
 
 export default function AgencyPageClient({ slug }: { slug: string }) {
-  const { t, setLocale, locale } = useTranslation() as any;
+  const { t, locale } = useTranslation();
+  const { agency, loading: agencyLoading } = useAgency(); // Récupération via le context
   
-  const [agency, setAgency] = useState<any>(null);
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [loadingProperties, setLoadingProperties] = useState(true);
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
@@ -39,17 +37,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
 
   // --- 1. INITIALISATION ---
   useEffect(() => {
-    setMounted(true);
-    const meta = document.createElement('meta');
-    meta.name = "google";
-    meta.content = "notranslate";
-    document.getElementsByTagName('head')[0].appendChild(meta);
-    document.body.classList.add('notranslate');
     window.scrollTo(0, 0);
-
-    return () => {
-      document.body.classList.remove('notranslate');
-    };
   }, []);
 
   // --- 2. GESTION DES FAVORIS ---
@@ -99,55 +87,38 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     });
   }, [locale]);
 
-  // --- 4. RÉCUPÉRATION SUPABASE ---
+  // --- 4. RÉCUPÉRATION DES PROPRIÉTÉS ---
   useEffect(() => {
-    let isMounted = true;
-    async function init() {
-      if (!slug || !mounted) return;
-      setLoading(true);
+    async function fetchProperties() {
+      if (!agency) return;
+      setLoadingProperties(true);
       try {
-        const { data: agencyData } = await supabase
-          .from('agency_settings')
-          .select('*')
-          .eq('subdomain', slug)
-          .single();
+        let allowedXmlUrls: string[] = [];
+        const footerConfig = typeof agency.footer_config === 'string' 
+          ? JSON.parse(agency.footer_config) 
+          : agency.footer_config;
+        allowedXmlUrls = footerConfig?.xml_urls || [];
 
-        if (agencyData && isMounted) {
-          setAgency(agencyData);
-          if (agencyData.default_lang && !locale) {
-            setLocale(agencyData.default_lang);
-          }
+        let query = supabase.from('villas').select('*').eq('is_excluded', false);
+        if (allowedXmlUrls.length > 0) {
+          query = query.in('xml_source', allowedXmlUrls);
+        }
 
-          let allowedXmlUrls: string[] = [];
-          try {
-            const footerConfig = typeof agencyData.footer_config === 'string' 
-              ? JSON.parse(agencyData.footer_config) 
-              : agencyData.footer_config;
-            allowedXmlUrls = footerConfig?.xml_urls || [];
-          } catch (e) {}
-
-          let query = supabase.from('villas').select('*').eq('is_excluded', false);
-          if (allowedXmlUrls.length > 0) {
-            query = query.in('xml_source', allowedXmlUrls);
-          }
-
-          const { data: villasData } = await query;
-          if (isMounted && villasData) {
-            const formatted = formatVillaData(villasData);
-            const sorted = formatted.sort((a, b) => b.price - a.price); 
-            setAllProperties(sorted);
-            setFilteredProperties(sorted);
-          }
+        const { data: villasData } = await query;
+        if (villasData) {
+          const formatted = formatVillaData(villasData);
+          const sorted = formatted.sort((a, b) => b.price - a.price); 
+          setAllProperties(sorted);
+          setFilteredProperties(sorted);
         }
       } catch (err) {
         console.error(err);
       } finally {
-        if (isMounted) setLoading(false);
+        setLoadingProperties(false);
       }
     }
-    init();
-    return () => { isMounted = false; };
-  }, [slug, formatVillaData, locale, setLocale, mounted]);
+    fetchProperties();
+  }, [agency, formatVillaData]);
 
   // --- 5. GESTION RECHERCHE ---
   const handleSearch = (newFilters: Filters) => {
@@ -171,33 +142,20 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     setSelectedProperty(null);
   };
 
-  if (!mounted || loading) return (
-    <div className="h-screen flex flex-col items-center justify-center bg-white">
+  if (agencyLoading && !agency) return (
+    <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
       <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Chargement...</p>
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('common.loading')}</p>
     </div>
   );
 
-  const brandColor = agency?.primary_color || '#10b981';
-  const selectedFont = agency?.font_family || 'Inter, sans-serif';
   const buttonRadius = agency?.button_style || 'rounded-full';
-  const fontNameForUrl = selectedFont.split(',')[0].trim().replace(/\s+/g, '+');
 
   return (
-    <div className="min-h-screen bg-white flex flex-col relative notranslate" style={{ fontFamily: selectedFont }}>
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=${fontNameForUrl}:wght@300;400;700;900&display=swap');
-        :root { --brand-primary: ${brandColor}; }
-        .bg-primary { background-color: var(--brand-primary) !important; }
-        .text-primary { color: var(--brand-primary) !important; }
-        .border-primary { border-color: var(--brand-primary) !important; }
-      `}</style>
-
-      <Navbar agency={agency} />
-
+    <div className="flex flex-col relative notranslate">
       <main className="flex-grow"> 
         {selectedProperty ? (
-          <div className="animate-in fade-in duration-700 pb-20 pt-32 bg-white min-h-screen">
+          <div className="animate-in fade-in duration-700 pb-20 pt-10 bg-white min-h-screen">
             <div className="max-w-7xl mx-auto px-6 py-8">
               <button 
                 onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
@@ -246,13 +204,19 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                   <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                 </header>
                 
-                <PropertyGrid 
-                  agency={agency}
-                  properties={filteredProperties.slice(0, displayLimit)} 
-                  favorites={favorites}
-                  onToggleFavorite={toggleFavorite}
-                  onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                />
+                {loadingProperties ? (
+                  <div className="flex justify-center py-20">
+                    <Loader2 className="animate-spin text-slate-200" size={40} />
+                  </div>
+                ) : (
+                  <PropertyGrid 
+                    agency={agency}
+                    properties={filteredProperties.slice(0, displayLimit)} 
+                    favorites={favorites}
+                    onToggleFavorite={toggleFavorite}
+                    onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  />
+                )}
 
                 {filteredProperties.length > displayLimit && (
                   <div className="mt-20 flex justify-center">
@@ -261,7 +225,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                       className={`px-14 py-7 bg-primary text-white transition-all shadow-2xl ${buttonRadius}`}
                     >
                       <span className="text-[11px] font-black uppercase tracking-[0.4em]">
-                        {t('common.showMore') || "Voir plus"}
+                        {t('common.showMore')}
                       </span>
                     </button>
                   </div>
@@ -271,8 +235,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           </div>
         )}
       </main>
-
-      <Footer agency={agency} />
 
       <AnimatePresence>
         {isSearchOpen && (
