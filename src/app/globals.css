@@ -1,11 +1,13 @@
 @import "tailwindcss";
 
-/* ===== 1. VARIABLES ===== */
+/* ===== 1. VARIABLES & BASE ===== */
 @layer base {
   :root {
     --background: #ffffff;
     --foreground: #0f172a;
     --accent-gold: #D4AF37;
+    /* Valeur par défaut si l'agence n'en fournit pas */
+    --brand-primary: #D4AF37; 
   }
 
   html.dark:not([data-package="light"]) {
@@ -14,62 +16,51 @@
   }
 }
 
-/* ===== 2. COLOR-SCHEME ===== */
+/* ===== 2. COLOR-SCHEME & BEHAVIOR ===== */
 html {
   color-scheme: light;
 }
+
 html.dark:not([data-package="light"]) {
   color-scheme: dark;
 }
 
 /* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
-html[data-package="light"] {
-  /* On ne force pas de bg-color sur HTML pour ne pas bloquer le Hero */
-  color: #0f172a !important;
-}
+/* Utilisé pour garder un rendu clair même si l'utilisateur est en mode sombre système */
 
-html[data-package="light"] body {
-  /* CORRECTION CRUCIALE : 
-     On enlève le !important du body. 
-     Cela permet aux sections (comme le Hero) d'afficher leur propre fond 
-     et à la Navbar d'être réellement transparente.
-  */
-  background-color: transparent; 
-  color: #0f172a !important;
-  margin: 0;
-  padding: 0;
-}
-
-/* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
 html[data-package="light"] {
   color: #0f172a !important;
 }
 
 html[data-package="light"] body {
-  background-color: #ffffff; /* Pas d'important ici */
+  background-color: #ffffff;
   color: #0f172a !important;
   margin: 0;
   padding: 0;
 }
 
-/* La Navbar doit être PRIORITAIRE sur la transparence */
+/* Navbar : Transparente par défaut pour laisser voir le Hero */
 html[data-package="light"] nav {
-  background-color: transparent !important; 
+  background-color: transparent !important;
 }
 
-/* On force le blanc UNIQUEMENT sur les sections de contenu */
-html[data-package="light"] section:not(.no-forced-bg),
-html[data-package="light"] footer {
+/* Sections de contenu : On force le blanc pour la lisibilité */
+html[data-package="light"] section:not(.no-forced-bg) {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
-/* On retire le fond forcé du main pour qu'il laisse voir ce qu'il y a derrière (le Hero) */
+/* FOOTER : On ne force PAS le fond blanc ici pour laisser passer la couleur de l'agence */
+html[data-package="light"] footer {
+  color: #0f172a; 
+}
+
+/* Main : Doit rester transparent pour ne pas bloquer les fonds dynamiques */
 html[data-package="light"] main {
   background-color: transparent !important;
 }
 
-/* ===== 4. VIGNETTES EN MODE SOMBRE ===== */
+/* ===== 4. VIGNETTES & CARTES (MODE SOMBRE RÉEL) ===== */
 html.dark:not([data-package="light"]) .property-card,
 html.dark:not([data-package="light"]) .bg-slate-50,
 html.dark:not([data-package="light"]) .bg-gray-50 {
@@ -85,16 +76,19 @@ html.dark:not([data-package="light"]) .bg-gray-50 {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-gold);
+  background: var(--brand-primary, var(--accent-gold));
   border-radius: 10px;
 }
 
 /* ===== 6. COMPOSANTS SPÉCIFIQUES ===== */
+
+/* Menu Mobile en mode sombre */
 .dark .mobile-menu-link {
   color: #ffffff !important;
   opacity: 1 !important;
 }
 
+/* Masquer le switch de thème si mode light forcé */
 html[data-package="light"] .theme-toggle-component {
   display: none !important;
 }
@@ -116,7 +110,12 @@ html[data-package="light"] .theme-toggle-component {
 
 /* Badge Référence - Mode Dark */
 .badge-ref-dark {
-  background-color: #D4AF37 !important;
+  background-color: var(--brand-primary) !important;
   color: #000000 !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Utilitaire pour empêcher le forçage du fond blanc sur certains éléments spécifiques */
+.no-forced-bg {
+  background-color: transparent !important;
 }

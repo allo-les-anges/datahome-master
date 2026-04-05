@@ -3493,79 +3493,6 @@ export const SiteConfig = {
 };
 </file>
 
-<file path="src/contexts/I18nContext.tsx">
-"use client";
-
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-
-// Imports statiques pour la rapidité
-import fr from '@/dictionaries/fr.json';
-import en from '@/dictionaries/en.json';
-import nl from '@/dictionaries/nl.json';
-import es from '@/dictionaries/es.json';
-
-const dictionaries: any = { fr, en, nl, es };
-type Language = 'fr' | 'en' | 'nl' | 'es' | 'pl' | 'ar';
-
-interface I18nContextType {
-  locale: Language;
-  setLocale: (lang: Language) => void;
-  t: (key: string, params?: Record<string, string | number>) => any;
-  dir: 'ltr' | 'rtl';
-}
-
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
-
-export const I18nProvider = ({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Language }) => {
-  // On initialise strictement avec ce que le serveur nous donne
-  const [locale, setLocaleState] = useState<Language>(initialLocale || 'fr');
-
-  const dictionary = useMemo(() => dictionaries[locale] || dictionaries.fr, [locale]);
-
-  const setLocale = useCallback((newLang: Language) => {
-    if (newLang === locale) return; // Évite les boucles si la langue est déjà la même
-
-    // 1. On met à jour le cookie pour le prochain passage serveur
-    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
-    
-    // 2. On met à jour l'état local pour changer les textes immédiatement
-    setLocaleState(newLang);
-    
-    // 3. AU LIEU DE RELOAD : On laisse React faire son travail. 
-    // Si tu as vraiment besoin d'un reload, fais-le dans le composant Navbar 
-    // après un petit timeout, mais pas ici.
-  }, [locale]);
-
-  const t = useCallback((key: string, params?: Record<string, string | number>) => {
-    const keys = key.split('.');
-    let value = dictionary;
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return key;
-      }
-    }
-    if (typeof value === 'string' && params) {
-      return value.replace(/\{(\w+)\}/g, (_, p) => params[p]?.toString() || `{${p}}`);
-    }
-    return value;
-  }, [dictionary]);
-
-  return (
-    <I18nContext.Provider value={{ locale, setLocale, t, dir: locale === 'ar' ? 'rtl' : 'ltr' }}>
-      {children}
-    </I18nContext.Provider>
-  );
-};
-
-export const useTranslation = () => {
-  const context = useContext(I18nContext);
-  if (!context) return { locale: 'fr', t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
-  return context;
-};
-</file>
-
 <file path="src/lib/supabase.ts">
 import { createClient } from '@supabase/supabase-js';
 
@@ -4399,11 +4326,101 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
 }
 </file>
 
+<file path="src/contexts/I18nContext.tsx">
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams } from 'next/navigation'; // 🟢 Import crucial
+
+// Imports statiques
+import fr from '@/dictionaries/fr.json';
+import en from '@/dictionaries/en.json';
+import nl from '@/dictionaries/nl.json';
+import es from '@/dictionaries/es.json';
+import pl from '@/dictionaries/pl.json'; // 🟢 Ajouté
+import ar from '@/dictionaries/ar.json'; // 🟢 Ajouté
+
+const dictionaries: any = { fr, en, nl, es, pl, ar };
+type Language = 'fr' | 'en' | 'nl' | 'es' | 'pl' | 'ar';
+
+interface I18nContextType {
+  locale: Language;
+  setLocale: (lang: Language) => void;
+  t: (key: string, params?: Record<string, string | number>) => any;
+  dir: 'ltr' | 'rtl';
+}
+
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
+
+export const I18nProvider = ({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Language }) => {
+  const params = useParams();
+  
+  // 🟢 On synchronise la locale avec l'URL en priorité
+  const localeFromUrl = (params?.locale as Language);
+  
+  const [locale, setLocaleState] = useState<Language>(localeFromUrl || initialLocale || 'fr');
+
+  // 🟢 Effet de synchronisation : si l'URL change, on met à jour l'état
+  useEffect(() => {
+    if (localeFromUrl && localeFromUrl !== locale) {
+      setLocaleState(localeFromUrl);
+    }
+  }, [localeFromUrl, locale]);
+
+  const dictionary = useMemo(() => dictionaries[locale] || dictionaries.fr, [locale]);
+
+  const setLocale = useCallback((newLang: Language) => {
+    if (newLang === locale) return;
+
+    // Mise à jour du cookie pour le SSR
+    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
+    
+    setLocaleState(newLang);
+    // Note : Le changement d'URL réel doit être géré dans la Navbar via router.push
+  }, [locale]);
+
+  const t = useCallback((key: string, params?: Record<string, string | number>) => {
+    const keys = key.split('.');
+    let value = dictionary;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key;
+      }
+    }
+    if (typeof value === 'string' && params) {
+      return value.replace(/\{(\w+)\}/g, (_, p) => params[p]?.toString() || `{${p}}`);
+    }
+    return value;
+  }, [dictionary]);
+
+  return (
+    <I18nContext.Provider value={{ 
+      locale, 
+      setLocale, 
+      t, 
+      dir: locale === 'ar' ? 'rtl' : 'ltr' 
+    }}>
+      <div dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+        {children}
+      </div>
+    </I18nContext.Provider>
+  );
+};
+
+export const useTranslation = () => {
+  const context = useContext(I18nContext);
+  if (!context) return { locale: 'fr' as Language, t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
+  return context;
+};
+</file>
+
 <file path="src/dictionaries/ar.json">
 {
   "common": {
-    "back": "عودة",
-    "backToHome": "العودة للرئيسية",
+    "back": "رجوع",
+    "backToHome": "العودة إلى الرئيسية",
     "loading": "جاري التحميل...",
     "error": "حدث خطأ ما",
     "search": "بحث",
@@ -4414,6 +4431,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "showMore": "عرض المزيد من العقارات"
   },
   "nav": {
+    "home": "الرئيسية",
     "about": "من نحن",
     "results": "عقاراتنا",
     "contact": "اتصل بنا",
@@ -4432,7 +4450,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
   "propertyCard": {
     "ref": "مرجع: {ref}",
     "beds": "غرف",
-    "baths": "حمام",
+    "baths": "حمامات",
     "surface": "م²",
     "plot": "م² أرض"
   },
@@ -4441,18 +4459,36 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "ref": "مرجع: {ref}",
     "bedrooms": "غرف النوم",
     "bathrooms": "الحمامات",
-    "built": "مساحة البناء م²",
+    "built": "م² مبني",
     "plot": "مساحة الأرض م²",
     "pool": "مسبح",
     "description": "الوصف",
+    "features": "المميزات",
     "parking": "موقف سيارات",
     "price": "سعر البيع",
     "brochure": "ملف PDF",
     "whatsapp": "تواصل عبر واتساب",
     "bookVisit": "حجز زيارة",
     "location": "الموقع",
-    "distanceSea": "البحر على بعد {distance} كم",
-    "propertyNotFound": "العقار غير موجود"
+    "distanceSea": "البحر على بعد {distance}كم",
+    "propertyNotFound": "لم يتم العثور على العقار"
+  },
+  "contact": {
+    "formTitle": "تواصل معنا",
+    "directContact": "اتصال مباشر",
+    "teamTitle": "الفريق",
+    "namePlaceholder": "الاسم الكامل",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "messagePlaceholder": "تفاصيل مشروعك...",
+    "submit": "إرسال الطلب",
+    "sending": "جاري الإرسال...",
+    "success": "تم إرسال الرسالة بنجاح!",
+    "error": "خطأ أثناء الإرسال."
+  },
+  "footer": {
+    "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتك وأرقى العقارات.",
+    "city": "أوريويلا كوستا، إسبانيا",
+    "eliteEdition": "Elite Edition v2.0"
   },
   "projectTracker": {
     "title": "متابعة مشروعك",
@@ -4462,28 +4498,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "technicalReports": "تقارير الموقع",
     "visitDate": "تاريخ الزيارة: {date}",
     "statusConforme": "الحالة: مطابق",
-    "certification": "معلومات معتمدة من القسم الفني في ERA."
-  },
-  "contact": {
-    "formTitle": "اتصل بنا",
-    "namePlaceholder": "الاسم الكامل",
-    "emailPlaceholder": "البريد الإلكتروني",
-    "messagePlaceholder": "تفاصيل مشروعك...",
-    "submit": "إرسال الطلب",
-    "success": "تم إرسال الرسالة بنجاح!",
-    "error": "خطأ أثناء الإرسال."
-  },
-  "login": {
-    "title": "منطقة العملاء",
-    "subtitle": "دخول آمن",
-    "pinPlaceholder": "رمز PIN",
-    "connect": "تسجيل الدخول",
-    "invalidPin": "رمز PIN غير صحيح"
-  },
-  "footer": {
-    "description": "فن العقارات الاستثنائية. نبني جسوراً بين طموحاتكم وأرقى العقارات.",
-    "city": "أوريويلا كوستا، إسبانيا",
-    "eliteEdition": "Elite Edition v2.0"
+    "certification": "معلومات معتمدة من القسم الفني."
   }
 }
 </file>
@@ -4503,11 +4518,12 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "showMore": "Show more properties"
   },
   "nav": {
+    "home": "Home",
     "about": "About Us",
     "results": "Our Properties",
     "contact": "Contact",
     "back": "Back to list",
-    "search": "Search for a property",
+    "search": "Search a property",
     "clientAccess": "Project Tracking"
   },
   "home": {
@@ -4530,49 +4546,46 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "ref": "Ref: {ref}",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
-    "built": "Built sqm",
+    "built": "Sqm Built",
     "plot": "Plot sqm",
     "pool": "Pool",
     "description": "Description",
+    "features": "Features",
     "parking": "Parking",
     "price": "Sale price",
     "brochure": "PDF Brochure",
     "whatsapp": "Contact WhatsApp",
-    "bookVisit": "Book a viewing",
+    "bookVisit": "Book a visit",
     "location": "Location",
     "distanceSea": "Sea at {distance}km",
     "propertyNotFound": "Property not found"
   },
+  "contact": {
+    "formTitle": "Contact us",
+    "directContact": "Direct Contact",
+    "teamTitle": "The Team",
+    "namePlaceholder": "YOUR NAME",
+    "emailPlaceholder": "YOUR EMAIL",
+    "messagePlaceholder": "PROJECT DETAILS...",
+    "submit": "Send request",
+    "sending": "Sending...",
+    "success": "Message sent successfully!",
+    "error": "Error while sending."
+  },
+  "footer": {
+    "description": "The art of exceptional real estate. We build bridges between your ambitions and the most prestigious properties.",
+    "city": "Orihuela Costa, Spain",
+    "eliteEdition": "Elite Edition v2.0"
+  },
   "projectTracker": {
-    "title": "Project Tracking",
+    "title": "Your Project Tracking",
     "phaseLabel": "Current Phase:",
-    "quit": "Exit area",
+    "quit": "Leave area",
     "documents": "Administrative Documents",
     "technicalReports": "Site Reports",
     "visitDate": "Visit date: {date}",
     "statusConforme": "STATUS: COMPLIANT",
-    "certification": "Information certified by the ERA technical department."
-  },
-  "contact": {
-    "formTitle": "Contact Us",
-    "namePlaceholder": "FULL NAME",
-    "emailPlaceholder": "EMAIL",
-    "messagePlaceholder": "YOUR PROJECT DETAILS...",
-    "submit": "Send Request",
-    "success": "Message sent successfully!",
-    "error": "Error while sending."
-  },
-  "login": {
-    "title": "Client Area",
-    "subtitle": "Secure Authentication",
-    "pinPlaceholder": "PIN CODE",
-    "connect": "Login",
-    "invalidPin": "Incorrect PIN code"
-  },
-  "footer": {
-    "description": "The art of exceptional real estate. We forge bridges between your ambitions and the most prestigious properties.",
-    "city": "Orihuela Costa, Spain",
-    "eliteEdition": "Elite Edition v2.0"
+    "certification": "Information certified by the technical department."
   }
 }
 </file>
@@ -4592,19 +4605,20 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "showMore": "Ver más propiedades"
   },
   "nav": {
-    "about": "Quiénes somos",
-    "results": "Nuestras Propiedades",
+    "home": "Inicio",
+    "about": "Sobre nosotros",
+    "results": "Nuestras propiedades",
     "contact": "Contacto",
     "back": "Volver a la lista",
     "search": "Buscar una propiedad",
-    "clientAccess": "Seguimiento de Obra"
+    "clientAccess": "Seguimiento de obra"
   },
   "home": {
-    "heroTitleLine1": "Villas de Lujo y",
-    "heroTitleLine2": "Propiedades Excepcionales",
+    "heroTitleLine1": "Villas de lujo &",
+    "heroTitleLine2": "Propiedades excepcionales",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Encuentre su villa",
-    "noMatch": "No se encontraron coincidencias",
+    "noMatch": "No se encontraron resultados",
     "reset": "Restablecer filtros"
   },
   "propertyCard": {
@@ -4623,7 +4637,8 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "plot": "Parcela m²",
     "pool": "Piscina",
     "description": "Descripción",
-    "parking": "Parking",
+    "features": "Características",
+    "parking": "Aparcamiento",
     "price": "Precio de venta",
     "brochure": "Folleto PDF",
     "whatsapp": "Contacto WhatsApp",
@@ -4632,36 +4647,32 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "distanceSea": "Mar a {distance}km",
     "propertyNotFound": "Propiedad no encontrada"
   },
-  "projectTracker": {
-    "title": "Seguimiento de su Proyecto",
-    "phaseLabel": "Fase Actual:",
-    "quit": "Salir del espacio",
-    "documents": "Documentos Administrativos",
-    "technicalReports": "Informes de Obra",
-    "visitDate": "Fecha de visita: {date}",
-    "statusConforme": "ESTADO: CONFORME",
-    "certification": "Información certificada por el departamento técnico de ERA."
-  },
   "contact": {
     "formTitle": "Contáctenos",
-    "namePlaceholder": "NOMBRE COMPLETO",
-    "emailPlaceholder": "CORREO ELECTRÓNICO",
+    "directContact": "Contacto directo",
+    "teamTitle": "El equipo",
+    "namePlaceholder": "SU NOMBRE",
+    "emailPlaceholder": "SU EMAIL",
     "messagePlaceholder": "DETALLES DE SU PROYECTO...",
     "submit": "Enviar solicitud",
+    "sending": "Enviando...",
     "success": "¡Mensaje enviado con éxito!",
     "error": "Error al enviar."
   },
-  "login": {
-    "title": "Área de Clientes",
-    "subtitle": "Autenticación Segura",
-    "pinPlaceholder": "CÓDIGO PIN",
-    "connect": "Iniciar sesión",
-    "invalidPin": "Código PIN incorrecto"
-  },
   "footer": {
-    "description": "El arte de las propiedades inmobiliarias excepcionales. Forjamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
+    "description": "El arte de las propiedades inmobiliarias excepcionales. Creamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
     "city": "Orihuela Costa, España",
     "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Seguimiento de su proyecto",
+    "phaseLabel": "Fase actual:",
+    "quit": "Salir del espacio",
+    "documents": "Documentos administrativos",
+    "technicalReports": "Informes de obra",
+    "visitDate": "Fecha de visita: {date}",
+    "statusConforme": "ESTADO: CONFORME",
+    "certification": "Información certificada por el departamento técnico."
   }
 }
 </file>
@@ -4681,6 +4692,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "showMore": "Afficher plus de biens"
   },
   "nav": {
+    "home": "Accueil",
     "about": "Qui sommes-nous",
     "results": "Nos Biens",
     "contact": "Contact",
@@ -4712,6 +4724,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "plot": "Terrain m²",
     "pool": "Piscine",
     "description": "Description",
+    "features": "Caractéristiques",
     "parking": "Parking",
     "price": "Prix de vente",
     "brochure": "Brochure PDF",
@@ -4721,6 +4734,23 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "distanceSea": "Mer à {distance}km",
     "propertyNotFound": "Propriété non trouvée"
   },
+  "contact": {
+    "formTitle": "Contactez-nous",
+    "directContact": "Direct Contact",
+    "teamTitle": "L'Équipe",
+    "namePlaceholder": "VOTRE NOM",
+    "emailPlaceholder": "VOTRE EMAIL",
+    "messagePlaceholder": "DÉTAILS DE VOTRE PROJET...",
+    "submit": "Envoyer la demande",
+    "sending": "Envoi en cours...",
+    "success": "Message envoyé avec succès !",
+    "error": "Erreur lors de l'envoi."
+  },
+  "footer": {
+    "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
+    "city": "Orihuela Costa, Espagne",
+    "eliteEdition": "Elite Edition v2.0"
+  },
   "projectTracker": {
     "title": "Suivi de votre Projet",
     "phaseLabel": "Phase Actuelle :",
@@ -4729,28 +4759,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "technicalReports": "Rapports de Chantier",
     "visitDate": "Date de visite : {date}",
     "statusConforme": "STATUT : CONFORME",
-    "certification": "Informations certifiées par le département technique ERA."
-  },
-  "contact": {
-    "formTitle": "Contactez-nous",
-    "namePlaceholder": "NOM COMPLET",
-    "emailPlaceholder": "EMAIL",
-    "messagePlaceholder": "DÉTAILS DE VOTRE PROJET...",
-    "submit": "Envoyer la demande",
-    "success": "Message envoyé avec succès !",
-    "error": "Erreur lors de l'envoi."
-  },
-  "login": {
-    "title": "Espace Client",
-    "subtitle": "Authentification Sécurisée",
-    "pinPlaceholder": "CODE PIN",
-    "connect": "Se connecter",
-    "invalidPin": "Code PIN incorrect"
-  },
-  "footer": {
-    "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
-    "city": "Orihuela Costa, Espagne",
-    "eliteEdition": "Elite Edition v2.0"
+    "certification": "Informations certifiées par le département technique."
   }
 }
 </file>
@@ -4759,7 +4768,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
 {
   "common": {
     "back": "Terug",
-    "backToHome": "Terug naar Home",
+    "backToHome": "Terug naar home",
     "loading": "Laden...",
     "error": "Er is een fout opgetreden",
     "search": "Zoeken",
@@ -4770,6 +4779,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "showMore": "Meer woningen weergeven"
   },
   "nav": {
+    "home": "Home",
     "about": "Over ons",
     "results": "Ons aanbod",
     "contact": "Contact",
@@ -4779,29 +4789,30 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
   },
   "home": {
     "heroTitleLine1": "Luxe Villa's &",
-    "heroTitleLine2": "Exclusief Vastgoed",
+    "heroTitleLine2": "Uitzonderlijk Vastgoed",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Vind uw villa",
-    "noMatch": "Geen resultaten gevonden",
-    "reset": "Filters resetten"
+    "noMatch": "Geen overeenkomsten gevonden",
+    "reset": "Filters wissen"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
-    "beds": "slpk",
-    "baths": "badk",
+    "beds": "slpks",
+    "baths": "badks",
     "surface": "m²",
-    "plot": "m² grond"
+    "plot": "m² perceel"
   },
   "propertyDetail": {
     "back": "Terug naar selectie",
     "ref": "Ref: {ref}",
     "bedrooms": "Slaapkamers",
     "bathrooms": "Badkamers",
-    "built": "Bebouwde m²",
-    "plot": "Grond m²",
+    "built": "m² Bebouwd",
+    "plot": "Perceel m²",
     "pool": "Zwembad",
     "description": "Beschrijving",
-    "parking": "Parking",
+    "features": "Kenmerken",
+    "parking": "Parkeergelegenheid",
     "price": "Verkoopprijs",
     "brochure": "PDF Brochure",
     "whatsapp": "Contact WhatsApp",
@@ -4810,36 +4821,32 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "distanceSea": "Zee op {distance}km",
     "propertyNotFound": "Woning niet gevonden"
   },
-  "projectTracker": {
-    "title": "Opvolging van uw Project",
-    "phaseLabel": "Huidige Fase:",
-    "quit": "Sessie beëindigen",
-    "documents": "Administratieve Documenten",
-    "technicalReports": "Werfverslagen",
-    "visitDate": "Bezoeksdatum: {date}",
-    "statusConforme": "STATUS: CONFORM",
-    "certification": "Informatie gecertificeerd door de technische afdeling van ERA."
-  },
   "contact": {
     "formTitle": "Contacteer ons",
-    "namePlaceholder": "VOLLEDIGE NAAM",
-    "emailPlaceholder": "E-MAIL",
+    "directContact": "Direct contact",
+    "teamTitle": "Het Team",
+    "namePlaceholder": "UW NAAM",
+    "emailPlaceholder": "UW EMAIL",
     "messagePlaceholder": "DETAILS VAN UW PROJECT...",
-    "submit": "Aanvraag verzenden",
+    "submit": "Aanvraag versturen",
+    "sending": "Verzenden...",
     "success": "Bericht succesvol verzonden!",
     "error": "Fout bij verzenden."
   },
-  "login": {
-    "title": "Klantenzone",
-    "subtitle": "Beveiligde Toegang",
-    "pinPlaceholder": "PINCODE",
-    "connect": "Inloggen",
-    "invalidPin": "Onjuiste pincode"
-  },
   "footer": {
-    "description": "De kunst van exclusief vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
+    "description": "De kunst van uitzonderlijk vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
     "city": "Orihuela Costa, Spanje",
     "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Uw projectopvolging",
+    "phaseLabel": "Huidige fase:",
+    "quit": "Ruimte verlaten",
+    "documents": "Administratieve documenten",
+    "technicalReports": "Werfverslagen",
+    "visitDate": "Bezoekdatum: {date}",
+    "statusConforme": "STATUS: CONFORM",
+    "certification": "Informatie gecertificeerd door de technische afdeling."
   }
 }
 </file>
@@ -4856,19 +4863,20 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "cancel": "Anuluj",
     "save": "Zapisz",
     "close": "Zamknij",
-    "showMore": "Pokaż więcej nieruchomości"
+    "showMore": "Pokaż więcej ofert"
   },
   "nav": {
+    "home": "Strona główna",
     "about": "O nas",
-    "results": "Nasze Nieruchomości",
+    "results": "Nasze oferty",
     "contact": "Kontakt",
     "back": "Powrót do listy",
-    "search": "Znajdź nieruchomość",
-    "clientAccess": "Monitorowanie Budowy"
+    "search": "Szukaj nieruchomości",
+    "clientAccess": "Śledzenie projektu"
   },
   "home": {
-    "heroTitleLine1": "Luksusowe Wille i",
-    "heroTitleLine2": "Wyjątkowe Posiadłości",
+    "heroTitleLine1": "Luksusowe Wille &",
+    "heroTitleLine2": "Wyjątkowe Nieruchomości",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Znajdź swoją willę",
     "noMatch": "Nie znaleziono dopasowań",
@@ -4879,56 +4887,53 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     "beds": "sypialnie",
     "baths": "łazienki",
     "surface": "m²",
-    "plot": "m² działka"
+    "plot": "m² działki"
   },
   "propertyDetail": {
     "back": "Powrót do wyboru",
-    "ref": "Nr ref: {ref}",
+    "ref": "Ref: {ref}",
     "bedrooms": "Sypialnie",
     "bathrooms": "Łazienki",
-    "built": "Pow. zabudowy m²",
-    "plot": "Działka m²",
+    "built": "m² Pow. zabudowy",
+    "plot": "Pow. działki m²",
     "pool": "Basen",
     "description": "Opis",
+    "features": "Cechy",
     "parking": "Parking",
     "price": "Cena sprzedaży",
     "brochure": "Broszura PDF",
     "whatsapp": "Kontakt WhatsApp",
-    "bookVisit": "Umów wizytę",
+    "bookVisit": "Zarezerwuj wizytę",
     "location": "Lokalizacja",
     "distanceSea": "Morze w odległości {distance}km",
     "propertyNotFound": "Nie znaleziono nieruchomości"
   },
-  "projectTracker": {
-    "title": "Monitorowanie Twojego Projektu",
-    "phaseLabel": "Aktualna Faza:",
-    "quit": "Wyloguj się",
-    "documents": "Dokumenty Administracyjne",
-    "technicalReports": "Raporty z Budowy",
-    "visitDate": "Data wizyty: {date}",
-    "statusConforme": "STATUS: ZGODNY",
-    "certification": "Informacje certyfikowane przez dział techniczny ERA."
-  },
   "contact": {
     "formTitle": "Skontaktuj się z nami",
-    "namePlaceholder": "IMIĘ I NAZWISKO",
-    "emailPlaceholder": "E-MAIL",
-    "messagePlaceholder": "SZCZEGÓŁY TWOJEGO PROJEKTU...",
+    "directContact": "Kontakt bezpośredni",
+    "teamTitle": "Zespół",
+    "namePlaceholder": "TWOJE IMIĘ",
+    "emailPlaceholder": "TWÓJ EMAIL",
+    "messagePlaceholder": "SZCZEGÓŁY PROJEKTU...",
     "submit": "Wyślij zapytanie",
+    "sending": "Wysyłanie...",
     "success": "Wiadomość wysłana pomyślnie!",
     "error": "Błąd podczas wysyłania."
   },
-  "login": {
-    "title": "Strefa Klienta",
-    "subtitle": "Bezpieczne Logowanie",
-    "pinPlaceholder": "KOD PIN",
-    "connect": "Zaloguj się",
-    "invalidPin": "Nieprawidłowy kod PIN"
-  },
   "footer": {
-    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi posiadłościami.",
+    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi ofertami.",
     "city": "Orihuela Costa, Hiszpania",
     "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Śledzenie Twojego projektu",
+    "phaseLabel": "Aktualna faza:",
+    "quit": "Wyloguj się",
+    "documents": "Dokumenty administracyjne",
+    "technicalReports": "Raporty z budowy",
+    "visitDate": "Data wizyty: {date}",
+    "statusConforme": "STATUS: ZGODNY",
+    "certification": "Informacje certyfikowane przez dział techniczny."
   }
 }
 </file>
@@ -5085,6 +5090,206 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
       <Footer agency={agency} />
     </div>
+  );
+}
+</file>
+
+<file path="src/components/PropertyDetailClient.tsx">
+"use client";
+
+import { useEffect, useState, useRef, useMemo } from "react";
+import ContactForm from "@/components/ContactForm";
+import { 
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
+} from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useSearchParams } from "next/navigation";
+
+interface PropertyDetailClientProps {
+  property: any;
+  agency: any;
+}
+
+export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
+  const { t, locale } = useTranslation() as any;
+  const searchParams = useSearchParams();
+  const [activeImage, setActiveImage] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Détection du mode light via l'URL ou les paramètres de l'agence
+  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
+
+  // Extraction de la couleur primaire avec priorité à primary_color (vu dans page.tsx)
+  const primaryColor = useMemo(() => {
+    return agency?.primary_color || 
+           agency?.theme?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      if (clientWidth > 0) {
+        const newIndex = Math.round(scrollLeft / clientWidth);
+        if (newIndex !== activeImage) setActiveImage(newIndex);
+      }
+    }
+  };
+
+  const description = useMemo(() => {
+    if (!property) return "";
+    return property[`description_${locale}`] || property.description || property.description_fr || "";
+  }, [property, locale]);
+
+  const images = property?.images || [];
+  const numericPrice = Number(property?.price || property?.prix || 0);
+  const whatsappNumber = (property?.phone || agency?.phone || "34627768233").replace(/\D/g, '');
+
+  if (!mounted || !property) return null;
+
+  return (
+    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
+      <div className="pt-12 pb-20"> 
+        <div className="max-w-7xl mx-auto px-6">
+          
+          {/* GALERIE D'IMAGES */}
+          <section className="mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
+              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
+                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                  {images.map((img: string, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
+                      style={{ 
+                        opacity: activeImage === idx ? 1 : 0, 
+                        zIndex: activeImage === idx ? 10 : 0,
+                        pointerEvents: activeImage === idx ? 'auto' : 'none'
+                      }}
+                    >
+                      <img src={img} className="w-full h-full object-cover" alt="" />
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
+                </div>
+              </div>
+
+              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                {images.map((img: string, idx: number) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => setActiveImage(idx)} 
+                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
+                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
+                  >
+                    <img src={img} className="w-full h-full object-cover" alt="" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* GRILLE DE CONTENU */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+            <div className="lg:col-span-2">
+              <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                {property.titre || property.title || "Propriété Exclusive"}
+              </h1>
+
+              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={18} color={primaryColor} />
+                {property.town || property.ville} • {property.region}
+              </div>
+              
+              {/* CARACTÉRISTIQUES AVEC ICÔNES COLORÉES */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+                {[
+                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
+                  { icon: Bath, val: property.baths, label: 'BAINS' },
+                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
+                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
+                  { icon: Car, val: "OUI", label: 'PARKING' },
+                ].map((item, i) => (
+                  <div 
+                    key={i} 
+                    className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                  >
+                    <item.icon className="mb-6" color={primaryColor} size={24} />
+                    <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* DESCRIPTION */}
+              <div 
+                className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+
+              {/* LOCALISATION / CARTE */}
+              <div className="mt-10 border-t pt-10 border-white/10">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                    <Navigation size={24} color={primaryColor} />
+                  </div>
+                  <div>
+                    <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                  </div>
+                </div>
+                <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl h-[400px]">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+
+            {/* SIDEBAR (PRIX & CONTACT) */}
+            <div className="lg:col-span-1">
+              <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
+                <div className="p-10 pb-4">
+                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className={`text-6xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    {numericPrice.toLocaleString("fr-FR")} €
+                  </p>
+                </div>
+                
+                <div className="px-2">
+                   <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
+                </div>
+
+                <div className="px-10 pb-10">
+                  <a 
+                    href={`https://wa.me/${whatsappNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/5 transition-all text-white"
+                  >
+                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
   );
 }
 </file>
@@ -5324,206 +5529,6 @@ export default async function AgencyLayout({
 }
 </file>
 
-<file path="src/components/PropertyDetailClient.tsx">
-"use client";
-
-import { useEffect, useState, useRef, useMemo } from "react";
-import ContactForm from "@/components/ContactForm";
-import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
-} from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useSearchParams } from "next/navigation";
-
-interface PropertyDetailClientProps {
-  property: any;
-  agency: any;
-}
-
-export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
-  const { t, locale } = useTranslation() as any;
-  const searchParams = useSearchParams();
-  const [activeImage, setActiveImage] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
-  // Détection du mode light via l'URL ou les paramètres de l'agence
-  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
-
-  // Extraction de la couleur primaire avec priorité à primary_color (vu dans page.tsx)
-  const primaryColor = useMemo(() => {
-    return agency?.primary_color || 
-           agency?.theme?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      if (clientWidth > 0) {
-        const newIndex = Math.round(scrollLeft / clientWidth);
-        if (newIndex !== activeImage) setActiveImage(newIndex);
-      }
-    }
-  };
-
-  const description = useMemo(() => {
-    if (!property) return "";
-    return property[`description_${locale}`] || property.description || property.description_fr || "";
-  }, [property, locale]);
-
-  const images = property?.images || [];
-  const numericPrice = Number(property?.price || property?.prix || 0);
-  const whatsappNumber = (property?.phone || agency?.phone || "34627768233").replace(/\D/g, '');
-
-  if (!mounted || !property) return null;
-
-  return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-12 pb-20"> 
-        <div className="max-w-7xl mx-auto px-6">
-          
-          {/* GALERIE D'IMAGES */}
-          <section className="mb-16">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
-              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
-                  {images.map((img: string, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
-                      style={{ 
-                        opacity: activeImage === idx ? 1 : 0, 
-                        zIndex: activeImage === idx ? 10 : 0,
-                        pointerEvents: activeImage === idx ? 'auto' : 'none'
-                      }}
-                    >
-                      <img src={img} className="w-full h-full object-cover" alt="" />
-                    </div>
-                  ))}
-                </div>
-                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
-                </div>
-              </div>
-
-              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-                {images.map((img: string, idx: number) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => setActiveImage(idx)} 
-                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
-                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
-                  >
-                    <img src={img} className="w-full h-full object-cover" alt="" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* GRILLE DE CONTENU */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-            <div className="lg:col-span-2">
-              <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                {property.titre || property.title || "Propriété Exclusive"}
-              </h1>
-
-              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville} • {property.region}
-              </div>
-              
-              {/* CARACTÉRISTIQUES AVEC ICÔNES COLORÉES */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
-                {[
-                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
-                  { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
-                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
-                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
-                  { icon: Car, val: "OUI", label: 'PARKING' },
-                ].map((item, i) => (
-                  <div 
-                    key={i} 
-                    className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
-                  >
-                    <item.icon className="mb-6" color={primaryColor} size={24} />
-                    <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* DESCRIPTION */}
-              <div 
-                className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                dangerouslySetInnerHTML={{ __html: description }}
-              />
-
-              {/* LOCALISATION / CARTE */}
-              <div className="mt-10 border-t pt-10 border-white/10">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                    <Navigation size={24} color={primaryColor} />
-                  </div>
-                  <div>
-                    <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
-                  </div>
-                </div>
-                <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl h-[400px]">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    loading="lazy"
-                    allowFullScreen
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-
-            {/* SIDEBAR (PRIX & CONTACT) */}
-            <div className="lg:col-span-1">
-              <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
-                <div className="p-10 pb-4">
-                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-6xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice.toLocaleString("fr-FR")} €
-                  </p>
-                </div>
-                
-                <div className="px-2">
-                   <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
-                </div>
-
-                <div className="px-10 pb-10">
-                  <a 
-                    href={`https://wa.me/${whatsappNumber}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/5 transition-all text-white"
-                  >
-                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
-  );
-}
-</file>
-
 <file path="src/components/Navbar.tsx">
 "use client";
 
@@ -5595,20 +5600,15 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   ];
 
   const handleLangChange = (newLang: string) => {
-    if (newLang === locale) return;
-    
-    // On décompose le chemin actuel pour remplacer la locale (segment index 0)
-    const pathSegments = pathname.split('/').filter(Boolean);
-    
-    if (pathSegments.length > 0) {
-      pathSegments[0] = newLang;
-      const newPath = `/${pathSegments.join('/')}`;
-      setIsLangOpen(false);
-      router.push(newPath);
-    } else {
-      router.push(`/${newLang}/${agencySlug}`);
-    }
-  };
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const slug = agency?.subdomain || pathSegments[1] || "default";
+  
+  // Reconstruction sécurisée : /nouvelle-langue/slug-agence/reste-du-chemin
+  const remainingPath = pathSegments.slice(2).join('/');
+  const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
+  
+  router.push(newPath);
+};
 
   return (
     <>
