@@ -57,7 +57,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // NORMALISATION DES DONNÉES (Garantit l'uniformité des champs pour le filtre)
+  // NORMALISATION DES DONNÉES
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -76,7 +76,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
         description: v[`description_${locale}`] || v.description || v.details || "",
         price: Number(v.price || v.prix || 0),
-        // On mappe toutes les sources possibles vers town et region
         town: String(v.town || v.ville || v.city || "").trim(),
         region: String(v.region || v.province || v.state || "").trim(),
         beds: parseInt(v.beds || v.bedrooms) || 0,
@@ -95,6 +94,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProperties(true);
       setLoadingProgress(20);
 
+      // Si on a des propriétés initiales, on les utilise directement
       if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -158,7 +158,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // LOGIQUE DE RECHERCHE CORRIGÉE AVEC LOGS DE DÉBOGAGE
+  // LOGIQUE DE RECHERCHE CORRIGÉE
   const handleSearch = (newFilters: Filters) => {
     console.log("🔍 Lancement de la recherche avec les filtres:", newFilters);
     setFilters(newFilters);
@@ -168,15 +168,17 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     const requiredBeds = Number(newFilters.beds) || 0;
     const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
     const searchRef = (newFilters.reference || "").toLowerCase().trim();
+    const searchType = (newFilters.type || "").toLowerCase().trim();
 
     const results = allProperties.filter((p, index) => {
       // 1. Prix
       const pPrice = Number(p.price) || 0;
-      const matchPrice = pPrice >= min && pPrice <= (max >= 19900000 ? 999999999 : max);
+      // On ignore le plafond max si l'utilisateur a sélectionné la valeur maximale du slider (ex: 19.9M+)
+      const matchPrice = pPrice >= min && (max >= 19900000 ? true : pPrice <= max);
       
       // 2. Type
-      const matchType = !newFilters.type || newFilters.type === "all" || 
-        p.type.toLowerCase().includes(newFilters.type.toLowerCase());
+      const matchType = !searchType || searchType === "all" || 
+        p.type.toLowerCase().includes(searchType);
       
       // 3. Chambres
       const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
@@ -193,14 +195,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       const isMatch = matchPrice && matchType && matchBeds && matchLocation && matchRef;
 
-      // Log détaillé pour le premier bien si aucun résultat n'est trouvé (pour debug)
+      // Debugging de la première propriété en cas d'absence de résultats
       if (index === 0 && !isMatch) {
-        console.log("Debug 1ère propriété:", {
+        console.log("Debug première propriété de la liste:", {
           title: p.titre,
-          matchPrice, pPrice,
-          matchType, pType: p.type,
+          matchPrice, pPrice, filters: {min, max},
+          matchType, pType: p.type, searchType,
           matchBeds, pBeds: p.beds,
-          matchLocation, pTown: p.town,
+          matchLocation,
           matchRef
         });
       }
@@ -235,7 +237,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           {selectedProperty ? (
             <motion.div key="detail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-20 bg-white">
               <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
-                <button onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
+                <button 
+                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
+                  className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
+                >
                   <ArrowLeft size={14} /> {t('nav.back')}
                 </button>
               </div>
@@ -254,7 +259,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               </div>
               
               <div className="flex justify-center -mt-12 relative z-40">
-                <button onClick={() => setIsSearchOpen(true)} className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
+                <button 
+                  onClick={() => setIsSearchOpen(true)} 
+                  className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
+                  style={{ backgroundColor: primaryColor }}
+                >
                   <Search size={20} />
                   <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search')}</span>
                 </button>
@@ -307,7 +316,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
                   {!loadingProperties && filteredProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
-                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
+                      <button 
+                        onClick={() => setDisplayLimit(prev => prev + 12)} 
+                        className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
+                        style={{ backgroundColor: primaryColor }}
+                      >
                         <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore')}</span>
                       </button>
                     </div>
