@@ -177,6 +177,21 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   return (
     <div className="flex flex-col relative notranslate min-h-screen" style={{ fontFamily: selectedFont }}>
+      
+      {/* FORCE L'INJECTION CSS : 
+          C'est la méthode ultime. On injecte une balise style qui cible spécifiquement 
+          le titre et le sous-titre du Hero pour forcer la police de l'agence, 
+          en écrasant les styles par défaut de Tailwind ou des composants.
+      */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .force-agency-font h1, 
+        .force-agency-font h2, 
+        .force-agency-font p, 
+        .force-agency-font span {
+          font-family: ${selectedFont} !important;
+        }
+      `}} />
+
       <main className="flex-grow"> 
         <AnimatePresence mode="wait">
           {selectedProperty ? (
@@ -191,8 +206,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               
-              {/* CORRECTION CRUCIALE : On entoure le Hero pour forcer la police sur ses composants internes */}
-              <div style={{ fontFamily: selectedFont, ["--font-agency" as any]: selectedFont }}>
+              {/* Le wrapper force-agency-font est utilisé par la balise <style> ci-dessus */}
+              <div className="force-agency-font" style={{ ["--font-agency" as any]: selectedFont }}>
                 <Hero 
                   agency={agency} 
                   title={heroTitle} 
