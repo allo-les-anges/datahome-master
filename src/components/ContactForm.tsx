@@ -63,7 +63,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
         </p>
         <button 
           onClick={() => setStatus('idle')}
-          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500"
+          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500 hover:text-slate-700 transition-colors"
         >
           {t('common.back') || "Retour"}
         </button>
@@ -71,79 +71,214 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
     );
   }
 
-  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
-  
-  const themeStyles = isLight 
-    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-400' 
-    : 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:bg-white/10 focus:border-white/20';
+  // Styles inline pour garantir l'application
+  const containerStyle = {
+    backgroundColor: isLight ? '#ffffff' : '#0A0A0A',
+    borderRadius: '2rem',
+    overflow: 'hidden',
+  };
+
+  const inputStyle = {
+    width: '100%',
+    height: '56px',
+    paddingLeft: '48px',
+    paddingRight: '16px',
+    borderRadius: '16px',
+    border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+    backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+    color: isLight ? '#0f172a' : '#ffffff',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+  };
+
+  const textareaStyle = {
+    width: '100%',
+    padding: '16px',
+    paddingLeft: '48px',
+    borderRadius: '16px',
+    border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+    backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+    color: isLight ? '#0f172a' : '#ffffff',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    resize: 'none' as const,
+  };
+
+  const buttonStyle = {
+    width: '100%',
+    padding: '20px',
+    backgroundColor: primaryColor,
+    color: '#000000',
+    borderRadius: '16px',
+    fontWeight: 900,
+    fontSize: '11px',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.2em',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    marginTop: '16px',
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="p-8 space-y-5">
-      <div className="mb-4">
-        <h3 className={`text-xl font-serif italic mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.title') || "Contactez-nous"}
-        </h3>
-        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
-          {t('contact.ref_label') || "Réf"} : {propertyRef}
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="relative">
-          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            name="name"
-            type="text" 
-            placeholder={t('contact.placeholder_name') || "VOTRE NOM"} 
-            required
-            className={`${inputBaseStyles} ${themeStyles}`}
-          />
+    <div style={containerStyle}>
+      <form onSubmit={handleSubmit} style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <h3 style={{ 
+            fontSize: '24px', 
+            fontFamily: 'serif', 
+            fontStyle: 'italic', 
+            marginBottom: '4px',
+            color: isLight ? '#0f172a' : '#ffffff'
+          }}>
+            {t('contact.title') || "Contactez-nous"}
+          </h3>
+          <p style={{ 
+            fontSize: '10px', 
+            textTransform: 'uppercase' as const, 
+            letterSpacing: '0.2em',
+            color: '#64748b',
+            fontWeight: 'bold'
+          }}>
+            {t('contact.ref_label') || "Réf"} : {propertyRef}
+          </p>
         </div>
 
-        <div className="relative">
-          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            name="email"
-            type="email" 
-            placeholder={t('contact.placeholder_email') || "VOTRE EMAIL"} 
-            required
-            className={`${inputBaseStyles} ${themeStyles}`}
-          />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Champ Nom */}
+          <div style={{ position: 'relative' }}>
+            <User style={{ 
+              position: 'absolute', 
+              left: '16px', 
+              top: '50%', 
+              transform: 'translateY(-50%)',
+              color: '#94a3b8',
+              width: '18px',
+              height: '18px'
+            }} />
+            <input 
+              name="name"
+              type="text" 
+              placeholder={t('contact.placeholder_name') || "VOTRE NOM"} 
+              required
+              style={inputStyle}
+              onFocus={(e) => {
+                e.target.style.borderColor = primaryColor;
+                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+
+          {/* Champ Email */}
+          <div style={{ position: 'relative' }}>
+            <Mail style={{ 
+              position: 'absolute', 
+              left: '16px', 
+              top: '50%', 
+              transform: 'translateY(-50%)',
+              color: '#94a3b8',
+              width: '18px',
+              height: '18px'
+            }} />
+            <input 
+              name="email"
+              type="email" 
+              placeholder={t('contact.placeholder_email') || "VOTRE EMAIL"} 
+              required
+              style={inputStyle}
+              onFocus={(e) => {
+                e.target.style.borderColor = primaryColor;
+                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+
+          {/* Champ Message */}
+          <div style={{ position: 'relative' }}>
+            <MessageSquare style={{ 
+              position: 'absolute', 
+              left: '16px', 
+              top: '16px',
+              color: '#94a3b8',
+              width: '18px',
+              height: '18px'
+            }} />
+            <textarea 
+              name="message"
+              placeholder={t('contact.placeholder_message') || "DÉTAILS DE VOTRE PROJET..."} 
+              rows={4}
+              required
+              style={textareaStyle}
+              onFocus={(e) => {
+                e.target.style.borderColor = primaryColor;
+                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
         </div>
 
-        <div className="relative">
-          <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
-          <textarea 
-            name="message"
-            placeholder={t('contact.placeholder_message') || "DÉTAILS DE VOTRE PROJET..."} 
-            rows={4}
-            required
-            className={`w-full p-4 pl-12 rounded-2xl border text-sm outline-none transition-all resize-none ${themeStyles} h-auto`}
-          ></textarea>
-        </div>
-      </div>
-
-      {status === 'error' && (
-        <div className="flex items-center gap-2 text-red-500 text-[10px] uppercase font-bold tracking-wider">
-          <AlertCircle size={14} /> {t('contact.error_message') || "Erreur lors de l'envoi."}
-        </div>
-      )}
-      
-      <button 
-        type="submit"
-        disabled={status === 'loading'}
-        className="w-full py-5 text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all mt-4"
-        style={{ backgroundColor: primaryColor }}
-      >
-        {status === 'loading' ? (
-          <Loader2 className="animate-spin" size={18} />
-        ) : (
-          <>
-            <Send size={16} /> 
-            {t('contact.send_btn') || "Envoyer la demande"}
-          </>
+        {status === 'error' && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            color: '#ef4444',
+            fontSize: '10px',
+            textTransform: 'uppercase' as const,
+            fontWeight: 'bold',
+            letterSpacing: '0.05em'
+          }}>
+            <AlertCircle size={14} /> {t('contact.error_message') || "Erreur lors de l'envoi."}
+          </div>
         )}
-      </button>
-    </form>
+        
+        <button 
+          type="submit"
+          disabled={status === 'loading'}
+          style={buttonStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.filter = 'brightness(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+        >
+          {status === 'loading' ? (
+            <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={18} />
+          ) : (
+            <>
+              <Send size={16} /> 
+              {t('contact.send_btn') || "Envoyer la demande"}
+            </>
+          )}
+        </button>
+      </form>
+
+      {/* Ajout de l'animation spin pour le loader */}
+      <style jsx global>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
   );
 }

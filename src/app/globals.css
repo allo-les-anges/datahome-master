@@ -119,3 +119,14 @@ html[data-package="light"] .theme-toggle-component {
 .no-forced-bg {
   background-color: transparent !important;
 }
+
+/* Dans globals.css */
+.contact-form-wrapper {
+  all: initial;
+  display: block;
+}
+
+.contact-form-wrapper * {
+  all: revert;
+  box-sizing: border-box;
+}
