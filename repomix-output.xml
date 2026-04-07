@@ -2580,143 +2580,6 @@ export default function AdvancedSearch({
 }
 </file>
 
-<file path="src/components/ContactForm.tsx">
-"use client";
-
-import React, { useState, useMemo } from "react";
-import { Send, CheckCircle, Loader2, User, Mail, MessageSquare } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface ContactFormProps {
-  agency: any;
-  propertyRef: string;
-  isLight?: boolean;
-}
-
-export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
-  const { t } = useTranslation() as any;
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-  // Extraction de la couleur de l'agence
-  const primaryColor = useMemo(() => {
-    return agency?.theme?.primary || 
-           agency?.colors?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('loading');
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      message: formData.get('message'),
-      region: propertyRef, 
-    };
-
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (res.ok) {
-        setStatus('success');
-      } else {
-        setStatus('error');
-      }
-    } catch (err) {
-      setStatus('error');
-    }
-  };
-
-  if (status === 'success') {
-    return (
-      <div className="p-10 text-center space-y-4 animate-in fade-in zoom-in duration-500">
-        <CheckCircle className="mx-auto text-green-500" size={48} />
-        <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.success_title') || 'Message envoyé'}
-        </h3>
-        <p className="text-xs text-slate-400">
-          Référence {propertyRef} bien reçue.
-        </p>
-      </div>
-    );
-  }
-
-  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
-  const themeStyles = isLight 
-    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-500' 
-    : 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:bg-white/10';
-
-  return (
-    <form onSubmit={handleSubmit} className="p-8 space-y-5">
-      <div className="mb-4">
-        <h3 className={`text-xl font-serif italic mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.title') || "Demande d'informations"}
-        </h3>
-        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
-          Réf : {propertyRef}
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="relative">
-          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            name="name"
-            type="text" 
-            placeholder="Votre nom complet" 
-            required
-            className={`${inputBaseStyles} ${themeStyles}`}
-            style={{ borderColor: status === 'idle' ? undefined : primaryColor }}
-          />
-        </div>
-
-        <div className="relative">
-          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            name="email"
-            type="email" 
-            placeholder="votre@email.com" 
-            required
-            className={`${inputBaseStyles} ${themeStyles}`}
-          />
-        </div>
-
-        <div className="relative">
-          <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
-          <textarea 
-            name="message"
-            placeholder="Je souhaite plus d'informations..." 
-            rows={4}
-            required
-            className={`w-full p-4 pl-12 rounded-2xl border text-sm outline-none transition-all resize-none ${themeStyles} h-auto`}
-          ></textarea>
-        </div>
-      </div>
-      
-      <button 
-        type="submit"
-        disabled={status === 'loading'}
-        className="w-full py-5 text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all mt-4"
-        style={{ backgroundColor: primaryColor }}
-      >
-        {status === 'loading' ? (
-          <Loader2 className="animate-spin" size={18} />
-        ) : (
-          <><Send size={16} /> Envoyer</>
-        )}
-      </button>
-    </form>
-  );
-}
-</file>
-
 <file path="src/components/CookieBanner.tsx">
 "use client";
 
@@ -3939,6 +3802,161 @@ export default async function RootLayout({
 }
 </file>
 
+<file path="src/components/ContactForm.tsx">
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { Send, CheckCircle, Loader2, User, Mail, MessageSquare, AlertCircle } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface ContactFormProps {
+  agency: any;
+  propertyRef: string;
+  isLight?: boolean;
+}
+
+export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
+  const { t } = useTranslation() as any;
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  // Extraction de la couleur de l'agence
+  const primaryColor = useMemo(() => {
+    return agency?.theme?.primary || 
+           agency?.colors?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus('loading');
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      message: formData.get('message'),
+      property_ref: propertyRef, 
+    };
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    } catch (err) {
+      setStatus('error');
+    }
+  };
+
+  // Écran de Succès
+  if (status === 'success') {
+    return (
+      <div className="p-10 text-center space-y-4 animate-in fade-in zoom-in duration-500">
+        <CheckCircle className="mx-auto text-green-500" size={48} />
+        <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
+          {t('contact.success_title') || 'Message envoyé'}
+        </h3>
+        <p className="text-xs text-slate-400">
+          {t('contact.ref_label') || 'Réf'} {propertyRef} {t('contact.success_message') || 'bien reçue.'}
+        </p>
+        <button 
+          onClick={() => setStatus('idle')}
+          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500"
+        >
+          {t('common.back') || 'Retour'}
+        </button>
+      </div>
+    );
+  }
+
+  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
+  const themeStyles = isLight 
+    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-500 focus:border-slate-400' 
+    : 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:bg-white/10 focus:border-white/20';
+
+  return (
+    <form onSubmit={handleSubmit} className="p-8 space-y-5">
+      <div className="mb-4">
+        <h3 className={`text-xl font-serif italic mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+          {t('contact.title') || "Demande d'informations"}
+        </h3>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
+          {t('contact.ref_label') || 'Réf'} : {propertyRef}
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {/* Champ Nom */}
+        <div className="relative">
+          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            name="name"
+            type="text" 
+            placeholder={t('contact.placeholder_name') || "Votre nom complet"} 
+            required
+            className={`${inputBaseStyles} ${themeStyles}`}
+          />
+        </div>
+
+        {/* Champ Email */}
+        <div className="relative">
+          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            name="email"
+            type="email" 
+            placeholder={t('contact.placeholder_email') || "votre@email.com"} 
+            required
+            className={`${inputBaseStyles} ${themeStyles}`}
+          />
+        </div>
+
+        {/* Champ Message */}
+        <div className="relative">
+          <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
+          <textarea 
+            name="message"
+            placeholder={t('contact.placeholder_message') || "Je souhaite plus d'informations..."} 
+            rows={4}
+            required
+            className={`w-full p-4 pl-12 rounded-2xl border text-sm outline-none transition-all resize-none ${themeStyles} h-auto`}
+          ></textarea>
+        </div>
+      </div>
+
+      {status === 'error' && (
+        <div className="flex items-center gap-2 text-red-500 text-[10px] uppercase font-bold tracking-wider">
+          <AlertCircle size={14} /> {t('contact.error_message') || 'Une erreur est survenue'}
+        </div>
+      )}
+      
+      <button 
+        type="submit"
+        disabled={status === 'loading'}
+        className="w-full py-5 text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all mt-4"
+        style={{ backgroundColor: primaryColor }}
+      >
+        {status === 'loading' ? (
+          <Loader2 className="animate-spin" size={18} />
+        ) : (
+          <>
+            <Send size={16} /> 
+            {t('contact.send_btn') || 'Envoyer'}
+          </>
+        )}
+      </button>
+    </form>
+  );
+}
+</file>
+
 <file path="src/components/Footer.tsx">
 "use client";
 
@@ -4407,17 +4425,18 @@ export const useTranslation = () => {
     "propertyNotFound": "لم يتم العثور على العقار"
   },
   "contact": {
-    "formTitle": "تواصل معنا",
-    "directContact": "اتصال مباشر",
-    "teamTitle": "الفريق",
-    "namePlaceholder": "الاسم الكامل",
-    "emailPlaceholder": "البريد الإلكتروني",
-    "messagePlaceholder": "تفاصيل مشروعك...",
-    "submit": "إرسال الطلب",
-    "sending": "جاري الإرسال...",
-    "success": "تم إرسال الرسالة بنجاح!",
-    "error": "خطأ أثناء الإرسال."
-  },
+  "title": "اتصل بنا",
+  "ref_label": "مرجع",
+  "placeholder_name": "اسمك الكامل",
+  "placeholder_email": "بريدك الإلكتروني",
+  "placeholder_message": "تفاصيل مشروعك...",
+  "send_btn": "إرسال الطلب",
+  "success_title": "تم إرسال الرسالة بنجاح!",
+  "success_message": "تم استلام الطلب بنجاح.",
+  "error_message": "خطأ أثناء الإرسال.",
+  "directContact": "اتصال مباشر",
+  "teamTitle": "الفريق"
+},
   "footer": {
     "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتك وأرقى العقارات.",
     "city": "أوريويلا كوستا، إسبانيا",
@@ -4494,17 +4513,18 @@ export const useTranslation = () => {
     "propertyNotFound": "Property not found"
   },
   "contact": {
-    "formTitle": "Contact us",
-    "directContact": "Direct Contact",
-    "teamTitle": "The Team",
-    "namePlaceholder": "YOUR NAME",
-    "emailPlaceholder": "YOUR EMAIL",
-    "messagePlaceholder": "PROJECT DETAILS...",
-    "submit": "Send request",
-    "sending": "Sending...",
-    "success": "Message sent successfully!",
-    "error": "Error while sending."
-  },
+  "title": "Contact Us",
+  "ref_label": "Ref",
+  "placeholder_name": "YOUR NAME",
+  "placeholder_email": "YOUR EMAIL",
+  "placeholder_message": "PROJECT DETAILS...",
+  "send_btn": "Send Request",
+  "success_title": "Message sent successfully!",
+  "success_message": "successfully received.",
+  "error_message": "Error while sending.",
+  "directContact": "Direct Contact",
+  "teamTitle": "The Team"
+},
   "footer": {
     "description": "The art of exceptional real estate. We build bridges between your ambitions and the most prestigious properties.",
     "city": "Orihuela Costa, Spain",
@@ -4581,17 +4601,18 @@ export const useTranslation = () => {
     "propertyNotFound": "Propiedad no encontrada"
   },
   "contact": {
-    "formTitle": "Contáctenos",
-    "directContact": "Contacto directo",
-    "teamTitle": "El equipo",
-    "namePlaceholder": "SU NOMBRE",
-    "emailPlaceholder": "SU EMAIL",
-    "messagePlaceholder": "DETALLES DE SU PROYECTO...",
-    "submit": "Enviar solicitud",
-    "sending": "Enviando...",
-    "success": "¡Mensaje enviado con éxito!",
-    "error": "Error al enviar."
-  },
+  "title": "Contáctenos",
+  "ref_label": "Ref",
+  "placeholder_name": "SU NOMBRE",
+  "placeholder_email": "SU EMAIL",
+  "placeholder_message": "DETALLES DE SU PROYECTO...",
+  "send_btn": "Enviar solicitud",
+  "success_title": "¡Mensaje enviado con éxito!",
+  "success_message": "recibida correctamente.",
+  "error_message": "Error al enviar.",
+  "directContact": "Contacto Directo",
+  "teamTitle": "El Equipo"
+},
   "footer": {
     "description": "El arte de las propiedades inmobiliarias excepcionales. Creamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
     "city": "Orihuela Costa, España",
@@ -4668,17 +4689,18 @@ export const useTranslation = () => {
     "propertyNotFound": "Propriété non trouvée"
   },
   "contact": {
-    "formTitle": "Contactez-nous",
-    "directContact": "Direct Contact",
-    "teamTitle": "L'Équipe",
-    "namePlaceholder": "VOTRE NOM",
-    "emailPlaceholder": "VOTRE EMAIL",
-    "messagePlaceholder": "DÉTAILS DE VOTRE PROJET...",
-    "submit": "Envoyer la demande",
-    "sending": "Envoi en cours...",
-    "success": "Message envoyé avec succès !",
-    "error": "Erreur lors de l'envoi."
-  },
+  "title": "Contactez-nous",
+  "ref_label": "Réf",
+  "placeholder_name": "VOTRE NOM",
+  "placeholder_email": "VOTRE EMAIL",
+  "placeholder_message": "DÉTAILS DE VOTRE PROJET...",
+  "send_btn": "Envoyer la demande",
+  "success_title": "Message envoyé avec succès !",
+  "success_message": "bien reçue.",
+  "error_message": "Erreur lors de l'envoi.",
+  "directContact": "Direct Contact",
+  "teamTitle": "L'Équipe"
+},
   "footer": {
     "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
     "city": "Orihuela Costa, Espagne",
@@ -4755,17 +4777,18 @@ export const useTranslation = () => {
     "propertyNotFound": "Woning niet gevonden"
   },
   "contact": {
-    "formTitle": "Contacteer ons",
-    "directContact": "Direct contact",
-    "teamTitle": "Het Team",
-    "namePlaceholder": "UW NAAM",
-    "emailPlaceholder": "UW EMAIL",
-    "messagePlaceholder": "DETAILS VAN UW PROJECT...",
-    "submit": "Aanvraag versturen",
-    "sending": "Verzenden...",
-    "success": "Bericht succesvol verzonden!",
-    "error": "Fout bij verzenden."
-  },
+  "title": "Neem contact op",
+  "ref_label": "Ref",
+  "placeholder_name": "UW NAAM",
+  "placeholder_email": "UW EMAIL",
+  "placeholder_message": "DETAILS VAN UW PROJECT...",
+  "send_btn": "Aanvraag versturen",
+  "success_title": "Bericht succesvol verzonden!",
+  "success_message": "succesvol ontvangen.",
+  "error_message": "Fout bij het verzenden.",
+  "directContact": "Direct Contact",
+  "teamTitle": "Het Team"
+},
   "footer": {
     "description": "De kunst van uitzonderlijk vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
     "city": "Orihuela Costa, Spanje",
@@ -4842,17 +4865,18 @@ export const useTranslation = () => {
     "propertyNotFound": "Nie znaleziono nieruchomości"
   },
   "contact": {
-    "formTitle": "Skontaktuj się z nami",
-    "directContact": "Kontakt bezpośredni",
-    "teamTitle": "Zespół",
-    "namePlaceholder": "TWOJE IMIĘ",
-    "emailPlaceholder": "TWÓJ EMAIL",
-    "messagePlaceholder": "SZCZEGÓŁY PROJEKTU...",
-    "submit": "Wyślij zapytanie",
-    "sending": "Wysyłanie...",
-    "success": "Wiadomość wysłana pomyślnie!",
-    "error": "Błąd podczas wysyłania."
-  },
+  "title": "Skontaktuj się z nami",
+  "ref_label": "Nr ref",
+  "placeholder_name": "TWOJE IMIĘ",
+  "placeholder_email": "TWÓJ EMAIL",
+  "placeholder_message": "SZCZEGÓŁY PROJEKTU...",
+  "send_btn": "Wyślij zapytanie",
+  "success_title": "Wiadomość wysłana pomyślnie!",
+  "success_message": "została pomyślnie odebrana.",
+  "error_message": "Błąd podczas wysyłania.",
+  "directContact": "Kontakt bezpośredni",
+  "teamTitle": "Zespół"
+},
   "footer": {
     "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi ofertami.",
     "city": "Orihuela Costa, Hiszpania",
@@ -7146,7 +7170,7 @@ export default function AgencyDashboard() {
 <file path="src/app/AgencyPageClient.tsx">
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyGrid from '@/components/PropertyGrid';
@@ -7168,7 +7192,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { t, locale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
   
-  const agency = initialAgency || contextAgency;
+  const agency = useMemo(() => contextAgency || initialAgency, [contextAgency, initialAgency]);
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
@@ -7201,7 +7225,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     return fonts[fontName] || 'var(--font-inter)';
   }, []);
 
-  const selectedFont = getFontVariable(agency?.font_family || 'Inter');
+  const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
@@ -7233,12 +7257,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [locale]);
 
   const loadData = useCallback(async (currentAgency: any) => {
+    if (!currentAgency?.id) return;
+
     try {
       setLoadingProperties(true);
       setLoadingProgress(20);
 
-      // 1. Priorité aux propriétés initiales (SSR)
-      if (initialProperties && initialProperties.length > 0) {
+      if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
         setFilteredProperties(formatted);
@@ -7247,7 +7272,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         return;
       }
 
-      // 2. Récupération via Supabase avec filtrage XML
       setLoadingProgress(40);
       let allowedXmlUrls: string[] = [];
       
@@ -7258,16 +7282,15 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             : currentAgency.footer_config;
           allowedXmlUrls = config?.xml_urls || [];
         } catch (e) {
-          console.warn("Format footer_config invalide");
+          console.error("Erreur parsing config agence");
         }
       }
 
       let query = supabase
         .from('villas')
-        .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, surface, is_excluded, xml_source')
+        .select('*')
         .eq('is_excluded', false);
 
-      // N'appliquer le filtre XML que si l'agence est chargée et possède des URLs
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
@@ -7286,16 +7309,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProgress(100);
       setLoadingProperties(false);
     }
-  }, [initialProperties, formatVillaData]);
+  }, [initialProperties, formatVillaData, allProperties.length]);
 
-  // Étape 1 : Charger l'agence par le slug
   useEffect(() => {
     if (slug) setAgencyBySlug(slug);
   }, [slug, setAgencyBySlug]);
 
-  // Étape 2 : Charger les données uniquement quand l'agence est prête (ou si elle change)
   useEffect(() => {
-    if (agency && agency.id) {
+    if (agency?.id) {
       loadData(agency);
     }
   }, [agency?.id, loadData]);
@@ -7314,32 +7335,45 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   };
 
   const handleSearch = (newFilters: Filters) => {
+    setFilters(newFilters);
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 50000000;
-    setFilters({ ...newFilters, minPrice: min, maxPrice: max });
     
     const results = allProperties.filter((p) => {
+      // 1. Prix
       const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
-      const matchType = !newFilters.type || newFilters.type === "all" || p.type.toLowerCase().includes(newFilters.type.toLowerCase());
+      
+      // 2. Type
+      const matchType = !newFilters.type || newFilters.type === "all" || 
+        p.type.toLowerCase().includes(newFilters.type.toLowerCase());
+      
+      // 3. Chambres
       const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
-      const matchRegion = !newFilters.region || 
-        p.region?.toLowerCase().includes(newFilters.region.toLowerCase()) || 
-        p.town?.toLowerCase().includes(newFilters.region.toLowerCase());
-      return matchPrice && matchBeds && matchType && matchRegion;
+      
+      // 4. Localisation (Ville OU Région)
+      const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
+      const matchLocation = !searchLocation || 
+        p.town?.toLowerCase().includes(searchLocation) || 
+        p.region?.toLowerCase().includes(searchLocation);
+
+      // 5. Référence
+      const matchRef = !newFilters.reference || 
+        p.ref?.toLowerCase().includes(newFilters.reference.toLowerCase()) ||
+        p.id_externe?.toLowerCase().includes(newFilters.reference.toLowerCase());
+
+      return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
     setFilteredProperties(results);
+    setDisplayLimit(12); // Réinitialiser la limite d'affichage
     setIsSearchOpen(false);
   };
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
   const radius = agency?.button_style || 'rounded-full';
-  const heroTitle = agency?.hero_title || "Des professionnels à votre écoute";
-  const heroSubtitle = agency?.hero_subtitle || "Votre partenaire immobilier de confiance";
 
   return (
     <div className="flex flex-col relative notranslate min-h-screen" style={{ fontFamily: selectedFont }}>
-      
       <style dangerouslySetInnerHTML={{ __html: `
         .force-agency-font h1, .force-agency-font h2, .force-agency-font p, .force-agency-font span {
           font-family: ${selectedFont} !important;
@@ -7362,8 +7396,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               <div className="force-agency-font">
                 <Hero 
                   agency={agency} 
-                  title={heroTitle} 
-                  subtitle={heroSubtitle}
+                  title={agency?.hero_title || "Des professionnels à votre écoute"} 
+                  subtitle={agency?.hero_subtitle || "Votre partenaire immobilier de confiance"}
                   backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
                   agencyName={agency?.agency_name} 
                 />
@@ -7384,7 +7418,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
-                  {loadingProperties ? (
+                  {loadingProperties && filteredProperties.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 space-y-8">
                       <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
                         <motion.div className="absolute inset-y-0 left-0" style={{ backgroundColor: primaryColor }} animate={{ width: `${loadingProgress}%` }} />
@@ -7406,7 +7440,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                       ) : (
                         <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
                           <p className="text-slate-400 italic mb-4">{t('common.noResults')}</p>
-                          <button onClick={() => loadData(agency)} className="text-[10px] font-bold uppercase tracking-widest underline">Réessayer</button>
+                          <button onClick={() => {
+                            setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
+                            setFilteredProperties(allProperties);
+                          }} className="text-[10px] font-bold uppercase tracking-widest underline">Réinitialiser la recherche</button>
                         </div>
                       )}
                     </AnimatePresence>

@@ -22,6 +22,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { t, locale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
   
+  // Priorité à l'agence du contexte, sinon initialAgency du SSR
   const agency = useMemo(() => contextAgency || initialAgency, [contextAgency, initialAgency]);
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
@@ -57,6 +58,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
+  // Formattage des données pour uniformiser les champs provenant de différentes sources XML/SQL
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -75,8 +77,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
         description: v[`description_${locale}`] || v.description || v.details || "",
         price: Number(v.price || v.prix || 0),
-        town: v.town || v.ville || v.city || "",
-        region: v.region || v.province || "",
+        town: (v.town || v.ville || v.city || "").trim(),
+        region: (v.region || v.province || "").trim(),
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
         surface: v.surface || v.m2 || v.built || 0,
@@ -93,6 +95,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProperties(true);
       setLoadingProgress(20);
 
+      // Utilisation des propriétés initiales (SSR) si disponibles pour un chargement instantané
       if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -125,7 +128,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         query = query.in('xml_source', allowedXmlUrls);
       }
 
-      const { data, error } = await query.order('price', { ascending: false }).limit(100);
+      const { data, error } = await query.order('price', { ascending: false }).limit(200);
       
       if (error) throw error;
 
@@ -164,20 +167,21 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
+  // LOGIQUE DE RECHERCHE CORRIGÉE
   const handleSearch = (newFilters: Filters) => {
     setFilters(newFilters);
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 50000000;
     
     const results = allProperties.filter((p) => {
-      // 1. Prix
+      // 1. Filtre Prix
       const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
       
-      // 2. Type
+      // 2. Filtre Type (maison, appartement, etc.)
       const matchType = !newFilters.type || newFilters.type === "all" || 
         p.type.toLowerCase().includes(newFilters.type.toLowerCase());
       
-      // 3. Chambres
+      // 3. Filtre Chambres (Minimum)
       const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
       
       // 4. Localisation (Ville OU Région)
@@ -195,8 +199,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
 
     setFilteredProperties(results);
-    setDisplayLimit(12); // Réinitialiser la limite d'affichage
+    setDisplayLimit(12); // Réinitialisation de la pagination
     setIsSearchOpen(false);
+    
+    // Scroll automatique vers les résultats
+    const resultsSection = document.getElementById('results-section');
+    if (resultsSection) {
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
@@ -240,7 +250,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                 </button>
               </div>
 
-              <section className="py-24 bg-slate-50 relative z-10">
+              <section id="results-section" className="py-24 bg-slate-50 relative z-10">
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
@@ -254,26 +264,31 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         <motion.div className="absolute inset-y-0 left-0" style={{ backgroundColor: primaryColor }} animate={{ width: `${loadingProgress}%` }} />
                       </div>
                       <p className="text-[9px] font-medium uppercase tracking-widest text-slate-400 italic flex items-center gap-2">
-                        <Loader2 className="animate-spin" size={12} /> {t('common.loadingProperties')}
+                        <Loader2 className="animate-spin" size={12} /> {t('common.loadingProperties') || 'Chargement des biens...'}
                       </p>
                     </div>
                   ) : (
-                    <AnimatePresence>
+                    <AnimatePresence mode="popLayout">
                       {filteredProperties.length > 0 ? (
                         <PropertyGrid 
                           agency={agency}
                           properties={filteredProperties.slice(0, displayLimit)} 
                           favorites={favorites}
                           onToggleFavorite={toggleFavorite}
-                          onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
+                          onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         />
                       ) : (
-                        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                          <p className="text-slate-400 italic mb-4">{t('common.noResults')}</p>
-                          <button onClick={() => {
-                            setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
-                            setFilteredProperties(allProperties);
-                          }} className="text-[10px] font-bold uppercase tracking-widest underline">Réinitialiser la recherche</button>
+                        <div className="text-center py-32 bg-white rounded-[40px] border border-dashed border-slate-200 shadow-inner">
+                          <p className="text-slate-400 italic mb-6">{t('common.noResults') || 'Aucun bien ne correspond à vos critères'}</p>
+                          <button 
+                            onClick={() => {
+                                setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
+                                setFilteredProperties(allProperties);
+                            }} 
+                            className="px-8 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-slate-800 transition-colors"
+                          >
+                            {t('home.reset') || 'Réinitialiser les filtres'}
+                          </button>
                         </div>
                       )}
                     </AnimatePresence>
@@ -281,7 +296,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
                   {!loadingProperties && filteredProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
-                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl ${radius}`} style={{ backgroundColor: primaryColor }}>
+                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
                         <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore')}</span>
                       </button>
                     </div>
@@ -295,12 +310,33 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       <AnimatePresence>
         {isSearchOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 bg-slate-900/95 backdrop-blur-xl"
+          >
             <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-              <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-4 p-3 bg-slate-100 rounded-full text-slate-500 z-[220]"><X size={20} /></button>
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.9, y: 20 }} 
+              className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+            >
+              <button 
+                onClick={() => setIsSearchOpen(false)} 
+                className="absolute top-6 right-6 p-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors z-[220]"
+              >
+                <X size={20} />
+              </button>
               <div className="flex-grow overflow-y-auto p-6 md:p-12">
-                <AdvancedSearch agency={agency} onSearch={handleSearch} properties={allProperties} activeFilters={filters} onClose={() => setIsSearchOpen(false)} />
+                <AdvancedSearch 
+                  agency={agency} 
+                  onSearch={handleSearch} 
+                  properties={allProperties} 
+                  activeFilters={filters} 
+                  onClose={() => setIsSearchOpen(false)} 
+                />
               </div>
             </motion.div>
           </motion.div>
