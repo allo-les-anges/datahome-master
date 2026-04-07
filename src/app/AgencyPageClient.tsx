@@ -190,13 +190,16 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             </motion.div>
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Hero 
-                agency={agency} 
-                title={heroTitle} 
-                subtitle={heroSubtitle}
-                backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
-                agencyName={agency?.agency_name} 
-              />
+              {/* Force l'application de la police sur le Hero en injectant une variable CSS locale */}
+              <div style={{ ["--font-agency" as any]: selectedFont }}>
+                <Hero 
+                  agency={agency} 
+                  title={heroTitle} 
+                  subtitle={heroSubtitle}
+                  backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
+                  agencyName={agency?.agency_name} 
+                />
+              </div>
               
               <div className="flex justify-center -mt-12 relative z-40">
                 <button 
@@ -215,7 +218,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
                     <h2 
                       className="text-5xl italic mb-8 text-slate-900"
-                      style={{ fontFamily: agency?.font_family === 'Montserrat' ? 'var(--font-montserrat)' : 'inherit' }}
+                      style={{ fontFamily: selectedFont }}
                     >
                       {t('nav.results')}
                     </h2>
