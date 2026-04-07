@@ -50,15 +50,14 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
-  const whatsappNumber = (property?.phone || agency?.phone || "34627768233").replace(/\D/g, '');
+  const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
 
   if (!mounted || !property) return null;
 
   return (
-    // Ajout de mt-20 ou pt-24 pour laisser de la place à la Navbar et au bouton retour
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
       <div className="pb-20"> 
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
           
           {/* GALERIE D'IMAGES */}
           <section className="mb-16">
@@ -75,7 +74,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                         pointerEvents: activeImage === idx ? 'auto' : 'none'
                       }}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt="" />
+                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
                     </div>
                   ))}
                 </div>
@@ -92,7 +91,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
                     style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
                   >
-                    <img src={img} className="w-full h-full object-cover" alt="" />
+                    <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
                   </button>
                 ))}
               </div>
@@ -100,9 +99,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           </section>
 
           {/* GRILLE DE CONTENU */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
-              <h1 className={`text-4xl md:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`text-4xl md:text-6xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
@@ -122,31 +121,31 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ].map((item, i) => (
                   <div 
                     key={i} 
-                    className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                    className={`p-6 md:p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
                   >
-                    <item.icon className="mb-6" color={primaryColor} size={24} />
-                    <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
+                    <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
                     <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
                 ))}
               </div>
 
               <div 
-                className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                className={`text-lg md:text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
                 dangerouslySetInnerHTML={{ __html: description }}
               />
 
-              <div className="mt-10 border-t pt-10 border-white/10">
+              <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
                     <Navigation size={24} color={primaryColor} />
                   </div>
                   <div>
-                    <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <h2 className={`text-2xl md:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
                   </div>
                 </div>
-                <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl h-[400px]">
+                <div className="relative rounded-[2.5rem] overflow-hidden shadow-xl h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
                   <iframe
                     width="100%"
                     height="100%"
@@ -154,31 +153,42 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     loading="lazy"
                     allowFullScreen
                     src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    title="Location map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* SIDEBAR */}
+            {/* SIDEBAR - Contact Form */}
             <div className="lg:col-span-1">
-              <div className={`sticky top-32 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
-                <div className="p-10 pb-4">
+              <div className={`sticky top-32 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
+                <div className="p-6 md:p-8 pb-4">
                   <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  <p className={`text-4xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
                 
-                <div className="px-2">
-                    <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
-                </div>
+                {/* ContactForm - sans padding supplémentaire qui pourrait casser les styles */}
+                <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
 
-                <div className="px-10 pb-10">
+                <div className="p-6 md:p-8 pt-0">
                   <a 
                     href={`https://wa.me/${whatsappNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/5 transition-all text-white"
+                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all"
+                    style={{ 
+                      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                      color: isLight ? '#0f172a' : '#ffffff',
+                      backgroundColor: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                   >
                     <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
                   </a>
