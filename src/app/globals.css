@@ -6,19 +6,51 @@
     --background: #ffffff;
     --foreground: #0f172a;
     --accent-gold: #D4AF37;
-    /* Valeur par défaut si l'agence n'en fournit pas */
-    --brand-primary: #D4AF37; 
+    --brand-primary: #D4AF37;
+    --font-main: 'Montserrat', system-ui, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-mono: 'Roboto Mono', monospace;
   }
 
   html.dark:not([data-package="light"]) {
     --background: #020617;
     --foreground: #ffffff;
+    --brand-primary: #D4AF37;
+  }
+
+  /* Styles de base */
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-main);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Suppression du margin par défaut sur les headings */
+  h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+  }
+
+  /* Liens */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Boutons */
+  button {
+    cursor: pointer;
+    background: none;
+    border: none;
   }
 }
 
 /* ===== 2. COLOR-SCHEME & BEHAVIOR ===== */
 html {
   color-scheme: light;
+  scroll-behavior: smooth;
 }
 
 html.dark:not([data-package="light"]) {
@@ -26,36 +58,29 @@ html.dark:not([data-package="light"]) {
 }
 
 /* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
-/* Utilisé pour garder un rendu clair même si l'utilisateur est en mode sombre système */
-
 html[data-package="light"] {
   color: #0f172a !important;
+  color-scheme: light;
 }
 
 html[data-package="light"] body {
-  background-color: #ffffff;
+  background-color: #ffffff !important;
   color: #0f172a !important;
-  margin: 0;
-  padding: 0;
 }
 
-/* Navbar : Transparente par défaut pour laisser voir le Hero */
 html[data-package="light"] nav {
   background-color: transparent !important;
 }
 
-/* Sections de contenu : On force le blanc pour la lisibilité */
 html[data-package="light"] section:not(.no-forced-bg) {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
-/* FOOTER : On ne force PAS le fond blanc ici pour laisser passer la couleur de l'agence */
 html[data-package="light"] footer {
-  color: #0f172a; 
+  color: #0f172a;
 }
 
-/* Main : Doit rester transparent pour ne pas bloquer les fonds dynamiques */
 html[data-package="light"] main {
   background-color: transparent !important;
 }
@@ -68,16 +93,38 @@ html.dark:not([data-package="light"]) .bg-gray-50 {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Cartes en mode clair */
+.bg-white {
+  background-color: #ffffff;
+}
+
+.dark .bg-white {
+  background-color: #0f172a;
+}
+
 /* ===== 5. SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--brand-primary, var(--accent-gold));
   border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--brand-primary) 80%, black);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-primary) transparent;
 }
 
 /* ===== 6. COMPOSANTS SPÉCIFIQUES ===== */
@@ -93,7 +140,7 @@ html[data-package="light"] .theme-toggle-component {
   display: none !important;
 }
 
-/* Badge Type (commun) */
+/* Badges */
 .badge-type {
   background-color: rgba(0, 0, 0, 0.75) !important;
   color: #ffffff !important;
@@ -101,26 +148,24 @@ html[data-package="light"] .theme-toggle-component {
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Badge Référence - Mode Light */
 .badge-ref-light {
   background-color: #000000 !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Badge Référence - Mode Dark */
 .badge-ref-dark {
   background-color: var(--brand-primary) !important;
   color: #000000 !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Utilitaire pour empêcher le forçage du fond blanc sur certains éléments spécifiques */
+/* Utilitaire pour empêcher le forçage du fond blanc */
 .no-forced-bg {
   background-color: transparent !important;
 }
 
-/* Dans globals.css */
+/* ===== 7. CONTACT FORM WRAPPER ===== */
 .contact-form-wrapper {
   all: initial;
   display: block;
@@ -129,4 +174,158 @@ html[data-package="light"] .theme-toggle-component {
 .contact-form-wrapper * {
   all: revert;
   box-sizing: border-box;
+}
+
+/* ===== 8. UTILITAIRES PERSONNALISÉS ===== */
+
+/* Masquer la scrollbar sur mobile tout en gardant la fonctionnalité */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scrollbar personnalisée */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--brand-primary);
+  border-radius: 10px;
+}
+
+/* Animations personnalisées */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.4s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* ===== 9. TYPOGRAPHIE ===== */
+
+/* Limiter les lignes pour les textes longs */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== 10. RESPONSIVE UTILITIES ===== */
+
+/* Container personnalisé */
+.container-custom {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container-custom {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-custom {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+/* ===== 11. TRANSITIONS GLOBALES ===== */
+.transition-theme {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ===== 12. FOCUS STYLES ===== */
+*:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== 13. SELECTION TEXT ===== */
+::selection {
+  background-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  color: var(--foreground);
 }
