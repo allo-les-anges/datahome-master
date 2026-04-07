@@ -23,7 +23,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   const router = useRouter();
   const { t, locale } = useTranslation() as any;
   
-  // Récupération de l'agence via le contexte si non fournie en props
   const { agency: contextAgency } = useAgency();
   const agency = propsAgency || contextAgency;
 
@@ -36,7 +35,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Construction dynamique de l'URL de base selon l'agence actuelle
   const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
   const baseUrl = `/${locale}/${agencySlug}`;
 
@@ -68,15 +66,15 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   ];
 
   const handleLangChange = (newLang: string) => {
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const slug = agency?.subdomain || pathSegments[1] || "default";
-  
-  // Reconstruction sécurisée : /nouvelle-langue/slug-agence/reste-du-chemin
-  const remainingPath = pathSegments.slice(2).join('/');
-  const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
-  
-  router.push(newPath);
-};
+    const pathSegments = pathname.split('/').filter(Boolean);
+    const slug = agency?.subdomain || pathSegments[1] || "default";
+    const remainingPath = pathSegments.slice(2).join('/');
+    const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
+    
+    setIsMenuOpen(false); // Ferme le menu mobile après changement
+    setIsLangOpen(false); // Ferme le dropdown desktop
+    router.push(newPath);
+  };
 
   return (
     <>
@@ -124,7 +122,7 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
               </Link>
             ))}
 
-            {/* Language Selector */}
+            {/* Language Selector Desktop */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsLangOpen(!isLangOpen)}
@@ -154,41 +152,72 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
 
           {/* Mobile Menu Toggle */}
           <button 
-            className={`md:hidden p-2 transition-colors ${textColor}`} 
+            className={`md:hidden p-2 transition-colors relative z-[160] ${textColor}`} 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            {isMenuOpen ? <X size={28} className="text-white" /> : <Menu size={28} />}
           </button>
         </div>
       </nav>
 
       {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
-          <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
-            <X size={35} />
-          </button>
-          
-          <Link 
-            href={baseUrl} 
-            onClick={() => setIsMenuOpen(false)} 
-            className="text-xl font-black uppercase tracking-[0.5em] text-white"
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center z-[150] md:hidden"
           >
-            Accueil
-          </Link>
+            <div className="flex flex-col items-center gap-10">
+              <Link 
+                href={baseUrl} 
+                onClick={() => setIsMenuOpen(false)} 
+                className="text-xl font-black uppercase tracking-[0.5em] text-white"
+              >
+                {t('nav.home') || 'Accueil'}
+              </Link>
 
-          {navLinks.map((link) => (
-            <Link 
-              key={link.href}
-              href={link.href} 
-              onClick={() => setIsMenuOpen(false)} 
-              className="text-xl font-black uppercase tracking-[0.5em] text-white"
-            >
-              {link.name}
-            </Link>
-          ))}
-        </div>
-      )}
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href} 
+                  onClick={() => setIsMenuOpen(false)} 
+                  className="text-xl font-black uppercase tracking-[0.5em] text-white"
+                >
+                  {link.name}
+                </Link>
+              ))}
+
+              {/* SECTION LANGUE MOBILE */}
+              <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
+                <div className="flex items-center gap-3 text-slate-500">
+                  <Globe size={16} style={{ color: brandColor }} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('common.language') || 'Language'}</span>
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-6">
+                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLangChange(lang)}
+                      className={`text-sm font-black uppercase tracking-widest transition-all ${
+                        locale === lang 
+                          ? 'text-white scale-125' 
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                      style={{ color: locale === lang ? brandColor : '' }}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
