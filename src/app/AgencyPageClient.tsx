@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyGrid from '@/components/PropertyGrid';
@@ -22,9 +22,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { t, locale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
   
-  const agency = initialAgency || contextAgency;
+  // Stabilisation de l'objet agency : priorité au contexte une fois chargé
+  const agency = useMemo(() => contextAgency || initialAgency, [contextAgency, initialAgency]);
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
+  // Initialisation avec les props SSR pour éviter l'écran vide
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -55,7 +57,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     return fonts[fontName] || 'var(--font-inter)';
   }, []);
 
-  const selectedFont = getFontVariable(agency?.font_family || 'Inter');
+  const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
@@ -87,12 +89,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [locale]);
 
   const loadData = useCallback(async (currentAgency: any) => {
+    if (!currentAgency?.id) return;
+
     try {
       setLoadingProperties(true);
       setLoadingProgress(20);
 
-      // 1. Priorité aux propriétés initiales (SSR)
-      if (initialProperties && initialProperties.length > 0) {
+      // 1. Si on a des propriétés initiales valides au premier montage, on les formate
+      if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
         setFilteredProperties(formatted);
@@ -101,7 +105,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         return;
       }
 
-      // 2. Récupération via Supabase avec filtrage XML
+      // 2. Sinon récupération Supabase
       setLoadingProgress(40);
       let allowedXmlUrls: string[] = [];
       
@@ -112,16 +116,15 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             : currentAgency.footer_config;
           allowedXmlUrls = config?.xml_urls || [];
         } catch (e) {
-          console.warn("Format footer_config invalide");
+          console.error("Erreur parsing config agence");
         }
       }
 
       let query = supabase
         .from('villas')
-        .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, surface, is_excluded, xml_source')
+        .select('*')
         .eq('is_excluded', false);
 
-      // N'appliquer le filtre XML que si l'agence est chargée et possède des URLs
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
@@ -140,16 +143,16 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProgress(100);
       setLoadingProperties(false);
     }
-  }, [initialProperties, formatVillaData]);
+  }, [initialProperties, formatVillaData, allProperties.length]);
 
-  // Étape 1 : Charger l'agence par le slug
+  // Synchronisation de l'agence
   useEffect(() => {
     if (slug) setAgencyBySlug(slug);
   }, [slug, setAgencyBySlug]);
 
-  // Étape 2 : Charger les données uniquement quand l'agence est prête (ou si elle change)
+  // Chargement des données quand l'agence est prête
   useEffect(() => {
-    if (agency && agency.id) {
+    if (agency?.id) {
       loadData(agency);
     }
   }, [agency?.id, loadData]);
@@ -188,12 +191,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
   const radius = agency?.button_style || 'rounded-full';
-  const heroTitle = agency?.hero_title || "Des professionnels à votre écoute";
-  const heroSubtitle = agency?.hero_subtitle || "Votre partenaire immobilier de confiance";
 
   return (
     <div className="flex flex-col relative notranslate min-h-screen" style={{ fontFamily: selectedFont }}>
-      
       <style dangerouslySetInnerHTML={{ __html: `
         .force-agency-font h1, .force-agency-font h2, .force-agency-font p, .force-agency-font span {
           font-family: ${selectedFont} !important;
@@ -216,8 +216,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               <div className="force-agency-font">
                 <Hero 
                   agency={agency} 
-                  title={heroTitle} 
-                  subtitle={heroSubtitle}
+                  title={agency?.hero_title || "Des professionnels à votre écoute"} 
+                  subtitle={agency?.hero_subtitle || "Votre partenaire immobilier de confiance"}
                   backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
                   agencyName={agency?.agency_name} 
                 />
@@ -238,7 +238,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
-                  {loadingProperties ? (
+                  {loadingProperties && filteredProperties.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 space-y-8">
                       <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
                         <motion.div className="absolute inset-y-0 left-0" style={{ backgroundColor: primaryColor }} animate={{ width: `${loadingProgress}%` }} />
