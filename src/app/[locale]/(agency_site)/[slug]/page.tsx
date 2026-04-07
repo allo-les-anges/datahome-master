@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import AgencyPageClient from "@/app/AgencyPageClient";
 import { notFound } from 'next/navigation';
 
-// On force le mode dynamique pour bypasser tout cache Vercel pendant le debug
+// Forcer le mode dynamique pour bypasser le cache
 export const dynamic = 'force-dynamic';
 
 export default async function DynamicAgencyPage({ 
@@ -10,12 +10,10 @@ export default async function DynamicAgencyPage({
 }: { 
   params: Promise<{ slug: string, locale: string }> 
 }) {
-  // 1. On attend la résolution des paramètres
-  const resolvedParams = await params;
-  const slug = resolvedParams.slug;
+  const { slug } = await params;
 
-  // 2. Requête Supabase sur la table correcte : 'agency_settings'
-  // On utilise .select() pour vérifier l'existence sans planter sur une erreur 406
+  // 1. Récupération de l'agence (Table: agency_settings)
+  // On ne récupère que ce qui est nécessaire pour l'affichage initial pour gagner en vitesse
   const { data: agencies, error: agencyError } = await supabase
     .from('agency_settings')
     .select('*')
@@ -23,17 +21,12 @@ export default async function DynamicAgencyPage({
 
   const agency = agencies && agencies.length > 0 ? agencies[0] : null;
 
-  // LOGS SERVEUR - Visibles dans le dashboard Vercel
-  console.log(`[ROUTE CHECK] Slug reçu: ${slug}`);
-  if (agencyError) console.error("[SUPABASE ERROR]", agencyError);
-
-  // 3. Si l'agence n'est pas trouvée dans agency_settings, on renvoie une 404
-  if (!agency) {
-    console.log(`[NOT FOUND] Aucune agence trouvée dans agency_settings pour le slug: ${slug}`);
+  if (agencyError || !agency) {
+    console.error("[SUPABASE ERROR]", agencyError);
     return notFound();
   }
 
-  // 4. Extraction sécurisée de la configuration XML pour filtrer les propriétés
+  // 2. Extraction des URLs XML autorisées
   let allowedXmlUrls: string[] = [];
   if (agency.footer_config) {
     try {
@@ -42,21 +35,30 @@ export default async function DynamicAgencyPage({
         : agency.footer_config;
       allowedXmlUrls = parsed?.xml_urls || [];
     } catch (e) {
-      console.error("Erreur lors du parsing de footer_config pour l'agence:", slug);
+      console.error("Erreur parsing footer_config");
     }
   }
 
-  // 5. Récupération des villas correspondantes
-  let query = supabase.from('villas').select('*').eq('is_excluded', false);
+  // 3. Récupération des villas optimisée
+  // On sélectionne les champs essentiels pour réduire le temps de transfert (payload)
+  let query = supabase
+    .from('villas')
+    .select('id, title, price, location, images, bedrooms, bathrooms, area, type, xml_source, is_excluded')
+    .eq('is_excluded', false);
   
-  // Filtrage par source XML si défini dans la configuration de l'agence
-  if (allowedXmlUrls.length > 0) {
+  // N'appliquer le filtre XML QUE s'il y a des URLs définies
+  // Si la liste est vide, on affiche tout pour éviter le "noResults"
+  if (allowedXmlUrls && allowedXmlUrls.length > 0) {
     query = query.in('xml_source', allowedXmlUrls);
   }
 
-  const { data: villas } = await query.order('price', { ascending: false });
+  const { data: villas, error: villasError } = await query.order('price', { ascending: false });
 
-  // 6. Rendu du composant Client avec les données initiales
+  if (villasError) {
+    console.error("[VILLAS ERROR]", villasError);
+  }
+
+  // 4. Rendu du composant Client
   return (
     <AgencyPageClient 
       slug={slug} 
