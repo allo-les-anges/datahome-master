@@ -94,7 +94,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProperties(true);
       setLoadingProgress(20);
 
-      // Si on a des propriétés initiales, on les utilise directement
       if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -158,7 +157,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // LOGIQUE DE RECHERCHE CORRIGÉE
   const handleSearch = (newFilters: Filters) => {
     console.log("🔍 Lancement de la recherche avec les filtres:", newFilters);
     setFilters(newFilters);
@@ -171,39 +169,32 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     const searchType = (newFilters.type || "").toLowerCase().trim();
 
     const results = allProperties.filter((p, index) => {
-      // 1. Prix
       const pPrice = Number(p.price) || 0;
-      // On ignore le plafond max si l'utilisateur a sélectionné la valeur maximale du slider (ex: 19.9M+)
-      const matchPrice = pPrice >= min && (max >= 19900000 ? true : pPrice <= max);
+      // Si max est proche du plafond (ex 19.9M), on considère qu'il n'y a pas de limite supérieure
+      const matchPrice = pPrice >= min && (max >= 19000000 ? true : pPrice <= max);
       
-      // 2. Type
       const matchType = !searchType || searchType === "all" || 
         p.type.toLowerCase().includes(searchType);
       
-      // 3. Chambres
       const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
       
-      // 4. Localisation
       const matchLocation = !searchLocation || 
         (p.town && p.town.toLowerCase().includes(searchLocation)) || 
         (p.region && p.region.toLowerCase().includes(searchLocation));
 
-      // 5. Référence
       const matchRef = !searchRef || 
         (p.ref && p.ref.toLowerCase().includes(searchRef)) ||
         (p.id_externe && p.id_externe.toLowerCase().includes(searchRef));
 
       const isMatch = matchPrice && matchType && matchBeds && matchLocation && matchRef;
 
-      // Debugging de la première propriété en cas d'absence de résultats
       if (index === 0 && !isMatch) {
-        console.log("Debug première propriété de la liste:", {
+        console.log("Debug 1ère propriété:", {
           title: p.titre,
-          matchPrice, pPrice, filters: {min, max},
+          matchPrice, pPrice, filterMax: max,
           matchType, pType: p.type, searchType,
           matchBeds, pBeds: p.beds,
-          matchLocation,
-          matchRef
+          matchLocation, matchRef
         });
       }
 
