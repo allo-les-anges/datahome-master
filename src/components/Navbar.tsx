@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext";
+import { motion, AnimatePresence } from "framer-motion"; // <-- CET IMPORT EST CRUCIAL
 
 const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
   <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
@@ -71,8 +72,8 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
     const remainingPath = pathSegments.slice(2).join('/');
     const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
     
-    setIsMenuOpen(false); // Ferme le menu mobile après changement
-    setIsLangOpen(false); // Ferme le dropdown desktop
+    setIsMenuOpen(false);
+    setIsLangOpen(false);
     router.push(newPath);
   };
 
@@ -88,8 +89,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
-          
-          {/* Logo */}
           <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
@@ -105,7 +104,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
             )}
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-12">
             {navLinks.map((link) => (
               <Link 
@@ -122,7 +120,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
               </Link>
             ))}
 
-            {/* Language Selector Desktop */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsLangOpen(!isLangOpen)}
@@ -150,7 +147,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
             </div>
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button 
             className={`md:hidden p-2 transition-colors relative z-[160] ${textColor}`} 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -160,7 +156,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -190,7 +185,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
                 </Link>
               ))}
 
-              {/* SECTION LANGUE MOBILE */}
               <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
                 <div className="flex items-center gap-3 text-slate-500">
                   <Globe size={16} style={{ color: brandColor }} />
