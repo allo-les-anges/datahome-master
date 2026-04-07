@@ -57,7 +57,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // NORMALISATION DES DONNÉES
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -115,13 +114,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       }
 
       let query = supabase.from('villas').select('*').eq('is_excluded', false);
-
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
 
       const { data, error } = await query.order('price', { ascending: false }).limit(1000);
-      
       if (error) throw error;
 
       const formatted = formatVillaData(data || []);
@@ -170,9 +167,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
     const results = allProperties.filter((p, index) => {
       const pPrice = Number(p.price) || 0;
-      // Si max est proche du plafond (ex 19.9M), on considère qu'il n'y a pas de limite supérieure
-      const matchPrice = pPrice >= min && (max >= 19000000 ? true : pPrice <= max);
       
+      // LOGIQUE PRIX : Si le max est au-dessus de 15M (plafond UI typique) ou mis par défaut, on ne plafonne plus
+      const isHighEnd = max >= 15000000;
+      const matchPrice = pPrice >= min && (isHighEnd ? true : pPrice <= max);
+      
+      // LOGIQUE TYPE : Si le type cherché est "apartment" mais que le bien est une "villa", ça échoue. 
+      // Si "searchType" est vide ou "all", on laisse passer.
       const matchType = !searchType || searchType === "all" || 
         p.type.toLowerCase().includes(searchType);
       
@@ -228,10 +229,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           {selectedProperty ? (
             <motion.div key="detail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-20 bg-white">
               <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
-                <button 
-                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
-                  className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
-                >
+                <button onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
                   <ArrowLeft size={14} /> {t('nav.back')}
                 </button>
               </div>
@@ -250,11 +248,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               </div>
               
               <div className="flex justify-center -mt-12 relative z-40">
-                <button 
-                  onClick={() => setIsSearchOpen(true)} 
-                  className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
-                  style={{ backgroundColor: primaryColor }}
-                >
+                <button onClick={() => setIsSearchOpen(true)} className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
                   <Search size={20} />
                   <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search')}</span>
                 </button>
@@ -292,8 +286,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                           <p className="text-slate-400 italic mb-6">{t('common.noResults')}</p>
                           <button 
                             onClick={() => {
-                                const resetFilters = { type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" };
-                                setFilters(resetFilters);
+                                setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
                                 setFilteredProperties(allProperties);
                             }} 
                             className="px-8 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-slate-800 transition-all"
@@ -307,11 +300,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
                   {!loadingProperties && filteredProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
-                      <button 
-                        onClick={() => setDisplayLimit(prev => prev + 12)} 
-                        className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
-                        style={{ backgroundColor: primaryColor }}
-                      >
+                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
                         <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore')}</span>
                       </button>
                     </div>
@@ -325,23 +314,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       <AnimatePresence>
         {isSearchOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 bg-slate-900/95 backdrop-blur-xl"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 bg-slate-900/95 backdrop-blur-xl">
             <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }} 
-              className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
-            >
-              <button 
-                onClick={() => setIsSearchOpen(false)} 
-                className="absolute top-6 right-6 p-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors z-[220]"
-              >
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+              <button onClick={() => setIsSearchOpen(false)} className="absolute top-6 right-6 p-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors z-[220]">
                 <X size={20} />
               </button>
               <div className="flex-grow overflow-y-auto p-6 md:p-12">
