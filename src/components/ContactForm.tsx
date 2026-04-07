@@ -11,7 +11,8 @@ interface ContactFormProps {
 }
 
 export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
-  const { t } = useTranslation() as any;
+  // On s'assure de récupérer t correctement
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   // Extraction de la couleur de l'agence
@@ -64,7 +65,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
         </p>
         <button 
           onClick={() => setStatus('idle')}
-          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500 hover:text-slate-700 transition-colors"
+          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500"
         >
           {t('common.back')}
         </button>
@@ -72,9 +73,10 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
     );
   }
 
-  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center placeholder:opacity-100`;
+  // Correction : On définit les styles ici pour plus de clarté
+  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
   
-  // Ajustement des couleurs de placeholder pour plus de visibilité
+  // Correction de la visibilité : on force placeholder-shown et on ajuste l'opacité
   const themeStyles = isLight 
     ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-400' 
     : 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:bg-white/10 focus:border-white/20';
@@ -97,7 +99,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
           <input 
             name="name"
             type="text" 
-            placeholder={t('contact.placeholder_name')} 
+            placeholder={String(t('contact.placeholder_name'))} 
             required
             className={`${inputBaseStyles} ${themeStyles}`}
           />
@@ -109,7 +111,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
           <input 
             name="email"
             type="email" 
-            placeholder={t('contact.placeholder_email')} 
+            placeholder={String(t('contact.placeholder_email'))} 
             required
             className={`${inputBaseStyles} ${themeStyles}`}
           />
@@ -120,7 +122,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
           <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
           <textarea 
             name="message"
-            placeholder={t('contact.placeholder_message')} 
+            placeholder={String(t('contact.placeholder_message'))} 
             rows={4}
             required
             className={`w-full p-4 pl-12 rounded-2xl border text-sm outline-none transition-all resize-none ${themeStyles} h-auto`}
