@@ -57,34 +57,36 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
       <div className="p-10 text-center space-y-4 animate-in fade-in zoom-in duration-500">
         <CheckCircle className="mx-auto text-green-500" size={48} />
         <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.success_title') || 'Message envoyé'}
+          {t('contact.success_title')}
         </h3>
         <p className="text-xs text-slate-400">
-          {t('contact.ref_label') || 'Réf'} {propertyRef} {t('contact.success_message') || 'bien reçue.'}
+          {t('contact.ref_label')} {propertyRef} {t('contact.success_message')}
         </p>
         <button 
           onClick={() => setStatus('idle')}
-          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500"
+          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500 hover:text-slate-700 transition-colors"
         >
-          {t('common.back') || 'Retour'}
+          {t('common.back')}
         </button>
       </div>
     );
   }
 
-  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center`;
+  const inputBaseStyles = `w-full h-14 px-12 rounded-2xl border text-sm outline-none transition-all flex items-center placeholder:opacity-100`;
+  
+  // Ajustement des couleurs de placeholder pour plus de visibilité
   const themeStyles = isLight 
-    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-500 focus:border-slate-400' 
-    : 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:bg-white/10 focus:border-white/20';
+    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-400' 
+    : 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:bg-white/10 focus:border-white/20';
 
   return (
     <form onSubmit={handleSubmit} className="p-8 space-y-5">
       <div className="mb-4">
         <h3 className={`text-xl font-serif italic mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.title') || "Demande d'informations"}
+          {t('contact.title')}
         </h3>
         <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
-          {t('contact.ref_label') || 'Réf'} : {propertyRef}
+          {t('contact.ref_label')} : {propertyRef}
         </p>
       </div>
 
@@ -95,7 +97,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
           <input 
             name="name"
             type="text" 
-            placeholder={t('contact.placeholder_name') || "Votre nom complet"} 
+            placeholder={t('contact.placeholder_name')} 
             required
             className={`${inputBaseStyles} ${themeStyles}`}
           />
@@ -107,7 +109,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
           <input 
             name="email"
             type="email" 
-            placeholder={t('contact.placeholder_email') || "votre@email.com"} 
+            placeholder={t('contact.placeholder_email')} 
             required
             className={`${inputBaseStyles} ${themeStyles}`}
           />
@@ -118,7 +120,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
           <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
           <textarea 
             name="message"
-            placeholder={t('contact.placeholder_message') || "Je souhaite plus d'informations..."} 
+            placeholder={t('contact.placeholder_message')} 
             rows={4}
             required
             className={`w-full p-4 pl-12 rounded-2xl border text-sm outline-none transition-all resize-none ${themeStyles} h-auto`}
@@ -128,7 +130,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
 
       {status === 'error' && (
         <div className="flex items-center gap-2 text-red-500 text-[10px] uppercase font-bold tracking-wider">
-          <AlertCircle size={14} /> {t('contact.error_message') || 'Une erreur est survenue'}
+          <AlertCircle size={14} /> {t('contact.error_message')}
         </div>
       )}
       
@@ -143,7 +145,7 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
         ) : (
           <>
             <Send size={16} /> 
-            {t('contact.send_btn') || 'Envoyer'}
+            {t('contact.send_btn')}
           </>
         )}
       </button>
