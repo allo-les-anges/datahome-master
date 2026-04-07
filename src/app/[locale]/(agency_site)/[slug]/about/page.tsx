@@ -1,7 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 
-// On retire l'import de Navbar et Footer car ils sont dans le layout global
 interface AboutPageProps {
   params: Promise<{
     slug: string;
@@ -10,7 +9,7 @@ interface AboutPageProps {
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
 
   // Récupération de l'agence
   const { data: agency, error } = await supabase
@@ -25,41 +24,170 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   const brandColor = agency.primary_color || "#c5a059";
   const selectedFont = agency.font_family || 'Montserrat';
+  
+  // Traductions basées sur la locale
+  const translations: Record<string, any> = {
+    fr: {
+      aboutTitle: "Notre Histoire",
+      aboutText: "L'excellence immobilière à votre service.",
+      signature: "L'immobilier sous un nouveau regard"
+    },
+    en: {
+      aboutTitle: "Our Story",
+      aboutText: "Real estate excellence at your service.",
+      signature: "Real estate through a new lens"
+    },
+    es: {
+      aboutTitle: "Nuestra Historia",
+      aboutText: "Excelencia inmobiliaria a su servicio.",
+      signature: "Bienes raíces bajo una nueva mirada"
+    },
+    nl: {
+      aboutTitle: "Ons Verhaal",
+      aboutText: "Vastgoedexcellentie in uw dienst.",
+      signature: "Vastgoed door een nieuwe lens"
+    },
+    pl: {
+      aboutTitle: "Nasza Historia",
+      aboutText: "Doskonałość w nieruchomościach na Twoją usługę.",
+      signature: "Nieruchomości w nowym świetle"
+    },
+    ar: {
+      aboutTitle: "قصتنا",
+      aboutText: "التميز العقاري في خدمتكم.",
+      signature: "العقارات من منظور جديد"
+    }
+  };
+
+  const t = translations[locale] || translations.fr;
+
+  // Styles inline pour garantir l'application
+  const containerStyle = {
+    minHeight: '100vh',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
+    transition: 'all 0.5s ease',
+    fontFamily: selectedFont,
+  };
+
+  const heroSectionStyle = {
+    paddingTop: '208px', // pt-52
+    paddingBottom: '80px', // pb-20
+    paddingLeft: '24px',
+    paddingRight: '24px',
+  };
+
+  const titleStyle = {
+    fontSize: '3rem', // text-5xl
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    borderLeftWidth: '4px',
+    paddingLeft: '32px',
+    marginBottom: '32px',
+  };
+
+  const descriptionStyle = {
+    color: '#475569', // text-slate-600
+    lineHeight: '1.625',
+    whiteSpace: 'pre-wrap' as const,
+    fontWeight: 300,
+    fontSize: '1.25rem', // text-xl
+    fontStyle: 'italic',
+  };
+
+  const signatureSectionStyle = {
+    paddingTop: '128px',
+    paddingBottom: '128px',
+    backgroundColor: '#f8fafc', // bg-slate-50
+    borderTopWidth: '1px',
+    borderBottomWidth: '1px',
+    borderColor: 'rgba(0,0,0,0.05)',
+  };
+
+  const signatureTitleStyle = {
+    fontSize: '1.875rem', // text-3xl
+    fontFamily: 'serif',
+    fontStyle: 'italic',
+    color: brandColor,
+    marginBottom: '16px',
+  };
+
+  const signatureTextStyle = {
+    color: '#64748b', // text-slate-500
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.4em',
+    fontSize: '10px',
+    fontWeight: 700,
+  };
+
+  // Styles responsives pour desktop
+  const responsiveTitleStyle = {
+    ...titleStyle,
+    '@media (min-width: 768px)': {
+      fontSize: '4.5rem', // md:text-7xl
+    },
+  };
 
   return (
-    <div 
-      className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500"
-      style={{ fontFamily: selectedFont }}
-    >
-      {/* ❌ NAVBAR SUPPRIMÉE : Elle est déjà dans le layout */}
-
-      <main className="relative">
+    <div style={containerStyle}>
+      <main>
         {/* Header / Hero Section */}
-        <section className="pt-52 pb-20 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row items-start gap-16">
+        <section style={heroSectionStyle}>
+          <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '64px',
+              '@media (min-width: 768px)': {
+                flexDirection: 'row',
+              }
+            }}>
               
-              <div className="flex-1 space-y-8">
+              <div style={{ flex: 1 }}>
                 <h1 
-                  className="text-5xl md:text-7xl font-serif italic border-l-4 pl-8" 
-                  style={{ borderColor: brandColor }}
+                  style={{
+                    ...titleStyle,
+                    borderColor: brandColor,
+                    '@media (min-width: 768px)': {
+                      fontSize: '4.5rem',
+                    }
+                  }}
                 >
-                  {agency.about_title || "Notre Histoire"}
+                  {agency.about_title || t.aboutTitle}
                 </h1>
                 
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <div className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-light text-xl italic">
-                    {agency.about_text || "L'excellence immobilière à votre service."}
+                <div style={{ maxWidth: 'none' }}>
+                  <div style={descriptionStyle}>
+                    {agency.about_text || t.aboutText}
                   </div>
                 </div>
               </div>
 
               {agency.hero_url && (
-                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
+                <div style={{
+                  width: '100%',
+                  aspectRatio: '3/4',
+                  borderRadius: '3rem',
+                  overflow: 'hidden',
+                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                  transform: 'rotate(2deg)',
+                  transition: 'transform 0.7s ease',
+                  '@media (min-width: 768px)': {
+                    width: '33.333%',
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'rotate(0deg)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'rotate(2deg)';
+                }}>
                   <img 
                     src={agency.hero_url} 
                     alt={agency.agency_name} 
-                    className="w-full h-full object-cover"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    loading="lazy"
                   />
                 </div>
               )}
@@ -68,19 +196,32 @@ export default async function AboutPage({ params }: AboutPageProps) {
         </section>
 
         {/* Section Signature */}
-        <section className="py-32 bg-slate-50 dark:bg-white/5 border-y border-black/5 dark:border-white/5">
-          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
-             <h2 className="text-3xl font-serif italic" style={{ color: brandColor }}>
-               {agency.agency_name}
-             </h2>
-             <p className="text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold">
-               L'immobilier sous un nouveau regard
-             </p>
+        <section style={signatureSectionStyle}>
+          <div style={{ maxWidth: '896px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px', textAlign: 'center' }}>
+            <h2 style={signatureTitleStyle}>
+              {agency.agency_name}
+            </h2>
+            <p style={signatureTextStyle}>
+              {t.signature}
+            </p>
           </div>
         </section>
       </main>
 
-      {/* ❌ FOOTER SUPPRIMÉ : Il est déjà dans le layout */}
+      {/* Injection CSS pour les media queries responsives */}
+      <style jsx>{`
+        @media (min-width: 768px) {
+          .about-container {
+            flex-direction: row;
+          }
+          .about-title {
+            font-size: 4.5rem;
+          }
+          .about-image {
+            width: 33.333%;
+          }
+        }
+      `}</style>
     </div>
   );
 }
