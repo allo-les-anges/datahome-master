@@ -7,7 +7,7 @@ import PropertyGrid from '@/components/PropertyGrid';
 import Hero from '@/components/Hero';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
-import { Search, X, ArrowLeft, Loader2 } from 'lucide-center';
+import { Search, X, ArrowLeft, Loader2 } from 'lucide-react';
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
@@ -44,7 +44,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     reference: "",
   });
 
-  // Mapping des polices de la DB vers les variables CSS de layout.tsx
   const getFontVariable = useCallback((fontName: string) => {
     const fonts: Record<string, string> = {
       'Montserrat': 'var(--font-montserrat)',
@@ -80,7 +79,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         region: v.region || v.province || "",
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
-        // Correction : On récupère explicitement la surface (ou m2 / built selon ta DB)
         surface: v.surface || v.m2 || v.built || 0,
         type: v.type || "Villa",
         images: imageArray,
@@ -111,7 +109,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         } catch (e) {}
       }
 
-      // Correction : Ajout de 'surface' dans le select Supabase
       let query = supabase
         .from('villas')
         .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, surface, is_excluded, xml_source')
@@ -173,7 +170,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const primaryColor = agency?.primary_color || '#FF8C00'; 
   const radius = agency?.button_style || 'rounded-full';
 
-  // Sécurité Contenus Hero
   const heroTitle = agency?.hero_title || "Des professionnels à votre écoute";
   const rawSubtitle = t('nav.subtitle');
   const heroSubtitle = agency?.hero_subtitle || (rawSubtitle !== 'nav.subtitle' ? rawSubtitle : "Votre partenaire immobilier de confiance");
@@ -181,11 +177,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   return (
     <div className="flex flex-col relative notranslate min-h-screen" style={{ fontFamily: selectedFont }}>
       
-      {/* FORCE L'INJECTION CSS : 
-          C'est la méthode ultime. On injecte une balise style qui cible spécifiquement 
-          le titre et le sous-titre du Hero pour forcer la police de l'agence, 
-          en écrasant les styles par défaut de Tailwind ou des composants.
-      */}
       <style dangerouslySetInnerHTML={{ __html: `
         .force-agency-font h1, 
         .force-agency-font h2, 
