@@ -15,6 +15,7 @@ export default async function AgencyLayout({
   const { slug } = await params;
 
   // 1. Récupération des paramètres de l'agence (SSR)
+  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
   const { data: agency } = await supabase
     .from('agency_settings') 
     .select('*')
@@ -22,12 +23,14 @@ export default async function AgencyLayout({
     .maybeSingle();
 
   // Si l'agence n'existe pas, on renvoie une 404
-  if (!agency) notFound();
+  if (!agency) {
+    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
+    return notFound();
+  }
 
   // 2. Définition des variables CSS dynamiques
-  // Elles seront accessibles par tous les composants enfants (Navbar, Footer, etc.)
   const dynamicStyles = {
-    '--brand-primary': agency.primary_color || '#D4AF37',
+    '--brand-primary': agency.primary_color || '#e5992e',
     '--font-main': agency.font_family || 'Montserrat, sans-serif',
     '--font-serif': 'Playfair Display, serif',
   } as React.CSSProperties;
@@ -43,21 +46,21 @@ export default async function AgencyLayout({
 
   return (
     <div style={dynamicStyles} className="min-h-screen flex flex-col">
-      {/* 🟢 NAVBAR : Présente sur toutes les pages du slug */}
+      {/* NAVBAR : Présente sur toutes les pages du slug */}
       <Navbar agency={agency} />
 
-      {/* 🟢 CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
+      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
       <main className="flex-grow">
         {children}
       </main>
       
-      {/* 🟢 FOOTER : Présent partout, avec le style correct injecté une seule fois */}
+      {/* FOOTER : Présent partout */}
       <Footer agency={agency} />
 
       {/* Widgets flottants */}
       <FloatingWhatsApp 
-        phone={footerConfig?.socials?.whatsapp || agency.whatsapp_number} 
-        color={agency.primary_color} 
+        phone={footerConfig?.phone || agency.whatsapp_number} 
+        color={agency.primary_color || '#e5992e'} 
       />
       
       <CookieBanner 
