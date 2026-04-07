@@ -86,12 +86,12 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
   }, [locale]);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (currentAgency: any) => {
     try {
       setLoadingProperties(true);
       setLoadingProgress(20);
 
-      // 1. Si on a des propriétés initiales (SSR), on les utilise directement
+      // 1. Priorité aux propriétés initiales (SSR)
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -101,16 +101,15 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         return;
       }
 
-      // 2. Sinon, on interroge Supabase
+      // 2. Récupération via Supabase avec filtrage XML
       setLoadingProgress(40);
       let allowedXmlUrls: string[] = [];
       
-      // On essaie d'extraire la config XML si l'agence est chargée
-      if (agency?.footer_config) {
+      if (currentAgency?.footer_config) {
         try {
-          const config = typeof agency.footer_config === 'string' 
-            ? JSON.parse(agency.footer_config) 
-            : agency.footer_config;
+          const config = typeof currentAgency.footer_config === 'string' 
+            ? JSON.parse(currentAgency.footer_config) 
+            : currentAgency.footer_config;
           allowedXmlUrls = config?.xml_urls || [];
         } catch (e) {
           console.warn("Format footer_config invalide");
@@ -122,7 +121,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, surface, is_excluded, xml_source')
         .eq('is_excluded', false);
 
-      // On n'applique le filtre XML que si on a explicitement des URLs (pour éviter de tout vider si agency est lent)
+      // N'appliquer le filtre XML que si l'agence est chargée et possède des URLs
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
@@ -141,17 +140,19 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProgress(100);
       setLoadingProperties(false);
     }
-  }, [agency, initialProperties, formatVillaData]);
+  }, [initialProperties, formatVillaData]);
 
-  // Initialisation de l'agence
+  // Étape 1 : Charger l'agence par le slug
   useEffect(() => {
     if (slug) setAgencyBySlug(slug);
   }, [slug, setAgencyBySlug]);
 
-  // Chargement des données au montage ET quand l'agence change/arrive
+  // Étape 2 : Charger les données uniquement quand l'agence est prête (ou si elle change)
   useEffect(() => {
-    loadData();
-  }, [loadData, agency?.id]); // On surveille l'ID de l'agence pour re-déclencher si besoin
+    if (agency && agency.id) {
+      loadData(agency);
+    }
+  }, [agency?.id, loadData]);
 
   useEffect(() => {
     const savedFavs = localStorage.getItem(`fav_${slug}`);
@@ -259,7 +260,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                       ) : (
                         <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
                           <p className="text-slate-400 italic mb-4">{t('common.noResults')}</p>
-                          <button onClick={() => loadData()} className="text-[10px] font-bold uppercase tracking-widest underline">Réessayer</button>
+                          <button onClick={() => loadData(agency)} className="text-[10px] font-bold uppercase tracking-widest underline">Réessayer</button>
                         </div>
                       )}
                     </AnimatePresence>
