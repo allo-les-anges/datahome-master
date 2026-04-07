@@ -7,7 +7,7 @@ import PropertyGrid from '@/components/PropertyGrid';
 import Hero from '@/components/Hero';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
-import { Search, X, ArrowLeft, Loader2 } from 'lucide-react';
+import { Search, X, ArrowLeft, Loader2 } from 'lucide-center';
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
@@ -80,6 +80,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         region: v.region || v.province || "",
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
+        // Correction : On récupère explicitement la surface (ou m2 / built selon ta DB)
+        surface: v.surface || v.m2 || v.built || 0,
         type: v.type || "Villa",
         images: imageArray,
       };
@@ -109,9 +111,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         } catch (e) {}
       }
 
+      // Correction : Ajout de 'surface' dans le select Supabase
       let query = supabase
         .from('villas')
-        .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, is_excluded, xml_source')
+        .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, surface, is_excluded, xml_source')
         .eq('is_excluded', false);
 
       if (allowedXmlUrls.length > 0) {
@@ -206,7 +209,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               
-              {/* Le wrapper force-agency-font est utilisé par la balise <style> ci-dessus */}
               <div className="force-agency-font" style={{ ["--font-agency" as any]: selectedFont }}>
                 <Hero 
                   agency={agency} 
