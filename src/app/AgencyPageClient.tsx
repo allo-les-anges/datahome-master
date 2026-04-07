@@ -87,6 +87,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [locale]);
 
   const loadData = useCallback(async () => {
+    // Sécurité : Si on n'a pas encore l'agence (et qu'on n'a pas de données initiales), on attend.
+    if (!agency && (!initialProperties || initialProperties.length === 0)) return;
+
     try {
       setLoadingProgress(10);
       if (initialProperties && initialProperties.length > 0) {
@@ -114,7 +117,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, surface, is_excluded, xml_source')
         .eq('is_excluded', false);
 
-      if (allowedXmlUrls.length > 0) {
+      // Si l'agence a des URLs XML spécifiques, on filtre. Sinon on charge tout (ou selon la logique métier)
+      if (allowedXmlUrls && allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
 
@@ -133,14 +137,24 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
   }, [agency, initialProperties, formatVillaData]);
 
+  // On surveille le changement de slug et l'arrivée de l'agence
   useEffect(() => {
     if (slug) setAgencyBySlug(slug);
-    loadData();
+  }, [slug, setAgencyBySlug]);
+
+  // On lance le chargement des données quand l'agence est disponible
+  useEffect(() => {
+    if (agency || initialProperties) {
+      loadData();
+    }
+  }, [agency, loadData, initialProperties]);
+
+  useEffect(() => {
     const savedFavs = localStorage.getItem(`fav_${slug}`);
     if (savedFavs) {
       try { setFavorites(JSON.parse(savedFavs)); } catch (e) {}
     }
-  }, [slug, loadData, setAgencyBySlug]);
+  }, [slug]);
 
   const toggleFavorite = (id: string) => {
     const newFavs = favorites.includes(id) ? favorites.filter(f => f !== id) : [...favorites, id];
