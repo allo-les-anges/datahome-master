@@ -68,6 +68,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       
       if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
+      // On s'assure que chaque propriété possède les champs attendus par le filtre
       return {
         ...v,
         id: v.id || `v-${index}`,
@@ -76,7 +77,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
         description: v[`description_${locale}`] || v.description || v.details || "",
         price: Number(v.price || v.prix || 0),
-        // On nettoie les chaînes pour éviter les échecs de comparaison (espaces, null, etc.)
+        // Normalisation cruciale pour le filtre de localisation
         town: String(v.town || v.ville || v.city || "").trim(),
         region: String(v.region || v.province || "").trim(),
         beds: parseInt(v.beds || v.bedrooms) || 0,
@@ -95,7 +96,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProperties(true);
       setLoadingProgress(20);
 
-      // Hydratation initiale via SSR si disponible
       if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -159,34 +159,38 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // LOGIQUE DE RECHERCHE CORRIGÉE ET SÉCURISÉE
+  // LOGIQUE DE RECHERCHE CORRIGÉE
   const handleSearch = (newFilters: Filters) => {
     setFilters(newFilters);
+    
+    // Conversion forcée en nombres pour les prix et lits
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 50000000;
-    
+    const requiredBeds = Number(newFilters.beds) || 0;
+
     const results = allProperties.filter((p) => {
-      // 1. Prix
-      const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
+      // 1. Filtre Prix (avec gestion du plafond à 20M+)
+      const pPrice = Number(p.price) || 0;
+      const matchPrice = pPrice >= min && pPrice <= (max >= 19900000 ? 999999999 : max);
       
-      // 2. Type
+      // 2. Filtre Type
       const matchType = !newFilters.type || newFilters.type === "all" || 
         p.type.toLowerCase().includes(newFilters.type.toLowerCase());
       
-      // 3. Chambres
-      const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
+      // 3. Filtre Chambres
+      const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
       
-      // 4. Localisation (Recherche croisée Ville ET Région)
+      // 4. Localisation (Recherche insensible à la casse dans Ville OU Région)
       const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
       const matchLocation = !searchLocation || 
-        p.town.toLowerCase().includes(searchLocation) || 
-        p.region.toLowerCase().includes(searchLocation);
+        (p.town && p.town.toLowerCase().includes(searchLocation)) || 
+        (p.region && p.region.toLowerCase().includes(searchLocation));
 
       // 5. Référence
       const searchRef = (newFilters.reference || "").toLowerCase().trim();
       const matchRef = !searchRef || 
-        p.ref.toLowerCase().includes(searchRef) ||
-        p.id_externe.toLowerCase().includes(searchRef);
+        (p.ref && p.ref.toLowerCase().includes(searchRef)) ||
+        (p.id_externe && p.id_externe.toLowerCase().includes(searchRef));
 
       return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
@@ -197,7 +201,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     
     // Scroll fluide vers les résultats
     setTimeout(() => {
-      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+      const element = document.getElementById('results-section');
+      if (element) element.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
 
@@ -274,7 +279,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                           <p className="text-slate-400 italic mb-6">{t('common.noResults')}</p>
                           <button 
                             onClick={() => {
-                                setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
+                                const resetFilters = { type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" };
+                                setFilters(resetFilters);
                                 setFilteredProperties(allProperties);
                             }} 
                             className="px-8 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-slate-800 transition-all"
