@@ -2,7 +2,10 @@ import { supabase } from '@/lib/supabase';
 import AgencyPageClient from "@/app/AgencyPageClient";
 import { notFound } from 'next/navigation';
 
-// La page sera régénérée en arrière-plan toutes les 10 minutes (ISR)
+// Permet de générer les pages à la volée si elles ne sont pas connues au build
+export const dynamicParams = true; 
+
+// La page sera mise à jour en arrière-plan (ISR)
 export const revalidate = 600; 
 
 export default async function DynamicAgencyPage({ 
@@ -10,21 +13,26 @@ export default async function DynamicAgencyPage({
 }: { 
   params: Promise<{ slug: string, locale: string }> 
 }) {
-  // On attend la résolution des paramètres (Next.js 15+)
-  const { slug, locale } = await params;
+  // 1. Résolution des paramètres (Obligatoire Next.js 15)
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  const locale = resolvedParams.locale;
 
-  // 1. Récupération de l'agence côté serveur
+  // 2. Récupération de l'agence
+  // On cherche par slug OU par subdomain
   const { data: agency, error: agencyError } = await supabase
     .from('agencies')
     .select('*')
-    .or(`slug.eq.${slug},subdomain.eq.${slug}`)
+    .or(`slug.eq."${slug}",subdomain.eq."${slug}"`) // Ajout de guillemets pour sécuriser la requête
     .single();
 
+  // Si l'agence n'existe pas, on affiche la 404 proprement
   if (agencyError || !agency) {
+    console.error("Agence introuvable pour le slug:", slug);
     return notFound();
   }
 
-  // 2. Extraction des URLs XML autorisées depuis la config
+  // 3. Extraction de la configuration XML
   let allowedXmlUrls: string[] = [];
   if (agency.footer_config) {
     try {
@@ -33,20 +41,23 @@ export default async function DynamicAgencyPage({
         : agency.footer_config;
       allowedXmlUrls = parsed?.xml_urls || [];
     } catch (e) {
-      console.error("Erreur parsing footer_config serveur:", e);
+      console.warn("Format footer_config invalide pour:", slug);
     }
   }
 
-  // 3. Récupération des propriétés côté serveur
-  let query = supabase.from('villas').select('*').eq('is_excluded', false);
+  // 4. Récupération des propriétés
+  let query = supabase
+    .from('villas')
+    .select('*')
+    .eq('is_excluded', false);
+
   if (allowedXmlUrls.length > 0) {
     query = query.in('xml_source', allowedXmlUrls);
   }
 
-  // On limite à une certaine quantité pour booster la vitesse, ou on prend tout si nécessaire
   const { data: villas } = await query.order('price', { ascending: false });
 
-  // 4. On envoie tout au composant Client
+  // 5. Rendu
   return (
     <AgencyPageClient 
       slug={slug} 
