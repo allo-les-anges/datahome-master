@@ -2826,6 +2826,88 @@ export default function FloatingWhatsApp({ phone, color = "#25D366" }: FloatingW
 }
 </file>
 
+<file path="src/components/Hero.tsx">
+"use client";
+
+import React, { useState } from 'react';
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface HeroProps {
+  agency?: any; 
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+  agencyName?: string;
+}
+
+export default function Hero({ agency, title, subtitle, backgroundImage, agencyName }: HeroProps) {
+  const { t } = useTranslation() as any;
+  const [error, setError] = useState(false);
+
+  // --- LOGIQUE DE PERSONNALISATION DYNAMIQUE ---
+  // On utilise en priorité la couleur du dashboard, sinon le doré par défaut
+  const brandColor = agency?.primary_color || "#D4AF37";
+  
+  // On utilise le titre du dashboard s'il existe, sinon la prop title, sinon la traduction
+  const displayTitle = agency?.hero_title || title || t('footer.excellence') || "Luxury Real Estate";
+
+  // --- GESTION DE L'IMAGE DE FOND ---
+  // On priorise l'URL du dashboard (hero_url), puis la prop backgroundImage
+  const rawBgUrl = agency?.hero_url || backgroundImage;
+  const cleanBgUrl = rawBgUrl ? rawBgUrl.replace(/['"]+/g, '').trim() : null;
+  const isValidUrl = cleanBgUrl && (cleanBgUrl.startsWith('http') || cleanBgUrl.startsWith('/'));
+
+  const finalBg = (!isValidUrl || error) 
+    ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" 
+    : cleanBgUrl;
+
+  return (
+    <div className="relative w-full h-[85vh] flex items-center justify-center overflow-hidden bg-slate-900 top-0 left-0 mt-0 block">
+      
+      {/* IMAGE DE FOND DYNAMIQUE */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src={finalBg}
+          alt={agency?.agency_name || agencyName || "Luxury Property"}
+          className="w-full h-full object-cover transition-transform duration-[10s] scale-100"
+          onError={() => setError(true)}
+          style={{ opacity: 0.85 }} 
+        />
+        {/* OVERLAY SOMBRE UNIFIÉ */}
+        <div className="absolute inset-0 bg-black/30" />
+      </div>
+
+      {/* CONTENU TEXTUEL */}
+      <div className="relative z-10 text-center px-6 max-w-4xl">
+        {/* Nom de l'agence ou Excellence */}
+        <span className="inline-block text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-white/70 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          {agency?.agency_name || agencyName || t('footer.excellence') || "EXCELLENCE"}
+        </span>
+        
+        {/* Titre Principal (Dynamique depuis Dashboard) */}
+        <h1 className="text-4xl md:text-7xl font-serif italic text-white leading-[1.1] mb-10 drop-shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
+          {displayTitle}
+        </h1>
+        
+        {/* Sous-titre */}
+        <p className="text-white/80 text-[10px] md:text-[12px] uppercase tracking-[0.4em] font-medium max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 mb-8">
+          {subtitle || t('nav.subtitle')}
+        </p>
+
+        {/* Ligne décorative à la couleur du Dashboard (brandColor) */}
+        <div 
+          className="w-24 h-[2px] mx-auto animate-in fade-in zoom-in duration-1000 delay-700"
+          style={{ backgroundColor: brandColor }}
+        />
+      </div>
+
+      {/* GRADIENT DE TRANSITION VERS LE CONTENU SUIVANT */}
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-50 via-slate-50/20 to-transparent z-20" />
+    </div>
+  );
+}
+</file>
+
 <file path="src/components/LanguageSelector.tsx">
 "use client";
 
@@ -3981,88 +4063,6 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
 }
 </file>
 
-<file path="src/components/Hero.tsx">
-"use client";
-
-import React, { useState } from 'react';
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface HeroProps {
-  agency?: any; 
-  title?: string;
-  subtitle?: string;
-  backgroundImage?: string;
-  agencyName?: string;
-}
-
-export default function Hero({ agency, title, subtitle, backgroundImage, agencyName }: HeroProps) {
-  const { t } = useTranslation() as any;
-  const [error, setError] = useState(false);
-
-  // --- LOGIQUE DE PERSONNALISATION DYNAMIQUE ---
-  // On utilise en priorité la couleur du dashboard, sinon le doré par défaut
-  const brandColor = agency?.primary_color || "#D4AF37";
-  
-  // On utilise le titre du dashboard s'il existe, sinon la prop title, sinon la traduction
-  const displayTitle = agency?.hero_title || title || t('footer.excellence') || "Luxury Real Estate";
-
-  // --- GESTION DE L'IMAGE DE FOND ---
-  // On priorise l'URL du dashboard (hero_url), puis la prop backgroundImage
-  const rawBgUrl = agency?.hero_url || backgroundImage;
-  const cleanBgUrl = rawBgUrl ? rawBgUrl.replace(/['"]+/g, '').trim() : null;
-  const isValidUrl = cleanBgUrl && (cleanBgUrl.startsWith('http') || cleanBgUrl.startsWith('/'));
-
-  const finalBg = (!isValidUrl || error) 
-    ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" 
-    : cleanBgUrl;
-
-  return (
-    <div className="relative w-full h-[85vh] flex items-center justify-center overflow-hidden bg-slate-900 top-0 left-0 mt-0 block">
-      
-      {/* IMAGE DE FOND DYNAMIQUE */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src={finalBg}
-          alt={agency?.agency_name || agencyName || "Luxury Property"}
-          className="w-full h-full object-cover transition-transform duration-[10s] scale-100"
-          onError={() => setError(true)}
-          style={{ opacity: 0.85 }} 
-        />
-        {/* OVERLAY SOMBRE UNIFIÉ */}
-        <div className="absolute inset-0 bg-black/30" />
-      </div>
-
-      {/* CONTENU TEXTUEL */}
-      <div className="relative z-10 text-center px-6 max-w-4xl">
-        {/* Nom de l'agence ou Excellence */}
-        <span className="inline-block text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-white/70 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-          {agency?.agency_name || agencyName || t('footer.excellence') || "EXCELLENCE"}
-        </span>
-        
-        {/* Titre Principal (Dynamique depuis Dashboard) */}
-        <h1 className="text-4xl md:text-7xl font-serif italic text-white leading-[1.1] mb-10 drop-shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
-          {displayTitle}
-        </h1>
-        
-        {/* Sous-titre */}
-        <p className="text-white/80 text-[10px] md:text-[12px] uppercase tracking-[0.4em] font-medium max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 mb-8">
-          {subtitle || t('nav.subtitle')}
-        </p>
-
-        {/* Ligne décorative à la couleur du Dashboard (brandColor) */}
-        <div 
-          className="w-24 h-[2px] mx-auto animate-in fade-in zoom-in duration-1000 delay-700"
-          style={{ backgroundColor: brandColor }}
-        />
-      </div>
-
-      {/* GRADIENT DE TRANSITION VERS LE CONTENU SUIVANT */}
-      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-50 via-slate-50/20 to-transparent z-20" />
-    </div>
-  );
-}
-</file>
-
 <file path="src/components/PropertyDetailClient.tsx">
 "use client";
 
@@ -4871,21 +4871,6 @@ export const useTranslation = () => {
 }
 </file>
 
-<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
-import AgencyPageClient from "@/app/AgencyPageClient";
-
-export default async function DynamicAgencyPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
-  // On attend la résolution des paramètres (Obligatoire sur Next.js 15+)
-  const { slug } = await params;
-
-  return <AgencyPageClient slug={slug} />;
-}
-</file>
-
 <file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
@@ -5158,431 +5143,6 @@ export default function ContactPage({ params }: ContactPageProps) {
 }
 </file>
 
-<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
-import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import CookieBanner from "@/components/CookieBanner";
-
-export default async function AgencyLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ slug: string; locale: string }>;
-}) {
-  const { slug } = await params;
-
-  // 1. Récupération des paramètres de l'agence (SSR)
-  const { data: agency } = await supabase
-    .from('agency_settings') 
-    .select('*')
-    .eq('subdomain', slug) 
-    .maybeSingle();
-
-  // Si l'agence n'existe pas, on renvoie une 404
-  if (!agency) notFound();
-
-  // 2. Définition des variables CSS dynamiques
-  // Elles seront accessibles par tous les composants enfants (Navbar, Footer, etc.)
-  const dynamicStyles = {
-    '--brand-primary': agency.primary_color || '#D4AF37',
-    '--font-main': agency.font_family || 'Montserrat, sans-serif',
-    '--font-serif': 'Playfair Display, serif',
-  } as React.CSSProperties;
-
-  // 3. Parsing sécurisé de la configuration
-  const getFooterData = (config: any) => {
-    if (!config) return {};
-    if (typeof config === 'object') return config;
-    try { return JSON.parse(config); } catch { return {}; }
-  };
-
-  const footerConfig = getFooterData(agency.footer_config);
-
-  return (
-    <div style={dynamicStyles} className="min-h-screen flex flex-col">
-      {/* 🟢 NAVBAR : Présente sur toutes les pages du slug */}
-      <Navbar agency={agency} />
-
-      {/* 🟢 CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
-      <main className="flex-grow">
-        {children}
-      </main>
-      
-      {/* 🟢 FOOTER : Présent partout, avec le style correct injecté une seule fois */}
-      <Footer agency={agency} />
-
-      {/* Widgets flottants */}
-      <FloatingWhatsApp 
-        phone={footerConfig?.socials?.whatsapp || agency.whatsapp_number} 
-        color={agency.primary_color} 
-      />
-      
-      <CookieBanner 
-        enabled={agency.cookie_consent_enabled} 
-        agencyName={agency.agency_name} 
-      />
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/AgencyPageClient.tsx">
-"use client";
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
-import PropertyGrid from '@/components/PropertyGrid';
-import Hero from '@/components/Hero';
-import AdvancedSearch from '@/components/AdvancedSearch';
-import PropertyDetailClient from '@/components/PropertyDetailClient';
-import { Search, Loader2, X, ArrowLeft } from 'lucide-react';
-import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext"; 
-import { Villa, Filters } from '@/types';
-
-export default function AgencyPageClient({ slug }: { slug: string }) {
-  const { t, locale } = useTranslation() as any;
-  const { agency, loading: agencyLoading, setAgencyBySlug } = useAgency(); 
-  
-  const [allProperties, setAllProperties] = useState<Villa[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
-  const [loadingProperties, setLoadingProperties] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [displayLimit, setDisplayLimit] = useState(12);
-
-  const [filters, setFilters] = useState<Filters>({
-    type: "",
-    town: "",
-    region: "",
-    beds: 0,
-    minPrice: 0,
-    maxPrice: 20000000,
-    reference: "",
-  });
-
-  // 1. Initialisation et Scroll
-  useEffect(() => {
-    if (slug) {
-      setAgencyBySlug(slug);
-    }
-    window.scrollTo(0, 0);
-  }, [slug, setAgencyBySlug]);
-
-  // 2. Gestion des favoris locaux
-  useEffect(() => {
-    if (typeof window !== 'undefined' && slug) {
-      const saved = localStorage.getItem(`fav_${slug}`);
-      if (saved) {
-        try { setFavorites(JSON.parse(saved)); } catch (e) { console.error(e); }
-      }
-    }
-  }, [slug]);
-
-  const toggleFavorite = (id: string) => {
-    const newFavs = favorites.includes(id) 
-      ? favorites.filter(fav => fav !== id) 
-      : [...favorites, id];
-    setFavorites(newFavs);
-    localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
-  };
-
-  // 3. Formateur de données Villa
-  const formatVillaData = useCallback((villas: any[]): Villa[] => {
-    return villas.map((v, index) => {
-      let imageArray: string[] = [];
-      try {
-        if (Array.isArray(v.images)) imageArray = v.images;
-        else if (typeof v.images === 'string') imageArray = JSON.parse(v.images || '[]');
-      } catch (e) { imageArray = []; }
-      
-      if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
-      
-      return {
-        ...v,
-        id: v.id || `v-${index}`,
-        id_externe: String(v.id_externe || v.ref || v.external_id || ""),
-        ref: String(v.id_externe || v.ref || ""), 
-        titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
-        description: v[`description_${locale}`] || v.description || v.details || "",
-        price: Number(v.price || v.prix || 0),
-        town: v.town || v.ville || v.city || "",
-        region: v.region || v.province || "",
-        beds: parseInt(v.beds || v.bedrooms) || 0,
-        baths: parseInt(v.baths || v.bathrooms) || 0,
-        type: v.type || "Villa",
-        images: imageArray,
-      };
-    });
-  }, [locale]);
-
-  // 4. Chargement des propriétés sécurisé (Anti-White Screen & Anti-Flash)
-  useEffect(() => {
-    async function fetchProperties() {
-      if (!agency) return;
-
-      try {
-        setLoadingProperties(true);
-        setLoadingProgress(10);
-        
-        let allowedXmlUrls: string[] = [];
-        const config = agency.footer_config;
-        
-        if (config) {
-          try {
-            const parsed = typeof config === 'string' ? JSON.parse(config) : config;
-            allowedXmlUrls = parsed?.xml_urls || [];
-          } catch (e) {
-            console.error("Erreur de lecture de la config agence", e);
-            allowedXmlUrls = []; 
-          }
-        }
-
-        setLoadingProgress(40);
-
-        let query = supabase.from('villas').select('*').eq('is_excluded', false);
-        if (allowedXmlUrls.length > 0) {
-          query = query.in('xml_source', allowedXmlUrls);
-        }
-
-        const { data: villasData, error } = await query;
-        
-        if (error) throw error;
-
-        if (villasData) {
-          const formatted = formatVillaData(villasData);
-          const sorted = formatted.sort((a, b) => b.price - a.price); 
-          setAllProperties(sorted);
-          setFilteredProperties(sorted);
-          setLoadingProgress(100);
-        }
-      } catch (err) {
-        console.error("Erreur critique lors du chargement :", err);
-      } finally {
-        // IMPORTANT: Un délai suffisant pour laisser au DOM le temps de se préparer
-        // évite de voir "No results" avant que les composants ne s'injectent.
-        setTimeout(() => setLoadingProperties(false), 800);
-      }
-    }
-
-    fetchProperties();
-  }, [agency, formatVillaData]);
-
-  // 5. Logique de filtrage
-  const handleSearch = (newFilters: Filters) => {
-    const min = Number(newFilters.minPrice) || 0;
-    const max = Number(newFilters.maxPrice) || 20000000;
-    setFilters({ ...newFilters, minPrice: min, maxPrice: max });
-    
-    const results = allProperties.filter((p) => {
-      const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
-      const matchType = !newFilters.type || newFilters.type === "all" || p.type.toLowerCase().includes(newFilters.type.toLowerCase());
-      const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
-      const matchRegion = !newFilters.region || 
-        p.region?.toLowerCase().includes(newFilters.region.toLowerCase()) || 
-        p.town?.toLowerCase().includes(newFilters.region.toLowerCase());
-      const matchRef = !newFilters.reference || String(p.id_externe).toLowerCase().includes(newFilters.reference.toLowerCase());
-      return matchPrice && matchBeds && matchType && matchRegion && matchRef;
-    });
-
-    setFilteredProperties(results);
-    setIsSearchOpen(false);
-    setSelectedProperty(null);
-  };
-
-  if (agencyLoading && !agency) {
-    return (
-      <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">Initialisation de l'agence...</p>
-      </div>
-    );
-  }
-
-  const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
-  const buttonRadius = agency?.button_style || 'rounded-full';
-
-  return (
-    <div className="flex flex-col relative notranslate">
-      <main className="flex-grow"> 
-        <AnimatePresence mode="wait">
-          {selectedProperty ? (
-            <motion.div 
-              key="detail"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="pb-20 bg-white min-h-screen"
-            >
-              <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
-                <button 
-                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
-                  className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all relative z-50"
-                >
-                  <div className="w-8 h-[1px] bg-slate-200 group-hover:w-12 group-hover:bg-black transition-all"></div>
-                  <ArrowLeft size={14} /> {t('nav.back')}
-                </button>
-              </div>
-              <PropertyDetailClient property={selectedProperty} agency={agency} />
-            </motion.div>
-          ) : (
-            <motion.div 
-              key="list"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="animate-in fade-in duration-1000"
-            >
-              <Hero 
-                agency={agency}
-                title={agency?.hero_title} 
-                subtitle={agency?.agency_name} 
-                backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
-                agencyName={agency?.agency_name} 
-              />
-              
-              <div className="flex justify-center -mt-12 relative z-40">
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsSearchOpen(true)} 
-                  className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl ${buttonRadius}`}
-                  style={{ backgroundColor: primaryBrandColor }}
-                >
-                  <Search size={20} />
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
-                </motion.button>
-              </div>
-
-              <section id="collection" className="py-24 bg-slate-50 relative z-10">
-                <div className="max-w-7xl mx-auto px-6">
-                  <header className="mb-24 text-center">
-                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                    <motion.h2 
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      className="text-5xl font-serif italic mb-8 text-slate-900"
-                    >
-                      {t('nav.results') || 'Notre Sélection'}
-                    </motion.h2>
-                    <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
-                  </header>
-                  
-                  {loadingProperties ? (
-                    <div className="flex flex-col items-center justify-center py-32 space-y-8">
-                      <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
-                        <motion.div 
-                          className="absolute inset-y-0 left-0"
-                          style={{ backgroundColor: primaryBrandColor }}
-                          initial={{ width: "0%" }}
-                          animate={{ width: `${loadingProgress}%` }}
-                          transition={{ duration: 0.5, ease: "circOut" }}
-                        />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-900 mb-2">
-                           {loadingProgress}%
-                        </p>
-                        <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-slate-400 italic">
-                          {t('common.loadingProperties') || "Chargement de la collection..."}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <AnimatePresence>
-                      {filteredProperties.length > 0 ? (
-                        <motion.div 
-                          key="grid-container"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.6 }}
-                        >
-                          <PropertyGrid 
-                            agency={agency}
-                            properties={filteredProperties.slice(0, displayLimit)} 
-                            favorites={favorites}
-                            onToggleFavorite={toggleFavorite}
-                            onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                          />
-                        </motion.div>
-                      ) : (
-                        <motion.div 
-                          key="no-results"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="text-center py-20 border border-dashed border-slate-200 rounded-3xl"
-                        >
-                          <p className="text-slate-400 italic font-serif">
-                            {t('common.noResults') || "Aucun bien trouvé."}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  )}
-
-                  {!loadingProperties && filteredProperties.length > displayLimit && (
-                    <div className="mt-20 flex justify-center">
-                      <button 
-                        onClick={() => setDisplayLimit(prev => prev + 12)}
-                        className={`px-14 py-7 text-white transition-all shadow-2xl hover:-translate-y-1 ${buttonRadius}`}
-                        style={{ 
-                          backgroundColor: primaryBrandColor,
-                          boxShadow: `0 20px 40px ${primaryBrandColor}33` 
-                        }}
-                      >
-                        <span className="text-[11px] font-black uppercase tracking-[0.4em]">
-                          {t('common.showMore')}
-                        </span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </section>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl"
-          >
-            <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="relative w-full max-w-5xl bg-white rounded-[24px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
-            >
-              <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-4 p-3 bg-slate-100 rounded-full text-slate-500 z-[220]">
-                <X size={20} />
-              </button>
-              <div className="flex-grow overflow-y-auto p-6 md:p-12">
-                <AdvancedSearch 
-                  agency={agency}
-                  onSearch={handleSearch} 
-                  properties={allProperties} 
-                  activeFilters={filters} 
-                  onClose={() => setIsSearchOpen(false)} 
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-</file>
-
 <file path="src/components/Navbar.tsx">
 "use client";
 
@@ -5803,6 +5363,153 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
 }
 </file>
 
+<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import CookieBanner from "@/components/CookieBanner";
+
+export default async function AgencyLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération des paramètres de l'agence (SSR)
+  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
+  const { data: agency } = await supabase
+    .from('agency_settings') 
+    .select('*')
+    .eq('subdomain', slug) 
+    .maybeSingle();
+
+  // Si l'agence n'existe pas, on renvoie une 404
+  if (!agency) {
+    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
+    return notFound();
+  }
+
+  // 2. Définition des variables CSS dynamiques
+  const dynamicStyles = {
+    '--brand-primary': agency.primary_color || '#e5992e',
+    '--font-main': agency.font_family || 'Montserrat, sans-serif',
+    '--font-serif': 'Playfair Display, serif',
+  } as React.CSSProperties;
+
+  // 3. Parsing sécurisé de la configuration
+  const getFooterData = (config: any) => {
+    if (!config) return {};
+    if (typeof config === 'object') return config;
+    try { return JSON.parse(config); } catch { return {}; }
+  };
+
+  const footerConfig = getFooterData(agency.footer_config);
+
+  return (
+    <div style={dynamicStyles} className="min-h-screen flex flex-col">
+      {/* NAVBAR : Présente sur toutes les pages du slug */}
+      <Navbar agency={agency} />
+
+      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
+      <main className="flex-grow">
+        {children}
+      </main>
+      
+      {/* FOOTER : Présent partout */}
+      <Footer agency={agency} />
+
+      {/* Widgets flottants */}
+      <FloatingWhatsApp 
+        phone={footerConfig?.phone || agency.whatsapp_number} 
+        color={agency.primary_color || '#e5992e'} 
+      />
+      
+      <CookieBanner 
+        enabled={agency.cookie_consent_enabled} 
+        agencyName={agency.agency_name} 
+      />
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
+import { supabase } from '@/lib/supabase';
+import AgencyPageClient from "@/app/AgencyPageClient";
+import { notFound } from 'next/navigation';
+
+// Forcer le mode dynamique pour bypasser le cache
+export const dynamic = 'force-dynamic';
+
+export default async function DynamicAgencyPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string, locale: string }> 
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération de l'agence (Table: agency_settings)
+  // On ne récupère que ce qui est nécessaire pour l'affichage initial pour gagner en vitesse
+  const { data: agencies, error: agencyError } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug);
+
+  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
+
+  if (agencyError || !agency) {
+    console.error("[SUPABASE ERROR]", agencyError);
+    return notFound();
+  }
+
+  // 2. Extraction des URLs XML autorisées
+  let allowedXmlUrls: string[] = [];
+  if (agency.footer_config) {
+    try {
+      const parsed = typeof agency.footer_config === 'string' 
+        ? JSON.parse(agency.footer_config) 
+        : agency.footer_config;
+      allowedXmlUrls = parsed?.xml_urls || [];
+    } catch (e) {
+      console.error("Erreur parsing footer_config");
+    }
+  }
+
+  // 3. Récupération des villas optimisée
+  // On sélectionne les champs essentiels pour réduire le temps de transfert (payload)
+  let query = supabase
+    .from('villas')
+    .select('id, title, price, location, images, bedrooms, bathrooms, area, type, xml_source, is_excluded')
+    .eq('is_excluded', false);
+  
+  // N'appliquer le filtre XML QUE s'il y a des URLs définies
+  // Si la liste est vide, on affiche tout pour éviter le "noResults"
+  if (allowedXmlUrls && allowedXmlUrls.length > 0) {
+    query = query.in('xml_source', allowedXmlUrls);
+  }
+
+  const { data: villas, error: villasError } = await query.order('price', { ascending: false });
+
+  if (villasError) {
+    console.error("[VILLAS ERROR]", villasError);
+  }
+
+  // 4. Rendu du composant Client
+  return (
+    <AgencyPageClient 
+      slug={slug} 
+      initialAgency={agency} 
+      initialProperties={villas || []} 
+    />
+  );
+}
+</file>
+
 <file path="src/contexts/AgencyContext.tsx">
 "use client";
 
@@ -5929,6 +5636,324 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAgency = () => useContext(AgencyContext);
+</file>
+
+<file path="src/app/AgencyPageClient.tsx">
+"use client";
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '@/lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
+import PropertyGrid from '@/components/PropertyGrid';
+import Hero from '@/components/Hero';
+import AdvancedSearch from '@/components/AdvancedSearch';
+import PropertyDetailClient from '@/components/PropertyDetailClient';
+import { Search, X, ArrowLeft } from 'lucide-react';
+import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext"; 
+import { Villa, Filters } from '@/types';
+
+interface AgencyPageClientProps {
+  slug: string;
+  initialAgency?: any;
+  initialProperties?: any[];
+}
+
+export default function AgencyPageClient({ slug, initialAgency, initialProperties }: AgencyPageClientProps) {
+  const { t, locale } = useTranslation() as any;
+  const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
+  
+  const agency = initialAgency || contextAgency;
+
+  const [allProperties, setAllProperties] = useState<Villa[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(!initialProperties);
+  const [loadingProgress, setLoadingProgress] = useState(initialProperties ? 100 : 0);
+  
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [displayLimit, setDisplayLimit] = useState(12);
+
+  const [filters, setFilters] = useState<Filters>({
+    type: "",
+    town: "",
+    region: "",
+    beds: 0,
+    minPrice: 0,
+    maxPrice: 50000000, // Augmenté pour éviter le bug du "noResults"
+    reference: "",
+  });
+
+  // 1. Formateur optimisé
+  const formatVillaData = useCallback((villas: any[]): Villa[] => {
+    return villas.map((v, index) => {
+      let imageArray: string[] = [];
+      try {
+        if (Array.isArray(v.images)) imageArray = v.images;
+        else if (typeof v.images === 'string') imageArray = JSON.parse(v.images || '[]');
+      } catch (e) { imageArray = []; }
+      
+      if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
+      
+      return {
+        ...v,
+        id: v.id || `v-${index}`,
+        id_externe: String(v.id_externe || v.ref || v.external_id || ""),
+        ref: String(v.id_externe || v.ref || ""), 
+        titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
+        description: v[`description_${locale}`] || v.description || v.details || "",
+        price: Number(v.price || v.prix || 0),
+        town: v.town || v.ville || v.city || "",
+        region: v.region || v.province || "",
+        beds: parseInt(v.beds || v.bedrooms) || 0,
+        baths: parseInt(v.baths || v.bathrooms) || 0,
+        type: v.type || "Villa",
+        images: imageArray,
+      };
+    });
+  }, [locale]);
+
+  // 2. Gestion du Cache et Initialisation
+  useEffect(() => {
+    if (slug) setAgencyBySlug(slug);
+    
+    // Charger les favoris
+    const savedFavs = localStorage.getItem(`fav_${slug}`);
+    if (savedFavs) {
+      try { setFavorites(JSON.parse(savedFavs)); } catch (e) {}
+    }
+
+    // STRATÉGIE DE CHARGEMENT RAPIDE
+    const cacheKey = `props_cache_${slug}`;
+    const cachedData = sessionStorage.getItem(cacheKey);
+
+    if (initialProperties && initialProperties.length > 0) {
+      // Priorité 1 : Données SSR (Ultra rapide)
+      const formatted = formatVillaData(initialProperties);
+      const sorted = formatted.sort((a, b) => b.price - a.price);
+      setAllProperties(sorted);
+      setFilteredProperties(sorted);
+      setLoadingProperties(false);
+      setLoadingProgress(100);
+      sessionStorage.setItem(cacheKey, JSON.stringify(sorted));
+    } else if (cachedData) {
+      // Priorité 2 : Cache Session (Instantané si navigation interne)
+      const parsed = JSON.parse(cachedData);
+      setAllProperties(parsed);
+      setFilteredProperties(parsed);
+      setLoadingProperties(false);
+      setLoadingProgress(100);
+    }
+  }, [slug, initialProperties, formatVillaData, setAgencyBySlug]);
+
+  // 3. Fetch de secours optimisé
+  useEffect(() => {
+    async function fetchProperties() {
+      // On ne lance le fetch que si on n'a vraiment rien (pas de SSR, pas de Cache)
+      if (!agency || allProperties.length > 0) return;
+
+      try {
+        setLoadingProperties(true);
+        setLoadingProgress(20);
+        
+        const config = typeof agency.footer_config === 'string' 
+          ? JSON.parse(agency.footer_config) 
+          : agency.footer_config;
+        
+        const allowedXmlUrls = config?.xml_urls || [];
+
+        let query = supabase.from('villas').select('*').eq('is_excluded', false);
+        if (allowedXmlUrls.length > 0) {
+          query = query.in('xml_source', allowedXmlUrls);
+        }
+
+        const { data, error } = await query.order('price', { ascending: false });
+        if (error) throw error;
+
+        if (data) {
+          const formatted = formatVillaData(data);
+          setAllProperties(formatted);
+          setFilteredProperties(formatted);
+          sessionStorage.setItem(`props_cache_${slug}`, JSON.stringify(formatted));
+        }
+      } catch (err) {
+        console.error("Erreur:", err);
+      } finally {
+        setLoadingProgress(100);
+        setTimeout(() => setLoadingProperties(false), 500);
+      }
+    }
+
+    fetchProperties();
+  }, [agency, allProperties.length, formatVillaData, slug]);
+
+  const toggleFavorite = (id: string) => {
+    const newFavs = favorites.includes(id) 
+      ? favorites.filter(fav => fav !== id) 
+      : [...favorites, id];
+    setFavorites(newFavs);
+    localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
+  };
+
+  const handleSearch = (newFilters: Filters) => {
+    const min = Number(newFilters.minPrice) || 0;
+    const max = Number(newFilters.maxPrice) || 50000000;
+    setFilters({ ...newFilters, minPrice: min, maxPrice: max });
+    
+    const results = allProperties.filter((p) => {
+      const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
+      const matchType = !newFilters.type || newFilters.type === "all" || p.type.toLowerCase().includes(newFilters.type.toLowerCase());
+      const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
+      const matchRegion = !newFilters.region || 
+        p.region?.toLowerCase().includes(newFilters.region.toLowerCase()) || 
+        p.town?.toLowerCase().includes(newFilters.region.toLowerCase());
+      const matchRef = !newFilters.reference || String(p.id_externe).toLowerCase().includes(newFilters.reference.toLowerCase());
+      return matchPrice && matchBeds && matchType && matchRegion && matchRef;
+    });
+
+    setFilteredProperties(results);
+    setIsSearchOpen(false);
+  };
+
+  const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
+  const buttonRadius = agency?.button_style || 'rounded-full';
+
+  return (
+    <div className="flex flex-col relative notranslate">
+      <main className="flex-grow"> 
+        <AnimatePresence mode="wait">
+          {selectedProperty ? (
+            <motion.div 
+              key="detail"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="pb-20 bg-white min-h-screen"
+            >
+              <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
+                <button 
+                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
+                  className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all relative z-50"
+                >
+                  <div className="w-8 h-[1px] bg-slate-200 group-hover:w-12 group-hover:bg-black transition-all"></div>
+                  <ArrowLeft size={14} /> {t('nav.back')}
+                </button>
+              </div>
+              <PropertyDetailClient property={selectedProperty} agency={agency} />
+            </motion.div>
+          ) : (
+            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Hero 
+                agency={agency}
+                title={agency?.hero_title} 
+                backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
+                agencyName={agency?.agency_name} 
+              />
+              
+              <div className="flex justify-center -mt-12 relative z-40">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsSearchOpen(true)} 
+                  className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl ${buttonRadius}`}
+                  style={{ backgroundColor: primaryBrandColor }}
+                >
+                  <Search size={20} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
+                </motion.button>
+              </div>
+
+              <section className="py-24 bg-slate-50 relative z-10">
+                <div className="max-w-7xl mx-auto px-6">
+                  <header className="mb-24 text-center">
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
+                    <h2 className="text-5xl font-serif italic mb-8 text-slate-900">{t('nav.results')}</h2>
+                    <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
+                  </header>
+                  
+                  {loadingProperties ? (
+                    <div className="flex flex-col items-center justify-center py-32 space-y-8">
+                      <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
+                        <motion.div 
+                          className="absolute inset-y-0 left-0"
+                          style={{ backgroundColor: primaryBrandColor }}
+                          initial={{ width: "0%" }}
+                          animate={{ width: `${loadingProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-slate-400 italic">
+                        {t('common.loadingProperties')}
+                      </p>
+                    </div>
+                  ) : (
+                    <AnimatePresence>
+                      {filteredProperties.length > 0 ? (
+                        <PropertyGrid 
+                          agency={agency}
+                          properties={filteredProperties.slice(0, displayLimit)} 
+                          favorites={favorites}
+                          onToggleFavorite={toggleFavorite}
+                          onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
+                        />
+                      ) : (
+                        <div className="text-center py-20 border border-dashed border-slate-200 rounded-3xl">
+                          <p className="text-slate-400 italic font-serif">
+                            {t('common.noResults')}
+                          </p>
+                        </div>
+                      )}
+                    </AnimatePresence>
+                  )}
+
+                  {!loadingProperties && filteredProperties.length > displayLimit && (
+                    <div className="mt-20 flex justify-center">
+                      <button 
+                        onClick={() => setDisplayLimit(prev => prev + 12)}
+                        className={`px-14 py-7 text-white transition-all shadow-2xl ${buttonRadius}`}
+                        style={{ backgroundColor: primaryBrandColor }}
+                      >
+                        <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.showMore')}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl"
+          >
+            <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="relative w-full max-w-5xl bg-white rounded-[24px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+            >
+              <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-4 p-3 bg-slate-100 rounded-full text-slate-500 z-[220]">
+                <X size={20} />
+              </button>
+              <div className="flex-grow overflow-y-auto p-6 md:p-12">
+                <AdvancedSearch 
+                  agency={agency}
+                  onSearch={handleSearch} 
+                  properties={allProperties} 
+                  activeFilters={filters} 
+                  onClose={() => setIsSearchOpen(false)} 
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 </file>
 
 <file path="src/components/admin/AgencyDashboard.tsx">
