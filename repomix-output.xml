@@ -1325,131 +1325,6 @@ export default function DevelopmentPage() {
 }
 </file>
 
-<file path="src/app/globals.css">
-@import "tailwindcss";
-
-/* ===== 1. VARIABLES ===== */
-@layer base {
-  :root {
-    --background: #ffffff;
-    --foreground: #0f172a;
-    --accent-gold: #D4AF37;
-  }
-
-  html.dark:not([data-package="light"]) {
-    --background: #020617;
-    --foreground: #ffffff;
-  }
-}
-
-/* ===== 2. COLOR-SCHEME ===== */
-html {
-  color-scheme: light;
-}
-html.dark:not([data-package="light"]) {
-  color-scheme: dark;
-}
-
-/* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
-html[data-package="light"] {
-  /* On ne force pas de bg-color sur HTML pour ne pas bloquer le Hero */
-  color: #0f172a !important;
-}
-
-html[data-package="light"] body {
-  /* CORRECTION CRUCIALE : 
-     On enlève le !important du body. 
-     Cela permet aux sections (comme le Hero) d'afficher leur propre fond 
-     et à la Navbar d'être réellement transparente.
-  */
-  background-color: transparent; 
-  color: #0f172a !important;
-  margin: 0;
-  padding: 0;
-}
-
-/* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
-html[data-package="light"] {
-  color: #0f172a !important;
-}
-
-html[data-package="light"] body {
-  background-color: #ffffff; /* Pas d'important ici */
-  color: #0f172a !important;
-  margin: 0;
-  padding: 0;
-}
-
-/* La Navbar doit être PRIORITAIRE sur la transparence */
-html[data-package="light"] nav {
-  background-color: transparent !important; 
-}
-
-/* On force le blanc UNIQUEMENT sur les sections de contenu */
-html[data-package="light"] section:not(.no-forced-bg),
-html[data-package="light"] footer {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-
-/* On retire le fond forcé du main pour qu'il laisse voir ce qu'il y a derrière (le Hero) */
-html[data-package="light"] main {
-  background-color: transparent !important;
-}
-
-/* ===== 4. VIGNETTES EN MODE SOMBRE ===== */
-html.dark:not([data-package="light"]) .property-card,
-html.dark:not([data-package="light"]) .bg-slate-50,
-html.dark:not([data-package="light"]) .bg-gray-50 {
-  background-color: #0f172a !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* ===== 5. SCROLLBAR ===== */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--accent-gold);
-  border-radius: 10px;
-}
-
-/* ===== 6. COMPOSANTS SPÉCIFIQUES ===== */
-.dark .mobile-menu-link {
-  color: #ffffff !important;
-  opacity: 1 !important;
-}
-
-html[data-package="light"] .theme-toggle-component {
-  display: none !important;
-}
-
-/* Badge Type (commun) */
-.badge-type {
-  background-color: rgba(0, 0, 0, 0.75) !important;
-  color: #ffffff !important;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
-
-/* Badge Référence - Mode Light */
-.badge-ref-light {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-/* Badge Référence - Mode Dark */
-.badge-ref-dark {
-  background-color: #D4AF37 !important;
-  color: #000000 !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-}
-</file>
-
 <file path="src/app/page.tsx">
 "use client";
 
@@ -2842,127 +2717,111 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
 }
 </file>
 
-<file path="src/components/Footer.tsx">
+<file path="src/components/CookieBanner.tsx">
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin } from "lucide-react";
-// CORRECTION : Utilisation du bon chemin (@/contexts) et du bon nom (useTranslation)
-import { useTranslation } from "@/contexts/I18nContext";
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck } from 'lucide-react';
+import { useParams } from 'next/navigation'; // Ajout pour détecter le slug
 
-interface FooterProps {
-  isLight?: boolean;
-  agency?: any;
+interface CookieBannerProps {
+  enabled: boolean;
+  agencyName: string;
 }
 
-export default function Footer({ isLight = true, agency }: FooterProps) {
-  // CORRECTION : Appel du hook useTranslation
-  const { t } = useTranslation();
-  
-  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
-  const textColor = isLight ? "text-slate-900" : "text-white";
-  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
-  
-  // On parse la config de contact stockée en JSON dans Supabase
-  const footerData = typeof agency?.footer_config === 'string' 
-    ? JSON.parse(agency.footer_config) 
-    : (agency?.footer_config || {});
+export default function CookieBanner({ enabled, agencyName }: CookieBannerProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const params = useParams(); // Récupère le slug de l'URL (ex: /agency/ma-super-agence)
+
+  useEffect(() => {
+    // On vérifie si l'utilisateur a déjà fait un choix
+    const consent = localStorage.getItem('cookie-consent');
+    if (enabled && !consent) {
+      const timer = setTimeout(() => setIsVisible(true), 2000); 
+      return () => clearTimeout(timer);
+    }
+  }, [enabled]);
+
+  const handleConsent = (accept: boolean) => {
+    localStorage.setItem('cookie-consent', accept ? 'accepted' : 'declined');
+    setIsVisible(false);
+  };
+
+  // On construit l'URL vers la page privacy relative à l'agence actuelle
+  // Si on est dans /agency/[slug], cela pointera vers /agency/[slug]/privacy
+  const privacyUrl = params?.slug ? `/agency/${params.slug}/privacy` : "#";
+
+  if (!isVisible) return null;
 
   return (
-    <footer className={`${bgColor} py-16 transition-colors duration-500`}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+    <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 md:p-8 animate-in slide-in-from-bottom duration-500">
+      <div className="max-w-4xl mx-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="bg-blue-500/20 p-4 rounded-2xl">
+            <ShieldCheck className="text-blue-400" size={32} />
+          </div>
           
-          {/* Identité */}
-          <div className="col-span-1 md:col-span-1 space-y-6">
-            <h3 className={`text-xl font-serif italic ${textColor}`}>
-              {agency?.agency_name || t('footer.excellence')}
-            </h3>
-            <div className="w-12 h-0.5 bg-primary"></div>
-            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
-              {t('footer.description')}
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="text-white font-bold text-lg mb-1">Respect de votre vie privée</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              {agencyName} utilise des cookies pour améliorer votre expérience et analyser le trafic. 
+              Consultez notre <a href={privacyUrl} className="text-white underline underline-offset-4 hover:text-blue-400 transition-colors">politique de confidentialité</a> pour en savoir plus.
             </p>
           </div>
 
-          {/* Navigation */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li>
-                <Link href="/" className="hover:text-primary transition-colors">
-                  {t('nav.home')}
-                </Link>
-              </li>
-              <li>
-                <Link href="#collection" className="hover:text-primary transition-colors">
-                  {t('nav.search')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-primary transition-colors">
-                  {t('nav.contact')}
-                </Link>
-              </li>
-            </ul>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button 
+              onClick={() => handleConsent(false)}
+              className="px-6 py-3 rounded-xl text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+            >
+              Refuser
+            </button>
+            <button 
+              onClick={() => handleConsent(true)}
+              className="px-8 py-3 bg-white text-slate-900 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-blue-400 hover:text-white transition-all shadow-lg"
+            >
+              Accepter
+            </button>
           </div>
-
-          {/* Contact & Localisation */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li className="flex items-start gap-3">
-                <MapPin size={14} className="text-primary shrink-0" /> 
-                <span className="leading-tight">
-                  {footerData?.address || t('footer.address')}
-                  <br />
-                  {footerData?.city || t('footer.city')}
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail size={14} className="text-primary shrink-0" /> 
-                <a href={`mailto:${footerData?.email || t('footer.email')}`} className="hover:underline lowercase tracking-normal italic text-[11px]">
-                  {footerData?.email || t('footer.email')}
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone size={14} className="text-primary shrink-0" /> 
-                {footerData?.phone || t('footer.phone')}
-              </li>
-            </ul>
-          </div>
-
-          {/* Réseaux Sociaux */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Suivez-nous</h4>
-            <div className="flex gap-6">
-              {(footerData?.socials?.facebook || agency?.facebook_url) && (
-                <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:text-primary transition-all`}>
-                  <Facebook size={18} />
-                </a>
-              )}
-              {(footerData?.socials?.instagram || agency?.instagram_url) && (
-                <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:text-primary transition-all`}>
-                  <Instagram size={18} />
-                </a>
-              )}
-              {(footerData?.socials?.linkedin || agency?.linkedin_url) && (
-                <a href={footerData?.socials?.linkedin || agency?.linkedin_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:text-primary transition-all`}>
-                  <Linkedin size={18} />
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} text-center`}>
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
-            © {new Date().getFullYear()} {agency?.agency_name || "AMARU"} — {t('footer.eliteEdition')}
-          </p>
         </div>
       </div>
-    </footer>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/FloatingWhatsApp.tsx">
+"use client";
+
+import React from 'react';
+import { MessageCircle } from 'lucide-react';
+
+interface FloatingWhatsAppProps {
+  phone?: string;
+  color?: string;
+}
+
+export default function FloatingWhatsApp({ phone, color = "#25D366" }: FloatingWhatsAppProps) {
+  if (!phone) return null;
+
+  // Nettoyage du numéro (enlever les espaces, +, etc. pour l'URL)
+  const cleanPhone = phone.replace(/\D/g, '');
+
+  return (
+    <a
+      href={`https://wa.me/${cleanPhone}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="fixed bottom-6 right-6 z-[99] p-4 rounded-full shadow-2xl transition-transform hover:scale-110 active:scale-95 flex items-center justify-center text-white"
+      style={{ backgroundColor: color }}
+      aria-label="Contactez-nous sur WhatsApp"
+    >
+      <MessageCircle size={28} fill="currentColor" className="text-white" />
+      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+      </span>
+    </a>
   );
 }
 </file>
@@ -3778,312 +3637,175 @@ export default async function PrivacyPage({
 }
 </file>
 
-<file path="src/app/AgencyPageClient.tsx">
-"use client";
+<file path="src/app/[locale]/layout.tsx">
+import { Inter, Montserrat, Playfair_Display, Poppins, Roboto_Mono } from "next/font/google";
+import "@/app/globals.css";
+import { ReactNode } from "react";
+import { notFound } from "next/navigation";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import PropertyGrid from '@/components/PropertyGrid';
-import Hero from '@/components/Hero';
-import AdvancedSearch from '@/components/AdvancedSearch';
-import PropertyDetailClient from '@/components/PropertyDetailClient';
-import { Search, Loader2, X, ArrowLeft } from 'lucide-react';
-import { useTranslation } from "@/contexts/I18nContext";
-import { Villa, Filters } from '@/types';
+// Configuration des polices
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
+const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
+const poppins = Poppins({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-poppins" });
+const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-roboto" });
 
-export default function AgencyPageClient({ slug }: { slug: string }) {
-  const { t, setLocale, locale } = useTranslation() as any;
-  
-  const [agency, setAgency] = useState<any>(null);
-  const [allProperties, setAllProperties] = useState<Villa[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
-  
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [displayLimit, setDisplayLimit] = useState(12);
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>; // Correction : params est une Promise
+}) {
+  // On attend la résolution des paramètres
+  const { locale } = await params;
 
-  const [filters, setFilters] = useState<Filters>({
-    type: "",
-    town: "",
-    region: "",
-    beds: 0,
-    minPrice: 0,
-    maxPrice: 20000000,
-    reference: "",
-  });
-
-  // --- 1. INITIALISATION ---
-  useEffect(() => {
-    setMounted(true);
-    const meta = document.createElement('meta');
-    meta.name = "google";
-    meta.content = "notranslate";
-    document.getElementsByTagName('head')[0].appendChild(meta);
-    document.body.classList.add('notranslate');
-    window.scrollTo(0, 0);
-
-    return () => {
-      document.body.classList.remove('notranslate');
-    };
-  }, []);
-
-  // --- 2. GESTION DES FAVORIS ---
-  useEffect(() => {
-    if (typeof window !== 'undefined' && slug) {
-      const saved = localStorage.getItem(`fav_${slug}`);
-      if (saved) {
-        try { setFavorites(JSON.parse(saved)); } catch (e) { console.error(e); }
-      }
-    }
-  }, [slug]);
-
-  const toggleFavorite = (id: string) => {
-    const newFavs = favorites.includes(id) 
-      ? favorites.filter(fav => fav !== id) 
-      : [...favorites, id];
-    setFavorites(newFavs);
-    localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
-  };
-
-  // --- 3. FORMATAGE DES DONNÉES ---
-  const formatVillaData = useCallback((villas: any[]): Villa[] => {
-    return villas.map((v, index) => {
-      let imageArray: string[] = [];
-      try {
-        if (Array.isArray(v.images)) imageArray = v.images;
-        else if (typeof v.images === 'string') imageArray = JSON.parse(v.images || '[]');
-      } catch (e) { imageArray = []; }
-      
-      if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
-      
-      return {
-        ...v,
-        id: v.id || `v-${index}`,
-        id_externe: String(v.id_externe || v.ref || v.external_id || ""),
-        ref: String(v.id_externe || v.ref || ""), 
-        titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
-        description: v[`description_${locale}`] || v.description || v.details || "",
-        price: Number(v.price || v.prix || 0),
-        town: v.town || v.ville || v.city || "",
-        region: v.region || v.province || "",
-        beds: parseInt(v.beds || v.bedrooms) || 0,
-        baths: parseInt(v.baths || v.bathrooms) || 0,
-        type: v.type || "Villa",
-        images: imageArray,
-      };
-    });
-  }, [locale]);
-
-  // --- 4. RÉCUPÉRATION SUPABASE ---
-  useEffect(() => {
-    let isMounted = true;
-    async function init() {
-      if (!slug || !mounted) return;
-      setLoading(true);
-      try {
-        const { data: agencyData } = await supabase
-          .from('agency_settings')
-          .select('*')
-          .eq('subdomain', slug)
-          .single();
-
-        if (agencyData && isMounted) {
-          setAgency(agencyData);
-          if (agencyData.default_lang && !locale) {
-            setLocale(agencyData.default_lang);
-          }
-
-          let allowedXmlUrls: string[] = [];
-          try {
-            const footerConfig = typeof agencyData.footer_config === 'string' 
-              ? JSON.parse(agencyData.footer_config) 
-              : agencyData.footer_config;
-            allowedXmlUrls = footerConfig?.xml_urls || [];
-          } catch (e) {}
-
-          let query = supabase.from('villas').select('*').eq('is_excluded', false);
-          if (allowedXmlUrls.length > 0) {
-            query = query.in('xml_source', allowedXmlUrls);
-          }
-
-          const { data: villasData } = await query;
-          if (isMounted && villasData) {
-            const formatted = formatVillaData(villasData);
-            const sorted = formatted.sort((a, b) => b.price - a.price); 
-            setAllProperties(sorted);
-            setFilteredProperties(sorted);
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    init();
-    return () => { isMounted = false; };
-  }, [slug, formatVillaData, locale, setLocale, mounted]);
-
-  // --- 5. GESTION RECHERCHE ---
-  const handleSearch = (newFilters: Filters) => {
-    const min = Number(newFilters.minPrice) || 0;
-    const max = Number(newFilters.maxPrice) || 20000000;
-    setFilters({ ...newFilters, minPrice: min, maxPrice: max });
-    
-    const results = allProperties.filter((p) => {
-      const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
-      const matchType = !newFilters.type || newFilters.type === "all" || p.type.toLowerCase().includes(newFilters.type.toLowerCase());
-      const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
-      const matchRegion = !newFilters.region || 
-        p.region?.toLowerCase().includes(newFilters.region.toLowerCase()) || 
-        p.town?.toLowerCase().includes(newFilters.region.toLowerCase());
-      const matchRef = !newFilters.reference || String(p.id_externe).toLowerCase().includes(newFilters.reference.toLowerCase());
-      return matchPrice && matchBeds && matchType && matchRegion && matchRef;
-    });
-
-    setFilteredProperties(results);
-    setIsSearchOpen(false);
-    setSelectedProperty(null);
-  };
-
-  if (!mounted || loading) return (
-    <div className="h-screen flex flex-col items-center justify-center bg-white">
-      <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Chargement...</p>
-    </div>
-  );
-
-  const brandColor = agency?.primary_color || '#10b981';
-  const selectedFont = agency?.font_family || 'Inter, sans-serif';
-  const buttonRadius = agency?.button_style || 'rounded-full';
-  const fontNameForUrl = selectedFont.split(',')[0].trim().replace(/\s+/g, '+');
+  // Vérification des langues supportées
+  const supportedLocales = ['fr', 'en', 'es', 'nl', 'ar', 'pl']; // J'ai ajouté les langues vues dans votre dashboard
+  if (!supportedLocales.includes(locale)) {
+    notFound();
+  }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col relative notranslate" style={{ fontFamily: selectedFont }}>
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=${fontNameForUrl}:wght@300;400;700;900&display=swap');
-        :root { --brand-primary: ${brandColor}; }
-        .bg-primary { background-color: var(--brand-primary) !important; }
-        .text-primary { color: var(--brand-primary) !important; }
-        .border-primary { border-color: var(--brand-primary) !important; }
-      `}</style>
-
-      <Navbar agency={agency} />
-
-      <main className="flex-grow"> 
-        {selectedProperty ? (
-          <div className="animate-in fade-in duration-700 pb-20 pt-32 bg-white min-h-screen">
-            <div className="max-w-7xl mx-auto px-6 py-8">
-              <button 
-                onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
-                className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all"
-              >
-                <div className="w-8 h-[1px] bg-slate-200 group-hover:w-12 group-hover:bg-black transition-all"></div>
-                <ArrowLeft size={14} /> {t('nav.back')}
-              </button>
-            </div>
-            <PropertyDetailClient property={selectedProperty} agency={agency} />
-          </div>
-        ) : (
-          <div className="animate-in fade-in duration-1000">
-            <Hero 
-              agency={agency}
-              title={agency?.hero_title} 
-              subtitle={agency?.agency_name} 
-              backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
-              agencyName={agency?.agency_name} 
-            />
-            
-            <div className="flex justify-center -mt-12 relative z-40">
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsSearchOpen(true)} 
-                className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl bg-primary ${buttonRadius}`}
-              >
-                <Search size={20} />
-                <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
-              </motion.button>
-            </div>
-
-            <section id="collection" className="py-24 bg-slate-50 relative z-10">
-              <div className="max-w-7xl mx-auto px-6">
-                <header className="mb-24 text-center">
-                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                  <motion.h2 
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-5xl font-serif italic mb-8 text-slate-900"
-                  >
-                    {t('nav.results') || 'Notre Sélection'}
-                  </motion.h2>
-                  <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
-                </header>
-                
-                <PropertyGrid 
-                  agency={agency}
-                  properties={filteredProperties.slice(0, displayLimit)} 
-                  favorites={favorites}
-                  onToggleFavorite={toggleFavorite}
-                  onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                />
-
-                {filteredProperties.length > displayLimit && (
-                  <div className="mt-20 flex justify-center">
-                    <button 
-                      onClick={() => setDisplayLimit(prev => prev + 12)}
-                      className={`px-14 py-7 bg-primary text-white transition-all shadow-2xl ${buttonRadius}`}
-                    >
-                      <span className="text-[11px] font-black uppercase tracking-[0.4em]">
-                        {t('common.showMore') || "Voir plus"}
-                      </span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-        )}
-      </main>
-
-      <Footer agency={agency} />
-
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl"
-          >
-            <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="relative w-full max-w-5xl bg-white rounded-[24px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
-            >
-              <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-4 p-3 bg-slate-100 rounded-full text-slate-500 z-[220]">
-                <X size={20} />
-              </button>
-              <div className="flex-grow overflow-y-auto p-6 md:p-12">
-                <AdvancedSearch 
-                  agency={agency}
-                  onSearch={handleSearch} 
-                  properties={allProperties} 
-                  activeFilters={filters} 
-                  onClose={() => setIsSearchOpen(false)} 
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <html lang={locale} className="scroll-smooth">
+      <body suppressHydrationWarning={true}
+        className={`
+          ${inter.variable} 
+          ${montserrat.variable} 
+          ${playfair.variable} 
+          ${poppins.variable} 
+          ${robotoMono.variable} 
+          antialiased
+        `}
+      >
+        {children}
+      </body>
+    </html>
   );
+}
+</file>
+
+<file path="src/app/globals.css">
+@import "tailwindcss";
+
+/* ===== 1. VARIABLES & BASE ===== */
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --accent-gold: #D4AF37;
+    /* Valeur par défaut si l'agence n'en fournit pas */
+    --brand-primary: #D4AF37; 
+  }
+
+  html.dark:not([data-package="light"]) {
+    --background: #020617;
+    --foreground: #ffffff;
+  }
+}
+
+/* ===== 2. COLOR-SCHEME & BEHAVIOR ===== */
+html {
+  color-scheme: light;
+}
+
+html.dark:not([data-package="light"]) {
+  color-scheme: dark;
+}
+
+/* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
+/* Utilisé pour garder un rendu clair même si l'utilisateur est en mode sombre système */
+
+html[data-package="light"] {
+  color: #0f172a !important;
+}
+
+html[data-package="light"] body {
+  background-color: #ffffff;
+  color: #0f172a !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar : Transparente par défaut pour laisser voir le Hero */
+html[data-package="light"] nav {
+  background-color: transparent !important;
+}
+
+/* Sections de contenu : On force le blanc pour la lisibilité */
+html[data-package="light"] section:not(.no-forced-bg) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* FOOTER : On ne force PAS le fond blanc ici pour laisser passer la couleur de l'agence */
+html[data-package="light"] footer {
+  color: #0f172a; 
+}
+
+/* Main : Doit rester transparent pour ne pas bloquer les fonds dynamiques */
+html[data-package="light"] main {
+  background-color: transparent !important;
+}
+
+/* ===== 4. VIGNETTES & CARTES (MODE SOMBRE RÉEL) ===== */
+html.dark:not([data-package="light"]) .property-card,
+html.dark:not([data-package="light"]) .bg-slate-50,
+html.dark:not([data-package="light"]) .bg-gray-50 {
+  background-color: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===== 5. SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--brand-primary, var(--accent-gold));
+  border-radius: 10px;
+}
+
+/* ===== 6. COMPOSANTS SPÉCIFIQUES ===== */
+
+/* Menu Mobile en mode sombre */
+.dark .mobile-menu-link {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Masquer le switch de thème si mode light forcé */
+html[data-package="light"] .theme-toggle-component {
+  display: none !important;
+}
+
+/* Badge Type (commun) */
+.badge-type {
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Badge Référence - Mode Light */
+.badge-ref-light {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Badge Référence - Mode Dark */
+.badge-ref-dark {
+  background-color: var(--brand-primary) !important;
+  color: #000000 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Utilitaire pour empêcher le forçage du fond blanc sur certains éléments spécifiques */
+.no-forced-bg {
+  background-color: transparent !important;
 }
 </file>
 
@@ -4135,111 +3857,126 @@ export default async function RootLayout({
 }
 </file>
 
-<file path="src/components/CookieBanner.tsx">
+<file path="src/components/Footer.tsx">
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { ShieldCheck } from 'lucide-react';
-import { useParams } from 'next/navigation'; // Ajout pour détecter le slug
+import React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
 
-interface CookieBannerProps {
-  enabled: boolean;
-  agencyName: string;
+interface FooterProps {
+  isLight?: boolean;
+  agency?: any;
 }
 
-export default function CookieBanner({ enabled, agencyName }: CookieBannerProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const params = useParams(); // Récupère le slug de l'URL (ex: /agency/ma-super-agence)
+export default function Footer({ isLight = true, agency }: FooterProps) {
+  const { t } = useTranslation();
+  const params = useParams();
+  const slug = params?.slug || "";
+  const locale = params?.locale || "en";
+  
+  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
+  const textColor = isLight ? "text-slate-900" : "text-white";
+  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
+  
+  // Extraction sécurisée de la config
+  const footerData = typeof agency?.footer_config === 'string' 
+    ? JSON.parse(agency.footer_config || '{}') 
+    : (agency?.footer_config || {});
 
-  useEffect(() => {
-    // On vérifie si l'utilisateur a déjà fait un choix
-    const consent = localStorage.getItem('cookie-consent');
-    if (enabled && !consent) {
-      const timer = setTimeout(() => setIsVisible(true), 2000); 
-      return () => clearTimeout(timer);
-    }
-  }, [enabled]);
-
-  const handleConsent = (accept: boolean) => {
-    localStorage.setItem('cookie-consent', accept ? 'accepted' : 'declined');
-    setIsVisible(false);
-  };
-
-  // On construit l'URL vers la page privacy relative à l'agence actuelle
-  // Si on est dans /agency/[slug], cela pointera vers /agency/[slug]/privacy
-  const privacyUrl = params?.slug ? `/agency/${params.slug}/privacy` : "#";
-
-  if (!isVisible) return null;
+  // On récupère la couleur pour l'injecter si Tailwind ne prend pas le relai
+  const brandColor = agency?.primary_color || '#10b981';
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 md:p-8 animate-in slide-in-from-bottom duration-500">
-      <div className="max-w-4xl mx-auto bg-slate-900 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="bg-blue-500/20 p-4 rounded-2xl">
-            <ShieldCheck className="text-blue-400" size={32} />
-          </div>
+    <footer 
+      className={`${bgColor} py-16 transition-colors duration-500`}
+      style={{ '--brand-primary': brandColor } as React.CSSProperties} // Injection locale de sécurité
+    >
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
           
-          <div className="flex-1 text-center md:text-left">
-            <h3 className="text-white font-bold text-lg mb-1">Respect de votre vie privée</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              {agencyName} utilise des cookies pour améliorer votre expérience et analyser le trafic. 
-              Consultez notre <a href={privacyUrl} className="text-white underline underline-offset-4 hover:text-blue-400 transition-colors">politique de confidentialité</a> pour en savoir plus.
+          {/* Identité */}
+          <div className="col-span-1 md:col-span-1 space-y-6">
+            <h3 className={`text-xl font-serif italic ${textColor}`}>
+              {agency?.agency_name || t('footer.excellence')}
+            </h3>
+            {/* Utilisation de la variable CSS injectée */}
+            <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
+            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
+              {t('footer.description')}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <button 
-              onClick={() => handleConsent(false)}
-              className="px-6 py-3 rounded-xl text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
-            >
-              Refuser
-            </button>
-            <button 
-              onClick={() => handleConsent(true)}
-              className="px-8 py-3 bg-white text-slate-900 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-blue-400 hover:text-white transition-all shadow-lg"
-            >
-              Accepter
-            </button>
+          {/* Navigation - Liens dynamiques avec Slug */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li>
+                <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
+                  {t('nav.home')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
+                  {t('nav.contact')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact & Localisation */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li className="flex items-start gap-3">
+                <MapPin size={14} style={{ color: brandColor }} className="shrink-0" /> 
+                <span className="leading-tight">
+                  {footerData?.address || agency?.address || t('footer.address')}
+                  <br />
+                  {footerData?.city || agency?.city || t('footer.city')}
+                </span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Mail size={14} style={{ color: brandColor }} className="shrink-0" /> 
+                <a href={`mailto:${footerData?.email || agency?.email}`} className="hover:underline lowercase tracking-normal italic text-[11px]">
+                  {footerData?.email || agency?.email || t('footer.email')}
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone size={14} style={{ color: brandColor }} className="shrink-0" /> 
+                {footerData?.phone || agency?.phone || t('footer.phone')}
+              </li>
+            </ul>
+          </div>
+
+          {/* Réseaux Sociaux */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Suivez-nous</h4>
+            <div className="flex gap-6">
+              {(footerData?.socials?.facebook || agency?.facebook_url) && (
+                <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:opacity-70 transition-all`}>
+                  <Facebook size={18} style={{ color: brandColor }} />
+                </a>
+              )}
+              {(footerData?.socials?.instagram || agency?.instagram_url) && (
+                <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:opacity-70 transition-all`}>
+                  <Instagram size={18} style={{ color: brandColor }} />
+                </a>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Copyright */}
+        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} text-center`}>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
+            © {new Date().getFullYear()} {agency?.agency_name} — {t('footer.eliteEdition')}
+          </p>
+        </div>
       </div>
-    </div>
-  );
-}
-</file>
-
-<file path="src/components/FloatingWhatsApp.tsx">
-"use client";
-
-import React from 'react';
-import { MessageCircle } from 'lucide-react';
-
-interface FloatingWhatsAppProps {
-  phone?: string;
-  color?: string;
-}
-
-export default function FloatingWhatsApp({ phone, color = "#25D366" }: FloatingWhatsAppProps) {
-  if (!phone) return null;
-
-  // Nettoyage du numéro (enlever les espaces, +, etc. pour l'URL)
-  const cleanPhone = phone.replace(/\D/g, '');
-
-  return (
-    <a
-      href={`https://wa.me/${cleanPhone}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-[99] p-4 rounded-full shadow-2xl transition-transform hover:scale-110 active:scale-95 flex items-center justify-center text-white"
-      style={{ backgroundColor: color }}
-      aria-label="Contactez-nous sur WhatsApp"
-    >
-      <MessageCircle size={28} fill="currentColor" className="text-white" />
-      <span className="absolute -top-1 -right-1 flex h-3 w-3">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-      </span>
-    </a>
+    </footer>
   );
 }
 </file>
@@ -4322,6 +4059,202 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
       {/* GRADIENT DE TRANSITION VERS LE CONTENU SUIVANT */}
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-50 via-slate-50/20 to-transparent z-20" />
     </div>
+  );
+}
+</file>
+
+<file path="src/components/PropertyDetailClient.tsx">
+"use client";
+
+import { useEffect, useState, useRef, useMemo } from "react";
+import ContactForm from "@/components/ContactForm";
+import { 
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
+} from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useSearchParams } from "next/navigation";
+
+interface PropertyDetailClientProps {
+  property: any;
+  agency: any;
+}
+
+export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
+  const { t, locale } = useTranslation() as any;
+  const searchParams = useSearchParams();
+  const [activeImage, setActiveImage] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
+
+  const primaryColor = useMemo(() => {
+    return agency?.primary_color || 
+           agency?.theme?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      if (clientWidth > 0) {
+        const newIndex = Math.round(scrollLeft / clientWidth);
+        if (newIndex !== activeImage) setActiveImage(newIndex);
+      }
+    }
+  };
+
+  const description = useMemo(() => {
+    if (!property) return "";
+    return property[`description_${locale}`] || property.description || property.description_fr || "";
+  }, [property, locale]);
+
+  const images = property?.images || [];
+  const numericPrice = Number(property?.price || property?.prix || 0);
+  const whatsappNumber = (property?.phone || agency?.phone || "34627768233").replace(/\D/g, '');
+
+  if (!mounted || !property) return null;
+
+  return (
+    // Ajout de mt-20 ou pt-24 pour laisser de la place à la Navbar et au bouton retour
+    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
+      <div className="pb-20"> 
+        <div className="max-w-7xl mx-auto px-6">
+          
+          {/* GALERIE D'IMAGES */}
+          <section className="mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
+              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
+                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                  {images.map((img: string, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
+                      style={{ 
+                        opacity: activeImage === idx ? 1 : 0, 
+                        zIndex: activeImage === idx ? 10 : 0,
+                        pointerEvents: activeImage === idx ? 'auto' : 'none'
+                      }}
+                    >
+                      <img src={img} className="w-full h-full object-cover" alt="" />
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
+                </div>
+              </div>
+
+              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                {images.map((img: string, idx: number) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => setActiveImage(idx)} 
+                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
+                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
+                  >
+                    <img src={img} className="w-full h-full object-cover" alt="" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* GRILLE DE CONTENU */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+            <div className="lg:col-span-2">
+              <h1 className={`text-4xl md:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                {property.titre || property.title || "Propriété Exclusive"}
+              </h1>
+
+              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={18} color={primaryColor} />
+                {property.town || property.ville} • {property.region}
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+                {[
+                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
+                  { icon: Bath, val: property.baths, label: 'BAINS' },
+                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
+                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
+                  { icon: Car, val: "OUI", label: 'PARKING' },
+                ].map((item, i) => (
+                  <div 
+                    key={i} 
+                    className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                  >
+                    <item.icon className="mb-6" color={primaryColor} size={24} />
+                    <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div 
+                className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+
+              <div className="mt-10 border-t pt-10 border-white/10">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                    <Navigation size={24} color={primaryColor} />
+                  </div>
+                  <div>
+                    <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                  </div>
+                </div>
+                <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl h-[400px]">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+
+            {/* SIDEBAR */}
+            <div className="lg:col-span-1">
+              <div className={`sticky top-32 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
+                <div className="p-10 pb-4">
+                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className={`text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    {numericPrice.toLocaleString("fr-FR")} €
+                  </p>
+                </div>
+                
+                <div className="px-2">
+                    <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
+                </div>
+
+                <div className="px-10 pb-10">
+                  <a 
+                    href={`https://wa.me/${whatsappNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/5 transition-all text-white"
+                  >
+                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
   );
 }
 </file>
@@ -4953,60 +4886,11 @@ export default async function DynamicAgencyPage({
 }
 </file>
 
-<file path="src/app/[locale]/layout.tsx">
-import { Inter, Montserrat, Playfair_Display, Poppins, Roboto_Mono } from "next/font/google";
-import "@/app/globals.css";
-import { ReactNode } from "react";
-import { notFound } from "next/navigation";
-
-// Configuration des polices
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
-const poppins = Poppins({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-poppins" });
-const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-roboto" });
-
-export default async function LocaleLayout({
-  children,
-  params,
-}: {
-  children: ReactNode;
-  params: Promise<{ locale: string }>; // Correction : params est une Promise
-}) {
-  // On attend la résolution des paramètres
-  const { locale } = await params;
-
-  // Vérification des langues supportées
-  const supportedLocales = ['fr', 'en', 'es', 'nl', 'ar', 'pl']; // J'ai ajouté les langues vues dans votre dashboard
-  if (!supportedLocales.includes(locale)) {
-    notFound();
-  }
-
-  return (
-    <html lang={locale} className="scroll-smooth">
-      <body suppressHydrationWarning={true}
-        className={`
-          ${inter.variable} 
-          ${montserrat.variable} 
-          ${playfair.variable} 
-          ${poppins.variable} 
-          ${robotoMono.variable} 
-          antialiased
-        `}
-      >
-        {children}
-      </body>
-    </html>
-  );
-}
-</file>
-
 <file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
+// On retire l'import de Navbar et Footer car ils sont dans le layout global
 interface AboutPageProps {
   params: Promise<{
     slug: string;
@@ -5015,19 +4899,16 @@ interface AboutPageProps {
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {
-  // On attend la résolution des paramètres
   const { slug } = await params;
 
-  // 🟢 CORRECTION : On utilise 'subdomain' au lieu de 'slug'
+  // Récupération de l'agence
   const { data: agency, error } = await supabase
     .from('agency_settings')
     .select('*')
     .eq('subdomain', slug) 
     .maybeSingle();
 
-  // Si l'erreur est présente ou l'agence inexistante -> 404
   if (error || !agency) {
-    console.error("❌ [AboutPage] Agence non trouvée pour le subdomain:", slug);
     notFound();
   }
 
@@ -5039,7 +4920,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
       className="min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white transition-colors duration-500"
       style={{ fontFamily: selectedFont }}
     >
-      <Navbar agency={agency} />
+      {/* ❌ NAVBAR SUPPRIMÉE : Elle est déjà dans le layout */}
 
       <main className="relative">
         {/* Header / Hero Section */}
@@ -5088,208 +4969,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
         </section>
       </main>
 
-      <Footer agency={agency} />
+      {/* ❌ FOOTER SUPPRIMÉ : Il est déjà dans le layout */}
     </div>
-  );
-}
-</file>
-
-<file path="src/components/PropertyDetailClient.tsx">
-"use client";
-
-import { useEffect, useState, useRef, useMemo } from "react";
-import ContactForm from "@/components/ContactForm";
-import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
-} from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useSearchParams } from "next/navigation";
-
-interface PropertyDetailClientProps {
-  property: any;
-  agency: any;
-}
-
-export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
-  const { t, locale } = useTranslation() as any;
-  const searchParams = useSearchParams();
-  const [activeImage, setActiveImage] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
-  // Détection du mode light via l'URL ou les paramètres de l'agence
-  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
-
-  // Extraction de la couleur primaire avec priorité à primary_color (vu dans page.tsx)
-  const primaryColor = useMemo(() => {
-    return agency?.primary_color || 
-           agency?.theme?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      if (clientWidth > 0) {
-        const newIndex = Math.round(scrollLeft / clientWidth);
-        if (newIndex !== activeImage) setActiveImage(newIndex);
-      }
-    }
-  };
-
-  const description = useMemo(() => {
-    if (!property) return "";
-    return property[`description_${locale}`] || property.description || property.description_fr || "";
-  }, [property, locale]);
-
-  const images = property?.images || [];
-  const numericPrice = Number(property?.price || property?.prix || 0);
-  const whatsappNumber = (property?.phone || agency?.phone || "34627768233").replace(/\D/g, '');
-
-  if (!mounted || !property) return null;
-
-  return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'}`}>
-      <div className="pt-12 pb-20"> 
-        <div className="max-w-7xl mx-auto px-6">
-          
-          {/* GALERIE D'IMAGES */}
-          <section className="mb-16">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
-              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
-                  {images.map((img: string, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
-                      style={{ 
-                        opacity: activeImage === idx ? 1 : 0, 
-                        zIndex: activeImage === idx ? 10 : 0,
-                        pointerEvents: activeImage === idx ? 'auto' : 'none'
-                      }}
-                    >
-                      <img src={img} className="w-full h-full object-cover" alt="" />
-                    </div>
-                  ))}
-                </div>
-                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
-                </div>
-              </div>
-
-              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-                {images.map((img: string, idx: number) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => setActiveImage(idx)} 
-                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
-                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
-                  >
-                    <img src={img} className="w-full h-full object-cover" alt="" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* GRILLE DE CONTENU */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-            <div className="lg:col-span-2">
-              <h1 className={`text-5xl md:text-8xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                {property.titre || property.title || "Propriété Exclusive"}
-              </h1>
-
-              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville} • {property.region}
-              </div>
-              
-              {/* CARACTÉRISTIQUES AVEC ICÔNES COLORÉES */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
-                {[
-                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
-                  { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
-                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
-                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
-                  { icon: Car, val: "OUI", label: 'PARKING' },
-                ].map((item, i) => (
-                  <div 
-                    key={i} 
-                    className={`p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
-                  >
-                    <item.icon className="mb-6" color={primaryColor} size={24} />
-                    <p className={`text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* DESCRIPTION */}
-              <div 
-                className={`text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                dangerouslySetInnerHTML={{ __html: description }}
-              />
-
-              {/* LOCALISATION / CARTE */}
-              <div className="mt-10 border-t pt-10 border-white/10">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                    <Navigation size={24} color={primaryColor} />
-                  </div>
-                  <div>
-                    <h2 className={`text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
-                  </div>
-                </div>
-                <div className="relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-xl h-[400px]">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    loading="lazy"
-                    allowFullScreen
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-
-            {/* SIDEBAR (PRIX & CONTACT) */}
-            <div className="lg:col-span-1">
-              <div className={`sticky top-40 border rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
-                <div className="p-10 pb-4">
-                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-6xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice.toLocaleString("fr-FR")} €
-                  </p>
-                </div>
-                
-                <div className="px-2">
-                   <ContactForm agency={agency} propertyRef={property.ref || property.id} isLight={isLight} />
-                </div>
-
-                <div className="px-10 pb-10">
-                  <a 
-                    href={`https://wa.me/${whatsappNumber}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/5 transition-all text-white"
-                  >
-                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
   );
 }
 </file>
@@ -5298,13 +4979,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 "use client";
 
 import React, { useState, useEffect, use, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2, Mail, Phone, User } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext";
-
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 interface ContactPageProps {
   params: Promise<{
@@ -5315,24 +4993,21 @@ interface ContactPageProps {
 
 export default function ContactPage({ params }: ContactPageProps) {
   const resolvedParams = use(params);
-  const { t } = useTranslation() as any;
+  const { t } = useTranslation();
   const { agency, loading, setAgencyBySlug } = useAgency(); 
   
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // Synchronisation sécurisée du slug
   useEffect(() => {
     const currentSlug = resolvedParams.slug;
-    // On ne déclenche l'appel que si le slug de l'URL est différent de celui chargé en mémoire
     if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
       setAgencyBySlug(currentSlug);
     }
-  }, [resolvedParams.slug, agency?.subdomain, loading]); // Retrait de setAgencyBySlug des dépendances si non-callback
+  }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
 
-  // Parsing des données avec useMemo pour éviter de recalculer à chaque rendu
-  const { contactInfo, displayTeam, brandColor, buttonColor, selectedFont } = useMemo(() => {
+  const { contactInfo, displayTeam, brandColor, buttonColor } = useMemo(() => {
     const getParsed = (data: any) => {
       if (!data) return {};
       if (typeof data === 'object') return data;
@@ -5355,35 +5030,14 @@ export default function ContactPage({ params }: ContactPageProps) {
       contactInfo: cInfo,
       displayTeam: team,
       brandColor: agency?.primary_color || "#c5a059",
-      buttonColor: agency?.button_color || agency?.primary_color || "#c5a059",
-      selectedFont: agency?.font_family || 'Montserrat'
+      buttonColor: agency?.button_color || agency?.primary_color || "#c5a059"
     };
   }, [agency]);
-
-  if (loading && !agency) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement...</p>
-      </div>
-    );
-  }
-
-  if (!agency && !loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-center">
-        <div>
-           <p className="text-slate-500 font-serif italic mb-4">Agence non répertoriée...</p>
-           <button onClick={() => window.location.reload()} className="text-[10px] font-black uppercase border-b border-black">Réessayer</button>
-        </div>
-      </div>
-    );
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulez l'envoi ici
+    // Simulation d'envoi
     setTimeout(() => {
       setIsSubmitting(false);
       setStatus("success");
@@ -5392,33 +5046,45 @@ export default function ContactPage({ params }: ContactPageProps) {
     }, 1500);
   };
 
+  if (loading && !agency) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{t('common.loading')}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white text-slate-900" style={{ fontFamily: selectedFont }}>
-      <Navbar />
+    <div className="bg-white text-slate-900">
       <main>
-        {/* Hero */}
-        <section className="relative h-[45vh] flex items-center justify-center overflow-hidden bg-slate-900">
+        {/* Hero Section */}
+        <section className="relative h-[40vh] flex items-center justify-center overflow-hidden bg-slate-900">
           {agency?.hero_url && (
             <img src={agency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-40 brightness-50" alt="Hero" />
           )}
           <div className="relative z-10 text-center px-6">
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-6xl font-serif italic text-white mb-4">
-              {t('nav.contact') || "Contactez-nous"}
+              {t('contact.formTitle')}
             </motion.h1>
             <p className="text-white/80 text-lg font-light italic uppercase tracking-widest">{agency?.agency_name}</p>
           </div>
         </section>
 
-        {/* Content */}
+        {/* Main Content */}
         <section className="max-w-[1400px] mx-auto px-6 py-20 grid grid-cols-1 xl:grid-cols-12 gap-16">
+          
+          {/* Team Side */}
           <div className="xl:col-span-7 space-y-10">
             <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
-              <h2 className="text-3xl font-serif italic uppercase tracking-widest">{agency?.about_title || "L'Équipe"}</h2>
+              <h2 className="text-3xl font-serif italic uppercase tracking-widest">
+                {agency?.about_title || t('contact.teamTitle')}
+              </h2>
             </div>
             
             <div className="grid gap-8">
               {displayTeam.map((member: any, idx: number) => (
-                <motion.div key={idx} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} className="p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-8 items-center shadow-sm">
+                <motion.div key={idx} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-8 items-center shadow-sm">
                   <div className="w-24 h-32 rounded-2xl bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
                     {member.photo ? <img src={member.photo} className="w-full h-full object-cover" alt={member.name} /> : <User size={30} className="text-slate-400" />}
                   </div>
@@ -5432,11 +5098,14 @@ export default function ContactPage({ params }: ContactPageProps) {
             </div>
           </div>
 
-          {/* Form Card (Design iPhone-style) */}
+          {/* iPhone-style Form Card */}
           <div className="xl:col-span-5 flex justify-center">
             <div className="relative w-full max-w-[380px] aspect-[9/18.5] rounded-[3.5rem] bg-slate-900 p-3 shadow-2xl border-[8px] border-slate-800">
               <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden bg-slate-950 flex flex-col p-8 pt-12">
-                <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">Direct Contact</h3>
+                <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">
+                  {t('contact.directContact')}
+                </h3>
+                
                 <div className="space-y-3 mb-8">
                   <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px]">
                     <Phone size={14} style={{ color: brandColor }} />
@@ -5444,24 +5113,46 @@ export default function ContactPage({ params }: ContactPageProps) {
                   </div>
                   <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px] truncate">
                     <Mail size={14} style={{ color: brandColor }} />
-                    {contactInfo?.email || agency?.email || "contact@agence.com"}
+                    {contactInfo?.email || agency?.email || "contact@agency.com"}
                   </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-3">
-                  <input required className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30" placeholder="VOTRE NOM" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-                  <input required type="email" className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30" placeholder="VOTRE EMAIL" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                  <textarea required rows={4} className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none" placeholder="VOTRE MESSAGE..." value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} />
-                  <button type="submit" disabled={isSubmitting} style={{ backgroundColor: buttonColor }} className="mt-auto w-full py-4 rounded-xl text-black font-black text-[10px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2">
-                    {isSubmitting ? <Loader2 className="animate-spin" size={14}/> : (status === "success" ? "ENVOYÉ !" : "ENVOYER")}
+                  <input required className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all" 
+                    placeholder={t('contact.namePlaceholder')} 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                  />
+                  <input required type="email" className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all" 
+                    placeholder={t('contact.emailPlaceholder')} 
+                    value={formData.email} 
+                    onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                  />
+                  <textarea required rows={4} className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none transition-all" 
+                    placeholder={t('contact.messagePlaceholder')} 
+                    value={formData.message} 
+                    onChange={(e) => setFormData({...formData, message: e.target.value})} 
+                  />
+                  
+                  <button type="submit" disabled={isSubmitting} style={{ backgroundColor: buttonColor }} 
+                    className="mt-auto w-full py-4 rounded-xl text-black font-black text-[10px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="animate-spin" size={14}/>
+                    ) : (
+                      status === "success" ? t('contact.success').toUpperCase() : t('contact.submit').toUpperCase()
+                    )}
                   </button>
+
+                  {status === "error" && (
+                    <p className="text-[9px] text-red-400 text-center mt-2 uppercase tracking-widest">{t('contact.error')}</p>
+                  )}
                 </form>
               </div>
             </div>
           </div>
         </section>
       </main>
-      <Footer agency={agency} />
     </div>
   );
 }
@@ -5469,6 +5160,9 @@ export default function ContactPage({ params }: ContactPageProps) {
 
 <file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
 import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import CookieBanner from "@/components/CookieBanner";
 
@@ -5481,49 +5175,409 @@ export default async function AgencyLayout({
 }) {
   const { slug } = await params;
 
-  // Récupération des paramètres de l'agence via la colonne subdomain
+  // 1. Récupération des paramètres de l'agence (SSR)
   const { data: agency } = await supabase
     .from('agency_settings') 
     .select('*')
     .eq('subdomain', slug) 
     .maybeSingle();
 
-  // Définition des variables CSS dynamiques pour le thème de l'agence
+  // Si l'agence n'existe pas, on renvoie une 404
+  if (!agency) notFound();
+
+  // 2. Définition des variables CSS dynamiques
+  // Elles seront accessibles par tous les composants enfants (Navbar, Footer, etc.)
   const dynamicStyles = {
-    '--brand-primary': agency?.primary_color || '#10b981',
-    '--font-main': agency?.font_family || 'Inter, sans-serif',
+    '--brand-primary': agency.primary_color || '#D4AF37',
+    '--font-main': agency.font_family || 'Montserrat, sans-serif',
     '--font-serif': 'Playfair Display, serif',
   } as React.CSSProperties;
 
-  // Parsing sécurisé de footer_config (au cas où il arrive en string JSON)
+  // 3. Parsing sécurisé de la configuration
   const getFooterData = (config: any) => {
     if (!config) return {};
     if (typeof config === 'object') return config;
     try { return JSON.parse(config); } catch { return {}; }
   };
 
-  const footerConfig = getFooterData(agency?.footer_config);
+  const footerConfig = getFooterData(agency.footer_config);
 
   return (
-    <div style={dynamicStyles} className="min-h-screen">
-      {/* IMPORTANT : children permet d'afficher les pages enfants 
-          (/contact, /about, etc.) à l'intérieur de ce layout.
-      */}
-      {children} 
+    <div style={dynamicStyles} className="min-h-screen flex flex-col">
+      {/* 🟢 NAVBAR : Présente sur toutes les pages du slug */}
+      <Navbar agency={agency} />
+
+      {/* 🟢 CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
+      <main className="flex-grow">
+        {children}
+      </main>
       
-      {agency && (
-        <>
-          {/* Widgets flottants spécifiques à l'agence */}
-          <FloatingWhatsApp 
-            phone={footerConfig?.socials?.whatsapp || agency.whatsapp_number} 
-            color={agency.primary_color} 
-          />
-          <CookieBanner 
-            enabled={agency.cookie_consent_enabled} 
-            agencyName={agency.agency_name} 
-          />
-        </>
-      )}
+      {/* 🟢 FOOTER : Présent partout, avec le style correct injecté une seule fois */}
+      <Footer agency={agency} />
+
+      {/* Widgets flottants */}
+      <FloatingWhatsApp 
+        phone={footerConfig?.socials?.whatsapp || agency.whatsapp_number} 
+        color={agency.primary_color} 
+      />
+      
+      <CookieBanner 
+        enabled={agency.cookie_consent_enabled} 
+        agencyName={agency.agency_name} 
+      />
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/AgencyPageClient.tsx">
+"use client";
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
+import PropertyGrid from '@/components/PropertyGrid';
+import Hero from '@/components/Hero';
+import AdvancedSearch from '@/components/AdvancedSearch';
+import PropertyDetailClient from '@/components/PropertyDetailClient';
+import { Search, Loader2, X, ArrowLeft } from 'lucide-react';
+import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext"; 
+import { Villa, Filters } from '@/types';
+
+export default function AgencyPageClient({ slug }: { slug: string }) {
+  const { t, locale } = useTranslation() as any;
+  const { agency, loading: agencyLoading, setAgencyBySlug } = useAgency(); 
+  
+  const [allProperties, setAllProperties] = useState<Villa[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [displayLimit, setDisplayLimit] = useState(12);
+
+  const [filters, setFilters] = useState<Filters>({
+    type: "",
+    town: "",
+    region: "",
+    beds: 0,
+    minPrice: 0,
+    maxPrice: 20000000,
+    reference: "",
+  });
+
+  // 1. Initialisation et Scroll
+  useEffect(() => {
+    if (slug) {
+      setAgencyBySlug(slug);
+    }
+    window.scrollTo(0, 0);
+  }, [slug, setAgencyBySlug]);
+
+  // 2. Gestion des favoris locaux
+  useEffect(() => {
+    if (typeof window !== 'undefined' && slug) {
+      const saved = localStorage.getItem(`fav_${slug}`);
+      if (saved) {
+        try { setFavorites(JSON.parse(saved)); } catch (e) { console.error(e); }
+      }
+    }
+  }, [slug]);
+
+  const toggleFavorite = (id: string) => {
+    const newFavs = favorites.includes(id) 
+      ? favorites.filter(fav => fav !== id) 
+      : [...favorites, id];
+    setFavorites(newFavs);
+    localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
+  };
+
+  // 3. Formateur de données Villa
+  const formatVillaData = useCallback((villas: any[]): Villa[] => {
+    return villas.map((v, index) => {
+      let imageArray: string[] = [];
+      try {
+        if (Array.isArray(v.images)) imageArray = v.images;
+        else if (typeof v.images === 'string') imageArray = JSON.parse(v.images || '[]');
+      } catch (e) { imageArray = []; }
+      
+      if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
+      
+      return {
+        ...v,
+        id: v.id || `v-${index}`,
+        id_externe: String(v.id_externe || v.ref || v.external_id || ""),
+        ref: String(v.id_externe || v.ref || ""), 
+        titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
+        description: v[`description_${locale}`] || v.description || v.details || "",
+        price: Number(v.price || v.prix || 0),
+        town: v.town || v.ville || v.city || "",
+        region: v.region || v.province || "",
+        beds: parseInt(v.beds || v.bedrooms) || 0,
+        baths: parseInt(v.baths || v.bathrooms) || 0,
+        type: v.type || "Villa",
+        images: imageArray,
+      };
+    });
+  }, [locale]);
+
+  // 4. Chargement des propriétés sécurisé (Anti-White Screen & Anti-Flash)
+  useEffect(() => {
+    async function fetchProperties() {
+      if (!agency) return;
+
+      try {
+        setLoadingProperties(true);
+        setLoadingProgress(10);
+        
+        let allowedXmlUrls: string[] = [];
+        const config = agency.footer_config;
+        
+        if (config) {
+          try {
+            const parsed = typeof config === 'string' ? JSON.parse(config) : config;
+            allowedXmlUrls = parsed?.xml_urls || [];
+          } catch (e) {
+            console.error("Erreur de lecture de la config agence", e);
+            allowedXmlUrls = []; 
+          }
+        }
+
+        setLoadingProgress(40);
+
+        let query = supabase.from('villas').select('*').eq('is_excluded', false);
+        if (allowedXmlUrls.length > 0) {
+          query = query.in('xml_source', allowedXmlUrls);
+        }
+
+        const { data: villasData, error } = await query;
+        
+        if (error) throw error;
+
+        if (villasData) {
+          const formatted = formatVillaData(villasData);
+          const sorted = formatted.sort((a, b) => b.price - a.price); 
+          setAllProperties(sorted);
+          setFilteredProperties(sorted);
+          setLoadingProgress(100);
+        }
+      } catch (err) {
+        console.error("Erreur critique lors du chargement :", err);
+      } finally {
+        // IMPORTANT: Un délai suffisant pour laisser au DOM le temps de se préparer
+        // évite de voir "No results" avant que les composants ne s'injectent.
+        setTimeout(() => setLoadingProperties(false), 800);
+      }
+    }
+
+    fetchProperties();
+  }, [agency, formatVillaData]);
+
+  // 5. Logique de filtrage
+  const handleSearch = (newFilters: Filters) => {
+    const min = Number(newFilters.minPrice) || 0;
+    const max = Number(newFilters.maxPrice) || 20000000;
+    setFilters({ ...newFilters, minPrice: min, maxPrice: max });
+    
+    const results = allProperties.filter((p) => {
+      const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
+      const matchType = !newFilters.type || newFilters.type === "all" || p.type.toLowerCase().includes(newFilters.type.toLowerCase());
+      const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
+      const matchRegion = !newFilters.region || 
+        p.region?.toLowerCase().includes(newFilters.region.toLowerCase()) || 
+        p.town?.toLowerCase().includes(newFilters.region.toLowerCase());
+      const matchRef = !newFilters.reference || String(p.id_externe).toLowerCase().includes(newFilters.reference.toLowerCase());
+      return matchPrice && matchBeds && matchType && matchRegion && matchRef;
+    });
+
+    setFilteredProperties(results);
+    setIsSearchOpen(false);
+    setSelectedProperty(null);
+  };
+
+  if (agencyLoading && !agency) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">Initialisation de l'agence...</p>
+      </div>
+    );
+  }
+
+  const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
+  const buttonRadius = agency?.button_style || 'rounded-full';
+
+  return (
+    <div className="flex flex-col relative notranslate">
+      <main className="flex-grow"> 
+        <AnimatePresence mode="wait">
+          {selectedProperty ? (
+            <motion.div 
+              key="detail"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="pb-20 bg-white min-h-screen"
+            >
+              <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
+                <button 
+                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
+                  className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-black transition-all relative z-50"
+                >
+                  <div className="w-8 h-[1px] bg-slate-200 group-hover:w-12 group-hover:bg-black transition-all"></div>
+                  <ArrowLeft size={14} /> {t('nav.back')}
+                </button>
+              </div>
+              <PropertyDetailClient property={selectedProperty} agency={agency} />
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="animate-in fade-in duration-1000"
+            >
+              <Hero 
+                agency={agency}
+                title={agency?.hero_title} 
+                subtitle={agency?.agency_name} 
+                backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
+                agencyName={agency?.agency_name} 
+              />
+              
+              <div className="flex justify-center -mt-12 relative z-40">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsSearchOpen(true)} 
+                  className={`group flex items-center gap-6 px-12 py-7 text-white transition-all shadow-xl ${buttonRadius}`}
+                  style={{ backgroundColor: primaryBrandColor }}
+                >
+                  <Search size={20} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.search')}</span>
+                </motion.button>
+              </div>
+
+              <section id="collection" className="py-24 bg-slate-50 relative z-10">
+                <div className="max-w-7xl mx-auto px-6">
+                  <header className="mb-24 text-center">
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
+                    <motion.h2 
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="text-5xl font-serif italic mb-8 text-slate-900"
+                    >
+                      {t('nav.results') || 'Notre Sélection'}
+                    </motion.h2>
+                    <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
+                  </header>
+                  
+                  {loadingProperties ? (
+                    <div className="flex flex-col items-center justify-center py-32 space-y-8">
+                      <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
+                        <motion.div 
+                          className="absolute inset-y-0 left-0"
+                          style={{ backgroundColor: primaryBrandColor }}
+                          initial={{ width: "0%" }}
+                          animate={{ width: `${loadingProgress}%` }}
+                          transition={{ duration: 0.5, ease: "circOut" }}
+                        />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-900 mb-2">
+                           {loadingProgress}%
+                        </p>
+                        <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-slate-400 italic">
+                          {t('common.loadingProperties') || "Chargement de la collection..."}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <AnimatePresence>
+                      {filteredProperties.length > 0 ? (
+                        <motion.div 
+                          key="grid-container"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <PropertyGrid 
+                            agency={agency}
+                            properties={filteredProperties.slice(0, displayLimit)} 
+                            favorites={favorites}
+                            onToggleFavorite={toggleFavorite}
+                            onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div 
+                          key="no-results"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-center py-20 border border-dashed border-slate-200 rounded-3xl"
+                        >
+                          <p className="text-slate-400 italic font-serif">
+                            {t('common.noResults') || "Aucun bien trouvé."}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
+
+                  {!loadingProperties && filteredProperties.length > displayLimit && (
+                    <div className="mt-20 flex justify-center">
+                      <button 
+                        onClick={() => setDisplayLimit(prev => prev + 12)}
+                        className={`px-14 py-7 text-white transition-all shadow-2xl hover:-translate-y-1 ${buttonRadius}`}
+                        style={{ 
+                          backgroundColor: primaryBrandColor,
+                          boxShadow: `0 20px 40px ${primaryBrandColor}33` 
+                        }}
+                      >
+                        <span className="text-[11px] font-black uppercase tracking-[0.4em]">
+                          {t('common.showMore')}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/95 backdrop-blur-xl"
+          >
+            <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="relative w-full max-w-5xl bg-white rounded-[24px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+            >
+              <button onClick={() => setIsSearchOpen(false)} className="absolute top-4 right-4 p-3 bg-slate-100 rounded-full text-slate-500 z-[220]">
+                <X size={20} />
+              </button>
+              <div className="flex-grow overflow-y-auto p-6 md:p-12">
+                <AdvancedSearch 
+                  agency={agency}
+                  onSearch={handleSearch} 
+                  properties={allProperties} 
+                  activeFilters={filters} 
+                  onClose={() => setIsSearchOpen(false)} 
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -5538,6 +5592,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext";
+import { motion, AnimatePresence } from "framer-motion"; // <-- CET IMPORT EST CRUCIAL
 
 const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
   <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
@@ -5555,7 +5610,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   const router = useRouter();
   const { t, locale } = useTranslation() as any;
   
-  // Récupération de l'agence via le contexte si non fournie en props
   const { agency: contextAgency } = useAgency();
   const agency = propsAgency || contextAgency;
 
@@ -5568,7 +5622,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Construction dynamique de l'URL de base selon l'agence actuelle
   const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
   const baseUrl = `/${locale}/${agencySlug}`;
 
@@ -5600,15 +5653,15 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   ];
 
   const handleLangChange = (newLang: string) => {
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const slug = agency?.subdomain || pathSegments[1] || "default";
-  
-  // Reconstruction sécurisée : /nouvelle-langue/slug-agence/reste-du-chemin
-  const remainingPath = pathSegments.slice(2).join('/');
-  const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
-  
-  router.push(newPath);
-};
+    const pathSegments = pathname.split('/').filter(Boolean);
+    const slug = agency?.subdomain || pathSegments[1] || "default";
+    const remainingPath = pathSegments.slice(2).join('/');
+    const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
+    
+    setIsMenuOpen(false);
+    setIsLangOpen(false);
+    router.push(newPath);
+  };
 
   return (
     <>
@@ -5622,8 +5675,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
-          
-          {/* Logo */}
           <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
             {agency?.logo_url ? (
                <img 
@@ -5639,7 +5690,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
             )}
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-12">
             {navLinks.map((link) => (
               <Link 
@@ -5656,7 +5706,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
               </Link>
             ))}
 
-            {/* Language Selector */}
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsLangOpen(!isLangOpen)}
@@ -5684,43 +5733,71 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
             </div>
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button 
-            className={`md:hidden p-2 transition-colors ${textColor}`} 
+            className={`md:hidden p-2 transition-colors relative z-[160] ${textColor}`} 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            {isMenuOpen ? <X size={28} className="text-white" /> : <Menu size={28} />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center gap-8 md:hidden z-[150]">
-          <button onClick={() => setIsMenuOpen(false)} className="absolute top-10 right-10 text-white">
-            <X size={35} />
-          </button>
-          
-          <Link 
-            href={baseUrl} 
-            onClick={() => setIsMenuOpen(false)} 
-            className="text-xl font-black uppercase tracking-[0.5em] text-white"
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center z-[150] md:hidden"
           >
-            Accueil
-          </Link>
+            <div className="flex flex-col items-center gap-10">
+              <Link 
+                href={baseUrl} 
+                onClick={() => setIsMenuOpen(false)} 
+                className="text-xl font-black uppercase tracking-[0.5em] text-white"
+              >
+                {t('nav.home') || 'Accueil'}
+              </Link>
 
-          {navLinks.map((link) => (
-            <Link 
-              key={link.href}
-              href={link.href} 
-              onClick={() => setIsMenuOpen(false)} 
-              className="text-xl font-black uppercase tracking-[0.5em] text-white"
-            >
-              {link.name}
-            </Link>
-          ))}
-        </div>
-      )}
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href} 
+                  onClick={() => setIsMenuOpen(false)} 
+                  className="text-xl font-black uppercase tracking-[0.5em] text-white"
+                >
+                  {link.name}
+                </Link>
+              ))}
+
+              <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
+                <div className="flex items-center gap-3 text-slate-500">
+                  <Globe size={16} style={{ color: brandColor }} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('common.language') || 'Language'}</span>
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-6">
+                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLangChange(lang)}
+                      className={`text-sm font-black uppercase tracking-widest transition-all ${
+                        locale === lang 
+                          ? 'text-white scale-125' 
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                      style={{ color: locale === lang ? brandColor : '' }}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

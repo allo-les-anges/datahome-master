@@ -12,14 +12,23 @@ import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
 
-export default function AgencyPageClient({ slug }: { slug: string }) {
+interface AgencyPageClientProps {
+  slug: string;
+  initialAgency?: any;
+  initialProperties?: any[];
+}
+
+export default function AgencyPageClient({ slug, initialAgency, initialProperties }: AgencyPageClientProps) {
   const { t, locale } = useTranslation() as any;
-  const { agency, loading: agencyLoading, setAgencyBySlug } = useAgency(); 
+  const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
   
+  // Priorité aux données du serveur pour éviter le flash de chargement
+  const agency = initialAgency || contextAgency;
+
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
-  const [loadingProperties, setLoadingProperties] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingProperties, setLoadingProperties] = useState(!initialProperties);
+  const [loadingProgress, setLoadingProgress] = useState(initialProperties ? 100 : 0);
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
@@ -36,33 +45,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     reference: "",
   });
 
-  // 1. Initialisation et Scroll
-  useEffect(() => {
-    if (slug) {
-      setAgencyBySlug(slug);
-    }
-    window.scrollTo(0, 0);
-  }, [slug, setAgencyBySlug]);
-
-  // 2. Gestion des favoris locaux
-  useEffect(() => {
-    if (typeof window !== 'undefined' && slug) {
-      const saved = localStorage.getItem(`fav_${slug}`);
-      if (saved) {
-        try { setFavorites(JSON.parse(saved)); } catch (e) { console.error(e); }
-      }
-    }
-  }, [slug]);
-
-  const toggleFavorite = (id: string) => {
-    const newFavs = favorites.includes(id) 
-      ? favorites.filter(fav => fav !== id) 
-      : [...favorites, id];
-    setFavorites(newFavs);
-    localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
-  };
-
-  // 3. Formateur de données Villa
+  // 1. Formateur de données Villa (Mémorisé pour éviter les boucles d'effets)
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -91,10 +74,37 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     });
   }, [locale]);
 
-  // 4. Chargement des propriétés sécurisé (Anti-White Screen & Anti-Flash)
+  // 2. Initialisation : Synchronisation des données serveur et favoris
+  useEffect(() => {
+    if (slug) {
+      setAgencyBySlug(slug);
+    }
+    window.scrollTo(0, 0);
+
+    // Charger les favoris
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`fav_${slug}`);
+      if (saved) {
+        try { setFavorites(JSON.parse(saved)); } catch (e) { console.error(e); }
+      }
+    }
+
+    // Si on a des données serveur, on les formate immédiatement
+    if (initialProperties && initialProperties.length > 0) {
+      const formatted = formatVillaData(initialProperties);
+      const sorted = formatted.sort((a, b) => b.price - a.price);
+      setAllProperties(sorted);
+      setFilteredProperties(sorted);
+      setLoadingProperties(false);
+      setLoadingProgress(100);
+    }
+  }, [slug, setAgencyBySlug, initialProperties, formatVillaData]);
+
+  // 3. Chargement de secours (Si pas de données serveur ou mise à jour nécessaire)
   useEffect(() => {
     async function fetchProperties() {
-      if (!agency) return;
+      // On ne fetch que si on n'a pas reçu de propriétés du serveur
+      if (!agency || (initialProperties && initialProperties.length > 0)) return;
 
       try {
         setLoadingProperties(true);
@@ -107,10 +117,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           try {
             const parsed = typeof config === 'string' ? JSON.parse(config) : config;
             allowedXmlUrls = parsed?.xml_urls || [];
-          } catch (e) {
-            console.error("Erreur de lecture de la config agence", e);
-            allowedXmlUrls = []; 
-          }
+          } catch (e) { allowedXmlUrls = []; }
         }
 
         setLoadingProgress(40);
@@ -121,7 +128,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
         }
 
         const { data: villasData, error } = await query;
-        
         if (error) throw error;
 
         if (villasData) {
@@ -132,18 +138,23 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           setLoadingProgress(100);
         }
       } catch (err) {
-        console.error("Erreur critique lors du chargement :", err);
+        console.error("Erreur chargement client:", err);
       } finally {
-        // IMPORTANT: Un délai suffisant pour laisser au DOM le temps de se préparer
-        // évite de voir "No results" avant que les composants ne s'injectent.
         setTimeout(() => setLoadingProperties(false), 800);
       }
     }
 
     fetchProperties();
-  }, [agency, formatVillaData]);
+  }, [agency, formatVillaData, initialProperties]);
 
-  // 5. Logique de filtrage
+  const toggleFavorite = (id: string) => {
+    const newFavs = favorites.includes(id) 
+      ? favorites.filter(fav => fav !== id) 
+      : [...favorites, id];
+    setFavorites(newFavs);
+    localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
+  };
+
   const handleSearch = (newFilters: Filters) => {
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 20000000;
@@ -164,15 +175,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     setIsSearchOpen(false);
     setSelectedProperty(null);
   };
-
-  if (agencyLoading && !agency) {
-    return (
-      <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-slate-300 mb-4" size={50} />
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">Initialisation de l'agence...</p>
-      </div>
-    );
-  }
 
   const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
   const buttonRadius = agency?.button_style || 'rounded-full';
