@@ -87,13 +87,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [locale]);
 
   const loadData = useCallback(async () => {
-    // Si on n'a pas encore l'agence et pas de propriétés initiales, on ne lance rien
-    if (!agency && (!initialProperties || initialProperties.length === 0)) return;
-
     try {
       setLoadingProperties(true);
-      setLoadingProgress(10);
+      setLoadingProgress(20);
 
+      // 1. Si on a des propriétés initiales (SSR), on les utilise directement
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -103,15 +101,20 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         return;
       }
 
-      setLoadingProgress(30);
+      // 2. Sinon, on interroge Supabase
+      setLoadingProgress(40);
       let allowedXmlUrls: string[] = [];
+      
+      // On essaie d'extraire la config XML si l'agence est chargée
       if (agency?.footer_config) {
         try {
           const config = typeof agency.footer_config === 'string' 
             ? JSON.parse(agency.footer_config) 
             : agency.footer_config;
           allowedXmlUrls = config?.xml_urls || [];
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Format footer_config invalide");
+        }
       }
 
       let query = supabase
@@ -119,11 +122,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, surface, is_excluded, xml_source')
         .eq('is_excluded', false);
 
-      if (allowedXmlUrls && allowedXmlUrls.length > 0) {
+      // On n'applique le filtre XML que si on a explicitement des URLs (pour éviter de tout vider si agency est lent)
+      if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
 
       const { data, error } = await query.order('price', { ascending: false }).limit(100);
+      
       if (error) throw error;
 
       const formatted = formatVillaData(data || []);
@@ -131,26 +136,23 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setFilteredProperties(formatted);
 
     } catch (err) {
-      console.error("Load error:", err);
+      console.error("Erreur chargement propriétés:", err);
     } finally {
       setLoadingProgress(100);
-      setTimeout(() => setLoadingProperties(false), 400);
+      setLoadingProperties(false);
     }
   }, [agency, initialProperties, formatVillaData]);
 
-  // Étape 1 : Charger l'agence au montage
+  // Initialisation de l'agence
   useEffect(() => {
     if (slug) setAgencyBySlug(slug);
   }, [slug, setAgencyBySlug]);
 
-  // Étape 2 : Charger les data quand l'agence est prête
+  // Chargement des données au montage ET quand l'agence change/arrive
   useEffect(() => {
-    if (agency || (initialProperties && initialProperties.length > 0)) {
-      loadData();
-    }
-  }, [agency, loadData, initialProperties]);
+    loadData();
+  }, [loadData, agency?.id]); // On surveille l'ID de l'agence pour re-déclencher si besoin
 
-  // Étape 3 : Gérer les favoris localement
   useEffect(() => {
     const savedFavs = localStorage.getItem(`fav_${slug}`);
     if (savedFavs) {
@@ -185,19 +187,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
   const radius = agency?.button_style || 'rounded-full';
-
   const heroTitle = agency?.hero_title || "Des professionnels à votre écoute";
-  const rawSubtitle = t('nav.subtitle');
-  const heroSubtitle = agency?.hero_subtitle || (rawSubtitle !== 'nav.subtitle' ? rawSubtitle : "Votre partenaire immobilier de confiance");
+  const heroSubtitle = agency?.hero_subtitle || "Votre partenaire immobilier de confiance";
 
   return (
     <div className="flex flex-col relative notranslate min-h-screen" style={{ fontFamily: selectedFont }}>
       
       <style dangerouslySetInnerHTML={{ __html: `
-        .force-agency-font h1, 
-        .force-agency-font h2, 
-        .force-agency-font p, 
-        .force-agency-font span {
+        .force-agency-font h1, .force-agency-font h2, .force-agency-font p, .force-agency-font span {
           font-family: ${selectedFont} !important;
         }
       `}} />
@@ -215,8 +212,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             </motion.div>
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              
-              <div className="force-agency-font" style={{ ["--font-agency" as any]: selectedFont }}>
+              <div className="force-agency-font">
                 <Hero 
                   agency={agency} 
                   title={heroTitle} 
@@ -227,11 +223,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               </div>
               
               <div className="flex justify-center -mt-12 relative z-40">
-                <button 
-                  onClick={() => setIsSearchOpen(true)} 
-                  className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-transform hover:scale-105 ${radius}`}
-                  style={{ backgroundColor: primaryColor }}
-                >
+                <button onClick={() => setIsSearchOpen(true)} className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-transform hover:scale-105 ${radius}`} style={{ backgroundColor: primaryColor }}>
                   <Search size={20} />
                   <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search')}</span>
                 </button>
@@ -241,12 +233,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                    <h2 
-                      className="text-5xl italic mb-8 text-slate-900"
-                      style={{ fontFamily: selectedFont }}
-                    >
-                      {t('nav.results')}
-                    </h2>
+                    <h2 className="text-5xl italic mb-8 text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results')}</h2>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
