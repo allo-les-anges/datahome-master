@@ -1,9 +1,10 @@
+// src/components/PropertyGrid.tsx
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useTranslation } from "@/contexts/I18nContext";
 import { Bed, Bath, Maximize, MapPin, Waves, Map, Car } from "lucide-react";
-import type { Villa, Agency, Filters } from '@/types';  
+import type { Villa, Agency, Filters } from '@/types';
 
 interface PropertyGridProps {
   agency?: Agency | null;
@@ -16,7 +17,8 @@ interface PropertyGridProps {
   locale?: string;
 }
 
-const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
+// Composant memoizé pour éviter les re-rendus inutiles
+const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
   const price = Number(property.price || 0);
   const brandColor = agency?.primary_color || "#10b981";
   const showDark = !isLight;
@@ -28,11 +30,14 @@ const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
         showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
       }`}
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        {/* Lazy loading avec loading="lazy" */}
         <img 
           src={property.images?.[0] || '/placeholder-villa.jpg'} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          alt={property.titre_fr}
+          alt={property.titre}
+          loading="lazy"
+          decoding="async"
         />
         <div className="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 shadow-sm">
           {property.type}
@@ -45,8 +50,8 @@ const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
             {price.toLocaleString()} €
           </div>
         </div>
-        <h3 className={`text-lg font-medium leading-tight ${showDark ? 'text-white/90' : 'text-slate-800'}`}>
-          {property.titre_fr}
+        <h3 className={`text-lg font-medium leading-tight line-clamp-2 ${showDark ? 'text-white/90' : 'text-slate-800'}`}>
+          {property.titre}
         </h3>
         <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
           <MapPin size={14} style={{ color: brandColor }} />
@@ -56,11 +61,11 @@ const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
 
       <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
         {[
-          { icon: Maximize, value: `${property.surface_built} m²` },
-          { icon: Bed, value: `${property.beds}` },
-          { icon: Bath, value: `${property.baths}` },
-          { icon: Waves, value: property.pool === "Oui" ? "Piscine" : "Non" },
-          { icon: Map, value: `${property.surface_plot} m²` },
+          { icon: Maximize, value: `${property.surface || property.surface_built || 0} m²` },
+          { icon: Bed, value: `${property.beds || 0}` },
+          { icon: Bath, value: `${property.baths || 0}` },
+          { icon: Waves, value: property.pool === "Oui" || property.pool === true ? "Piscine" : "Non" },
+          { icon: Map, value: `${property.surface_plot || 0} m²` },
           { icon: Car, value: "Garage" }
         ].map((item, idx) => (
           <div key={idx} className="flex flex-col items-center gap-1">
@@ -71,19 +76,18 @@ const PropertyCard = ({ property, isLight, onClick, agency }: any) => {
       </div>
     </div>
   );
-};
+});
 
-export default function PropertyGrid({ 
+PropertyCard.displayName = 'PropertyCard';
+
+// Composant principal également memoizé
+const PropertyGrid = memo(function PropertyGrid({ 
   properties, 
   agency, 
   onPropertyClick, 
   isLight, 
   locale 
 }: PropertyGridProps) {
-  
-  // Suppression de visibleCount et du bouton "Voir plus" interne.
-  // Ce composant affiche désormais simplement TOUT ce que AgencyPageClient lui envoie.
-  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {properties.map((property: Villa) => (
@@ -98,4 +102,6 @@ export default function PropertyGrid({
       ))}
     </div>
   );
-}
+});
+
+export default PropertyGrid;

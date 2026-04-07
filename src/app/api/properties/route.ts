@@ -1,3 +1,4 @@
+// src/app/api/properties/route.ts
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
@@ -7,17 +8,28 @@ const supabase = createClient(
 );
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Cache ISR pendant 60 secondes
+
+// Cache en mémoire simple pour les requêtes identiques
+const cache = new Map();
+const CACHE_TTL = 60000; // 1 minute
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Paramètres de base
+    // Générer une clé de cache unique basée sur les paramètres
+    const cacheKey = searchParams.toString();
+    const cached = cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json(cached.data);
+    }
+    
     const lang = searchParams.get('lang') || 'fr';
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '24');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // --- NOUVEAUX FILTRES RÉCUPÉRÉS DE L'URL ---
     const type = searchParams.get('type');
     const region = searchParams.get('region');
     const town = searchParams.get('town');
@@ -26,43 +38,66 @@ export async function GET(request: Request) {
     const maxPrice = searchParams.get('maxPrice');
     const ref = searchParams.get('reference');
 
-    // Construction de la requête
     let query = supabase
       .from('villas')
-      .select('*', { count: 'exact' }) // On sélectionne tout pour simplifier le formatage
+      .select('*', { count: 'exact' })
       .eq('is_excluded', false);
 
-    // --- APPLICATION DES FILTRES DYNAMIQUE ---
+    // Application des filtres
     if (type) query = query.ilike('type', `%${type}%`);
     if (region) query = query.eq('region', region);
     if (town) query = query.ilike('town', `%${town}%`);
     if (ref) query = query.ilike('ref', `%${ref}%`);
     if (beds) query = query.gte('beds', parseInt(beds));
-    
     if (minPrice) query = query.gte('price', parseInt(minPrice));
     if (maxPrice) query = query.lte('price', parseInt(maxPrice));
 
-    // Pagination et Tri
+    // Optimisation : sélectionner seulement les champs nécessaires pour la liste
     const { data: properties, error, count } = await query
+      .select('id, ref, price, town, region, beds, baths, surface_built, surface_plot, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, xml_source')
       .order('price', { ascending: true })
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
 
-    // Transformation multilingue
+    // Transformation multilingue optimisée
     const formatted = (properties || []).map((p: any) => ({
-      ...p,
+      id: p.id,
+      ref: p.ref,
+      price: p.price,
+      town: p.town,
+      region: p.region,
+      beds: p.beds,
+      baths: p.baths,
+      surface_built: p.surface_built,
+      surface_plot: p.surface_plot,
+      pool: p.pool,
+      type: p.type,
+      images: Array.isArray(p.images) ? p.images.slice(0, 5) : [], // Limiter les images
       titre: p[`titre_${lang}`] || p.titre_fr || p.ref,
       description: p[`description_${lang}`] || p.description_fr || "",
+      xml_source: p.xml_source
     }));
 
-    return NextResponse.json({ 
-      properties: formatted, 
-      total: count 
-    });
+    const response = { properties: formatted, total: count };
+    
+    // Mise en cache
+    cache.set(cacheKey, { data: response, timestamp: Date.now() });
+    
+    // Nettoyer le cache périodiquement
+    if (cache.size > 50) {
+      const now = Date.now();
+      for (const [key, value] of cache.entries()) {
+        if (now - value.timestamp > CACHE_TTL) {
+          cache.delete(key);
+        }
+      }
+    }
+
+    return NextResponse.json(response);
 
   } catch (error: any) {
     console.error("Erreur API Properties:", error.message);
-    return NextResponse.json({ error: "Erreur serveur", details: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

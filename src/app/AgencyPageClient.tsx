@@ -1,6 +1,7 @@
+// src/app/AgencyPageClient.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyGrid from '@/components/PropertyGrid';
@@ -12,6 +13,15 @@ import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
 
+// Cache key pour sessionStorage
+const CACHE_KEY = (slug: string) => `properties_cache_${slug}`;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+interface CachedData {
+  properties: Villa[];
+  timestamp: number;
+}
+
 interface AgencyPageClientProps {
   slug: string;
   initialAgency?: any;
@@ -20,7 +30,8 @@ interface AgencyPageClientProps {
 
 export default function AgencyPageClient({ slug, initialAgency, initialProperties }: AgencyPageClientProps) {
   const { t, locale } = useTranslation() as any;
-  const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
+  const { agency: contextAgency, setAgencyBySlug } = useAgency();
+  const initialLoadDone = useRef(false);
   
   const agency = useMemo(() => contextAgency || initialAgency, [contextAgency, initialAgency]);
 
@@ -34,13 +45,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const [favorites, setFavorites] = useState<string[]>([]);
   const [displayLimit, setDisplayLimit] = useState(12);
 
+  // Filtres optimisés avec des valeurs par défaut réalistes
   const [filters, setFilters] = useState<Filters>({
     type: "",
     town: "",
     region: "",
     beds: 0,
     minPrice: 0,
-    maxPrice: 50000000,
+    maxPrice: 5000000, // 5M€ par défaut, pas 50M
     reference: "",
   });
 
@@ -57,8 +69,15 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
+  // Formatage optimisé des villas
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
-    return villas.map((v, index) => {
+    // Utiliser un Map pour éviter les doublons par id_externe
+    const uniqueMap = new Map();
+    
+    for (const v of villas) {
+      const key = v.id_externe || v.ref || v.id;
+      if (uniqueMap.has(key)) continue;
+      
       let imageArray: string[] = [];
       try {
         if (Array.isArray(v.images)) imageArray = v.images;
@@ -67,11 +86,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       
       if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
-      return {
+      uniqueMap.set(key, {
         ...v,
-        id: v.id || `v-${index}`,
+        id: v.id || `v-${key}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
-        ref: String(v.id_externe || v.ref || v.reference || ""), 
+        ref: String(v.id_externe || v.ref || v.reference || ""),
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
         description: v[`description_${locale}`] || v.description || v.details || "",
         price: Number(v.price || v.prix || 0),
@@ -82,27 +101,81 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         surface: Number(v.surface || v.m2 || v.built || 0),
         type: String(v.type || "Villa").trim(),
         images: imageArray,
-      };
-    });
+      });
+    }
+    
+    // Tri par prix croissant une seule fois
+    return Array.from(uniqueMap.values()).sort((a, b) => a.price - b.price);
   }, [locale]);
 
+  // Sauvegarde dans le cache
+  const saveToCache = useCallback((properties: Villa[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const cacheData: CachedData = {
+        properties,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem(CACHE_KEY(slug), JSON.stringify(cacheData));
+    } catch (e) {
+      console.warn('Cache save failed:', e);
+    }
+  }, [slug]);
+
+  // Chargement depuis le cache
+  const loadFromCache = useCallback((): Villa[] | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY(slug));
+      if (!cached) return null;
+      
+      const data: CachedData = JSON.parse(cached);
+      const isExpired = Date.now() - data.timestamp > CACHE_DURATION;
+      
+      if (isExpired) {
+        sessionStorage.removeItem(CACHE_KEY(slug));
+        return null;
+      }
+      
+      return data.properties;
+    } catch (e) {
+      return null;
+    }
+  }, [slug]);
+
+  // Chargement des données - OPTIMISÉ
   const loadData = useCallback(async (currentAgency: any) => {
     if (!currentAgency?.id) return;
+    
+    // Éviter les doubles chargements
+    if (initialLoadDone.current && allProperties.length > 0) return;
+    
+    // 1. Vérifier le cache d'abord
+    const cached = loadFromCache();
+    if (cached && cached.length > 0) {
+      setAllProperties(cached);
+      setFilteredProperties(cached);
+      setLoadingProperties(false);
+      initialLoadDone.current = true;
+      return;
+    }
 
+    // 2. Utiliser les propriétés initiales du SSR si disponibles
+    if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
+      const formatted = formatVillaData(initialProperties);
+      setAllProperties(formatted);
+      setFilteredProperties(formatted);
+      saveToCache(formatted);
+      setLoadingProperties(false);
+      initialLoadDone.current = true;
+      return;
+    }
+
+    // 3. Fallback : chargement API
     try {
       setLoadingProperties(true);
-      setLoadingProgress(20);
+      setLoadingProgress(30);
 
-      if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
-        // Tri croissant pour les données initiales
-        const formatted = formatVillaData(initialProperties).sort((a, b) => a.price - b.price);
-        setAllProperties(formatted);
-        setFilteredProperties(formatted);
-        setLoadingProperties(false);
-        return;
-      }
-
-      setLoadingProgress(40);
       let allowedXmlUrls: string[] = [];
       
       if (currentAgency?.footer_config) {
@@ -114,35 +187,61 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         } catch (e) {}
       }
 
-      let query = supabase.from('villas').select('*').eq('is_excluded', false);
+      setLoadingProgress(50);
+      
+      let query = supabase
+        .from('villas')
+        .select('*')
+        .eq('is_excluded', false);
+      
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
 
-      // MODIFICATION : 'ascending: true' pour le tri du moins cher au plus cher
-      const { data, error } = await query.order('price', { ascending: true }).limit(1000);
+      // Tri par prix croissant (du moins cher au plus cher)
+      const { data, error } = await query
+        .order('price', { ascending: true })
+        .limit(500); // Limiter pour la performance
+
+      setLoadingProgress(80);
+
       if (error) throw error;
 
       const formatted = formatVillaData(data || []);
       setAllProperties(formatted);
       setFilteredProperties(formatted);
+      saveToCache(formatted);
 
     } catch (err) {
       console.error("Erreur chargement propriétés:", err);
+      // En cas d'erreur, essayer de récupérer les initialProperties comme fallback
+      if (initialProperties && initialProperties.length > 0) {
+        const formatted = formatVillaData(initialProperties);
+        setAllProperties(formatted);
+        setFilteredProperties(formatted);
+      }
     } finally {
       setLoadingProgress(100);
       setLoadingProperties(false);
+      initialLoadDone.current = true;
     }
-  }, [initialProperties, formatVillaData, allProperties.length]);
+  }, [initialProperties, formatVillaData, saveToCache, loadFromCache, allProperties.length]);
 
+  // Synchronisation de l'agence
   useEffect(() => {
-    if (slug) setAgencyBySlug(slug);
-  }, [slug, setAgencyBySlug]);
+    if (slug && !contextAgency) {
+      setAgencyBySlug(slug);
+    }
+  }, [slug, contextAgency, setAgencyBySlug]);
 
+  // Chargement des données
   useEffect(() => {
-    if (agency?.id) loadData(agency);
+    if (agency?.id) {
+      loadData(agency);
+    }
   }, [agency?.id, loadData]);
 
+  // Favoris
   useEffect(() => {
     const savedFavs = localStorage.getItem(`fav_${slug}`);
     if (savedFavs) {
@@ -151,16 +250,19 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [slug]);
 
   const toggleFavorite = (id: string) => {
-    const newFavs = favorites.includes(id) ? favorites.filter(f => f !== id) : [...favorites, id];
-    setFavorites(newFavs);
-    localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
+    setFavorites(prev => {
+      const newFavs = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
+      localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
+      return newFavs;
+    });
   };
 
-  const handleSearch = (newFilters: Filters) => {
+  // Filtrage optimisé avec useMemo
+  const handleSearch = useCallback((newFilters: Filters) => {
     setFilters(newFilters);
     
     const min = Number(newFilters.minPrice) || 0;
-    const max = Number(newFilters.maxPrice) || 50000000;
+    const max = Number(newFilters.maxPrice) || 5000000;
     const requiredBeds = Number(newFilters.beds) || 0;
     const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
     const searchRef = (newFilters.reference || "").toLowerCase().trim();
@@ -169,8 +271,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     const results = allProperties.filter((p) => {
       const pPrice = Number(p.price) || 0;
       
-      const isHighEnd = max >= 15000000;
-      const matchPrice = pPrice >= min && (isHighEnd ? true : pPrice <= max);
+      // Filtre prix simplifié
+      const matchPrice = pPrice >= min && pPrice <= max;
       
       const matchType = !searchType || searchType === "all" || 
         p.type.toLowerCase().includes(searchType);
@@ -188,10 +290,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
-    // Tri explicite croissant sur les résultats filtrés
-    const sortedResults = results.sort((a, b) => a.price - b.price);
-
-    setFilteredProperties(sortedResults);
+    // Les résultats sont déjà triés car allProperties est trié
+    setFilteredProperties(results);
     setDisplayLimit(12);
     setIsSearchOpen(false);
     
@@ -199,10 +299,37 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       const element = document.getElementById('results-section');
       if (element) element.scrollIntoView({ behavior: 'smooth' });
     }, 150);
-  };
+  }, [allProperties]);
+
+  // Réinitialisation des filtres
+  const resetFilters = useCallback(() => {
+    const defaultFilters = {
+      type: "",
+      town: "",
+      region: "",
+      beds: 0,
+      minPrice: 0,
+      maxPrice: 5000000,
+      reference: "",
+    };
+    setFilters(defaultFilters);
+    setFilteredProperties(allProperties);
+  }, [allProperties]);
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
-  const radius = agency?.button_style || 'rounded-full';
+  const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
+
+  // Afficher un loader si pas de données
+  if (loadingProperties && allProperties.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+        <div className="w-16 h-16 border-4 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-4"></div>
+        <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">
+          {t('common.loadingProperties') || 'Chargement des propriétés...'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col relative notranslate min-h-screen" style={{ fontFamily: selectedFont }}>
@@ -217,7 +344,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           {selectedProperty ? (
             <motion.div key="detail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-20 bg-white">
               <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
-                <button onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
+                <button 
+                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
+                  className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
+                >
                   <ArrowLeft size={14} /> {t('nav.back')}
                 </button>
               </div>
@@ -236,7 +366,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               </div>
               
               <div className="flex justify-center -mt-12 relative z-40">
-                <button onClick={() => setIsSearchOpen(true)} className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
+                <button 
+                  onClick={() => setIsSearchOpen(true)} 
+                  className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
+                  style={{ backgroundColor: primaryColor }}
+                >
                   <Search size={20} />
                   <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search')}</span>
                 </button>
@@ -250,45 +384,39 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
-                  {loadingProperties && filteredProperties.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-32 space-y-8">
-                      <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
-                        <motion.div className="absolute inset-y-0 left-0" style={{ backgroundColor: primaryColor }} animate={{ width: `${loadingProgress}%` }} />
-                      </div>
-                      <p className="text-[9px] font-medium uppercase tracking-widest text-slate-400 italic flex items-center gap-2">
-                        <Loader2 className="animate-spin" size={12} /> {t('common.loadingProperties')}
-                      </p>
-                    </div>
-                  ) : (
-                    <AnimatePresence mode="popLayout">
-                      {filteredProperties.length > 0 ? (
-                        <PropertyGrid 
-                          agency={agency}
-                          properties={filteredProperties.slice(0, displayLimit)} 
-                          favorites={favorites}
-                          onToggleFavorite={toggleFavorite}
-                          onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
-                        />
-                      ) : (
-                        <div className="text-center py-32 bg-white rounded-[40px] border border-dashed border-slate-200 shadow-inner">
-                          <p className="text-slate-400 italic mb-6">{t('common.noResults')}</p>
-                          <button 
-                            onClick={() => {
-                                setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
-                                setFilteredProperties(allProperties);
-                            }} 
-                            className="px-8 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-slate-800 transition-all"
-                          >
-                            {t('home.reset') || 'Réinitialiser les filtres'}
-                          </button>
-                        </div>
-                      )}
-                    </AnimatePresence>
-                  )}
+                  <AnimatePresence mode="popLayout">
+                    {filteredProperties.length > 0 ? (
+                      <PropertyGrid 
+                        agency={agency}
+                        properties={filteredProperties.slice(0, displayLimit)} 
+                        favorites={favorites}
+                        onToggleFavorite={toggleFavorite}
+                        onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
+                      />
+                    ) : (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center py-32 bg-white rounded-[40px] border border-dashed border-slate-200 shadow-inner"
+                      >
+                        <p className="text-slate-400 italic mb-6">{t('common.noResults') || 'Aucun résultat trouvé'}</p>
+                        <button 
+                          onClick={resetFilters}
+                          className="px-8 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-slate-800 transition-all"
+                        >
+                          {t('home.reset') || 'Réinitialiser les filtres'}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {!loadingProperties && filteredProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
-                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
+                      <button 
+                        onClick={() => setDisplayLimit(prev => prev + 12)} 
+                        className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
+                        style={{ backgroundColor: primaryColor }}
+                      >
                         <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore')}</span>
                       </button>
                     </div>
@@ -302,10 +430,23 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       <AnimatePresence>
         {isSearchOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 bg-slate-900/95 backdrop-blur-xl">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 bg-slate-900/95 backdrop-blur-xl"
+          >
             <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-              <button onClick={() => setIsSearchOpen(false)} className="absolute top-6 right-6 p-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors z-[220]">
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.9, y: 20 }} 
+              className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+            >
+              <button 
+                onClick={() => setIsSearchOpen(false)} 
+                className="absolute top-6 right-6 p-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors z-[220]"
+              >
                 <X size={20} />
               </button>
               <div className="flex-grow overflow-y-auto p-6 md:p-12">
