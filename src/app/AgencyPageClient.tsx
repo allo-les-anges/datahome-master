@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyGrid from '@/components/PropertyGrid';
 import Hero from '@/components/Hero';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
-import { Search, Loader2, X, ArrowLeft } from 'lucide-react';
+import { Search, X, ArrowLeft } from 'lucide-react';
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
@@ -22,7 +22,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { t, locale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
   
-  // Priorité aux données du serveur pour éviter le flash de chargement
   const agency = initialAgency || contextAgency;
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
@@ -41,11 +40,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     region: "",
     beds: 0,
     minPrice: 0,
-    maxPrice: 20000000,
+    maxPrice: 50000000, // Augmenté pour éviter le bug du "noResults"
     reference: "",
   });
 
-  // 1. Formateur de données Villa (Mémorisé pour éviter les boucles d'effets)
+  // 1. Formateur optimisé
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -74,78 +73,79 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
   }, [locale]);
 
-  // 2. Initialisation : Synchronisation des données serveur et favoris
+  // 2. Gestion du Cache et Initialisation
   useEffect(() => {
-    if (slug) {
-      setAgencyBySlug(slug);
-    }
-    window.scrollTo(0, 0);
-
+    if (slug) setAgencyBySlug(slug);
+    
     // Charger les favoris
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(`fav_${slug}`);
-      if (saved) {
-        try { setFavorites(JSON.parse(saved)); } catch (e) { console.error(e); }
-      }
+    const savedFavs = localStorage.getItem(`fav_${slug}`);
+    if (savedFavs) {
+      try { setFavorites(JSON.parse(savedFavs)); } catch (e) {}
     }
 
-    // Si on a des données serveur, on les formate immédiatement
+    // STRATÉGIE DE CHARGEMENT RAPIDE
+    const cacheKey = `props_cache_${slug}`;
+    const cachedData = sessionStorage.getItem(cacheKey);
+
     if (initialProperties && initialProperties.length > 0) {
+      // Priorité 1 : Données SSR (Ultra rapide)
       const formatted = formatVillaData(initialProperties);
       const sorted = formatted.sort((a, b) => b.price - a.price);
       setAllProperties(sorted);
       setFilteredProperties(sorted);
       setLoadingProperties(false);
       setLoadingProgress(100);
+      sessionStorage.setItem(cacheKey, JSON.stringify(sorted));
+    } else if (cachedData) {
+      // Priorité 2 : Cache Session (Instantané si navigation interne)
+      const parsed = JSON.parse(cachedData);
+      setAllProperties(parsed);
+      setFilteredProperties(parsed);
+      setLoadingProperties(false);
+      setLoadingProgress(100);
     }
-  }, [slug, setAgencyBySlug, initialProperties, formatVillaData]);
+  }, [slug, initialProperties, formatVillaData, setAgencyBySlug]);
 
-  // 3. Chargement de secours (Si pas de données serveur ou mise à jour nécessaire)
+  // 3. Fetch de secours optimisé
   useEffect(() => {
     async function fetchProperties() {
-      // On ne fetch que si on n'a pas reçu de propriétés du serveur
-      if (!agency || (initialProperties && initialProperties.length > 0)) return;
+      // On ne lance le fetch que si on n'a vraiment rien (pas de SSR, pas de Cache)
+      if (!agency || allProperties.length > 0) return;
 
       try {
         setLoadingProperties(true);
-        setLoadingProgress(10);
+        setLoadingProgress(20);
         
-        let allowedXmlUrls: string[] = [];
-        const config = agency.footer_config;
+        const config = typeof agency.footer_config === 'string' 
+          ? JSON.parse(agency.footer_config) 
+          : agency.footer_config;
         
-        if (config) {
-          try {
-            const parsed = typeof config === 'string' ? JSON.parse(config) : config;
-            allowedXmlUrls = parsed?.xml_urls || [];
-          } catch (e) { allowedXmlUrls = []; }
-        }
-
-        setLoadingProgress(40);
+        const allowedXmlUrls = config?.xml_urls || [];
 
         let query = supabase.from('villas').select('*').eq('is_excluded', false);
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
         }
 
-        const { data: villasData, error } = await query;
+        const { data, error } = await query.order('price', { ascending: false });
         if (error) throw error;
 
-        if (villasData) {
-          const formatted = formatVillaData(villasData);
-          const sorted = formatted.sort((a, b) => b.price - a.price); 
-          setAllProperties(sorted);
-          setFilteredProperties(sorted);
-          setLoadingProgress(100);
+        if (data) {
+          const formatted = formatVillaData(data);
+          setAllProperties(formatted);
+          setFilteredProperties(formatted);
+          sessionStorage.setItem(`props_cache_${slug}`, JSON.stringify(formatted));
         }
       } catch (err) {
-        console.error("Erreur chargement client:", err);
+        console.error("Erreur:", err);
       } finally {
-        setTimeout(() => setLoadingProperties(false), 800);
+        setLoadingProgress(100);
+        setTimeout(() => setLoadingProperties(false), 500);
       }
     }
 
     fetchProperties();
-  }, [agency, formatVillaData, initialProperties]);
+  }, [agency, allProperties.length, formatVillaData, slug]);
 
   const toggleFavorite = (id: string) => {
     const newFavs = favorites.includes(id) 
@@ -157,7 +157,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const handleSearch = (newFilters: Filters) => {
     const min = Number(newFilters.minPrice) || 0;
-    const max = Number(newFilters.maxPrice) || 20000000;
+    const max = Number(newFilters.maxPrice) || 50000000;
     setFilters({ ...newFilters, minPrice: min, maxPrice: max });
     
     const results = allProperties.filter((p) => {
@@ -173,7 +173,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
     setFilteredProperties(results);
     setIsSearchOpen(false);
-    setSelectedProperty(null);
   };
 
   const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
@@ -203,16 +202,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               <PropertyDetailClient property={selectedProperty} agency={agency} />
             </motion.div>
           ) : (
-            <motion.div 
-              key="list"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="animate-in fade-in duration-1000"
-            >
+            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <Hero 
                 agency={agency}
                 title={agency?.hero_title} 
-                subtitle={agency?.agency_name} 
                 backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
                 agencyName={agency?.agency_name} 
               />
@@ -230,18 +223,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                 </motion.button>
               </div>
 
-              <section id="collection" className="py-24 bg-slate-50 relative z-10">
+              <section className="py-24 bg-slate-50 relative z-10">
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                    <motion.h2 
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      className="text-5xl font-serif italic mb-8 text-slate-900"
-                    >
-                      {t('nav.results') || 'Notre Sélection'}
-                    </motion.h2>
+                    <h2 className="text-5xl font-serif italic mb-8 text-slate-900">{t('nav.results')}</h2>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
@@ -253,46 +239,28 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                           style={{ backgroundColor: primaryBrandColor }}
                           initial={{ width: "0%" }}
                           animate={{ width: `${loadingProgress}%` }}
-                          transition={{ duration: 0.5, ease: "circOut" }}
                         />
                       </div>
-                      <div className="text-center">
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-900 mb-2">
-                           {loadingProgress}%
-                        </p>
-                        <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-slate-400 italic">
-                          {t('common.loadingProperties') || "Chargement de la collection..."}
-                        </p>
-                      </div>
+                      <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-slate-400 italic">
+                        {t('common.loadingProperties')}
+                      </p>
                     </div>
                   ) : (
                     <AnimatePresence>
                       {filteredProperties.length > 0 ? (
-                        <motion.div 
-                          key="grid-container"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.6 }}
-                        >
-                          <PropertyGrid 
-                            agency={agency}
-                            properties={filteredProperties.slice(0, displayLimit)} 
-                            favorites={favorites}
-                            onToggleFavorite={toggleFavorite}
-                            onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                          />
-                        </motion.div>
+                        <PropertyGrid 
+                          agency={agency}
+                          properties={filteredProperties.slice(0, displayLimit)} 
+                          favorites={favorites}
+                          onToggleFavorite={toggleFavorite}
+                          onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
+                        />
                       ) : (
-                        <motion.div 
-                          key="no-results"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="text-center py-20 border border-dashed border-slate-200 rounded-3xl"
-                        >
+                        <div className="text-center py-20 border border-dashed border-slate-200 rounded-3xl">
                           <p className="text-slate-400 italic font-serif">
-                            {t('common.noResults') || "Aucun bien trouvé."}
+                            {t('common.noResults')}
                           </p>
-                        </motion.div>
+                        </div>
                       )}
                     </AnimatePresence>
                   )}
@@ -301,15 +269,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                     <div className="mt-20 flex justify-center">
                       <button 
                         onClick={() => setDisplayLimit(prev => prev + 12)}
-                        className={`px-14 py-7 text-white transition-all shadow-2xl hover:-translate-y-1 ${buttonRadius}`}
-                        style={{ 
-                          backgroundColor: primaryBrandColor,
-                          boxShadow: `0 20px 40px ${primaryBrandColor}33` 
-                        }}
+                        className={`px-14 py-7 text-white transition-all shadow-2xl ${buttonRadius}`}
+                        style={{ backgroundColor: primaryBrandColor }}
                       >
-                        <span className="text-[11px] font-black uppercase tracking-[0.4em]">
-                          {t('common.showMore')}
-                        </span>
+                        <span className="text-[11px] font-black uppercase tracking-[0.4em]">{t('common.showMore')}</span>
                       </button>
                     </div>
                   )}
