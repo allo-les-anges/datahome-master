@@ -94,7 +94,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProgress(20);
 
       if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
-        const formatted = formatVillaData(initialProperties);
+        // Tri croissant pour les données initiales
+        const formatted = formatVillaData(initialProperties).sort((a, b) => a.price - b.price);
         setAllProperties(formatted);
         setFilteredProperties(formatted);
         setLoadingProperties(false);
@@ -118,7 +119,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         query = query.in('xml_source', allowedXmlUrls);
       }
 
-      const { data, error } = await query.order('price', { ascending: false }).limit(1000);
+      // MODIFICATION : 'ascending: true' pour le tri du moins cher au plus cher
+      const { data, error } = await query.order('price', { ascending: true }).limit(1000);
       if (error) throw error;
 
       const formatted = formatVillaData(data || []);
@@ -155,7 +157,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   };
 
   const handleSearch = (newFilters: Filters) => {
-    console.log("🔍 Lancement de la recherche avec les filtres:", newFilters);
     setFilters(newFilters);
     
     const min = Number(newFilters.minPrice) || 0;
@@ -165,15 +166,12 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     const searchRef = (newFilters.reference || "").toLowerCase().trim();
     const searchType = (newFilters.type || "").toLowerCase().trim();
 
-    const results = allProperties.filter((p, index) => {
+    const results = allProperties.filter((p) => {
       const pPrice = Number(p.price) || 0;
       
-      // LOGIQUE PRIX : Si le max est au-dessus de 15M (plafond UI typique) ou mis par défaut, on ne plafonne plus
       const isHighEnd = max >= 15000000;
       const matchPrice = pPrice >= min && (isHighEnd ? true : pPrice <= max);
       
-      // LOGIQUE TYPE : Si le type cherché est "apartment" mais que le bien est une "villa", ça échoue. 
-      // Si "searchType" est vide ou "all", on laisse passer.
       const matchType = !searchType || searchType === "all" || 
         p.type.toLowerCase().includes(searchType);
       
@@ -187,23 +185,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         (p.ref && p.ref.toLowerCase().includes(searchRef)) ||
         (p.id_externe && p.id_externe.toLowerCase().includes(searchRef));
 
-      const isMatch = matchPrice && matchType && matchBeds && matchLocation && matchRef;
-
-      if (index === 0 && !isMatch) {
-        console.log("Debug 1ère propriété:", {
-          title: p.titre,
-          matchPrice, pPrice, filterMax: max,
-          matchType, pType: p.type, searchType,
-          matchBeds, pBeds: p.beds,
-          matchLocation, matchRef
-        });
-      }
-
-      return isMatch;
+      return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
-    console.log(`✅ Résultats trouvés: ${results.length}`);
-    setFilteredProperties(results);
+    // Tri explicite croissant sur les résultats filtrés
+    const sortedResults = results.sort((a, b) => a.price - b.price);
+
+    setFilteredProperties(sortedResults);
     setDisplayLimit(12);
     setIsSearchOpen(false);
     
