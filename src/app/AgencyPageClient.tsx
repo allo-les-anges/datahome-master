@@ -57,7 +57,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // NORMALISATION DES DONNÉES (Garantit que les filtres fonctionnent)
+  // NORMALISATION DES DONNÉES (Garantit l'uniformité des champs pour le filtre)
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -68,21 +68,20 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       
       if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
-      // On s'assure que chaque propriété possède les champs attendus par le filtre
       return {
         ...v,
         id: v.id || `v-${index}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
-        ref: String(v.id_externe || v.ref || ""), 
+        ref: String(v.id_externe || v.ref || v.reference || ""), 
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
         description: v[`description_${locale}`] || v.description || v.details || "",
         price: Number(v.price || v.prix || 0),
-        // Normalisation cruciale pour le filtre de localisation
+        // On mappe toutes les sources possibles vers town et region
         town: String(v.town || v.ville || v.city || "").trim(),
-        region: String(v.region || v.province || "").trim(),
+        region: String(v.region || v.province || v.state || "").trim(),
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
-        surface: v.surface || v.m2 || v.built || 0,
+        surface: Number(v.surface || v.m2 || v.built || 0),
         type: String(v.type || "Villa").trim(),
         images: imageArray,
       };
@@ -122,7 +121,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         query = query.in('xml_source', allowedXmlUrls);
       }
 
-      const { data, error } = await query.order('price', { ascending: false }).limit(500);
+      const { data, error } = await query.order('price', { ascending: false }).limit(1000);
       
       if (error) throw error;
 
@@ -159,51 +158,65 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // LOGIQUE DE RECHERCHE CORRIGÉE
+  // LOGIQUE DE RECHERCHE CORRIGÉE AVEC LOGS DE DÉBOGAGE
   const handleSearch = (newFilters: Filters) => {
+    console.log("🔍 Lancement de la recherche avec les filtres:", newFilters);
     setFilters(newFilters);
     
-    // Conversion forcée en nombres pour les prix et lits
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 50000000;
     const requiredBeds = Number(newFilters.beds) || 0;
+    const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
+    const searchRef = (newFilters.reference || "").toLowerCase().trim();
 
-    const results = allProperties.filter((p) => {
-      // 1. Filtre Prix (avec gestion du plafond à 20M+)
+    const results = allProperties.filter((p, index) => {
+      // 1. Prix
       const pPrice = Number(p.price) || 0;
       const matchPrice = pPrice >= min && pPrice <= (max >= 19900000 ? 999999999 : max);
       
-      // 2. Filtre Type
+      // 2. Type
       const matchType = !newFilters.type || newFilters.type === "all" || 
         p.type.toLowerCase().includes(newFilters.type.toLowerCase());
       
-      // 3. Filtre Chambres
+      // 3. Chambres
       const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
       
-      // 4. Localisation (Recherche insensible à la casse dans Ville OU Région)
-      const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
+      // 4. Localisation
       const matchLocation = !searchLocation || 
         (p.town && p.town.toLowerCase().includes(searchLocation)) || 
         (p.region && p.region.toLowerCase().includes(searchLocation));
 
       // 5. Référence
-      const searchRef = (newFilters.reference || "").toLowerCase().trim();
       const matchRef = !searchRef || 
         (p.ref && p.ref.toLowerCase().includes(searchRef)) ||
         (p.id_externe && p.id_externe.toLowerCase().includes(searchRef));
 
-      return matchPrice && matchType && matchBeds && matchLocation && matchRef;
+      const isMatch = matchPrice && matchType && matchBeds && matchLocation && matchRef;
+
+      // Log détaillé pour le premier bien si aucun résultat n'est trouvé (pour debug)
+      if (index === 0 && !isMatch) {
+        console.log("Debug 1ère propriété:", {
+          title: p.titre,
+          matchPrice, pPrice,
+          matchType, pType: p.type,
+          matchBeds, pBeds: p.beds,
+          matchLocation, pTown: p.town,
+          matchRef
+        });
+      }
+
+      return isMatch;
     });
 
+    console.log(`✅ Résultats trouvés: ${results.length}`);
     setFilteredProperties(results);
     setDisplayLimit(12);
     setIsSearchOpen(false);
     
-    // Scroll fluide vers les résultats
     setTimeout(() => {
       const element = document.getElementById('results-section');
       if (element) element.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    }, 150);
   };
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
