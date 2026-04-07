@@ -44,6 +44,20 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     reference: "",
   });
 
+  // Mapping des polices de la DB vers les variables CSS de layout.tsx
+  const getFontVariable = useCallback((fontName: string) => {
+    const fonts: Record<string, string> = {
+      'Montserrat': 'var(--font-montserrat)',
+      'Inter': 'var(--font-inter)',
+      'Playfair Display': 'var(--font-playfair)',
+      'Poppins': 'var(--font-poppins)',
+      'Roboto Mono': 'var(--font-roboto)'
+    };
+    return fonts[fontName] || 'var(--font-inter)';
+  }, []);
+
+  const selectedFont = getFontVariable(agency?.font_family || 'Inter');
+
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -75,7 +89,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const loadData = useCallback(async () => {
     try {
       setLoadingProgress(10);
-
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -93,7 +106,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             ? JSON.parse(agency.footer_config) 
             : agency.footer_config;
           allowedXmlUrls = config?.xml_urls || [];
-        } catch (e) { console.error("Config error", e); }
+        } catch (e) {}
       }
 
       let query = supabase
@@ -106,27 +119,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       }
 
       const { data, error } = await query.order('price', { ascending: false }).limit(100);
-
       if (error) throw error;
 
-      if (!data || data.length === 0) {
-        const { data: fallback } = await supabase
-          .from('villas')
-          .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, is_excluded, xml_source')
-          .eq('is_excluded', false)
-          .order('created_at', { ascending: false })
-          .limit(20);
-        
-        if (fallback) {
-          const formatted = formatVillaData(fallback);
-          setAllProperties(formatted);
-          setFilteredProperties(formatted);
-        }
-      } else {
-        const formatted = formatVillaData(data);
-        setAllProperties(formatted);
-        setFilteredProperties(formatted);
-      }
+      const formatted = formatVillaData(data || []);
+      setAllProperties(formatted);
+      setFilteredProperties(formatted);
 
     } catch (err) {
       console.error("Load error:", err);
@@ -139,7 +136,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   useEffect(() => {
     if (slug) setAgencyBySlug(slug);
     loadData();
-    
     const savedFavs = localStorage.getItem(`fav_${slug}`);
     if (savedFavs) {
       try { setFavorites(JSON.parse(savedFavs)); } catch (e) {}
@@ -171,15 +167,16 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     setIsSearchOpen(false);
   };
 
-  const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
-  const buttonRadius = agency?.button_style || 'rounded-full';
+  const primaryColor = agency?.primary_color || '#FF8C00'; 
+  const radius = agency?.button_style || 'rounded-full';
 
-  // Sécurité pour le sous-titre et le titre
+  // Sécurité Contenus Hero
   const heroTitle = agency?.hero_title || "Des professionnels à votre écoute";
-  const heroSubtitle = agency?.hero_subtitle || (t('nav.subtitle') !== 'nav.subtitle' ? t('nav.subtitle') : "Votre partenaire immobilier de confiance");
+  const rawSubtitle = t('nav.subtitle');
+  const heroSubtitle = agency?.hero_subtitle || (rawSubtitle !== 'nav.subtitle' ? rawSubtitle : "Votre partenaire immobilier de confiance");
 
   return (
-    <div className="flex flex-col relative notranslate min-h-screen">
+    <div className="flex flex-col relative notranslate min-h-screen" style={{ fontFamily: selectedFont }}>
       <main className="flex-grow"> 
         <AnimatePresence mode="wait">
           {selectedProperty ? (
@@ -204,8 +201,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               <div className="flex justify-center -mt-12 relative z-40">
                 <button 
                   onClick={() => setIsSearchOpen(true)} 
-                  className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-transform hover:scale-105 ${buttonRadius}`}
-                  style={{ backgroundColor: primaryBrandColor }}
+                  className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-transform hover:scale-105 ${radius}`}
+                  style={{ backgroundColor: primaryColor }}
                 >
                   <Search size={20} />
                   <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search')}</span>
@@ -216,14 +213,19 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                    <h2 className="text-5xl font-serif italic mb-8 text-slate-900">{t('nav.results')}</h2>
+                    <h2 
+                      className="text-5xl italic mb-8 text-slate-900"
+                      style={{ fontFamily: agency?.font_family === 'Montserrat' ? 'var(--font-montserrat)' : 'inherit' }}
+                    >
+                      {t('nav.results')}
+                    </h2>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
                   {loadingProperties ? (
                     <div className="flex flex-col items-center justify-center py-32 space-y-8">
                       <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
-                        <motion.div className="absolute inset-y-0 left-0" style={{ backgroundColor: primaryBrandColor }} animate={{ width: `${loadingProgress}%` }} />
+                        <motion.div className="absolute inset-y-0 left-0" style={{ backgroundColor: primaryColor }} animate={{ width: `${loadingProgress}%` }} />
                       </div>
                       <p className="text-[9px] font-medium uppercase tracking-widest text-slate-400 italic flex items-center gap-2">
                         <Loader2 className="animate-spin" size={12} /> {t('common.loadingProperties')}
@@ -241,7 +243,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         />
                       ) : (
                         <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                          <p className="text-slate-400 italic font-serif mb-4">{t('common.noResults')}</p>
+                          <p className="text-slate-400 italic mb-4">{t('common.noResults')}</p>
                           <button onClick={() => loadData()} className="text-[10px] font-bold uppercase tracking-widest underline">Réessayer</button>
                         </div>
                       )}
@@ -250,7 +252,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
                   {!loadingProperties && filteredProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
-                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white transition-all shadow-2xl ${buttonRadius}`} style={{ backgroundColor: primaryBrandColor }}>
+                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl ${radius}`} style={{ backgroundColor: primaryColor }}>
                         <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore')}</span>
                       </button>
                     </div>
