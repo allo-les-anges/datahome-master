@@ -19,7 +19,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0); // État pour la progression
+  const [loadingProgress, setLoadingProgress] = useState(0);
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
@@ -62,7 +62,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // 3. Formateur de données Villa
+  // 3. Formateur de données Villa (Blindé contre les erreurs de format)
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -91,32 +91,39 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     });
   }, [locale]);
 
-  // 4. Chargement des propriétés avec barre de progression
+  // 4. Chargement des propriétés sécurisé (Anti-White Screen)
   useEffect(() => {
     async function fetchProperties() {
       if (!agency) return;
 
-      setLoadingProperties(true);
-      setLoadingProgress(10); // Début du processus
-      
       try {
+        setLoadingProperties(true);
+        setLoadingProgress(10);
+        
+        // Sécurisation du footer_config pour Gillian (Espagne/Starlink)
         let allowedXmlUrls: string[] = [];
         const config = agency.footer_config;
-        const footerConfig = typeof config === 'string' ? JSON.parse(config || '{}') : (config || {});
-        allowedXmlUrls = footerConfig?.xml_urls || [];
-
-        setLoadingProgress(30); // Configuration chargée
-
-        let query = supabase.from('villas').select('*').eq('is_excluded', false);
         
+        if (config) {
+          try {
+            const parsed = typeof config === 'string' ? JSON.parse(config) : config;
+            allowedXmlUrls = parsed?.xml_urls || [];
+          } catch (e) {
+            console.error("Erreur de lecture de la config agence", e);
+            allowedXmlUrls = []; 
+          }
+        }
+
+        setLoadingProgress(40);
+
+        // Requête Supabase avec filtre optionnel
+        let query = supabase.from('villas').select('*').eq('is_excluded', false);
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
         }
 
         const { data: villasData, error } = await query;
         
-        setLoadingProgress(70); // Données récupérées de Supabase
-
         if (error) throw error;
 
         if (villasData) {
@@ -124,12 +131,12 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           const sorted = formatted.sort((a, b) => b.price - a.price); 
           setAllProperties(sorted);
           setFilteredProperties(sorted);
-          setLoadingProgress(100); // Formatage terminé
+          setLoadingProgress(100);
         }
       } catch (err) {
-        console.error("Erreur chargement villas:", err);
+        console.error("Erreur critique évitée lors du chargement :", err);
       } finally {
-        // Petit délai pour l'effet visuel de fin de barre
+        // Délai de confort pour la barre de progression
         setTimeout(() => setLoadingProperties(false), 500);
       }
     }
@@ -159,7 +166,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     setSelectedProperty(null);
   };
 
-  // Écran de chargement initial (Agence)
+  // Écran de chargement initial de l'agence
   if (agencyLoading && !agency) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
@@ -169,8 +176,9 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     );
   }
 
+  // Sécurisation finale des variables de style
+  const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
   const buttonRadius = agency?.button_style || 'rounded-full';
-  const primaryBrandColor = agency?.primary_color || '#FF8C00'; // Orange par défaut si non défini
 
   return (
     <div className="flex flex-col relative notranslate">
@@ -240,7 +248,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                   
                   {loadingProperties ? (
                     <div className="flex flex-col items-center justify-center py-32 space-y-8">
-                      {/* BARRE DE PROGRESSION ÉLÉGANTE */}
                       <div className="w-64 h-[2px] bg-slate-200 relative overflow-hidden rounded-full">
                         <motion.div 
                           className="absolute inset-y-0 left-0"
@@ -278,7 +285,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                       ) : (
                         <div className="text-center py-20 border border-dashed border-slate-200 rounded-3xl">
                           <p className="text-slate-400 italic font-serif">
-                            {t('common.noResults') || "Aucun bien ne correspond à votre recherche."}
+                            {t('common.noResults') || "Aucun bien trouvé."}
                           </p>
                         </div>
                       )}
