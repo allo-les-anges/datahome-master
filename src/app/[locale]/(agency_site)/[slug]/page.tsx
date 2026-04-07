@@ -2,10 +2,9 @@ import { supabase } from '@/lib/supabase';
 import AgencyPageClient from "@/app/AgencyPageClient";
 import { notFound } from 'next/navigation';
 
-// Permet de générer les pages à la volée si elles ne sont pas connues au build
-export const dynamicParams = true; 
-
-// La page sera mise à jour en arrière-plan (ISR)
+// Forcer le rendu dynamique pour éviter que Vercel ne fige une erreur 404 au build
+export const dynamic = 'force-dynamic';
+// La page sera mise à jour en arrière-plan toutes les 10 minutes (ISR)
 export const revalidate = 600; 
 
 export default async function DynamicAgencyPage({ 
@@ -13,22 +12,20 @@ export default async function DynamicAgencyPage({
 }: { 
   params: Promise<{ slug: string, locale: string }> 
 }) {
-  // 1. Résolution des paramètres (Obligatoire Next.js 15)
-  const resolvedParams = await params;
-  const slug = resolvedParams.slug;
-  const locale = resolvedParams.locale;
+  // 1. Résolution des paramètres (Obligatoire Next.js 15+)
+  const { slug, locale } = await params;
 
   // 2. Récupération de l'agence
-  // On cherche par slug OU par subdomain
+  // Utilisation de .ilike pour ignorer la casse et suppression des guillemets complexes
   const { data: agency, error: agencyError } = await supabase
     .from('agencies')
     .select('*')
-    .or(`slug.eq."${slug}",subdomain.eq."${slug}"`) // Ajout de guillemets pour sécuriser la requête
+    .or(`slug.ilike.${slug},subdomain.ilike.${slug}`)
     .single();
 
-  // Si l'agence n'existe pas, on affiche la 404 proprement
+  // Si l'agence n'existe pas ou erreur Supabase, on déclenche la 404
   if (agencyError || !agency) {
-    console.error("Agence introuvable pour le slug:", slug);
+    console.error("DEBUG - Agence introuvable ou erreur:", { slug, agencyError });
     return notFound();
   }
 
@@ -51,13 +48,18 @@ export default async function DynamicAgencyPage({
     .select('*')
     .eq('is_excluded', false);
 
+  // Filtrage par source XML si défini dans l'agence
   if (allowedXmlUrls.length > 0) {
     query = query.in('xml_source', allowedXmlUrls);
   }
 
-  const { data: villas } = await query.order('price', { ascending: false });
+  const { data: villas, error: villasError } = await query.order('price', { ascending: false });
 
-  // 5. Rendu
+  if (villasError) {
+    console.error("Erreur récupération villas:", villasError);
+  }
+
+  // 5. Rendu du composant client avec les données injectées (zéro attente pour l'utilisateur)
   return (
     <AgencyPageClient 
       slug={slug} 
