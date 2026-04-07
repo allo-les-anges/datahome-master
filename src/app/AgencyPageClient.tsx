@@ -62,7 +62,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // 3. Formateur de données Villa (Blindé contre les erreurs de format)
+  // 3. Formateur de données Villa
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -91,7 +91,7 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     });
   }, [locale]);
 
-  // 4. Chargement des propriétés sécurisé (Anti-White Screen)
+  // 4. Chargement des propriétés sécurisé (Anti-White Screen & Anti-Flash)
   useEffect(() => {
     async function fetchProperties() {
       if (!agency) return;
@@ -100,7 +100,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
         setLoadingProperties(true);
         setLoadingProgress(10);
         
-        // Sécurisation du footer_config pour Gillian (Espagne/Starlink)
         let allowedXmlUrls: string[] = [];
         const config = agency.footer_config;
         
@@ -116,7 +115,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
 
         setLoadingProgress(40);
 
-        // Requête Supabase avec filtre optionnel
         let query = supabase.from('villas').select('*').eq('is_excluded', false);
         if (allowedXmlUrls.length > 0) {
           query = query.in('xml_source', allowedXmlUrls);
@@ -134,10 +132,11 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
           setLoadingProgress(100);
         }
       } catch (err) {
-        console.error("Erreur critique évitée lors du chargement :", err);
+        console.error("Erreur critique lors du chargement :", err);
       } finally {
-        // Délai de confort pour la barre de progression
-        setTimeout(() => setLoadingProperties(false), 500);
+        // IMPORTANT: Un délai suffisant pour laisser au DOM le temps de se préparer
+        // évite de voir "No results" avant que les composants ne s'injectent.
+        setTimeout(() => setLoadingProperties(false), 800);
       }
     }
 
@@ -166,7 +165,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     setSelectedProperty(null);
   };
 
-  // Écran de chargement initial de l'agence
   if (agencyLoading && !agency) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center bg-white">
@@ -176,7 +174,6 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
     );
   }
 
-  // Sécurisation finale des variables de style
   const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
   const buttonRadius = agency?.button_style || 'rounded-full';
 
@@ -267,12 +264,13 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                       </div>
                     </div>
                   ) : (
-                    <>
+                    <AnimatePresence>
                       {filteredProperties.length > 0 ? (
                         <motion.div 
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
+                          key="grid-container"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.6 }}
                         >
                           <PropertyGrid 
                             agency={agency}
@@ -283,13 +281,18 @@ export default function AgencyPageClient({ slug }: { slug: string }) {
                           />
                         </motion.div>
                       ) : (
-                        <div className="text-center py-20 border border-dashed border-slate-200 rounded-3xl">
+                        <motion.div 
+                          key="no-results"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-center py-20 border border-dashed border-slate-200 rounded-3xl"
+                        >
                           <p className="text-slate-400 italic font-serif">
                             {t('common.noResults') || "Aucun bien trouvé."}
                           </p>
-                        </div>
+                        </motion.div>
                       )}
-                    </>
+                    </AnimatePresence>
                   )}
 
                   {!loadingProperties && filteredProperties.length > displayLimit && (
