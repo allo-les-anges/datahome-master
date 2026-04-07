@@ -44,7 +44,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     reference: "",
   });
 
-  // 1. Formateur optimisé (évite les calculs lourds sur mobile)
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -73,12 +72,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
   }, [locale]);
 
-  // 2. Logique de chargement ultra-rapide
   const loadData = useCallback(async () => {
     try {
       setLoadingProgress(10);
 
-      // A. Utilisation immédiate des données serveur si présentes
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -88,7 +85,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         return;
       }
 
-      // B. Fetch Supabase optimisé (on ne prend que les champs utiles)
       setLoadingProgress(30);
       let allowedXmlUrls: string[] = [];
       if (agency?.footer_config) {
@@ -100,7 +96,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         } catch (e) { console.error("Config error", e); }
       }
 
-      // Requête légère (projection)
       let query = supabase
         .from('villas')
         .select('id, id_externe, price, titre_fr, titre_en, images, type, region, town, beds, baths, is_excluded, xml_source')
@@ -114,7 +109,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       if (error) throw error;
 
-      // C. Fallback Smartphone / No Results
       if (!data || data.length === 0) {
         const { data: fallback } = await supabase
           .from('villas')
@@ -180,6 +174,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const primaryBrandColor = agency?.primary_color || '#FF8C00'; 
   const buttonRadius = agency?.button_style || 'rounded-full';
 
+  // Sécurité pour le sous-titre et le titre
+  const heroTitle = agency?.hero_title || "Des professionnels à votre écoute";
+  const heroSubtitle = agency?.hero_subtitle || (t('nav.subtitle') !== 'nav.subtitle' ? t('nav.subtitle') : "Votre partenaire immobilier de confiance");
+
   return (
     <div className="flex flex-col relative notranslate min-h-screen">
       <main className="flex-grow"> 
@@ -195,7 +193,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             </motion.div>
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Hero agency={agency} title={agency?.hero_title} backgroundImage={agency?.hero_url || "/hero_network.jpg"} agencyName={agency?.agency_name} />
+              <Hero 
+                agency={agency} 
+                title={heroTitle} 
+                subtitle={heroSubtitle}
+                backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
+                agencyName={agency?.agency_name} 
+              />
               
               <div className="flex justify-center -mt-12 relative z-40">
                 <button 
