@@ -55,17 +55,18 @@
     "propertyNotFound": "Property not found"
   },
   "contact": {
-    "formTitle": "Contact us",
-    "directContact": "Direct Contact",
-    "teamTitle": "The Team",
-    "namePlaceholder": "YOUR NAME",
-    "emailPlaceholder": "YOUR EMAIL",
-    "messagePlaceholder": "PROJECT DETAILS...",
-    "submit": "Send request",
-    "sending": "Sending...",
-    "success": "Message sent successfully!",
-    "error": "Error while sending."
-  },
+  "title": "Contact Us",
+  "ref_label": "Ref",
+  "placeholder_name": "YOUR NAME",
+  "placeholder_email": "YOUR EMAIL",
+  "placeholder_message": "PROJECT DETAILS...",
+  "send_btn": "Send Request",
+  "success_title": "Message sent successfully!",
+  "success_message": "successfully received.",
+  "error_message": "Error while sending.",
+  "directContact": "Direct Contact",
+  "teamTitle": "The Team"
+},
   "footer": {
     "description": "The art of exceptional real estate. We build bridges between your ambitions and the most prestigious properties.",
     "city": "Orihuela Costa, Spain",

@@ -55,17 +55,18 @@
     "propertyNotFound": "Woning niet gevonden"
   },
   "contact": {
-    "formTitle": "Contacteer ons",
-    "directContact": "Direct contact",
-    "teamTitle": "Het Team",
-    "namePlaceholder": "UW NAAM",
-    "emailPlaceholder": "UW EMAIL",
-    "messagePlaceholder": "DETAILS VAN UW PROJECT...",
-    "submit": "Aanvraag versturen",
-    "sending": "Verzenden...",
-    "success": "Bericht succesvol verzonden!",
-    "error": "Fout bij verzenden."
-  },
+  "title": "Neem contact op",
+  "ref_label": "Ref",
+  "placeholder_name": "UW NAAM",
+  "placeholder_email": "UW EMAIL",
+  "placeholder_message": "DETAILS VAN UW PROJECT...",
+  "send_btn": "Aanvraag versturen",
+  "success_title": "Bericht succesvol verzonden!",
+  "success_message": "succesvol ontvangen.",
+  "error_message": "Fout bij het verzenden.",
+  "directContact": "Direct Contact",
+  "teamTitle": "Het Team"
+},
   "footer": {
     "description": "De kunst van uitzonderlijk vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
     "city": "Orihuela Costa, Spanje",

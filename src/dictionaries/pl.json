@@ -55,17 +55,18 @@
     "propertyNotFound": "Nie znaleziono nieruchomości"
   },
   "contact": {
-    "formTitle": "Skontaktuj się z nami",
-    "directContact": "Kontakt bezpośredni",
-    "teamTitle": "Zespół",
-    "namePlaceholder": "TWOJE IMIĘ",
-    "emailPlaceholder": "TWÓJ EMAIL",
-    "messagePlaceholder": "SZCZEGÓŁY PROJEKTU...",
-    "submit": "Wyślij zapytanie",
-    "sending": "Wysyłanie...",
-    "success": "Wiadomość wysłana pomyślnie!",
-    "error": "Błąd podczas wysyłania."
-  },
+  "title": "Skontaktuj się z nami",
+  "ref_label": "Nr ref",
+  "placeholder_name": "TWOJE IMIĘ",
+  "placeholder_email": "TWÓJ EMAIL",
+  "placeholder_message": "SZCZEGÓŁY PROJEKTU...",
+  "send_btn": "Wyślij zapytanie",
+  "success_title": "Wiadomość wysłana pomyślnie!",
+  "success_message": "została pomyślnie odebrana.",
+  "error_message": "Błąd podczas wysyłania.",
+  "directContact": "Kontakt bezpośredni",
+  "teamTitle": "Zespół"
+},
   "footer": {
     "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi ofertami.",
     "city": "Orihuela Costa, Hiszpania",

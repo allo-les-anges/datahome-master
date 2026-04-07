@@ -55,17 +55,18 @@
     "propertyNotFound": "Propiedad no encontrada"
   },
   "contact": {
-    "formTitle": "Contáctenos",
-    "directContact": "Contacto directo",
-    "teamTitle": "El equipo",
-    "namePlaceholder": "SU NOMBRE",
-    "emailPlaceholder": "SU EMAIL",
-    "messagePlaceholder": "DETALLES DE SU PROYECTO...",
-    "submit": "Enviar solicitud",
-    "sending": "Enviando...",
-    "success": "¡Mensaje enviado con éxito!",
-    "error": "Error al enviar."
-  },
+  "title": "Contáctenos",
+  "ref_label": "Ref",
+  "placeholder_name": "SU NOMBRE",
+  "placeholder_email": "SU EMAIL",
+  "placeholder_message": "DETALLES DE SU PROYECTO...",
+  "send_btn": "Enviar solicitud",
+  "success_title": "¡Mensaje enviado con éxito!",
+  "success_message": "recibida correctamente.",
+  "error_message": "Error al enviar.",
+  "directContact": "Contacto Directo",
+  "teamTitle": "El Equipo"
+},
   "footer": {
     "description": "El arte de las propiedades inmobiliarias excepcionales. Creamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
     "city": "Orihuela Costa, España",

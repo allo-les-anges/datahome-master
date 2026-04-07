@@ -55,17 +55,18 @@
     "propertyNotFound": "Propriété non trouvée"
   },
   "contact": {
-    "formTitle": "Contactez-nous",
-    "directContact": "Direct Contact",
-    "teamTitle": "L'Équipe",
-    "namePlaceholder": "VOTRE NOM",
-    "emailPlaceholder": "VOTRE EMAIL",
-    "messagePlaceholder": "DÉTAILS DE VOTRE PROJET...",
-    "submit": "Envoyer la demande",
-    "sending": "Envoi en cours...",
-    "success": "Message envoyé avec succès !",
-    "error": "Erreur lors de l'envoi."
-  },
+  "title": "Contactez-nous",
+  "ref_label": "Réf",
+  "placeholder_name": "VOTRE NOM",
+  "placeholder_email": "VOTRE EMAIL",
+  "placeholder_message": "DÉTAILS DE VOTRE PROJET...",
+  "send_btn": "Envoyer la demande",
+  "success_title": "Message envoyé avec succès !",
+  "success_message": "bien reçue.",
+  "error_message": "Erreur lors de l'envoi.",
+  "directContact": "Direct Contact",
+  "teamTitle": "L'Équipe"
+},
   "footer": {
     "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
     "city": "Orihuela Costa, Espagne",

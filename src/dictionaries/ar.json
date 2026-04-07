@@ -55,17 +55,18 @@
     "propertyNotFound": "لم يتم العثور على العقار"
   },
   "contact": {
-    "formTitle": "تواصل معنا",
-    "directContact": "اتصال مباشر",
-    "teamTitle": "الفريق",
-    "namePlaceholder": "الاسم الكامل",
-    "emailPlaceholder": "البريد الإلكتروني",
-    "messagePlaceholder": "تفاصيل مشروعك...",
-    "submit": "إرسال الطلب",
-    "sending": "جاري الإرسال...",
-    "success": "تم إرسال الرسالة بنجاح!",
-    "error": "خطأ أثناء الإرسال."
-  },
+  "title": "اتصل بنا",
+  "ref_label": "مرجع",
+  "placeholder_name": "اسمك الكامل",
+  "placeholder_email": "بريدك الإلكتروني",
+  "placeholder_message": "تفاصيل مشروعك...",
+  "send_btn": "إرسال الطلب",
+  "success_title": "تم إرسال الرسالة بنجاح!",
+  "success_message": "تم استلام الطلب بنجاح.",
+  "error_message": "خطأ أثناء الإرسال.",
+  "directContact": "اتصال مباشر",
+  "teamTitle": "الفريق"
+},
   "footer": {
     "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتك وأرقى العقارات.",
     "city": "أوريويلا كوستا، إسبانيا",
