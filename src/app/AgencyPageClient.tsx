@@ -190,8 +190,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             </motion.div>
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              {/* Force l'application de la police sur le Hero en injectant une variable CSS locale */}
-              <div style={{ ["--font-agency" as any]: selectedFont }}>
+              
+              {/* CORRECTION CRUCIALE : On entoure le Hero pour forcer la police sur ses composants internes */}
+              <div style={{ fontFamily: selectedFont, ["--font-agency" as any]: selectedFont }}>
                 <Hero 
                   agency={agency} 
                   title={heroTitle} 
