@@ -22,11 +22,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { t, locale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
   
-  // Stabilisation de l'objet agency : priorité au contexte une fois chargé
   const agency = useMemo(() => contextAgency || initialAgency, [contextAgency, initialAgency]);
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
-  // Initialisation avec les props SSR pour éviter l'écran vide
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -95,7 +93,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProperties(true);
       setLoadingProgress(20);
 
-      // 1. Si on a des propriétés initiales valides au premier montage, on les formate
       if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -105,7 +102,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         return;
       }
 
-      // 2. Sinon récupération Supabase
       setLoadingProgress(40);
       let allowedXmlUrls: string[] = [];
       
@@ -145,12 +141,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
   }, [initialProperties, formatVillaData, allProperties.length]);
 
-  // Synchronisation de l'agence
   useEffect(() => {
     if (slug) setAgencyBySlug(slug);
   }, [slug, setAgencyBySlug]);
 
-  // Chargement des données quand l'agence est prête
   useEffect(() => {
     if (agency?.id) {
       loadData(agency);
@@ -171,21 +165,37 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   };
 
   const handleSearch = (newFilters: Filters) => {
+    setFilters(newFilters);
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 50000000;
-    setFilters({ ...newFilters, minPrice: min, maxPrice: max });
     
     const results = allProperties.filter((p) => {
+      // 1. Prix
       const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
-      const matchType = !newFilters.type || newFilters.type === "all" || p.type.toLowerCase().includes(newFilters.type.toLowerCase());
+      
+      // 2. Type
+      const matchType = !newFilters.type || newFilters.type === "all" || 
+        p.type.toLowerCase().includes(newFilters.type.toLowerCase());
+      
+      // 3. Chambres
       const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
-      const matchRegion = !newFilters.region || 
-        p.region?.toLowerCase().includes(newFilters.region.toLowerCase()) || 
-        p.town?.toLowerCase().includes(newFilters.region.toLowerCase());
-      return matchPrice && matchBeds && matchType && matchRegion;
+      
+      // 4. Localisation (Ville OU Région)
+      const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
+      const matchLocation = !searchLocation || 
+        p.town?.toLowerCase().includes(searchLocation) || 
+        p.region?.toLowerCase().includes(searchLocation);
+
+      // 5. Référence
+      const matchRef = !newFilters.reference || 
+        p.ref?.toLowerCase().includes(newFilters.reference.toLowerCase()) ||
+        p.id_externe?.toLowerCase().includes(newFilters.reference.toLowerCase());
+
+      return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
     setFilteredProperties(results);
+    setDisplayLimit(12); // Réinitialiser la limite d'affichage
     setIsSearchOpen(false);
   };
 
@@ -260,7 +270,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                       ) : (
                         <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
                           <p className="text-slate-400 italic mb-4">{t('common.noResults')}</p>
-                          <button onClick={() => loadData(agency)} className="text-[10px] font-bold uppercase tracking-widest underline">Réessayer</button>
+                          <button onClick={() => {
+                            setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
+                            setFilteredProperties(allProperties);
+                          }} className="text-[10px] font-bold uppercase tracking-widest underline">Réinitialiser la recherche</button>
                         </div>
                       )}
                     </AnimatePresence>
