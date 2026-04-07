@@ -22,7 +22,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { t, locale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency(); 
   
-  // Priorité à l'agence du contexte, sinon initialAgency du SSR
   const agency = useMemo(() => contextAgency || initialAgency, [contextAgency, initialAgency]);
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
@@ -58,7 +57,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // Formattage des données pour uniformiser les champs provenant de différentes sources XML/SQL
+  // NORMALISATION DES DONNÉES (Garantit que les filtres fonctionnent)
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     return villas.map((v, index) => {
       let imageArray: string[] = [];
@@ -77,12 +76,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
         description: v[`description_${locale}`] || v.description || v.details || "",
         price: Number(v.price || v.prix || 0),
-        town: (v.town || v.ville || v.city || "").trim(),
-        region: (v.region || v.province || "").trim(),
+        // On nettoie les chaînes pour éviter les échecs de comparaison (espaces, null, etc.)
+        town: String(v.town || v.ville || v.city || "").trim(),
+        region: String(v.region || v.province || "").trim(),
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
         surface: v.surface || v.m2 || v.built || 0,
-        type: v.type || "Villa",
+        type: String(v.type || "Villa").trim(),
         images: imageArray,
       };
     });
@@ -95,12 +95,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProperties(true);
       setLoadingProgress(20);
 
-      // Utilisation des propriétés initiales (SSR) si disponibles pour un chargement instantané
+      // Hydratation initiale via SSR si disponible
       if (initialProperties && initialProperties.length > 0 && allProperties.length === 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
         setFilteredProperties(formatted);
-        setLoadingProgress(100);
         setLoadingProperties(false);
         return;
       }
@@ -114,21 +113,16 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
             ? JSON.parse(currentAgency.footer_config) 
             : currentAgency.footer_config;
           allowedXmlUrls = config?.xml_urls || [];
-        } catch (e) {
-          console.error("Erreur parsing config agence");
-        }
+        } catch (e) {}
       }
 
-      let query = supabase
-        .from('villas')
-        .select('*')
-        .eq('is_excluded', false);
+      let query = supabase.from('villas').select('*').eq('is_excluded', false);
 
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
       }
 
-      const { data, error } = await query.order('price', { ascending: false }).limit(200);
+      const { data, error } = await query.order('price', { ascending: false }).limit(500);
       
       if (error) throw error;
 
@@ -149,9 +143,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [slug, setAgencyBySlug]);
 
   useEffect(() => {
-    if (agency?.id) {
-      loadData(agency);
-    }
+    if (agency?.id) loadData(agency);
   }, [agency?.id, loadData]);
 
   useEffect(() => {
@@ -167,46 +159,46 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     localStorage.setItem(`fav_${slug}`, JSON.stringify(newFavs));
   };
 
-  // LOGIQUE DE RECHERCHE CORRIGÉE
+  // LOGIQUE DE RECHERCHE CORRIGÉE ET SÉCURISÉE
   const handleSearch = (newFilters: Filters) => {
     setFilters(newFilters);
     const min = Number(newFilters.minPrice) || 0;
     const max = Number(newFilters.maxPrice) || 50000000;
     
     const results = allProperties.filter((p) => {
-      // 1. Filtre Prix
+      // 1. Prix
       const matchPrice = p.price >= min && p.price <= (max >= 19900000 ? 999999999 : max);
       
-      // 2. Filtre Type (maison, appartement, etc.)
+      // 2. Type
       const matchType = !newFilters.type || newFilters.type === "all" || 
         p.type.toLowerCase().includes(newFilters.type.toLowerCase());
       
-      // 3. Filtre Chambres (Minimum)
+      // 3. Chambres
       const matchBeds = (Number(p.beds) || 0) >= (Number(newFilters.beds) || 0);
       
-      // 4. Localisation (Ville OU Région)
+      // 4. Localisation (Recherche croisée Ville ET Région)
       const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
       const matchLocation = !searchLocation || 
-        p.town?.toLowerCase().includes(searchLocation) || 
-        p.region?.toLowerCase().includes(searchLocation);
+        p.town.toLowerCase().includes(searchLocation) || 
+        p.region.toLowerCase().includes(searchLocation);
 
       // 5. Référence
-      const matchRef = !newFilters.reference || 
-        p.ref?.toLowerCase().includes(newFilters.reference.toLowerCase()) ||
-        p.id_externe?.toLowerCase().includes(newFilters.reference.toLowerCase());
+      const searchRef = (newFilters.reference || "").toLowerCase().trim();
+      const matchRef = !searchRef || 
+        p.ref.toLowerCase().includes(searchRef) ||
+        p.id_externe.toLowerCase().includes(searchRef);
 
       return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
     setFilteredProperties(results);
-    setDisplayLimit(12); // Réinitialisation de la pagination
+    setDisplayLimit(12);
     setIsSearchOpen(false);
     
-    // Scroll automatique vers les résultats
-    const resultsSection = document.getElementById('results-section');
-    if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Scroll fluide vers les résultats
+    setTimeout(() => {
+      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
@@ -225,7 +217,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           {selectedProperty ? (
             <motion.div key="detail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-20 bg-white">
               <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
-                <button onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <button onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
                   <ArrowLeft size={14} /> {t('nav.back')}
                 </button>
               </div>
@@ -244,13 +236,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               </div>
               
               <div className="flex justify-center -mt-12 relative z-40">
-                <button onClick={() => setIsSearchOpen(true)} className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-transform hover:scale-105 ${radius}`} style={{ backgroundColor: primaryColor }}>
+                <button onClick={() => setIsSearchOpen(true)} className={`flex items-center gap-6 px-12 py-7 text-white shadow-xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
                   <Search size={20} />
                   <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search')}</span>
                 </button>
               </div>
 
-              <section id="results-section" className="py-24 bg-slate-50 relative z-10">
+              <section id="results-section" className="py-24 bg-slate-50 relative z-10 min-h-[600px]">
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
@@ -264,7 +256,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         <motion.div className="absolute inset-y-0 left-0" style={{ backgroundColor: primaryColor }} animate={{ width: `${loadingProgress}%` }} />
                       </div>
                       <p className="text-[9px] font-medium uppercase tracking-widest text-slate-400 italic flex items-center gap-2">
-                        <Loader2 className="animate-spin" size={12} /> {t('common.loadingProperties') || 'Chargement des biens...'}
+                        <Loader2 className="animate-spin" size={12} /> {t('common.loadingProperties')}
                       </p>
                     </div>
                   ) : (
@@ -275,17 +267,17 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                           properties={filteredProperties.slice(0, displayLimit)} 
                           favorites={favorites}
                           onToggleFavorite={toggleFavorite}
-                          onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
                         />
                       ) : (
                         <div className="text-center py-32 bg-white rounded-[40px] border border-dashed border-slate-200 shadow-inner">
-                          <p className="text-slate-400 italic mb-6">{t('common.noResults') || 'Aucun bien ne correspond à vos critères'}</p>
+                          <p className="text-slate-400 italic mb-6">{t('common.noResults')}</p>
                           <button 
                             onClick={() => {
                                 setFilters({ type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 50000000, reference: "" });
                                 setFilteredProperties(allProperties);
                             }} 
-                            className="px-8 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-slate-800 transition-colors"
+                            className="px-8 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-slate-800 transition-all"
                           >
                             {t('home.reset') || 'Réinitialiser les filtres'}
                           </button>
@@ -296,7 +288,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
                   {!loadingProperties && filteredProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
-                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
+                      <button onClick={() => setDisplayLimit(prev => prev + 12)} className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} style={{ backgroundColor: primaryColor }}>
                         <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore')}</span>
                       </button>
                     </div>
