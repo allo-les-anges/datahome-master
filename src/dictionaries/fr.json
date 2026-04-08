@@ -94,5 +94,9 @@
     "address": "Adresse",
     "excellence": "Excellence Immobilière",
     "description": "Votre partenaire de confiance pour l'immobilier d'exception."
+  },
+  "legal": {
+    "privacy_default": "L'agence SCHMIDT-PRIVILEGE s'engage à ce que la collecte et le traitement de vos données soient conformes au RGPD. Les données personnelles collectées (nom, email, téléphone) via les formulaires de ce site sont utilisées exclusivement pour vous recontacter dans le cadre de votre recherche immobilière ou de la mise en vente de votre bien. Elles ne sont en aucun cas cédées à des tiers. Vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant. Pour exercer ce droit, contactez-nous par email à l'adresse : notre service client.",
+    "terms_default": "Les présentes conditions régissent l'utilisation du site de l'agence SCHMIDT-PRIVILEGE.\n\n1. Éditeur du site : SCHMIDT-PRIVILEGE.\n2. Hébergement : Vercel Inc.\n3. Propriété intellectuelle : Tous les contenus (photos, textes) sont la propriété de l'agence ou de ses concédants.\n4. Responsabilité : Les informations sur les biens sont fournies sous réserve d'erreur ou d'omission."
   }
 }

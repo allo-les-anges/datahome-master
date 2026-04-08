@@ -94,5 +94,9 @@
     "address": "Adres",
     "excellence": "Vastgoed Excellence",
     "description": "Uw betrouwbare partner voor exclusief vastgoed."
+  },
+  "legal": {
+    "privacy_default": "Agentschap SCHMIDT-PRIVILEGE verbindt zich ertoe dat de verzameling en verwerking van uw gegevens voldoen aan de AVG (GDPR). Persoonsgegevens (naam, e-mail, telefoon) die via de formulieren op deze site worden verzameld, worden uitsluitend gebruikt om contact met u op te nemen. Ze worden nooit aan derden verstrekt. U heeft recht op inzage, correctie en verwijdering via e-mail.",
+    "terms_default": "Deze voorwaarden zijn van toepassing op het gebruik van de website van SCHMIDT-PRIVILEGE.\n\n1. Uitgever: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Intellectueel eigendom: Alle inhoud is eigendom van het agentschap of zijn licentiegevers.\n4. Aansprakelijkheid: Informatie over woningen wordt verstrekt onder voorbehoud van fouten of weglatingen."
   }
 }

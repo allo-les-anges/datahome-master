@@ -94,5 +94,9 @@
     "address": "Address",
     "excellence": "Real Estate Excellence",
     "description": "Your trusted partner for exceptional real estate."
+  },
+  "legal": {
+    "privacy_default": "SCHMIDT-PRIVILEGE is committed to ensuring that the collection and processing of your data comply with the GDPR. Personal data collected (name, email, phone) is used exclusively to contact you regarding your real estate search or property sale. It is never shared with third parties. You have the right to access, rectify, and delete your data. To exercise this right, please contact us via email.",
+    "terms_default": "These terms govern the use of the SCHMIDT-PRIVILEGE agency website.\n\n1. Site Publisher: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Intellectual Property: All content (photos, text) is the property of the agency or its licensors.\n4. Liability: Property information is provided subject to errors or omissions."
   }
 }

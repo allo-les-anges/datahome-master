@@ -94,5 +94,9 @@
     "address": "Adres",
     "excellence": "Doskonałość w Nieruchomościach",
     "description": "Twój zaufany partner w segmencie nieruchomości luksusowych."
+  },
+  "legal": {
+    "privacy_default": "Agencja SCHMIDT-PRIVILEGE zobowiązuje się do zapewnienia, że gromadzenie i przetwarzanie danych osobowych jest zgodne z RODO. Dane (imię, e-mail, telefon) zebrane za pośrednictwem formularzy są wykorzystywane wyłącznie do kontaktu z Państwem. Nie są one udostępniane osobom trzecim. Przysługuje Państwu prawo do wglądu, poprawiania i usuwania danych drogą mailową.",
+    "terms_default": "Niniejszy regulamin określa zasady korzystania z witryny agencji SCHMIDT-PRIVILEGE.\n\n1. Wydawca: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Własność intelektualna: Wszystkie treści są własnością agencji lub jej licencjodawców.\n4. Odpowiedzialność: Informacje o nieruchomościach są dostarczane z zastrzeżeniem błędów lub pominięć."
   }
 }
