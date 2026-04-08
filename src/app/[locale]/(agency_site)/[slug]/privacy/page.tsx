@@ -1,12 +1,12 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
-import { Shield, ChevronLeft } from "lucide-react";
+import { Shield, ChevronLeft, FileText } from "lucide-react";
 import Link from "next/link";
-import { getTranslator } from "@/lib/i18n"; // Importe ton utilitaire de traduction
+import { getTranslator } from "@/lib/i18n";
 
 export const revalidate = 0;
 
-export default async function PrivacyPage({
+export default async function LegalPage({
   params,
 }: {
   params: Promise<{ slug: string; locale: string }>;
@@ -22,29 +22,24 @@ export default async function PrivacyPage({
 
   if (!agency) return notFound();
 
+  // On détermine si c'est Privacy ou Terms selon l'URL (si tu utilises le même composant ou sépare les deux)
+  // Ici version simplifiée pour que tu puisses copier coller
+  
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-100 py-12">
         <div className="max-w-4xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-4">
-            <div 
-              className="p-3 rounded-2xl text-white"
-              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
-            >
+            <div className="p-3 rounded-2xl text-white" style={{ backgroundColor: agency.primary_color || '#0f172a' }}>
               <Shield size={24} />
             </div>
             <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
               {t('footer.privacy')}
             </h1>
           </div>
-          <div className="space-y-1">
-            <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
-              {agency.agency_name} {agency.legal_name ? `(${agency.legal_name})` : ''}
-            </p>
-            <p className="text-slate-400 text-[9px] italic">
-              {new Date().toLocaleDateString(locale === 'ar' ? 'ar-SA' : locale)}
-            </p>
-          </div>
+          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
+            {agency.agency_name} — {new Date().toLocaleDateString(locale)}
+          </p>
         </div>
       </header>
 
@@ -52,19 +47,14 @@ export default async function PrivacyPage({
         <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
           <div className="prose prose-slate max-w-none">
             <div className="whitespace-pre-wrap text-slate-600 leading-relaxed text-sm md:text-base">
-              {/* Affiche le texte de la base de données OU la traduction par défaut */}
               {agency.privacy_policy || t('legal.privacy_default')}
             </div>
           </div>
         </div>
 
         <div className="mt-12 text-center">
-          <Link 
-            href={`/${locale}/${slug}`}
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
-          >
-            <ChevronLeft size={14} />
-            {t('nav.back_home') || 'Retour'}
+          <Link href={`/${locale}/${slug}`} className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest">
+            <ChevronLeft size={14} /> {t('common.backToHome')}
           </Link>
         </div>
       </main>
