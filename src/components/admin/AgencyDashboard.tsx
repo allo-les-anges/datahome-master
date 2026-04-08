@@ -656,9 +656,6 @@ export default function AgencyDashboard() {
     }
   };
 
-  // ============================================================
-  // HANDLE SAVE - UTILISE L'ID (PLUS FIABLE QUE SUBDOMAIN)
-  // ============================================================
   const handleSave = async (e: React.FormEvent) => {
     if (e) {
       e.preventDefault();
@@ -1431,19 +1428,40 @@ export default function AgencyDashboard() {
                 </div>
               </div>
               
-              {/* LIVE PREVIEW (STICKY) */}
+              {/* LIVE PREVIEW (STICKY) - AVEC LA POLICE APPLIQUÉE */}
               <div className="lg:col-span-1">
                 <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl sticky top-8 overflow-hidden">
-                  <div className="flex items-center gap-2 mb-4 text-white/50 text-[10px] font-bold uppercase tracking-widest"><Monitor size={14} /> {t.sections.preview}</div>
-                  <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-slate-800" style={{ fontFamily: selectedAgency.font_family || 'Montserrat, sans-serif' }}>
-                    {selectedAgency.hero_url && selectedAgency.hero_type !== 'video' && <img src={selectedAgency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="BG" />}
+                  <div className="flex items-center gap-2 mb-4 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                    <Monitor size={14} /> {t.sections.preview}
+                  </div>
+                  <div 
+                    className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-slate-800" 
+                    style={{ 
+                      fontFamily: selectedAgency.font_family || 'Montserrat, sans-serif'
+                    }}
+                  >
+                    {selectedAgency.hero_url && selectedAgency.hero_type !== 'video' && (
+                      <img src={selectedAgency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="BG" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
                     <div className="absolute inset-0 p-6 flex flex-col justify-between">
                       <div className="flex justify-between items-start">
-                        {selectedAgency.logo_url ? <img src={selectedAgency.logo_url} className="h-8 object-contain bg-white/10 backdrop-blur-md p-1 rounded-lg" alt="Logo" /> : <div className="w-8 h-8 rounded" style={{backgroundColor: selectedAgency.primary_color || '#3b82f6'}} />}
+                        {selectedAgency.logo_url ? (
+                          <img src={selectedAgency.logo_url} className="h-8 object-contain bg-white/10 backdrop-blur-md p-1 rounded-lg" alt="Logo" />
+                        ) : (
+                          <div className="w-8 h-8 rounded" style={{backgroundColor: selectedAgency.primary_color || '#3b82f6'}} />
+                        )}
                       </div>
                       <div className="space-y-3">
-                        <h4 className="text-white text-xl font-serif italic leading-tight">{selectedAgency.hero_title || t.placeholders.hero_text}</h4>
+                        {/* ICI : Le texte d'accroche utilise la police sélectionnée */}
+                        <h4 
+                          className="text-white text-xl font-serif italic leading-tight"
+                          style={{ 
+                            fontFamily: `${selectedAgency.font_family || 'Montserrat'}, sans-serif`
+                          }}
+                        >
+                          {selectedAgency.hero_title || t.placeholders.hero_text}
+                        </h4>
                         <div 
                           className={`h-10 w-24 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-widest shadow-lg transition-all ${
                             selectedAgency.button_animation === 'scale' ? 'hover:scale-105' : 
