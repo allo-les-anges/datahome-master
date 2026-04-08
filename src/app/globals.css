@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
 /* ===== 1. VARIABLES & BASE ===== */
 @layer base {
@@ -6,6 +7,7 @@
     --background: #ffffff;
     --foreground: #0f172a;
     --accent-gold: #D4AF37;
+    /* Valeur par défaut si l'agence n'en fournit pas */
     --brand-primary: #D4AF37;
     --font-main: 'Montserrat', system-ui, sans-serif;
     --font-serif: 'Playfair Display', Georgia, serif;
@@ -18,7 +20,6 @@
     --brand-primary: #D4AF37;
   }
 
-  /* Styles de base */
   body {
     background-color: var(--background);
     color: var(--foreground);
@@ -28,18 +29,15 @@
     padding: 0;
   }
 
-  /* Suppression du margin par défaut sur les headings */
   h1, h2, h3, h4, h5, h6, p {
     margin: 0;
   }
 
-  /* Liens */
   a {
     color: inherit;
     text-decoration: none;
   }
 
-  /* Boutons */
   button {
     cursor: pointer;
     background: none;
@@ -58,29 +56,37 @@ html.dark:not([data-package="light"]) {
 }
 
 /* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
+/* Utilisé pour garder un rendu clair même si l'utilisateur est en mode sombre système */
+
 html[data-package="light"] {
   color: #0f172a !important;
   color-scheme: light;
 }
 
 html[data-package="light"] body {
-  background-color: #ffffff !important;
+  background-color: #ffffff;
   color: #0f172a !important;
+  margin: 0;
+  padding: 0;
 }
 
+/* Navbar : Transparente par défaut pour laisser voir le Hero */
 html[data-package="light"] nav {
   background-color: transparent !important;
 }
 
+/* Sections de contenu : On force le blanc pour la lisibilité */
 html[data-package="light"] section:not(.no-forced-bg) {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
+/* FOOTER : On ne force PAS le fond blanc ici pour laisser passer la couleur de l'agence */
 html[data-package="light"] footer {
   color: #0f172a;
 }
 
+/* Main : Doit rester transparent pour ne pas bloquer les fonds dynamiques */
 html[data-package="light"] main {
   background-color: transparent !important;
 }
@@ -91,15 +97,6 @@ html.dark:not([data-package="light"]) .bg-slate-50,
 html.dark:not([data-package="light"]) .bg-gray-50 {
   background-color: #0f172a !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Cartes en mode clair */
-.bg-white {
-  background-color: #ffffff;
-}
-
-.dark .bg-white {
-  background-color: #0f172a;
 }
 
 /* ===== 5. SCROLLBAR ===== */
@@ -140,7 +137,7 @@ html[data-package="light"] .theme-toggle-component {
   display: none !important;
 }
 
-/* Badges */
+/* Badge Type (commun) */
 .badge-type {
   background-color: rgba(0, 0, 0, 0.75) !important;
   color: #ffffff !important;
@@ -148,19 +145,21 @@ html[data-package="light"] .theme-toggle-component {
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
+/* Badge Référence - Mode Light */
 .badge-ref-light {
   background-color: #000000 !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
+/* Badge Référence - Mode Dark */
 .badge-ref-dark {
   background-color: var(--brand-primary) !important;
   color: #000000 !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Utilitaire pour empêcher le forçage du fond blanc */
+/* Utilitaire pour empêcher le forçage du fond blanc sur certains éléments spécifiques */
 .no-forced-bg {
   background-color: transparent !important;
 }

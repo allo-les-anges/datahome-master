@@ -34,7 +34,7 @@ export default function ContactPage({ params }: ContactPageProps) {
     }
   }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
 
-  const { contactInfo, displayTeam, brandColor, buttonColor } = useMemo(() => {
+  const { contactInfo, displayTeam, brandColor, buttonColor, fontFamily } = useMemo(() => {
     const getParsed = (data: any) => {
       if (!data) return {};
       if (typeof data === 'object') return data;
@@ -57,7 +57,8 @@ export default function ContactPage({ params }: ContactPageProps) {
       contactInfo: cInfo,
       displayTeam: team,
       brandColor: agency?.primary_color || "#c5a059",
-      buttonColor: agency?.button_color || agency?.primary_color || "#c5a059"
+      buttonColor: agency?.button_color || agency?.primary_color || "#c5a059",
+      fontFamily: agency?.font_family || 'Montserrat'
     };
   }, [agency]);
 
@@ -100,7 +101,10 @@ export default function ContactPage({ params }: ContactPageProps) {
   }
 
   return (
-    <div className="bg-white text-slate-900">
+    <div 
+      className="bg-white text-slate-900" 
+      style={{ fontFamily: `${fontFamily}, sans-serif` }}
+    >
       <main>
         {/* Hero Section */}
         <section className="relative h-[40vh] flex items-center justify-center overflow-hidden bg-slate-900">
