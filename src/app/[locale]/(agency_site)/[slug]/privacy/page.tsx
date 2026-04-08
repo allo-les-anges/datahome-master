@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { Shield, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
-// Importations statiques pour garantir le build
-import fr from "@/locales/fr.json";
-import en from "@/locales/en.json";
-import es from "@/locales/es.json";
-import nl from "@/locales/nl.json";
-import pl from "@/locales/pl.json";
-import ar from "@/locales/ar.json";
+// Importations depuis le bon dossier : src/dictionaries
+import fr from "../../../../../dictionaries/fr.json";
+import en from "../../../../../dictionaries/en.json";
+import es from "../../../../../dictionaries/es.json";
+import nl from "../../../../../dictionaries/nl.json";
+import pl from "../../../../../dictionaries/pl.json";
+import ar from "../../../../../dictionaries/ar.json";
 
 export const revalidate = 0;
 
@@ -51,23 +51,16 @@ export default async function PrivacyPage({
               {translations.footer?.privacy || "Privacy Policy"}
             </h1>
           </div>
-          <div className="space-y-1">
-            <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
-              {agency.agency_name} {agency.legal_name ? `(${agency.legal_name})` : ''}
-            </p>
-            <p className="text-slate-400 text-[9px] italic">
-              {new Date().toLocaleDateString(locale)}
-            </p>
-          </div>
+          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
+            {agency.agency_name}
+          </p>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-16">
         <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <div className="prose prose-slate max-w-none">
-            <div className="whitespace-pre-wrap text-slate-600 leading-relaxed text-sm md:text-base">
-              {agency.privacy_policy || translations.legal?.privacy_default}
-            </div>
+          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
+            {agency.privacy_policy || translations.legal?.privacy_default}
           </div>
         </div>
 

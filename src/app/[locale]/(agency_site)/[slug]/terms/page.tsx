@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { FileText, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
-// Importations statiques
-import fr from "@/locales/fr.json";
-import en from "@/locales/en.json";
-import es from "@/locales/es.json";
-import nl from "@/locales/nl.json";
-import pl from "@/locales/pl.json";
-import ar from "@/locales/ar.json";
+// Importations depuis le bon dossier : src/dictionaries
+import fr from "../../../../../dictionaries/fr.json";
+import en from "../../../../../dictionaries/en.json";
+import es from "../../../../../dictionaries/es.json";
+import nl from "../../../../../dictionaries/nl.json";
+import pl from "../../../../../dictionaries/pl.json";
+import ar from "../../../../../dictionaries/ar.json";
 
 export const revalidate = 0;
 
@@ -20,7 +20,6 @@ export default async function TermsPage({
 }) {
   const { slug, locale } = await params;
 
-  // Sélection de la traduction
   const translations: any = 
     locale === 'en' ? en : 
     locale === 'es' ? es : 
@@ -59,10 +58,8 @@ export default async function TermsPage({
 
       <main className="max-w-4xl mx-auto px-6 py-16">
         <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <div className="prose prose-slate max-w-none">
-            <div className="whitespace-pre-wrap text-slate-600 leading-relaxed text-sm">
-              {agency.terms_content || translations.legal?.terms_default}
-            </div>
+          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
+            {agency.terms_content || translations.legal?.terms_default}
           </div>
         </div>
 
