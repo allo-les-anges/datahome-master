@@ -3,6 +3,14 @@ import { notFound } from "next/navigation";
 import { Shield, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
+// Importations statiques pour garantir le build
+import fr from "@/locales/fr.json";
+import en from "@/locales/en.json";
+import es from "@/locales/es.json";
+import nl from "@/locales/nl.json";
+import pl from "@/locales/pl.json";
+import ar from "@/locales/ar.json";
+
 export const revalidate = 0;
 
 export default async function PrivacyPage({
@@ -12,8 +20,13 @@ export default async function PrivacyPage({
 }) {
   const { slug, locale } = await params;
 
-  // Chargement manuel de la traduction pour le SSR
-  const translations = (await import(`@/locales/${locale}.json`)).default;
+  // Sélection de la traduction
+  const translations: any = 
+    locale === 'en' ? en : 
+    locale === 'es' ? es : 
+    locale === 'nl' ? nl : 
+    locale === 'pl' ? pl : 
+    locale === 'ar' ? ar : fr;
 
   const { data: agency } = await supabase
     .from('agency_settings')
@@ -35,7 +48,7 @@ export default async function PrivacyPage({
               <Shield size={24} />
             </div>
             <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
-              {translations.footer?.privacy || "Politique de Confidentialité"}
+              {translations.footer?.privacy || "Privacy Policy"}
             </h1>
           </div>
           <div className="space-y-1">
@@ -64,7 +77,7 @@ export default async function PrivacyPage({
             className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
           >
             <ChevronLeft size={14} />
-            {translations.common?.backToHome || "Retour"}
+            {translations.common?.backToHome || "Back"}
           </Link>
         </div>
       </main>
