@@ -15,7 +15,7 @@ interface ContactPageProps {
 
 export default function ContactPage({ params }: ContactPageProps) {
   const resolvedParams = use(params);
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { agency, loading, setAgencyBySlug } = useAgency(); 
   const [mounted, setMounted] = useState(false);
   
@@ -95,7 +95,7 @@ export default function ContactPage({ params }: ContactPageProps) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement...</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{t('common.loading')}</p>
       </div>
     );
   }
@@ -103,7 +103,7 @@ export default function ContactPage({ params }: ContactPageProps) {
   return (
     <div 
       className="bg-white text-slate-900" 
-      style={{ fontFamily: `${fontFamily}, sans-serif` }}
+      style={{ fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif` }}
     >
       <main>
         {/* Hero Section */}
@@ -112,8 +112,13 @@ export default function ContactPage({ params }: ContactPageProps) {
             <img src={agency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-40 brightness-50" alt="Hero" />
           )}
           <div className="relative z-10 text-center px-6">
-            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-6xl font-serif italic text-white mb-4">
-              Contactez-nous
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              className="text-4xl md:text-6xl font-serif italic text-white mb-4"
+              style={{ fontFamily: `'Playfair Display', ${fontFamily}, serif` }}
+            >
+              {t('contact.title')}
             </motion.h1>
             <p className="text-white/80 text-lg font-light italic uppercase tracking-widest">{agency?.agency_name}</p>
           </div>
@@ -126,15 +131,25 @@ export default function ContactPage({ params }: ContactPageProps) {
           <div className="xl:col-span-7 space-y-10">
             <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
               <h2 className="text-3xl font-serif italic uppercase tracking-widest">
-                {agency?.about_title || "Notre Équipe"}
+                {agency?.about_title || t('contact.teamTitle')}
               </h2>
             </div>
             
             <div className="grid gap-8">
               {displayTeam.map((member: any, idx: number) => (
-                <motion.div key={idx} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-8 items-center shadow-sm">
+                <motion.div 
+                  key={idx} 
+                  initial={{ opacity: 0, x: -20 }} 
+                  whileInView={{ opacity: 1, x: 0 }} 
+                  viewport={{ once: true }} 
+                  className="p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-8 items-center shadow-sm"
+                >
                   <div className="w-24 h-32 rounded-2xl bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
-                    {member.photo ? <img src={member.photo} className="w-full h-full object-cover" alt={member.name} /> : <User size={30} className="text-slate-400" />}
+                    {member.photo ? (
+                      <img src={member.photo} className="w-full h-full object-cover" alt={member.name} loading="lazy" />
+                    ) : (
+                      <User size={30} className="text-slate-400" />
+                    )}
                   </div>
                   <div className="flex-1 text-center md:text-left">
                     <h3 className="text-xl font-bold" style={{ color: brandColor }}>{member.name}</h3>
@@ -155,22 +170,22 @@ export default function ContactPage({ params }: ContactPageProps) {
                   <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-12">
                     <CheckCircle size={48} className="text-green-500" />
                     <h3 className="text-xl font-serif italic text-white">
-                      Message envoyé avec succès !
+                      {t('contact.success_title')}
                     </h3>
                     <p className="text-xs text-slate-400">
-                      Nous vous répondrons dans les plus brefs délais.
+                      {t('contact.ref_label')} {t('contact.success_message')}
                     </p>
                     <button 
                       onClick={() => setStatus("idle")}
                       className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500 hover:text-slate-300 transition-colors"
                     >
-                      Retour
+                      {t('common.back')}
                     </button>
                   </div>
                 ) : (
                   <>
                     <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">
-                      Contact direct
+                      {t('contact.directContact')}
                     </h3>
                     
                     <div className="space-y-3 mb-8">
@@ -188,7 +203,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                       <input 
                         required 
                         className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all placeholder:text-slate-500" 
-                        placeholder="VOTRE NOM" 
+                        placeholder={t('contact.placeholder_name')} 
                         value={formData.name} 
                         onChange={(e) => setFormData({...formData, name: e.target.value})} 
                       />
@@ -196,7 +211,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                         required 
                         type="email" 
                         className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all placeholder:text-slate-500" 
-                        placeholder="VOTRE EMAIL" 
+                        placeholder={t('contact.placeholder_email')} 
                         value={formData.email} 
                         onChange={(e) => setFormData({...formData, email: e.target.value})} 
                       />
@@ -204,7 +219,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                         required 
                         rows={4} 
                         className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none transition-all placeholder:text-slate-500" 
-                        placeholder="DÉTAILS DE VOTRE PROJET..." 
+                        placeholder={t('contact.placeholder_message')} 
                         value={formData.message} 
                         onChange={(e) => setFormData({...formData, message: e.target.value})} 
                       />
@@ -220,7 +235,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                         ) : (
                           <>
                             <Send size={14} />
-                            ENVOYER
+                            {t('contact.send_btn')}
                           </>
                         )}
                       </button>
@@ -228,7 +243,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                       {status === "error" && (
                         <div className="flex items-center justify-center gap-2 text-red-400 text-[9px] mt-2 uppercase tracking-widest">
                           <AlertCircle size={12} />
-                          Erreur lors de l'envoi
+                          {t('contact.error_message')}
                         </div>
                       )}
                     </form>
