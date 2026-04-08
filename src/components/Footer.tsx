@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin } from "lucide-react";
+import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
 interface FooterProps {
@@ -21,35 +21,35 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
   const textColor = isLight ? "text-slate-900" : "text-white";
   const mutedText = isLight ? "text-slate-500" : "text-slate-400";
   
-  // Extraction sécurisée de la config
   const footerData = typeof agency?.footer_config === 'string' 
     ? JSON.parse(agency.footer_config || '{}') 
     : (agency?.footer_config || {});
 
-  // On récupère la couleur pour l'injecter si Tailwind ne prend pas le relai
   const brandColor = agency?.primary_color || '#10b981';
+
+  // Logique SaaS : Nom légal vs Nom commercial
+  const legalName = agency?.legal_name || agency?.agency_name || "Datahome";
 
   return (
     <footer 
       className={`${bgColor} py-16 transition-colors duration-500`}
-      style={{ '--brand-primary': brandColor } as React.CSSProperties} // Injection locale de sécurité
+      style={{ '--brand-primary': brandColor } as React.CSSProperties}
     >
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
           
-          {/* Identité */}
+          {/* Identité & Copyrighting */}
           <div className="col-span-1 md:col-span-1 space-y-6">
             <h3 className={`text-xl font-serif italic ${textColor}`}>
               {agency?.agency_name || t('footer.excellence')}
             </h3>
-            {/* Utilisation de la variable CSS injectée */}
             <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
             <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
               {t('footer.description')}
             </p>
           </div>
 
-          {/* Navigation - Liens dynamiques avec Slug */}
+          {/* Navigation */}
           <div className="space-y-6">
             <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
             <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
@@ -66,53 +66,57 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
             </ul>
           </div>
 
-          {/* Contact & Localisation */}
+          {/* Légal & Privacy (Le coeur du SaaS) */}
           <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
             <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li className="flex items-start gap-3">
-                <MapPin size={14} style={{ color: brandColor }} className="shrink-0" /> 
-                <span className="leading-tight">
-                  {footerData?.address || agency?.address || t('footer.address')}
-                  <br />
-                  {footerData?.city || agency?.city || t('footer.city')}
-                </span>
+              <li>
+                <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
+                  <ShieldCheck size={12} />
+                  {t('footer.privacy')}
+                </Link>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail size={14} style={{ color: brandColor }} className="shrink-0" /> 
-                <a href={`mailto:${footerData?.email || agency?.email}`} className="hover:underline lowercase tracking-normal italic text-[11px]">
-                  {footerData?.email || agency?.email || t('footer.email')}
-                </a>
+              <li>
+                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors">
+                  {t('footer.terms')}
+                </Link>
               </li>
-              <li className="flex items-center gap-3">
-                <Phone size={14} style={{ color: brandColor }} className="shrink-0" /> 
-                {footerData?.phone || agency?.phone || t('footer.phone')}
-              </li>
+              {/* Si l'agence a un numéro de licence (ex: Carte T en France) */}
+              {agency?.license_number && (
+                <li className="text-[9px] normal-case opacity-70">
+                  Licence: {agency.license_number}
+                </li>
+              )}
             </ul>
           </div>
 
-          {/* Réseaux Sociaux */}
+          {/* Contact & Réseaux */}
           <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Suivez-nous</h4>
-            <div className="flex gap-6">
-              {(footerData?.socials?.facebook || agency?.facebook_url) && (
-                <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:opacity-70 transition-all`}>
-                  <Facebook size={18} style={{ color: brandColor }} />
-                </a>
-              )}
-              {(footerData?.socials?.instagram || agency?.instagram_url) && (
-                <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:opacity-70 transition-all`}>
-                  <Instagram size={18} style={{ color: brandColor }} />
-                </a>
-              )}
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
+            <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <p className="flex items-start gap-3">
+                <MapPin size={14} style={{ color: brandColor }} />
+                <span>{footerData?.address || agency?.address}</span>
+              </p>
+              <div className="flex gap-4 pt-2">
+                {(footerData?.socials?.facebook || agency?.facebook_url) && (
+                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank"><Facebook size={18} /></a>
+                )}
+                {(footerData?.socials?.instagram || agency?.instagram_url) && (
+                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank"><Instagram size={18} /></a>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} text-center`}>
+        {/* Footer Bottom : Le Copyright Multi-Tenant */}
+        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
           <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
-            © {new Date().getFullYear()} {agency?.agency_name} — {t('footer.eliteEdition')}
+            © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
+          </p>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
+            Powered by <a href="https://datahome.fr" className="hover:underline">Datahome</a>
           </p>
         </div>
       </div>
