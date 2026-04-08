@@ -1,115 +1,41 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import xml2js from 'xml2js';
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { parseStringPromise } from "xml2js"; // Tu devras peut-être faire : npm install xml2js
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-const SOURCES = [
-  { defaultRegion: "Costa Blanca", url: "https://medianewbuild.com/file/hh-media-bucket/agents/6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2/feed_blanca_calida.xml" },
-  { defaultRegion: "Costa del Sol", url: "https://medianewbuild.com/file/hh-media-bucket/agents/6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2/feed_sol.xml" }
-];
+export async function POST(req: Request) {
+  const { agencyId, xmlUrl } = await req.json();
 
-export async function GET() {
   try {
-    let totalSynced = 0;
-    const languages = ['fr', 'en', 'es', 'nl', 'pl', 'ar'];
+    // 1. Télécharger le XML
+    const response = await fetch(xmlUrl);
+    const xmlText = await response.text();
+    
+    // 2. Parser le XML en objet JavaScript
+    const result = await parseStringPromise(xmlText);
+    const properties = result. ads.ad; // Structure typique des flux Habihub
 
-    for (const source of SOURCES) {
-      console.log(`📡 Synchronisation du flux : ${source.url}`);
-      const response = await fetch(source.url, { cache: 'no-store' });
-      const xmlText = await response.text();
-      
-      const parser = new xml2js.Parser({ explicitArray: false, mergeAttrs: true, trim: true });
-      const result = await parser.parseStringPromise(xmlText);
-      const rootKey = Object.keys(result)[0];
-      let properties = result[rootKey].property || [];
-      if (!Array.isArray(properties)) properties = [properties];
+    // 3. Préparer les données pour Supabase
+    const villasToInsert = properties.map((p: any) => ({
+      id_externe: p.id[0],
+      titre: p.title[0],
+      prix: p.price[0],
+      agency_id: agencyId, // L'ÉTIQUETTE !
+      xml_source: xmlUrl,
+      // Ajoute ici les autres champs (images, description...)
+    }));
 
-      const updates = properties.map((p: any) => {
-        const surf = p.surface_area || {};
-        const loc = p.location || {};
-        const dists = p.distances || {}; 
-        
-        // Gestion des images
-        let imagesArray: string[] = [];
-        if (p.images && p.images.image) {
-          const rawImages = Array.isArray(p.images.image) ? p.images.image : [p.images.image];
-          imagesArray = rawImages
-            .map((img: any) => (typeof img === 'string' ? img : img.url))
-            .filter((u: any) => typeof u === 'string');
-        }
+    // 4. Nettoyer les anciennes villas de cette agence et insérer les nouvelles
+    // Option simple : on supprime et on remplace
+    await supabaseAdmin.from("villas").delete().eq("agency_id", agencyId);
+    const { error } = await supabaseAdmin.from("villas").insert(villasToInsert);
 
-        // Objet de base mappé sur vos colonnes SQL
-        const base: any = {
-          id_externe: String(p.id),
-          ref: String(p.ref || p.id),
-          town: String(p.town || loc.town || "Espagne"),
-          ville: String(p.town || loc.town || "Espagne"),
-          province: String(p.province || ""),
-          region: source.defaultRegion,
-          latitude: loc.latitude ? parseFloat(loc.latitude) : null,
-          longitude: loc.longitude ? parseFloat(loc.longitude) : null,
-          type: String(p.type || "Villa"),
-          beds: String(p.beds || "0"),
-          baths: String(p.baths || "0"),
-          pool: (p.pool === "1" || JSON.stringify(p.features).includes("pool")) ? "Oui" : "Non",
-          price: parseFloat(p.price) || 0,
-          prix: parseFloat(p.price) || 0,
-          currency: String(p.currency || "EUR"),
-          distance_beach: dists.beach ? String(dists.beach) : null,
-          distance_golf: dists.golf ? String(dists.golf) : null,
-          distance_town: dists.town_distance || dists.town || null,
-          surface_built: String(surf.built || "0"),
-          surface_plot: String(surf.plot || "0"),
-          surface_useful: String(surf.useful || "0"),
-          images: imagesArray,
-          updated_at: new Date().toISOString(),
-          
-          // --- AJOUT CRUCIAL ICI ---
-          xml_source: source.url, // On enregistre l'URL source pour permettre le filtrage par agence
-          // -------------------------
+    if (error) throw error;
 
-          promoteur_name: p.development_name ? String(p.development_name) : null,
-          commission_percentage: p.commission?.quantity ? parseFloat(p.commission.quantity) : 0,
-          is_excluded: false 
-        };
-
-        // Titres et descriptions multilingues
-        const titleObj = p.title || {};
-        const descObj = p.desc || {};
-
-        for (const lang of languages) {
-          let titre = p.development_name || titleObj[lang] || titleObj.fr || titleObj.en || "Villa Moderne";
-          base[`titre_${lang}`] = String(titre).trim();
-
-          let description = descObj[lang] || descObj.fr || descObj.en || "";
-          base[`description_${lang}`] = String(description).trim();
-        }
-
-        console.log(`Préparation villa ${base.id_externe} avec source: ${base.xml_source}`);
-        return base;
-      });
-
-      // Upsert vers Supabase
-      const { error, data } = await supabase
-        .from('villas')
-        .upsert(updates, { onConflict: 'id_externe' })
-        .select('id_externe');
-
-      if (error) {
-        console.error(`❌ Erreur d'insertion pour ${source.url}:`, error.message);
-      } else {
-        console.log(`✅ ${data?.length} propriétés synchronisées depuis ${source.url}`);
-        totalSynced += data?.length || 0;
-      }
-    }
-
-    return NextResponse.json({ success: true, totalSynced });
-  } catch (error: any) {
-    console.error("🔥 Erreur de synchronisation:", error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, count: villasToInsert.length });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }
