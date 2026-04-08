@@ -118,12 +118,25 @@ export default function ContactPage({ params }: ContactPageProps) {
             <motion.h1 
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
-              className="text-4xl md:text-6xl font-serif italic text-white mb-4"
-              style={{ fontFamily: `'Playfair Display', ${fontFamily}, serif` }}
+              className="text-4xl md:text-6xl text-white mb-4"
+              style={{ 
+                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                fontStyle: 'italic',
+                fontWeight: 'normal'
+              }}
             >
               {t('contact.title')}
             </motion.h1>
-            <p className="text-white/80 text-lg font-light italic uppercase tracking-widest">{agency?.agency_name}</p>
+            <p 
+              className="text-white/80 text-lg uppercase tracking-widest"
+              style={{ 
+                fontFamily: `${fontFamily}, sans-serif`,
+                fontStyle: 'italic',
+                fontWeight: 300
+              }}
+            >
+              {agency?.agency_name}
+            </p>
           </div>
         </section>
 
@@ -133,7 +146,14 @@ export default function ContactPage({ params }: ContactPageProps) {
           {/* Team Side */}
           <div className="xl:col-span-7 space-y-10">
             <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
-              <h2 className="text-3xl font-serif italic uppercase tracking-widest">
+              <h2 
+                className="text-3xl uppercase tracking-widest"
+                style={{ 
+                  fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                  fontStyle: 'italic',
+                  fontWeight: 'normal'
+                }}
+              >
                 {agency?.about_title || t('contact.teamTitle')}
               </h2>
             </div>
@@ -157,7 +177,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                   <div className="flex-1 text-center md:text-left">
                     <h3 className="text-xl font-bold" style={{ color: brandColor }}>{member.name}</h3>
                     <p className="text-[9px] uppercase tracking-widest font-black opacity-50 mb-2">{member.role}</p>
-                    <p className="text-sm font-light italic text-slate-600 leading-relaxed">{member.bio}</p>
+                    <p className="text-sm font-light text-slate-600 leading-relaxed" style={{ fontStyle: 'italic' }}>{member.bio}</p>
                   </div>
                 </motion.div>
               ))}
@@ -172,7 +192,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                 {status === "success" ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-12">
                     <CheckCircle size={48} className="text-green-500" />
-                    <h3 className="text-xl font-serif italic text-white">
+                    <h3 className="text-xl text-white" style={{ fontFamily: `'Playfair Display', ${fontFamily}, serif`, fontStyle: 'italic' }}>
                       {t('contact.success_title')}
                     </h3>
                     <p className="text-xs text-slate-400">
@@ -187,18 +207,18 @@ export default function ContactPage({ params }: ContactPageProps) {
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">
+                    <h3 className="text-lg text-white mb-6 text-center tracking-widest uppercase" style={{ fontFamily: `'Playfair Display', ${fontFamily}, serif`, fontStyle: 'italic' }}>
                       {t('contact.directContact')}
                     </h3>
                     
                     <div className="space-y-3 mb-8">
                       <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px]">
                         <Phone size={14} style={{ color: brandColor }} />
-                        {contactInfo?.phone || agency?.phone || "+33 1 00 00 00 00"}
+                        <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{contactInfo?.phone || agency?.phone || "+33 1 00 00 00 00"}</span>
                       </div>
                       <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px] truncate">
                         <Mail size={14} style={{ color: brandColor }} />
-                        {contactInfo?.email || agency?.email || "contact@agency.com"}
+                        <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{contactInfo?.email || agency?.email || "contact@agency.com"}</span>
                       </div>
                     </div>
 
@@ -206,6 +226,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                       <input 
                         required 
                         className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all placeholder:text-slate-500" 
+                        style={{ fontFamily: `${fontFamily}, sans-serif` }}
                         placeholder={t('contact.placeholder_name')} 
                         value={formData.name} 
                         onChange={(e) => setFormData({...formData, name: e.target.value})} 
@@ -214,6 +235,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                         required 
                         type="email" 
                         className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all placeholder:text-slate-500" 
+                        style={{ fontFamily: `${fontFamily}, sans-serif` }}
                         placeholder={t('contact.placeholder_email')} 
                         value={formData.email} 
                         onChange={(e) => setFormData({...formData, email: e.target.value})} 
@@ -222,6 +244,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                         required 
                         rows={4} 
                         className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none transition-all placeholder:text-slate-500" 
+                        style={{ fontFamily: `${fontFamily}, sans-serif` }}
                         placeholder={t('contact.placeholder_message')} 
                         value={formData.message} 
                         onChange={(e) => setFormData({...formData, message: e.target.value})} 
@@ -238,7 +261,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                         ) : (
                           <>
                             <Send size={14} />
-                            {t('contact.send_btn')}
+                            <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{t('contact.send_btn')}</span>
                           </>
                         )}
                       </button>
@@ -246,7 +269,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                       {status === "error" && (
                         <div className="flex items-center justify-center gap-2 text-red-400 text-[9px] mt-2 uppercase tracking-widest">
                           <AlertCircle size={12} />
-                          {t('contact.error_message')}
+                          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{t('contact.error_message')}</span>
                         </div>
                       )}
                     </form>

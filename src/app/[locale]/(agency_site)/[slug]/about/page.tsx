@@ -47,7 +47,7 @@ export default function AboutPage({ params }: AboutPageProps) {
     <div 
       className="min-h-screen bg-white text-slate-900 transition-colors duration-500"
       style={{ 
-        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`,
+        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important`,
         fontWeight: 400
       }}
     >
@@ -59,10 +59,12 @@ export default function AboutPage({ params }: AboutPageProps) {
               
               <div className="flex-1 space-y-8">
                 <h1 
-                  className="text-5xl md:text-7xl font-serif italic border-l-4 pl-8" 
+                  className="text-5xl md:text-7xl border-l-4 pl-8" 
                   style={{ 
                     borderColor: brandColor,
-                    fontFamily: `'Playfair Display', ${fontFamily}, serif`
+                    fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                    fontStyle: 'italic',
+                    fontWeight: 'normal'
                   }}
                 >
                   {agency?.about_title || t('about.title') || "Notre Histoire"}
@@ -70,8 +72,12 @@ export default function AboutPage({ params }: AboutPageProps) {
                 
                 <div className="prose prose-lg max-w-none">
                   <div 
-                    className="text-slate-600 leading-relaxed whitespace-pre-wrap font-light text-xl italic"
-                    style={{ fontFamily: `${fontFamily}, sans-serif` }}
+                    className="text-slate-600 leading-relaxed whitespace-pre-wrap text-xl"
+                    style={{ 
+                      fontFamily: `${fontFamily}, sans-serif`,
+                      fontWeight: 300,
+                      fontStyle: 'normal'
+                    }}
                   >
                     {agency?.about_text || t('about.text') || "L'excellence immobilière à votre service."}
                   </div>
@@ -96,10 +102,12 @@ export default function AboutPage({ params }: AboutPageProps) {
         <section className="py-32 bg-slate-50 border-y border-black/5">
           <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
             <h2 
-              className="text-3xl font-serif italic" 
+              className="text-3xl" 
               style={{ 
                 color: brandColor,
-                fontFamily: `'Playfair Display', ${fontFamily}, serif`
+                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                fontStyle: 'italic',
+                fontWeight: 'normal'
               }}
             >
               {agency?.agency_name}
