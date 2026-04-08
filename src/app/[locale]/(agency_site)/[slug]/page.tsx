@@ -66,4 +66,71 @@ export default async function DynamicAgencyPage({
       initialProperties={villas || []} 
     />
   );
+}import { supabase } from '@/lib/supabase';
+import AgencyPageClient from "@/app/AgencyPageClient";
+import { notFound } from 'next/navigation';
+
+// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
+export const dynamic = 'force-dynamic';
+
+export default async function DynamicAgencyPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string, locale: string }> 
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération de l'agence (Table: agency_settings)
+  // On identifie l'agence par son sous-domaine (slug)
+  const { data: agencies, error: agencyError } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug);
+
+  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
+
+  if (agencyError || !agency) {
+    console.error("[SUPABASE ERROR - AGENCY]", agencyError);
+    return notFound();
+  }
+
+  // 2. Récupération des villas filtrées par AGENCY_ID
+  // On utilise agency.id pour ne récupérer que les biens appartenant à ce client.
+  // On sélectionne les noms de colonnes exacts de ta table (titre, prix, town, etc.)
+  const { data: villas, error: villasError } = await supabase
+    .from('villas')
+    .select(`
+      id, 
+      id_externe, 
+      titre, 
+      prix, 
+      town, 
+      region, 
+      images, 
+      beds, 
+      baths, 
+      surface_built, 
+      surface_plot, 
+      type, 
+      pool, 
+      is_excluded, 
+      agency_id
+    `)
+    .eq('agency_id', agency.id) // Filtrage SaaS : Étanchéité garantie
+    .eq('is_excluded', false)   // On ignore les biens masqués manuellement
+    .order('prix', { ascending: false });
+
+  if (villasError) {
+    console.error("[SUPABASE ERROR - VILLAS]", villasError);
+  }
+
+  // 3. Rendu du composant Client
+  // On envoie les données à AgencyPageClient qui gère l'affichage (Grid, Filtres, etc.)
+  return (
+    <AgencyPageClient 
+      slug={slug} 
+      initialAgency={agency} 
+      initialProperties={villas || []} 
+    />
+  );
 }
