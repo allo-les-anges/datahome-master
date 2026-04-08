@@ -1,18 +1,19 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
-import { Shield, ChevronLeft, FileText } from "lucide-react";
+import { FileText, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { getTranslator } from "@/lib/i18n";
 
 export const revalidate = 0;
 
-export default async function LegalPage({
+export default async function TermsPage({
   params,
 }: {
   params: Promise<{ slug: string; locale: string }>;
 }) {
   const { slug, locale } = await params;
-  const t = await getTranslator(locale);
+
+  // Chargement manuel de la traduction pour le SSR
+  const translations = (await import(`@/locales/${locale}.json`)).default;
 
   const { data: agency } = await supabase
     .from('agency_settings')
@@ -22,23 +23,23 @@ export default async function LegalPage({
 
   if (!agency) return notFound();
 
-  // On détermine si c'est Privacy ou Terms selon l'URL (si tu utilises le même composant ou sépare les deux)
-  // Ici version simplifiée pour que tu puisses copier coller
-  
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-100 py-12">
         <div className="max-w-4xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 rounded-2xl text-white" style={{ backgroundColor: agency.primary_color || '#0f172a' }}>
-              <Shield size={24} />
+            <div 
+              className="p-3 rounded-2xl text-white"
+              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
+            >
+              <FileText size={24} />
             </div>
             <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
-              {t('footer.privacy')}
+              {translations.footer?.terms || "Mentions Légales"}
             </h1>
           </div>
           <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
-            {agency.agency_name} — {new Date().toLocaleDateString(locale)}
+            {agency.agency_name}
           </p>
         </div>
       </header>
@@ -46,15 +47,19 @@ export default async function LegalPage({
       <main className="max-w-4xl mx-auto px-6 py-16">
         <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
           <div className="prose prose-slate max-w-none">
-            <div className="whitespace-pre-wrap text-slate-600 leading-relaxed text-sm md:text-base">
-              {agency.privacy_policy || t('legal.privacy_default')}
+            <div className="whitespace-pre-wrap text-slate-600 leading-relaxed text-sm">
+              {agency.terms_content || translations.legal?.terms_default}
             </div>
           </div>
         </div>
 
         <div className="mt-12 text-center">
-          <Link href={`/${locale}/${slug}`} className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest">
-            <ChevronLeft size={14} /> {t('common.backToHome')}
+          <Link 
+            href={`/${locale}/${slug}`}
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
+          >
+            <ChevronLeft size={14} />
+            {translations.common?.backToHome || "Retour"}
           </Link>
         </div>
       </main>
