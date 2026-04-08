@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, use, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Phone, User } from "lucide-react";
+import { Loader2, Mail, Phone, User, Send, CheckCircle, AlertCircle } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext";
 
@@ -17,10 +17,15 @@ export default function ContactPage({ params }: ContactPageProps) {
   const resolvedParams = use(params);
   const { t } = useTranslation();
   const { agency, loading, setAgencyBySlug } = useAgency(); 
+  const [mounted, setMounted] = useState(false);
   
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const currentSlug = resolvedParams.slug;
@@ -56,23 +61,40 @@ export default function ContactPage({ params }: ContactPageProps) {
     };
   }, [agency]);
 
+  // Envoi réel vers l'API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulation d'envoi
-    setTimeout(() => {
+    
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        setStatus("success");
+        setFormData({ name: "", email: "", message: "" });
+        setTimeout(() => setStatus("idle"), 5000);
+      } else {
+        setStatus("error");
+        setTimeout(() => setStatus("idle"), 3000);
+      }
+    } catch (err) {
+      console.error("Erreur envoi:", err);
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+    } finally {
       setIsSubmitting(false);
-      setStatus("success");
-      setFormData({ name: "", email: "", message: "" });
-      setTimeout(() => setStatus("idle"), 5000);
-    }, 1500);
+    }
   };
 
-  if (loading && !agency) {
+  if (loading || !mounted) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{t('common.loading')}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Chargement...</p>
       </div>
     );
   }
@@ -87,7 +109,7 @@ export default function ContactPage({ params }: ContactPageProps) {
           )}
           <div className="relative z-10 text-center px-6">
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-6xl font-serif italic text-white mb-4">
-              {t('contact.formTitle')}
+              Contactez-nous
             </motion.h1>
             <p className="text-white/80 text-lg font-light italic uppercase tracking-widest">{agency?.agency_name}</p>
           </div>
@@ -100,7 +122,7 @@ export default function ContactPage({ params }: ContactPageProps) {
           <div className="xl:col-span-7 space-y-10">
             <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
               <h2 className="text-3xl font-serif italic uppercase tracking-widest">
-                {agency?.about_title || t('contact.teamTitle')}
+                {agency?.about_title || "Notre Équipe"}
               </h2>
             </div>
             
@@ -120,56 +142,94 @@ export default function ContactPage({ params }: ContactPageProps) {
             </div>
           </div>
 
-          {/* iPhone-style Form Card */}
+          {/* Formulaire de contact */}
           <div className="xl:col-span-5 flex justify-center">
-            <div className="relative w-full max-w-[380px] aspect-[9/18.5] rounded-[3.5rem] bg-slate-900 p-3 shadow-2xl border-[8px] border-slate-800">
-              <div className="relative w-full h-full rounded-[2.8rem] overflow-hidden bg-slate-950 flex flex-col p-8 pt-12">
-                <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">
-                  {t('contact.directContact')}
-                </h3>
+            <div className="relative w-full max-w-[380px] rounded-[3rem] bg-slate-900 p-6 shadow-2xl">
+              <div className="w-full rounded-[2rem] overflow-hidden bg-slate-950 flex flex-col p-6">
                 
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px]">
-                    <Phone size={14} style={{ color: brandColor }} />
-                    {contactInfo?.phone || agency?.phone || "+33 1 00 00 00 00"}
+                {status === "success" ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-12">
+                    <CheckCircle size={48} className="text-green-500" />
+                    <h3 className="text-xl font-serif italic text-white">
+                      Message envoyé avec succès !
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Nous vous répondrons dans les plus brefs délais.
+                    </p>
+                    <button 
+                      onClick={() => setStatus("idle")}
+                      className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      Retour
+                    </button>
                   </div>
-                  <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px] truncate">
-                    <Mail size={14} style={{ color: brandColor }} />
-                    {contactInfo?.email || agency?.email || "contact@agency.com"}
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-serif italic text-white mb-6 text-center tracking-widest uppercase">
+                      Contact direct
+                    </h3>
+                    
+                    <div className="space-y-3 mb-8">
+                      <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px]">
+                        <Phone size={14} style={{ color: brandColor }} />
+                        {contactInfo?.phone || agency?.phone || "+33 1 00 00 00 00"}
+                      </div>
+                      <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-white/90 text-[11px] truncate">
+                        <Mail size={14} style={{ color: brandColor }} />
+                        {contactInfo?.email || agency?.email || "contact@agency.com"}
+                      </div>
+                    </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-3">
-                  <input required className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all" 
-                    placeholder={t('contact.namePlaceholder')} 
-                    value={formData.name} 
-                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                  />
-                  <input required type="email" className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all" 
-                    placeholder={t('contact.emailPlaceholder')} 
-                    value={formData.email} 
-                    onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                  />
-                  <textarea required rows={4} className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none transition-all" 
-                    placeholder={t('contact.messagePlaceholder')} 
-                    value={formData.message} 
-                    onChange={(e) => setFormData({...formData, message: e.target.value})} 
-                  />
-                  
-                  <button type="submit" disabled={isSubmitting} style={{ backgroundColor: buttonColor }} 
-                    className="mt-auto w-full py-4 rounded-xl text-black font-black text-[10px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="animate-spin" size={14}/>
-                    ) : (
-                      status === "success" ? t('contact.success').toUpperCase() : t('contact.submit').toUpperCase()
-                    )}
-                  </button>
+                    <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-3">
+                      <input 
+                        required 
+                        className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all placeholder:text-slate-500" 
+                        placeholder="VOTRE NOM" 
+                        value={formData.name} 
+                        onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                      />
+                      <input 
+                        required 
+                        type="email" 
+                        className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 transition-all placeholder:text-slate-500" 
+                        placeholder="VOTRE EMAIL" 
+                        value={formData.email} 
+                        onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                      />
+                      <textarea 
+                        required 
+                        rows={4} 
+                        className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-[10px] text-white outline-none focus:border-white/30 resize-none transition-all placeholder:text-slate-500" 
+                        placeholder="DÉTAILS DE VOTRE PROJET..." 
+                        value={formData.message} 
+                        onChange={(e) => setFormData({...formData, message: e.target.value})} 
+                      />
+                      
+                      <button 
+                        type="submit" 
+                        disabled={isSubmitting} 
+                        style={{ backgroundColor: buttonColor }} 
+                        className="mt-auto w-full py-4 rounded-xl text-black font-black text-[10px] tracking-[0.3em] hover:brightness-110 active:scale-95 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="animate-spin" size={14}/>
+                        ) : (
+                          <>
+                            <Send size={14} />
+                            ENVOYER
+                          </>
+                        )}
+                      </button>
 
-                  {status === "error" && (
-                    <p className="text-[9px] text-red-400 text-center mt-2 uppercase tracking-widest">{t('contact.error')}</p>
-                  )}
-                </form>
+                      {status === "error" && (
+                        <div className="flex items-center justify-center gap-2 text-red-400 text-[9px] mt-2 uppercase tracking-widest">
+                          <AlertCircle size={12} />
+                          Erreur lors de l'envoi
+                        </div>
+                      )}
+                    </form>
+                  </>
+                )}
               </div>
             </div>
           </div>

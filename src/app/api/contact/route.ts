@@ -3,27 +3,35 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, region, message } = body;
+    // Support des données envoyées par le formulaire
+    const { name, email, message, property_ref } = body;
 
-    // 1. ENVOI VERS ZOHO CRM (Web-to-Lead ou API)
-    // Remplacer l'URL par votre Web-to-Lead hook ou votre endpoint d'automatisation
+    console.log("📨 Réception formulaire:", { name, email, property_ref });
+
+    // Validation
+    if (!name || !email || !message) {
+      return NextResponse.json(
+        { success: false, error: "Champs manquants" },
+        { status: 400 }
+      );
+    }
+
+    // Envoi vers Zoho CRM
     const zohoResponse = await fetch("https://crm.zoho.eu/crm/WebToLeadForm", {
       method: "POST",
       body: new URLSearchParams({
         'xnpe_force': '1',
         'Last Name': name,
         'Email': email,
-        'Description': `Région: ${region} | Message: ${message}`,
-        // Ajoutez ici vos identifiants Zoho (FormId, etc.)
+        'Description': `Propriété: ${property_ref || 'Non spécifiée'} | Message: ${message}`,
       })
     });
 
-    // 2. NOTIFICATION GILLIAN 
-    // Option simple : Envoi d'un email via un service comme Resend ou SendGrid
-    // Ou via un webhook Slack/Teams si Gillian l'utilise
+    console.log("Zoho response status:", zohoResponse.status);
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Erreur API contact:", error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }
