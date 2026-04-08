@@ -81,5 +81,10 @@
     "visitDate": "Fecha de visita: {date}",
     "statusConforme": "ESTADO: CONFORME",
     "certification": "Información certificada por el departamento técnico."
+  },
+  "about": {
+    "title": "Nuestra Historia",
+    "text": "Excelencia inmobiliaria a su servicio.",
+    "signature": "Bienes raíces bajo una nueva mirada"
   }
 }

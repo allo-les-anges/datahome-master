@@ -81,5 +81,10 @@
     "visitDate": "Bezoekdatum: {date}",
     "statusConforme": "STATUS: CONFORM",
     "certification": "Informatie gecertificeerd door de technische afdeling."
+  },
+  "about": {
+    "title": "Ons Verhaal",
+    "text": "Vastgoedexcellentie in uw dienst.",
+    "signature": "Vastgoed door een nieuwe lens"
   }
 }

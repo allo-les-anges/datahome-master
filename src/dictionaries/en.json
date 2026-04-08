@@ -81,5 +81,10 @@
     "visitDate": "Visit date: {date}",
     "statusConforme": "STATUS: COMPLIANT",
     "certification": "Information certified by the technical department."
+  },
+  "about": {
+    "title": "Our Story",
+    "text": "Real estate excellence at your service.",
+    "signature": "Real estate through a new lens"
   }
 }

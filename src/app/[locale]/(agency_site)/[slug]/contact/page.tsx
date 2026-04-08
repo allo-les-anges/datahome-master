@@ -108,20 +108,7 @@ export default function ContactPage({ params }: ContactPageProps) {
         fontStyle: 'normal'
       }}
     >
-      {/* Injection CSS pour forcer la police sur tous les éléments enfants */}
-      <style jsx global>{`
-        .contact-page-wrapper,
-        .contact-page-wrapper * {
-          font-family: ${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important;
-        }
-        .contact-page-wrapper h1,
-        .contact-page-wrapper h2,
-        .contact-page-wrapper h3 {
-          font-family: 'Playfair Display', ${fontFamily}, serif !important;
-        }
-      `}</style>
-
-      <main className="contact-page-wrapper">
+      <main>
         {/* Hero Section */}
         <section className="relative h-[40vh] flex items-center justify-center overflow-hidden bg-slate-900">
           {agency?.hero_url && (
@@ -132,6 +119,7 @@ export default function ContactPage({ params }: ContactPageProps) {
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
               className="text-4xl md:text-6xl font-serif italic text-white mb-4"
+              style={{ fontFamily: `'Playfair Display', ${fontFamily}, serif` }}
             >
               {t('contact.title')}
             </motion.h1>

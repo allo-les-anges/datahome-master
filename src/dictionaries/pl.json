@@ -81,5 +81,10 @@
     "visitDate": "Data wizyty: {date}",
     "statusConforme": "STATUS: ZGODNY",
     "certification": "Informacje certyfikowane przez dział techniczny."
+  },
+  "about": {
+    "title": "Nasza Historia",
+    "text": "Doskonałość w nieruchomościach na Twoją usługę.",
+    "signature": "Nieruchomości w nowym świetle"
   }
 }
