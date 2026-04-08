@@ -86,5 +86,13 @@
     "title": "Notre Histoire",
     "text": "L'excellence immobilière à votre service.",
     "signature": "L'immobilier sous un nouveau regard"
+  },
+  "footer": {
+    "privacy": "Politique de Confidentialité",
+    "terms": "Mentions Légales",
+    "eliteEdition": "Édition Élite",
+    "address": "Adresse",
+    "excellence": "Excellence Immobilière",
+    "description": "Votre partenaire de confiance pour l'immobilier d'exception."
   }
 }

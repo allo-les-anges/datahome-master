@@ -86,5 +86,13 @@
     "title": "Our Story",
     "text": "Real estate excellence at your service.",
     "signature": "Real estate through a new lens"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "eliteEdition": "Elite Edition",
+    "address": "Address",
+    "excellence": "Real Estate Excellence",
+    "description": "Your trusted partner for exceptional real estate."
   }
 }

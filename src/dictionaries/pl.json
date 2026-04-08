@@ -86,5 +86,13 @@
     "title": "Nasza Historia",
     "text": "Doskonałość w nieruchomościach na Twoją usługę.",
     "signature": "Nieruchomości w nowym świetle"
+  },
+  "footer": {
+    "privacy": "Polityka Prywatności",
+    "terms": "Regulamin",
+    "eliteEdition": "Edycja Elitarna",
+    "address": "Adres",
+    "excellence": "Doskonałość w Nieruchomościach",
+    "description": "Twój zaufany partner w segmencie nieruchomości luksusowych."
   }
 }

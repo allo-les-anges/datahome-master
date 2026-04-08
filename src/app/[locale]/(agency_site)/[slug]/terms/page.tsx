@@ -21,6 +21,7 @@ export default async function TermsPage({
   if (!agency) return notFound();
 
   // Texte par défaut pour les mentions légales / CGU
+
   const defaultTerms = `
     Les présentes conditions régissent l'utilisation du site de l'agence ${agency.agency_name}. 
     

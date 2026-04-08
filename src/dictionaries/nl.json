@@ -86,5 +86,13 @@
     "title": "Ons Verhaal",
     "text": "Vastgoedexcellentie in uw dienst.",
     "signature": "Vastgoed door een nieuwe lens"
+  },
+  "footer": {
+    "privacy": "Privacybeleid",
+    "terms": "Algemene Voorwaarden",
+    "eliteEdition": "Elite Editie",
+    "address": "Adres",
+    "excellence": "Vastgoed Excellence",
+    "description": "Uw betrouwbare partner voor exclusief vastgoed."
   }
 }

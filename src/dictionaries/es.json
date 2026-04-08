@@ -86,5 +86,13 @@
     "title": "Nuestra Historia",
     "text": "Excelencia inmobiliaria a su servicio.",
     "signature": "Bienes raíces bajo una nueva mirada"
+  },
+  "footer": {
+    "privacy": "Política de Privacidad",
+    "terms": "Aviso Legal",
+    "eliteEdition": "Edición Élite",
+    "address": "Dirección",
+    "excellence": "Excelencia Inmobiliaria",
+    "description": "Su socio de confianza para propiedades excepcionales."
   }
 }
