@@ -110,6 +110,7 @@ src/app/[locale]/(agency_site)/[slug]/contact/page.tsx
 src/app/[locale]/(agency_site)/[slug]/layout.tsx
 src/app/[locale]/(agency_site)/[slug]/page.tsx
 src/app/[locale]/(agency_site)/[slug]/privacy/page.tsx
+src/app/[locale]/(agency_site)/[slug]/terms/page.tsx
 src/app/[locale]/layout.tsx
 src/app/admin/agencies/page.tsx
 src/app/admin/page.tsx
@@ -3221,80 +3222,6 @@ export async function GET() {
 }
 </file>
 
-<file path="src/app/[locale]/(agency_site)/[slug]/privacy/page.tsx">
-import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
-import { Shield } from "lucide-react";
-
-export const revalidate = 0; // Force Next.js à ignorer le cache pour vos tests
-export default async function PrivacyPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-
-  // Récupération des données de l'agence
-  const { data: agency } = await supabase
-    .from('agencies')
-    .select('*')
-    .eq('subdomain', slug)
-    .single();
-
-  if (!agency) return notFound();
-
-  return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header simple pour la page légale */}
-      <header className="bg-white border-b border-slate-100 py-12">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 rounded-2xl bg-slate-900 text-white">
-              <Shield size={24} />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
-              Politique de Confidentialité
-            </h1>
-          </div>
-          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
-            {agency.agency_name} — Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
-          </p>
-        </div>
-      </header>
-
-      {/* Contenu dynamique */}
-      <main className="max-w-4xl mx-auto px-6 py-16">
-        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <div className="prose prose-slate max-w-none">
-            {agency.privacy_policy ? (
-              <div className="whitespace-pre-wrap text-slate-600 leading-relaxed">
-                {agency.privacy_policy}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-slate-400 italic">
-                  La politique de confidentialité n'a pas encore été rédigée pour cette agence.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bouton retour */}
-        <div className="mt-12 text-center">
-          <a 
-            href={`/agency/${slug}`}
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
-          >
-            ← Retour à l'accueil
-          </a>
-        </div>
-      </main>
-    </div>
-  );
-}
-</file>
-
 <file path="src/app/api/contact/route.ts">
 import { NextResponse } from "next/server";
 
@@ -5054,130 +4981,6 @@ export default function AgencyDashboard() {
 }
 </file>
 
-<file path="src/components/Footer.tsx">
-"use client";
-
-import React from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface FooterProps {
-  isLight?: boolean;
-  agency?: any;
-}
-
-export default function Footer({ isLight = true, agency }: FooterProps) {
-  const { t } = useTranslation();
-  const params = useParams();
-  const slug = params?.slug || "";
-  const locale = params?.locale || "en";
-  
-  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
-  const textColor = isLight ? "text-slate-900" : "text-white";
-  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
-  
-  // Extraction sécurisée de la config
-  const footerData = typeof agency?.footer_config === 'string' 
-    ? JSON.parse(agency.footer_config || '{}') 
-    : (agency?.footer_config || {});
-
-  // On récupère la couleur pour l'injecter si Tailwind ne prend pas le relai
-  const brandColor = agency?.primary_color || '#10b981';
-
-  return (
-    <footer 
-      className={`${bgColor} py-16 transition-colors duration-500`}
-      style={{ '--brand-primary': brandColor } as React.CSSProperties} // Injection locale de sécurité
-    >
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
-          
-          {/* Identité */}
-          <div className="col-span-1 md:col-span-1 space-y-6">
-            <h3 className={`text-xl font-serif italic ${textColor}`}>
-              {agency?.agency_name || t('footer.excellence')}
-            </h3>
-            {/* Utilisation de la variable CSS injectée */}
-            <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
-            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
-              {t('footer.description')}
-            </p>
-          </div>
-
-          {/* Navigation - Liens dynamiques avec Slug */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li>
-                <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
-                  {t('nav.home')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
-                  {t('nav.contact')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact & Localisation */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li className="flex items-start gap-3">
-                <MapPin size={14} style={{ color: brandColor }} className="shrink-0" /> 
-                <span className="leading-tight">
-                  {footerData?.address || agency?.address || t('footer.address')}
-                  <br />
-                  {footerData?.city || agency?.city || t('footer.city')}
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail size={14} style={{ color: brandColor }} className="shrink-0" /> 
-                <a href={`mailto:${footerData?.email || agency?.email}`} className="hover:underline lowercase tracking-normal italic text-[11px]">
-                  {footerData?.email || agency?.email || t('footer.email')}
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone size={14} style={{ color: brandColor }} className="shrink-0" /> 
-                {footerData?.phone || agency?.phone || t('footer.phone')}
-              </li>
-            </ul>
-          </div>
-
-          {/* Réseaux Sociaux */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Suivez-nous</h4>
-            <div className="flex gap-6">
-              {(footerData?.socials?.facebook || agency?.facebook_url) && (
-                <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:opacity-70 transition-all`}>
-                  <Facebook size={18} style={{ color: brandColor }} />
-                </a>
-              )}
-              {(footerData?.socials?.instagram || agency?.instagram_url) && (
-                <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank" rel="noopener noreferrer" className={`${mutedText} hover:opacity-70 transition-all`}>
-                  <Instagram size={18} style={{ color: brandColor }} />
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} text-center`}>
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
-            © {new Date().getFullYear()} {agency?.agency_name} — {t('footer.eliteEdition')}
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-</file>
-
 <file path="src/components/Hero.tsx">
 // src/components/Hero.tsx - Ajout du lazy loading
 "use client";
@@ -5495,6 +5298,134 @@ export default {
 }
 </file>
 
+<file path="src/components/Footer.tsx">
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface FooterProps {
+  isLight?: boolean;
+  agency?: any;
+}
+
+export default function Footer({ isLight = true, agency }: FooterProps) {
+  const { t } = useTranslation();
+  const params = useParams();
+  const slug = params?.slug || "";
+  const locale = params?.locale || "en";
+  
+  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
+  const textColor = isLight ? "text-slate-900" : "text-white";
+  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
+  
+  const footerData = typeof agency?.footer_config === 'string' 
+    ? JSON.parse(agency.footer_config || '{}') 
+    : (agency?.footer_config || {});
+
+  const brandColor = agency?.primary_color || '#10b981';
+
+  // Logique SaaS : Nom légal vs Nom commercial
+  const legalName = agency?.legal_name || agency?.agency_name || "Datahome";
+
+  return (
+    <footer 
+      className={`${bgColor} py-16 transition-colors duration-500`}
+      style={{ '--brand-primary': brandColor } as React.CSSProperties}
+    >
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+          
+          {/* Identité & Copyrighting */}
+          <div className="col-span-1 md:col-span-1 space-y-6">
+            <h3 className={`text-xl font-serif italic ${textColor}`}>
+              {agency?.agency_name || t('footer.excellence')}
+            </h3>
+            <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
+            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
+              {t('footer.description')}
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li>
+                <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
+                  {t('nav.home')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
+                  {t('nav.contact')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Légal & Privacy (Le coeur du SaaS) */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li>
+                <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
+                  <ShieldCheck size={12} />
+                  {t('footer.privacy')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors">
+                  {t('footer.terms')}
+                </Link>
+              </li>
+              {/* Si l'agence a un numéro de licence (ex: Carte T en France) */}
+              {agency?.license_number && (
+                <li className="text-[9px] normal-case opacity-70">
+                  Licence: {agency.license_number}
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Contact & Réseaux */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
+            <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <p className="flex items-start gap-3">
+                <MapPin size={14} style={{ color: brandColor }} />
+                <span>{footerData?.address || agency?.address}</span>
+              </p>
+              <div className="flex gap-4 pt-2">
+                {(footerData?.socials?.facebook || agency?.facebook_url) && (
+                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank"><Facebook size={18} /></a>
+                )}
+                {(footerData?.socials?.instagram || agency?.instagram_url) && (
+                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank"><Instagram size={18} /></a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Bottom : Le Copyright Multi-Tenant */}
+        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
+            © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
+          </p>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
+            Powered by <a href="https://datahome.fr" className="hover:underline">Datahome</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+</file>
+
 <file path="src/components/PropertyDetailClient.tsx">
 "use client";
 
@@ -5698,564 +5629,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       </div>
     </main>
   );
-}
-</file>
-
-<file path="src/dictionaries/ar.json">
-{
-  "common": {
-    "back": "رجوع",
-    "backToHome": "العودة إلى الرئيسية",
-    "loading": "جاري التحميل...",
-    "error": "حدث خطأ ما",
-    "search": "بحث",
-    "confirm": "تأكيد",
-    "cancel": "إلغاء",
-    "save": "حفظ",
-    "close": "إغلاق",
-    "showMore": "عرض المزيد من العقارات"
-  },
-  "nav": {
-    "home": "الرئيسية",
-    "about": "من نحن",
-    "results": "عقاراتنا",
-    "contact": "اتصل بنا",
-    "back": "العودة للقائمة",
-    "search": "البحث عن عقار",
-    "clientAccess": "متابعة المشروع"
-  },
-  "home": {
-    "heroTitleLine1": "فيلات فاخرة و",
-    "heroTitleLine2": "عقارات استثنائية",
-    "heroSubtitle": "كوستا بلانكا | كوستا ديل سول",
-    "findVilla": "ابحث عن فيلتك",
-    "noMatch": "لم يتم العثور على نتائج",
-    "reset": "إعادة ضبط الفلاتر"
-  },
-  "propertyCard": {
-    "ref": "مرجع: {ref}",
-    "beds": "غرف",
-    "baths": "حمامات",
-    "surface": "م²",
-    "plot": "م² أرض"
-  },
-  "propertyDetail": {
-    "back": "العودة للاختيار",
-    "ref": "مرجع: {ref}",
-    "bedrooms": "غرف النوم",
-    "bathrooms": "الحمامات",
-    "built": "م² مبني",
-    "plot": "مساحة الأرض م²",
-    "pool": "مسبح",
-    "description": "الوصف",
-    "features": "المميزات",
-    "parking": "موقف سيارات",
-    "price": "سعر البيع",
-    "brochure": "ملف PDF",
-    "whatsapp": "تواصل عبر واتساب",
-    "bookVisit": "حجز زيارة",
-    "location": "الموقع",
-    "distanceSea": "البحر على بعد {distance}كم",
-    "propertyNotFound": "لم يتم العثور على العقار"
-  },
-  "contact": {
-  "title": "اتصل بنا",
-  "ref_label": "مرجع",
-  "placeholder_name": "اسمك الكامل",
-  "placeholder_email": "بريدك الإلكتروني",
-  "placeholder_message": "تفاصيل مشروعك...",
-  "send_btn": "إرسال الطلب",
-  "success_title": "تم إرسال الرسالة بنجاح!",
-  "success_message": "تم استلام الطلب بنجاح.",
-  "error_message": "خطأ أثناء الإرسال.",
-  "directContact": "اتصال مباشر",
-  "teamTitle": "الفريق"
-},
-  "footer": {
-    "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتك وأرقى العقارات.",
-    "city": "أوريويلا كوستا، إسبانيا",
-    "eliteEdition": "Elite Edition v2.0"
-  },
-  "projectTracker": {
-    "title": "متابعة مشروعك",
-    "phaseLabel": "المرحلة الحالية:",
-    "quit": "خروج",
-    "documents": "الوثائق الإدارية",
-    "technicalReports": "تقارير الموقع",
-    "visitDate": "تاريخ الزيارة: {date}",
-    "statusConforme": "الحالة: مطابق",
-    "certification": "معلومات معتمدة من القسم الفني."
-  },
-  "about": {
-    "title": "قصتنا",
-    "text": "التميز العقاري في خدمتكم.",
-    "signature": "العقارات من منظور جديد"
-  }
-}
-</file>
-
-<file path="src/dictionaries/en.json">
-{
-  "common": {
-    "back": "Back",
-    "backToHome": "Back to Home",
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "search": "Search",
-    "confirm": "Confirm",
-    "cancel": "Cancel",
-    "save": "Save",
-    "close": "Close",
-    "showMore": "Show more properties"
-  },
-  "nav": {
-    "home": "Home",
-    "about": "About Us",
-    "results": "Our Properties",
-    "contact": "Contact",
-    "back": "Back to list",
-    "search": "Search a property",
-    "clientAccess": "Project Tracking"
-  },
-  "home": {
-    "heroTitleLine1": "Luxury Villas &",
-    "heroTitleLine2": "Exceptional Properties",
-    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
-    "findVilla": "Find your villa",
-    "noMatch": "No matches found",
-    "reset": "Reset filters"
-  },
-  "propertyCard": {
-    "ref": "REF: {ref}",
-    "beds": "beds",
-    "baths": "baths",
-    "surface": "sqm",
-    "plot": "sqm plot"
-  },
-  "propertyDetail": {
-    "back": "Back to selection",
-    "ref": "Ref: {ref}",
-    "bedrooms": "Bedrooms",
-    "bathrooms": "Bathrooms",
-    "built": "Sqm Built",
-    "plot": "Plot sqm",
-    "pool": "Pool",
-    "description": "Description",
-    "features": "Features",
-    "parking": "Parking",
-    "price": "Sale price",
-    "brochure": "PDF Brochure",
-    "whatsapp": "Contact WhatsApp",
-    "bookVisit": "Book a visit",
-    "location": "Location",
-    "distanceSea": "Sea at {distance}km",
-    "propertyNotFound": "Property not found"
-  },
-  "contact": {
-  "title": "Contact Us",
-  "ref_label": "Ref",
-  "placeholder_name": "YOUR NAME",
-  "placeholder_email": "YOUR EMAIL",
-  "placeholder_message": "PROJECT DETAILS...",
-  "send_btn": "Send Request",
-  "success_title": "Message sent successfully!",
-  "success_message": "successfully received.",
-  "error_message": "Error while sending.",
-  "directContact": "Direct Contact",
-  "teamTitle": "The Team"
-},
-  "footer": {
-    "description": "The art of exceptional real estate. We build bridges between your ambitions and the most prestigious properties.",
-    "city": "Orihuela Costa, Spain",
-    "eliteEdition": "Elite Edition v2.0"
-  },
-  "projectTracker": {
-    "title": "Your Project Tracking",
-    "phaseLabel": "Current Phase:",
-    "quit": "Leave area",
-    "documents": "Administrative Documents",
-    "technicalReports": "Site Reports",
-    "visitDate": "Visit date: {date}",
-    "statusConforme": "STATUS: COMPLIANT",
-    "certification": "Information certified by the technical department."
-  },
-  "about": {
-    "title": "Our Story",
-    "text": "Real estate excellence at your service.",
-    "signature": "Real estate through a new lens"
-  }
-}
-</file>
-
-<file path="src/dictionaries/es.json">
-{
-  "common": {
-    "back": "Volver",
-    "backToHome": "Volver al inicio",
-    "loading": "Cargando...",
-    "error": "Ha ocurrido un error",
-    "search": "Buscar",
-    "confirm": "Confirmar",
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "close": "Cerrar",
-    "showMore": "Ver más propiedades"
-  },
-  "nav": {
-    "home": "Inicio",
-    "about": "Sobre nosotros",
-    "results": "Nuestras propiedades",
-    "contact": "Contacto",
-    "back": "Volver a la lista",
-    "search": "Buscar una propiedad",
-    "clientAccess": "Seguimiento de obra"
-  },
-  "home": {
-    "heroTitleLine1": "Villas de lujo &",
-    "heroTitleLine2": "Propiedades excepcionales",
-    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
-    "findVilla": "Encuentre su villa",
-    "noMatch": "No se encontraron resultados",
-    "reset": "Restablecer filtros"
-  },
-  "propertyCard": {
-    "ref": "REF: {ref}",
-    "beds": "dorm.",
-    "baths": "baños",
-    "surface": "m²",
-    "plot": "m² parcela"
-  },
-  "propertyDetail": {
-    "back": "Volver a la selección",
-    "ref": "Ref: {ref}",
-    "bedrooms": "Dormitorios",
-    "bathrooms": "Baños",
-    "built": "m² Construidos",
-    "plot": "Parcela m²",
-    "pool": "Piscina",
-    "description": "Descripción",
-    "features": "Características",
-    "parking": "Aparcamiento",
-    "price": "Precio de venta",
-    "brochure": "Folleto PDF",
-    "whatsapp": "Contacto WhatsApp",
-    "bookVisit": "Reservar una visita",
-    "location": "Ubicación",
-    "distanceSea": "Mar a {distance}km",
-    "propertyNotFound": "Propiedad no encontrada"
-  },
-  "contact": {
-  "title": "Contáctenos",
-  "ref_label": "Ref",
-  "placeholder_name": "SU NOMBRE",
-  "placeholder_email": "SU EMAIL",
-  "placeholder_message": "DETALLES DE SU PROYECTO...",
-  "send_btn": "Enviar solicitud",
-  "success_title": "¡Mensaje enviado con éxito!",
-  "success_message": "recibida correctamente.",
-  "error_message": "Error al enviar.",
-  "directContact": "Contacto Directo",
-  "teamTitle": "El Equipo"
-},
-  "footer": {
-    "description": "El arte de las propiedades inmobiliarias excepcionales. Creamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
-    "city": "Orihuela Costa, España",
-    "eliteEdition": "Elite Edition v2.0"
-  },
-  "projectTracker": {
-    "title": "Seguimiento de su proyecto",
-    "phaseLabel": "Fase actual:",
-    "quit": "Salir del espacio",
-    "documents": "Documentos administrativos",
-    "technicalReports": "Informes de obra",
-    "visitDate": "Fecha de visita: {date}",
-    "statusConforme": "ESTADO: CONFORME",
-    "certification": "Información certificada por el departamento técnico."
-  },
-  "about": {
-    "title": "Nuestra Historia",
-    "text": "Excelencia inmobiliaria a su servicio.",
-    "signature": "Bienes raíces bajo una nueva mirada"
-  }
-}
-</file>
-
-<file path="src/dictionaries/fr.json">
-{
-  "common": {
-    "back": "Retour",
-    "backToHome": "Retour à l'accueil",
-    "loading": "Chargement...",
-    "error": "Une erreur est survenue",
-    "search": "Rechercher",
-    "confirm": "Confirmer",
-    "cancel": "Annuler",
-    "save": "Enregistrer",
-    "close": "Fermer",
-    "showMore": "Afficher plus de biens"
-  },
-  "nav": {
-    "home": "Accueil",
-    "about": "Qui sommes-nous",
-    "results": "Nos Biens",
-    "contact": "Contact",
-    "back": "Retour à la liste",
-    "search": "Rechercher un bien",
-    "clientAccess": "Suivi de Chantier"
-  },
-  "home": {
-    "heroTitleLine1": "Villas de Luxe &",
-    "heroTitleLine2": "Propriétés d'Exception",
-    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
-    "findVilla": "Trouver votre villa",
-    "noMatch": "Aucune correspondance trouvée",
-    "reset": "Réinitialiser les filtres"
-  },
-  "propertyCard": {
-    "ref": "REF: {ref}",
-    "beds": "lits",
-    "baths": "sdb",
-    "surface": "m²",
-    "plot": "m² terrain"
-  },
-  "propertyDetail": {
-    "back": "Retour à la sélection",
-    "ref": "Réf: {ref}",
-    "bedrooms": "Chambres",
-    "bathrooms": "Bains",
-    "built": "m² Bâti",
-    "plot": "Terrain m²",
-    "pool": "Piscine",
-    "description": "Description",
-    "features": "Caractéristiques",
-    "parking": "Parking",
-    "price": "Prix de vente",
-    "brochure": "Brochure PDF",
-    "whatsapp": "Contact WhatsApp",
-    "bookVisit": "Réserver une visite",
-    "location": "Emplacement",
-    "distanceSea": "Mer à {distance}km",
-    "propertyNotFound": "Propriété non trouvée"
-  },
-  "contact": {
-  "title": "Contactez-nous",
-  "ref_label": "Réf",
-  "placeholder_name": "VOTRE NOM",
-  "placeholder_email": "VOTRE EMAIL",
-  "placeholder_message": "DÉTAILS DE VOTRE PROJET...",
-  "send_btn": "Envoyer la demande",
-  "success_title": "Message envoyé avec succès !",
-  "success_message": "bien reçue.",
-  "error_message": "Erreur lors de l'envoi.",
-  "directContact": "Direct Contact",
-  "teamTitle": "L'Équipe"
-},
-  "footer": {
-    "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
-    "city": "Orihuela Costa, Espagne",
-    "eliteEdition": "Elite Edition v2.0"
-  },
-  "projectTracker": {
-    "title": "Suivi de votre Projet",
-    "phaseLabel": "Phase Actuelle :",
-    "quit": "Quitter l'espace",
-    "documents": "Documents Administratifs",
-    "technicalReports": "Rapports de Chantier",
-    "visitDate": "Date de visite : {date}",
-    "statusConforme": "STATUT : CONFORME",
-    "certification": "Informations certifiées par le département technique."
-  },
-  "about": {
-    "title": "Notre Histoire",
-    "text": "L'excellence immobilière à votre service.",
-    "signature": "L'immobilier sous un nouveau regard"
-  }
-}
-</file>
-
-<file path="src/dictionaries/nl.json">
-{
-  "common": {
-    "back": "Terug",
-    "backToHome": "Terug naar home",
-    "loading": "Laden...",
-    "error": "Er is een fout opgetreden",
-    "search": "Zoeken",
-    "confirm": "Bevestigen",
-    "cancel": "Annuleren",
-    "save": "Opslaan",
-    "close": "Sluiten",
-    "showMore": "Meer woningen weergeven"
-  },
-  "nav": {
-    "home": "Home",
-    "about": "Over ons",
-    "results": "Ons aanbod",
-    "contact": "Contact",
-    "back": "Terug naar lijst",
-    "search": "Zoek een woning",
-    "clientAccess": "Projectopvolging"
-  },
-  "home": {
-    "heroTitleLine1": "Luxe Villa's &",
-    "heroTitleLine2": "Uitzonderlijk Vastgoed",
-    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
-    "findVilla": "Vind uw villa",
-    "noMatch": "Geen overeenkomsten gevonden",
-    "reset": "Filters wissen"
-  },
-  "propertyCard": {
-    "ref": "REF: {ref}",
-    "beds": "slpks",
-    "baths": "badks",
-    "surface": "m²",
-    "plot": "m² perceel"
-  },
-  "propertyDetail": {
-    "back": "Terug naar selectie",
-    "ref": "Ref: {ref}",
-    "bedrooms": "Slaapkamers",
-    "bathrooms": "Badkamers",
-    "built": "m² Bebouwd",
-    "plot": "Perceel m²",
-    "pool": "Zwembad",
-    "description": "Beschrijving",
-    "features": "Kenmerken",
-    "parking": "Parkeergelegenheid",
-    "price": "Verkoopprijs",
-    "brochure": "PDF Brochure",
-    "whatsapp": "Contact WhatsApp",
-    "bookVisit": "Bezoek plannen",
-    "location": "Locatie",
-    "distanceSea": "Zee op {distance}km",
-    "propertyNotFound": "Woning niet gevonden"
-  },
-  "contact": {
-  "title": "Neem contact op",
-  "ref_label": "Ref",
-  "placeholder_name": "UW NAAM",
-  "placeholder_email": "UW EMAIL",
-  "placeholder_message": "DETAILS VAN UW PROJECT...",
-  "send_btn": "Aanvraag versturen",
-  "success_title": "Bericht succesvol verzonden!",
-  "success_message": "succesvol ontvangen.",
-  "error_message": "Fout bij het verzenden.",
-  "directContact": "Direct Contact",
-  "teamTitle": "Het Team"
-},
-  "footer": {
-    "description": "De kunst van uitzonderlijk vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
-    "city": "Orihuela Costa, Spanje",
-    "eliteEdition": "Elite Edition v2.0"
-  },
-  "projectTracker": {
-    "title": "Uw projectopvolging",
-    "phaseLabel": "Huidige fase:",
-    "quit": "Ruimte verlaten",
-    "documents": "Administratieve documenten",
-    "technicalReports": "Werfverslagen",
-    "visitDate": "Bezoekdatum: {date}",
-    "statusConforme": "STATUS: CONFORM",
-    "certification": "Informatie gecertificeerd door de technische afdeling."
-  },
-  "about": {
-    "title": "Ons Verhaal",
-    "text": "Vastgoedexcellentie in uw dienst.",
-    "signature": "Vastgoed door een nieuwe lens"
-  }
-}
-</file>
-
-<file path="src/dictionaries/pl.json">
-{
-  "common": {
-    "back": "Powrót",
-    "backToHome": "Powrót do strony głównej",
-    "loading": "Ładowanie...",
-    "error": "Wystąpił błąd",
-    "search": "Szukaj",
-    "confirm": "Potwierdź",
-    "cancel": "Anuluj",
-    "save": "Zapisz",
-    "close": "Zamknij",
-    "showMore": "Pokaż więcej ofert"
-  },
-  "nav": {
-    "home": "Strona główna",
-    "about": "O nas",
-    "results": "Nasze oferty",
-    "contact": "Kontakt",
-    "back": "Powrót do listy",
-    "search": "Szukaj nieruchomości",
-    "clientAccess": "Śledzenie projektu"
-  },
-  "home": {
-    "heroTitleLine1": "Luksusowe Wille &",
-    "heroTitleLine2": "Wyjątkowe Nieruchomości",
-    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
-    "findVilla": "Znajdź swoją willę",
-    "noMatch": "Nie znaleziono dopasowań",
-    "reset": "Resetuj filtry"
-  },
-  "propertyCard": {
-    "ref": "REF: {ref}",
-    "beds": "sypialnie",
-    "baths": "łazienki",
-    "surface": "m²",
-    "plot": "m² działki"
-  },
-  "propertyDetail": {
-    "back": "Powrót do wyboru",
-    "ref": "Ref: {ref}",
-    "bedrooms": "Sypialnie",
-    "bathrooms": "Łazienki",
-    "built": "m² Pow. zabudowy",
-    "plot": "Pow. działki m²",
-    "pool": "Basen",
-    "description": "Opis",
-    "features": "Cechy",
-    "parking": "Parking",
-    "price": "Cena sprzedaży",
-    "brochure": "Broszura PDF",
-    "whatsapp": "Kontakt WhatsApp",
-    "bookVisit": "Zarezerwuj wizytę",
-    "location": "Lokalizacja",
-    "distanceSea": "Morze w odległości {distance}km",
-    "propertyNotFound": "Nie znaleziono nieruchomości"
-  },
-  "contact": {
-  "title": "Skontaktuj się z nami",
-  "ref_label": "Nr ref",
-  "placeholder_name": "TWOJE IMIĘ",
-  "placeholder_email": "TWÓJ EMAIL",
-  "placeholder_message": "SZCZEGÓŁY PROJEKTU...",
-  "send_btn": "Wyślij zapytanie",
-  "success_title": "Wiadomość wysłana pomyślnie!",
-  "success_message": "została pomyślnie odebrana.",
-  "error_message": "Błąd podczas wysyłania.",
-  "directContact": "Kontakt bezpośredni",
-  "teamTitle": "Zespół"
-},
-  "footer": {
-    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi ofertami.",
-    "city": "Orihuela Costa, Hiszpania",
-    "eliteEdition": "Elite Edition v2.0"
-  },
-  "projectTracker": {
-    "title": "Śledzenie Twojego projektu",
-    "phaseLabel": "Aktualna faza:",
-    "quit": "Wyloguj się",
-    "documents": "Dokumenty administracyjne",
-    "technicalReports": "Raporty z budowy",
-    "visitDate": "Data wizyty: {date}",
-    "statusConforme": "STATUS: ZGODNY",
-    "certification": "Informacje certyfikowane przez dział techniczny."
-  },
-  "about": {
-    "title": "Nasza Historia",
-    "text": "Doskonałość w nieruchomościach na Twoją usługę.",
-    "signature": "Nieruchomości w nowym świetle"
-  }
 }
 </file>
 
@@ -6965,6 +6338,874 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
 }
 </file>
 
+<file path="src/dictionaries/ar.json">
+{
+  "common": {
+    "back": "رجوع",
+    "backToHome": "العودة إلى الرئيسية",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما",
+    "search": "بحث",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "close": "إغلاق",
+    "showMore": "عرض المزيد من العقارات"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "about": "من نحن",
+    "results": "عقاراتنا",
+    "contact": "اتصل بنا",
+    "back": "العودة للقائمة",
+    "search": "البحث عن عقار",
+    "clientAccess": "متابعة المشروع"
+  },
+  "home": {
+    "heroTitleLine1": "فيلات فاخرة و",
+    "heroTitleLine2": "عقارات استثنائية",
+    "heroSubtitle": "كوستا بلانكا | كوستا ديل سول",
+    "findVilla": "ابحث عن فيلتك",
+    "noMatch": "لم يتم العثور على نتائج",
+    "reset": "إعادة ضبط الفلاتر"
+  },
+  "propertyCard": {
+    "ref": "مرجع: {ref}",
+    "beds": "غرف",
+    "baths": "حمامات",
+    "surface": "م²",
+    "plot": "م² أرض"
+  },
+  "propertyDetail": {
+    "back": "العودة للاختيار",
+    "ref": "مرجع: {ref}",
+    "bedrooms": "غرف النوم",
+    "bathrooms": "الحمامات",
+    "built": "م² مبني",
+    "plot": "مساحة الأرض م²",
+    "pool": "مسبح",
+    "description": "الوصف",
+    "features": "المميزات",
+    "parking": "موقف سيارات",
+    "price": "سعر البيع",
+    "brochure": "ملف PDF",
+    "whatsapp": "تواصل عبر واتساب",
+    "bookVisit": "حجز زيارة",
+    "location": "الموقع",
+    "distanceSea": "البحر على بعد {distance}كم",
+    "propertyNotFound": "لم يتم العثور على العقار"
+  },
+  "contact": {
+  "title": "اتصل بنا",
+  "ref_label": "مرجع",
+  "placeholder_name": "اسمك الكامل",
+  "placeholder_email": "بريدك الإلكتروني",
+  "placeholder_message": "تفاصيل مشروعك...",
+  "send_btn": "إرسال الطلب",
+  "success_title": "تم إرسال الرسالة بنجاح!",
+  "success_message": "تم استلام الطلب بنجاح.",
+  "error_message": "خطأ أثناء الإرسال.",
+  "directContact": "اتصال مباشر",
+  "teamTitle": "الفريق"
+},
+  "footer": {
+    "description": "فن العقارات الاستثنائية. نحن نبني الجسور بين طموحاتك وأرقى العقارات.",
+    "city": "أوريويلا كوستا، إسبانيا",
+    "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "متابعة مشروعك",
+    "phaseLabel": "المرحلة الحالية:",
+    "quit": "خروج",
+    "documents": "الوثائق الإدارية",
+    "technicalReports": "تقارير الموقع",
+    "visitDate": "تاريخ الزيارة: {date}",
+    "statusConforme": "الحالة: مطابق",
+    "certification": "معلومات معتمدة من القسم الفني."
+  },
+  "about": {
+    "title": "قصتنا",
+    "text": "التميز العقاري في خدمتكم.",
+    "signature": "العقارات من منظور جديد"
+  },
+  "footer": {
+    "privacy": "سياسة الخصوصية",
+    "terms": "الشروط والأحكام",
+    "eliteEdition": "طبعة النخبة",
+    "address": "العنوان",
+    "excellence": "التميز العقاري",
+    "description": "شريككم الموثوق للعقارات الاستثنائية."
+  },
+  "legal": {
+    "privacy_default": "تلتزم وكالة SCHMIDT-PRIVILEGE بضمان امتثال جمع ومعالجة بياناتكم للائحة العامة لحماية البيانات (RGPD). تُستخدم البيانات الشخصية (الاسم، البريد الإلكتروني، الهاتف) التي يتم جمعها عبر نماذج هذا الموقع حصرياً للتواصل معكم. ولا يتم تقديمها لأطراف ثالثة بأي حال من الأحوال. يحق لكم الوصول إلى البيانات وتصحيحها وحذفها عبر البريد الإلكتروني.",
+    "terms_default": "تخضع هذه الشروط لاستخدام موقع وكالة SCHMIDT-PRIVILEGE.\n\n١. ناشر الموقع: SCHMIDT-PRIVILEGE.\n٢. الاستضافة: Vercel Inc.\n٣. الملكية الفكرية: جميع المحتويات هي ملك للوكالة أو مرخصيها.\n٤. المسؤولية: المعلومات المقدمة عن العقارات عرضة للخطأ أو السهو."
+  }
+}
+</file>
+
+<file path="src/dictionaries/en.json">
+{
+  "common": {
+    "back": "Back",
+    "backToHome": "Back to Home",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "search": "Search",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "showMore": "Show more properties"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About Us",
+    "results": "Our Properties",
+    "contact": "Contact",
+    "back": "Back to list",
+    "search": "Search a property",
+    "clientAccess": "Project Tracking"
+  },
+  "home": {
+    "heroTitleLine1": "Luxury Villas &",
+    "heroTitleLine2": "Exceptional Properties",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Find your villa",
+    "noMatch": "No matches found",
+    "reset": "Reset filters"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "beds",
+    "baths": "baths",
+    "surface": "sqm",
+    "plot": "sqm plot"
+  },
+  "propertyDetail": {
+    "back": "Back to selection",
+    "ref": "Ref: {ref}",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "built": "Sqm Built",
+    "plot": "Plot sqm",
+    "pool": "Pool",
+    "description": "Description",
+    "features": "Features",
+    "parking": "Parking",
+    "price": "Sale price",
+    "brochure": "PDF Brochure",
+    "whatsapp": "Contact WhatsApp",
+    "bookVisit": "Book a visit",
+    "location": "Location",
+    "distanceSea": "Sea at {distance}km",
+    "propertyNotFound": "Property not found"
+  },
+  "contact": {
+  "title": "Contact Us",
+  "ref_label": "Ref",
+  "placeholder_name": "YOUR NAME",
+  "placeholder_email": "YOUR EMAIL",
+  "placeholder_message": "PROJECT DETAILS...",
+  "send_btn": "Send Request",
+  "success_title": "Message sent successfully!",
+  "success_message": "successfully received.",
+  "error_message": "Error while sending.",
+  "directContact": "Direct Contact",
+  "teamTitle": "The Team"
+},
+  "footer": {
+    "description": "The art of exceptional real estate. We build bridges between your ambitions and the most prestigious properties.",
+    "city": "Orihuela Costa, Spain",
+    "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Your Project Tracking",
+    "phaseLabel": "Current Phase:",
+    "quit": "Leave area",
+    "documents": "Administrative Documents",
+    "technicalReports": "Site Reports",
+    "visitDate": "Visit date: {date}",
+    "statusConforme": "STATUS: COMPLIANT",
+    "certification": "Information certified by the technical department."
+  },
+  "about": {
+    "title": "Our Story",
+    "text": "Real estate excellence at your service.",
+    "signature": "Real estate through a new lens"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "eliteEdition": "Elite Edition",
+    "address": "Address",
+    "excellence": "Real Estate Excellence",
+    "description": "Your trusted partner for exceptional real estate."
+  },
+  "legal": {
+    "privacy_default": "SCHMIDT-PRIVILEGE is committed to ensuring that the collection and processing of your data comply with the GDPR. Personal data collected (name, email, phone) is used exclusively to contact you regarding your real estate search or property sale. It is never shared with third parties. You have the right to access, rectify, and delete your data. To exercise this right, please contact us via email.",
+    "terms_default": "These terms govern the use of the SCHMIDT-PRIVILEGE agency website.\n\n1. Site Publisher: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Intellectual Property: All content (photos, text) is the property of the agency or its licensors.\n4. Liability: Property information is provided subject to errors or omissions."
+  }
+}
+</file>
+
+<file path="src/dictionaries/es.json">
+{
+  "common": {
+    "back": "Volver",
+    "backToHome": "Volver al inicio",
+    "loading": "Cargando...",
+    "error": "Ha ocurrido un error",
+    "search": "Buscar",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar",
+    "showMore": "Ver más propiedades"
+  },
+  "nav": {
+    "home": "Inicio",
+    "about": "Sobre nosotros",
+    "results": "Nuestras propiedades",
+    "contact": "Contacto",
+    "back": "Volver a la lista",
+    "search": "Buscar una propiedad",
+    "clientAccess": "Seguimiento de obra"
+  },
+  "home": {
+    "heroTitleLine1": "Villas de lujo &",
+    "heroTitleLine2": "Propiedades excepcionales",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Encuentre su villa",
+    "noMatch": "No se encontraron resultados",
+    "reset": "Restablecer filtros"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "dorm.",
+    "baths": "baños",
+    "surface": "m²",
+    "plot": "m² parcela"
+  },
+  "propertyDetail": {
+    "back": "Volver a la selección",
+    "ref": "Ref: {ref}",
+    "bedrooms": "Dormitorios",
+    "bathrooms": "Baños",
+    "built": "m² Construidos",
+    "plot": "Parcela m²",
+    "pool": "Piscina",
+    "description": "Descripción",
+    "features": "Características",
+    "parking": "Aparcamiento",
+    "price": "Precio de venta",
+    "brochure": "Folleto PDF",
+    "whatsapp": "Contacto WhatsApp",
+    "bookVisit": "Reservar una visita",
+    "location": "Ubicación",
+    "distanceSea": "Mar a {distance}km",
+    "propertyNotFound": "Propiedad no encontrada"
+  },
+  "contact": {
+  "title": "Contáctenos",
+  "ref_label": "Ref",
+  "placeholder_name": "SU NOMBRE",
+  "placeholder_email": "SU EMAIL",
+  "placeholder_message": "DETALLES DE SU PROYECTO...",
+  "send_btn": "Enviar solicitud",
+  "success_title": "¡Mensaje enviado con éxito!",
+  "success_message": "recibida correctamente.",
+  "error_message": "Error al enviar.",
+  "directContact": "Contacto Directo",
+  "teamTitle": "El Equipo"
+},
+  "footer": {
+    "description": "El arte de las propiedades inmobiliarias excepcionales. Creamos puentes entre sus ambiciones y las propiedades más prestigiosas.",
+    "city": "Orihuela Costa, España",
+    "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Seguimiento de su proyecto",
+    "phaseLabel": "Fase actual:",
+    "quit": "Salir del espacio",
+    "documents": "Documentos administrativos",
+    "technicalReports": "Informes de obra",
+    "visitDate": "Fecha de visita: {date}",
+    "statusConforme": "ESTADO: CONFORME",
+    "certification": "Información certificada por el departamento técnico."
+  },
+  "about": {
+    "title": "Nuestra Historia",
+    "text": "Excelencia inmobiliaria a su servicio.",
+    "signature": "Bienes raíces bajo una nueva mirada"
+  },
+  "footer": {
+    "privacy": "Política de Privacidad",
+    "terms": "Aviso Legal",
+    "eliteEdition": "Edición Élite",
+    "address": "Dirección",
+    "excellence": "Excelencia Inmobiliaria",
+    "description": "Su socio de confianza para propiedades excepcionales."
+  },
+  "legal": {
+    "privacy_default": "La agencia SCHMIDT-PRIVILEGE se compromete a que la recogida y el tratamiento de sus datos cumplan con el RGPD. Los datos personales recogidos (nombre, correo electrónico, teléfono) a través de los formularios de este sitio se utilizan exclusivamente para contactar con usted. En ningún caso se cederán a terceros. Tiene derecho de acceso, rectificación y supresión de sus datos por correo electrónico.",
+    "terms_default": "Las presentes condiciones regulan el uso del sitio web de la agencia SCHMIDT-PRIVILEGE.\n\n1. Editor del sitio: SCHMIDT-PRIVILEGE.\n2. Alojamiento: Vercel Inc.\n3. Propiedad intelectual: Todos los contenidos son propiedad de la agencia o de sus licenciantes.\n4. Responsabilidad: La información sobre las propiedades se facilita a reserva de errores u omisiones."
+  }
+}
+</file>
+
+<file path="src/dictionaries/fr.json">
+{
+  "common": {
+    "back": "Retour",
+    "backToHome": "Retour à l'accueil",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "search": "Rechercher",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "showMore": "Afficher plus de biens"
+  },
+  "nav": {
+    "home": "Accueil",
+    "about": "Qui sommes-nous",
+    "results": "Nos Biens",
+    "contact": "Contact",
+    "back": "Retour à la liste",
+    "search": "Rechercher un bien",
+    "clientAccess": "Suivi de Chantier"
+  },
+  "home": {
+    "heroTitleLine1": "Villas de Luxe &",
+    "heroTitleLine2": "Propriétés d'Exception",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Trouver votre villa",
+    "noMatch": "Aucune correspondance trouvée",
+    "reset": "Réinitialiser les filtres"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "lits",
+    "baths": "sdb",
+    "surface": "m²",
+    "plot": "m² terrain"
+  },
+  "propertyDetail": {
+    "back": "Retour à la sélection",
+    "ref": "Réf: {ref}",
+    "bedrooms": "Chambres",
+    "bathrooms": "Bains",
+    "built": "m² Bâti",
+    "plot": "Terrain m²",
+    "pool": "Piscine",
+    "description": "Description",
+    "features": "Caractéristiques",
+    "parking": "Parking",
+    "price": "Prix de vente",
+    "brochure": "Brochure PDF",
+    "whatsapp": "Contact WhatsApp",
+    "bookVisit": "Réserver une visite",
+    "location": "Emplacement",
+    "distanceSea": "Mer à {distance}km",
+    "propertyNotFound": "Propriété non trouvée"
+  },
+  "contact": {
+  "title": "Contactez-nous",
+  "ref_label": "Réf",
+  "placeholder_name": "VOTRE NOM",
+  "placeholder_email": "VOTRE EMAIL",
+  "placeholder_message": "DÉTAILS DE VOTRE PROJET...",
+  "send_btn": "Envoyer la demande",
+  "success_title": "Message envoyé avec succès !",
+  "success_message": "bien reçue.",
+  "error_message": "Erreur lors de l'envoi.",
+  "directContact": "Direct Contact",
+  "teamTitle": "L'Équipe"
+},
+  "footer": {
+    "description": "L'art de l'immobilier d'exception. Nous forgeons des passerelles entre vos ambitions et les propriétés les plus prestigieuses.",
+    "city": "Orihuela Costa, Espagne",
+    "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Suivi de votre Projet",
+    "phaseLabel": "Phase Actuelle :",
+    "quit": "Quitter l'espace",
+    "documents": "Documents Administratifs",
+    "technicalReports": "Rapports de Chantier",
+    "visitDate": "Date de visite : {date}",
+    "statusConforme": "STATUT : CONFORME",
+    "certification": "Informations certifiées par le département technique."
+  },
+  "about": {
+    "title": "Notre Histoire",
+    "text": "L'excellence immobilière à votre service.",
+    "signature": "L'immobilier sous un nouveau regard"
+  },
+  "footer": {
+    "privacy": "Politique de Confidentialité",
+    "terms": "Mentions Légales",
+    "eliteEdition": "Édition Élite",
+    "address": "Adresse",
+    "excellence": "Excellence Immobilière",
+    "description": "Votre partenaire de confiance pour l'immobilier d'exception."
+  },
+  "legal": {
+    "privacy_default": "L'agence SCHMIDT-PRIVILEGE s'engage à ce que la collecte et le traitement de vos données soient conformes au RGPD. Les données personnelles collectées (nom, email, téléphone) via les formulaires de ce site sont utilisées exclusivement pour vous recontacter dans le cadre de votre recherche immobilière ou de la mise en vente de votre bien. Elles ne sont en aucun cas cédées à des tiers. Vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant. Pour exercer ce droit, contactez-nous par email à l'adresse : notre service client.",
+    "terms_default": "Les présentes conditions régissent l'utilisation du site de l'agence SCHMIDT-PRIVILEGE.\n\n1. Éditeur du site : SCHMIDT-PRIVILEGE.\n2. Hébergement : Vercel Inc.\n3. Propriété intellectuelle : Tous les contenus (photos, textes) sont la propriété de l'agence ou de ses concédants.\n4. Responsabilité : Les informations sur les biens sont fournies sous réserve d'erreur ou d'omission."
+  }
+}
+</file>
+
+<file path="src/dictionaries/nl.json">
+{
+  "common": {
+    "back": "Terug",
+    "backToHome": "Terug naar home",
+    "loading": "Laden...",
+    "error": "Er is een fout opgetreden",
+    "search": "Zoeken",
+    "confirm": "Bevestigen",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "close": "Sluiten",
+    "showMore": "Meer woningen weergeven"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "Over ons",
+    "results": "Ons aanbod",
+    "contact": "Contact",
+    "back": "Terug naar lijst",
+    "search": "Zoek een woning",
+    "clientAccess": "Projectopvolging"
+  },
+  "home": {
+    "heroTitleLine1": "Luxe Villa's &",
+    "heroTitleLine2": "Uitzonderlijk Vastgoed",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Vind uw villa",
+    "noMatch": "Geen overeenkomsten gevonden",
+    "reset": "Filters wissen"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "slpks",
+    "baths": "badks",
+    "surface": "m²",
+    "plot": "m² perceel"
+  },
+  "propertyDetail": {
+    "back": "Terug naar selectie",
+    "ref": "Ref: {ref}",
+    "bedrooms": "Slaapkamers",
+    "bathrooms": "Badkamers",
+    "built": "m² Bebouwd",
+    "plot": "Perceel m²",
+    "pool": "Zwembad",
+    "description": "Beschrijving",
+    "features": "Kenmerken",
+    "parking": "Parkeergelegenheid",
+    "price": "Verkoopprijs",
+    "brochure": "PDF Brochure",
+    "whatsapp": "Contact WhatsApp",
+    "bookVisit": "Bezoek plannen",
+    "location": "Locatie",
+    "distanceSea": "Zee op {distance}km",
+    "propertyNotFound": "Woning niet gevonden"
+  },
+  "contact": {
+  "title": "Neem contact op",
+  "ref_label": "Ref",
+  "placeholder_name": "UW NAAM",
+  "placeholder_email": "UW EMAIL",
+  "placeholder_message": "DETAILS VAN UW PROJECT...",
+  "send_btn": "Aanvraag versturen",
+  "success_title": "Bericht succesvol verzonden!",
+  "success_message": "succesvol ontvangen.",
+  "error_message": "Fout bij het verzenden.",
+  "directContact": "Direct Contact",
+  "teamTitle": "Het Team"
+},
+  "footer": {
+    "description": "De kunst van uitzonderlijk vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
+    "city": "Orihuela Costa, Spanje",
+    "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Uw projectopvolging",
+    "phaseLabel": "Huidige fase:",
+    "quit": "Ruimte verlaten",
+    "documents": "Administratieve documenten",
+    "technicalReports": "Werfverslagen",
+    "visitDate": "Bezoekdatum: {date}",
+    "statusConforme": "STATUS: CONFORM",
+    "certification": "Informatie gecertificeerd door de technische afdeling."
+  },
+  "about": {
+    "title": "Ons Verhaal",
+    "text": "Vastgoedexcellentie in uw dienst.",
+    "signature": "Vastgoed door een nieuwe lens"
+  },
+  "footer": {
+    "privacy": "Privacybeleid",
+    "terms": "Algemene Voorwaarden",
+    "eliteEdition": "Elite Editie",
+    "address": "Adres",
+    "excellence": "Vastgoed Excellence",
+    "description": "Uw betrouwbare partner voor exclusief vastgoed."
+  },
+  "legal": {
+    "privacy_default": "Agentschap SCHMIDT-PRIVILEGE verbindt zich ertoe dat de verzameling en verwerking van uw gegevens voldoen aan de AVG (GDPR). Persoonsgegevens (naam, e-mail, telefoon) die via de formulieren op deze site worden verzameld, worden uitsluitend gebruikt om contact met u op te nemen. Ze worden nooit aan derden verstrekt. U heeft recht op inzage, correctie en verwijdering via e-mail.",
+    "terms_default": "Deze voorwaarden zijn van toepassing op het gebruik van de website van SCHMIDT-PRIVILEGE.\n\n1. Uitgever: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Intellectueel eigendom: Alle inhoud is eigendom van het agentschap of zijn licentiegevers.\n4. Aansprakelijkheid: Informatie over woningen wordt verstrekt onder voorbehoud van fouten of weglatingen."
+  }
+}
+</file>
+
+<file path="src/dictionaries/pl.json">
+{
+  "common": {
+    "back": "Powrót",
+    "backToHome": "Powrót do strony głównej",
+    "loading": "Ładowanie...",
+    "error": "Wystąpił błąd",
+    "search": "Szukaj",
+    "confirm": "Potwierdź",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "close": "Zamknij",
+    "showMore": "Pokaż więcej ofert"
+  },
+  "nav": {
+    "home": "Strona główna",
+    "about": "O nas",
+    "results": "Nasze oferty",
+    "contact": "Kontakt",
+    "back": "Powrót do listy",
+    "search": "Szukaj nieruchomości",
+    "clientAccess": "Śledzenie projektu"
+  },
+  "home": {
+    "heroTitleLine1": "Luksusowe Wille &",
+    "heroTitleLine2": "Wyjątkowe Nieruchomości",
+    "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
+    "findVilla": "Znajdź swoją willę",
+    "noMatch": "Nie znaleziono dopasowań",
+    "reset": "Resetuj filtry"
+  },
+  "propertyCard": {
+    "ref": "REF: {ref}",
+    "beds": "sypialnie",
+    "baths": "łazienki",
+    "surface": "m²",
+    "plot": "m² działki"
+  },
+  "propertyDetail": {
+    "back": "Powrót do wyboru",
+    "ref": "Ref: {ref}",
+    "bedrooms": "Sypialnie",
+    "bathrooms": "Łazienki",
+    "built": "m² Pow. zabudowy",
+    "plot": "Pow. działki m²",
+    "pool": "Basen",
+    "description": "Opis",
+    "features": "Cechy",
+    "parking": "Parking",
+    "price": "Cena sprzedaży",
+    "brochure": "Broszura PDF",
+    "whatsapp": "Kontakt WhatsApp",
+    "bookVisit": "Zarezerwuj wizytę",
+    "location": "Lokalizacja",
+    "distanceSea": "Morze w odległości {distance}km",
+    "propertyNotFound": "Nie znaleziono nieruchomości"
+  },
+  "contact": {
+  "title": "Skontaktuj się z nami",
+  "ref_label": "Nr ref",
+  "placeholder_name": "TWOJE IMIĘ",
+  "placeholder_email": "TWÓJ EMAIL",
+  "placeholder_message": "SZCZEGÓŁY PROJEKTU...",
+  "send_btn": "Wyślij zapytanie",
+  "success_title": "Wiadomość wysłana pomyślnie!",
+  "success_message": "została pomyślnie odebrana.",
+  "error_message": "Błąd podczas wysyłania.",
+  "directContact": "Kontakt bezpośredni",
+  "teamTitle": "Zespół"
+},
+  "footer": {
+    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi ofertami.",
+    "city": "Orihuela Costa, Hiszpania",
+    "eliteEdition": "Elite Edition v2.0"
+  },
+  "projectTracker": {
+    "title": "Śledzenie Twojego projektu",
+    "phaseLabel": "Aktualna faza:",
+    "quit": "Wyloguj się",
+    "documents": "Dokumenty administracyjne",
+    "technicalReports": "Raporty z budowy",
+    "visitDate": "Data wizyty: {date}",
+    "statusConforme": "STATUS: ZGODNY",
+    "certification": "Informacje certyfikowane przez dział techniczny."
+  },
+  "about": {
+    "title": "Nasza Historia",
+    "text": "Doskonałość w nieruchomościach na Twoją usługę.",
+    "signature": "Nieruchomości w nowym świetle"
+  },
+  "footer": {
+    "privacy": "Polityka Prywatności",
+    "terms": "Regulamin",
+    "eliteEdition": "Edycja Elitarna",
+    "address": "Adres",
+    "excellence": "Doskonałość w Nieruchomościach",
+    "description": "Twój zaufany partner w segmencie nieruchomości luksusowych."
+  },
+  "legal": {
+    "privacy_default": "Agencja SCHMIDT-PRIVILEGE zobowiązuje się do zapewnienia, że gromadzenie i przetwarzanie danych osobowych jest zgodne z RODO. Dane (imię, e-mail, telefon) zebrane za pośrednictwem formularzy są wykorzystywane wyłącznie do kontaktu z Państwem. Nie są one udostępniane osobom trzecim. Przysługuje Państwu prawo do wglądu, poprawiania i usuwania danych drogą mailową.",
+    "terms_default": "Niniejszy regulamin określa zasady korzystania z witryny agencji SCHMIDT-PRIVILEGE.\n\n1. Wydawca: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Własność intelektualna: Wszystkie treści są własnością agencji lub jej licencjodawców.\n4. Odpowiedzialność: Informacje o nieruchomościach są dostarczane z zastrzeżeniem błędów lub pominięć."
+  }
+}
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/privacy/page.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import { Shield, ChevronLeft } from "lucide-react";
+import Link from "next/link";
+
+// Importations depuis le bon dossier : src/dictionaries
+import fr from "../../../../../dictionaries/fr.json";
+import en from "../../../../../dictionaries/en.json";
+import es from "../../../../../dictionaries/es.json";
+import nl from "../../../../../dictionaries/nl.json";
+import pl from "../../../../../dictionaries/pl.json";
+import ar from "../../../../../dictionaries/ar.json";
+
+export const revalidate = 0;
+
+export default async function PrivacyPage({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug, locale } = await params;
+
+  // Sélection de la traduction
+  const translations: any = 
+    locale === 'en' ? en : 
+    locale === 'es' ? es : 
+    locale === 'nl' ? nl : 
+    locale === 'pl' ? pl : 
+    locale === 'ar' ? ar : fr;
+
+  const { data: agency } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug)
+    .single();
+
+  if (!agency) return notFound();
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-100 py-12">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div 
+              className="p-3 rounded-2xl text-white"
+              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
+            >
+              <Shield size={24} />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
+              {translations.footer?.privacy || "Privacy Policy"}
+            </h1>
+          </div>
+          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
+            {agency.agency_name}
+          </p>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-16">
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
+          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
+            {agency.privacy_policy || translations.legal?.privacy_default}
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <Link 
+            href={`/${locale}/${slug}`}
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
+          >
+            <ChevronLeft size={14} />
+            {translations.common?.backToHome || "Back"}
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import CookieBanner from "@/components/CookieBanner";
+
+export default async function AgencyLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération des paramètres de l'agence (SSR)
+  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
+  const { data: agency } = await supabase
+    .from('agency_settings') 
+    .select('*')
+    .eq('subdomain', slug) 
+    .maybeSingle();
+
+  // Si l'agence n'existe pas, on renvoie une 404
+  if (!agency) {
+    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
+    return notFound();
+  }
+
+  // 2. Définition des variables CSS dynamiques
+  const dynamicStyles = {
+    '--brand-primary': agency.primary_color || '#e5992e',
+    '--font-main': agency.font_family || 'Montserrat, sans-serif',
+    '--font-serif': 'Playfair Display, serif',
+  } as React.CSSProperties;
+
+  // 3. Parsing sécurisé de la configuration
+  const getFooterData = (config: any) => {
+    if (!config) return {};
+    if (typeof config === 'object') return config;
+    try { return JSON.parse(config); } catch { return {}; }
+  };
+
+  const footerConfig = getFooterData(agency.footer_config);
+
+  return (
+    <div style={dynamicStyles} className="min-h-screen flex flex-col">
+      {/* NAVBAR : Présente sur toutes les pages du slug */}
+      <Navbar agency={agency} />
+
+      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
+      <main className="flex-grow">
+        {children}
+      </main>
+      
+      {/* FOOTER : Présent partout */}
+      <Footer agency={agency} />
+
+      {/* Widgets flottants */}
+      <FloatingWhatsApp 
+        phone={footerConfig?.phone || agency.whatsapp_number} 
+        color={agency.primary_color || '#e5992e'} 
+      />
+      
+      <CookieBanner 
+        enabled={agency.cookie_consent_enabled} 
+        agencyName={agency.agency_name} 
+      />
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/terms/page.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import { FileText, ChevronLeft } from "lucide-react";
+import Link from "next/link";
+
+// Importations depuis le bon dossier : src/dictionaries
+import fr from "../../../../../dictionaries/fr.json";
+import en from "../../../../../dictionaries/en.json";
+import es from "../../../../../dictionaries/es.json";
+import nl from "../../../../../dictionaries/nl.json";
+import pl from "../../../../../dictionaries/pl.json";
+import ar from "../../../../../dictionaries/ar.json";
+
+export const revalidate = 0;
+
+export default async function TermsPage({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug, locale } = await params;
+
+  const translations: any = 
+    locale === 'en' ? en : 
+    locale === 'es' ? es : 
+    locale === 'nl' ? nl : 
+    locale === 'pl' ? pl : 
+    locale === 'ar' ? ar : fr;
+
+  const { data: agency } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug)
+    .single();
+
+  if (!agency) return notFound();
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-100 py-12">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div 
+              className="p-3 rounded-2xl text-white"
+              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
+            >
+              <FileText size={24} />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
+              {translations.footer?.terms || "Terms & Conditions"}
+            </h1>
+          </div>
+          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
+            {agency.agency_name}
+          </p>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-16">
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
+          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
+            {agency.terms_content || translations.legal?.terms_default}
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <Link 
+            href={`/${locale}/${slug}`}
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
+          >
+            <ChevronLeft size={14} />
+            {translations.common?.backToHome || "Back"}
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
 <file path="src/components/Navbar.tsx">
 "use client";
 
@@ -7185,76 +7426,130 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
 }
 </file>
 
-<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
-import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import CookieBanner from "@/components/CookieBanner";
+<file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
+"use client";
 
-export default async function AgencyLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ slug: string; locale: string }>;
-}) {
-  const { slug } = await params;
+import { useEffect, useState, use } from "react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
+import { Loader2 } from "lucide-react";
 
-  // 1. Récupération des paramètres de l'agence (SSR)
-  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
-  const { data: agency } = await supabase
-    .from('agency_settings') 
-    .select('*')
-    .eq('subdomain', slug) 
-    .maybeSingle();
+interface AboutPageProps {
+  params: Promise<{
+    slug: string;
+    locale: string;
+  }>;
+}
 
-  // Si l'agence n'existe pas, on renvoie une 404
-  if (!agency) {
-    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
-    return notFound();
+export default function AboutPage({ params }: AboutPageProps) {
+  const resolvedParams = use(params);
+  const { t, locale } = useTranslation();
+  const { agency, loading, setAgencyBySlug } = useAgency();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const currentSlug = resolvedParams.slug;
+    if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
+      setAgencyBySlug(currentSlug);
+    }
+  }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
+
+  const brandColor = agency?.primary_color || "#c5a059";
+  const fontFamily = agency?.font_family || 'Montserrat';
+
+  if (loading || !mounted) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+          {t('common.loading') || "Chargement..."}
+        </p>
+      </div>
+    );
   }
 
-  // 2. Définition des variables CSS dynamiques
-  const dynamicStyles = {
-    '--brand-primary': agency.primary_color || '#e5992e',
-    '--font-main': agency.font_family || 'Montserrat, sans-serif',
-    '--font-serif': 'Playfair Display, serif',
-  } as React.CSSProperties;
-
-  // 3. Parsing sécurisé de la configuration
-  const getFooterData = (config: any) => {
-    if (!config) return {};
-    if (typeof config === 'object') return config;
-    try { return JSON.parse(config); } catch { return {}; }
-  };
-
-  const footerConfig = getFooterData(agency.footer_config);
-
   return (
-    <div style={dynamicStyles} className="min-h-screen flex flex-col">
-      {/* NAVBAR : Présente sur toutes les pages du slug */}
-      <Navbar agency={agency} />
+    <div 
+      className="min-h-screen bg-white text-slate-900 transition-colors duration-500"
+      style={{ 
+        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important`,
+        fontWeight: 400
+      }}
+    >
+      <main>
+        {/* Header / Hero Section */}
+        <section className="pt-52 pb-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row items-start gap-16">
+              
+              <div className="flex-1 space-y-8">
+                <h1 
+                  className="text-5xl md:text-7xl border-l-4 pl-8" 
+                  style={{ 
+                    borderColor: brandColor,
+                    fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                    fontStyle: 'italic',
+                    fontWeight: 'normal'
+                  }}
+                >
+                  {agency?.about_title || t('about.title') || "Notre Histoire"}
+                </h1>
+                
+                <div className="prose prose-lg max-w-none">
+                  <div 
+                    className="text-slate-600 leading-relaxed whitespace-pre-wrap text-xl"
+                    style={{ 
+                      fontFamily: `${fontFamily}, sans-serif`,
+                      fontWeight: 300,
+                      fontStyle: 'normal'
+                    }}
+                  >
+                    {agency?.about_text || t('about.text') || "L'excellence immobilière à votre service."}
+                  </div>
+                </div>
+              </div>
 
-      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
-      <main className="flex-grow">
-        {children}
+              {agency?.hero_url && (
+                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
+                  <img 
+                    src={agency.hero_url} 
+                    alt={agency.agency_name} 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Section Signature */}
+        <section className="py-32 bg-slate-50 border-y border-black/5">
+          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
+            <h2 
+              className="text-3xl" 
+              style={{ 
+                color: brandColor,
+                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                fontStyle: 'italic',
+                fontWeight: 'normal'
+              }}
+            >
+              {agency?.agency_name}
+            </h2>
+            <p 
+              className="text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold"
+              style={{ fontFamily: `${fontFamily}, sans-serif` }}
+            >
+              {t('about.signature') || "L'immobilier sous un nouveau regard"}
+            </p>
+          </div>
+        </section>
       </main>
-      
-      {/* FOOTER : Présent partout */}
-      <Footer agency={agency} />
-
-      {/* Widgets flottants */}
-      <FloatingWhatsApp 
-        phone={footerConfig?.phone || agency.whatsapp_number} 
-        color={agency.primary_color || '#e5992e'} 
-      />
-      
-      <CookieBanner 
-        enabled={agency.cookie_consent_enabled} 
-        agencyName={agency.agency_name} 
-      />
     </div>
   );
 }
@@ -7453,135 +7748,6 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAgency = () => useContext(AgencyContext);
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
-"use client";
-
-import { useEffect, useState, use } from "react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext";
-import { Loader2 } from "lucide-react";
-
-interface AboutPageProps {
-  params: Promise<{
-    slug: string;
-    locale: string;
-  }>;
-}
-
-export default function AboutPage({ params }: AboutPageProps) {
-  const resolvedParams = use(params);
-  const { t, locale } = useTranslation();
-  const { agency, loading, setAgencyBySlug } = useAgency();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const currentSlug = resolvedParams.slug;
-    if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
-      setAgencyBySlug(currentSlug);
-    }
-  }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
-
-  const brandColor = agency?.primary_color || "#c5a059";
-  const fontFamily = agency?.font_family || 'Montserrat';
-
-  if (loading || !mounted) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-          {t('common.loading') || "Chargement..."}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div 
-      className="min-h-screen bg-white text-slate-900 transition-colors duration-500"
-      style={{ 
-        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important`,
-        fontWeight: 400
-      }}
-    >
-      <main>
-        {/* Header / Hero Section */}
-        <section className="pt-52 pb-20 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row items-start gap-16">
-              
-              <div className="flex-1 space-y-8">
-                <h1 
-                  className="text-5xl md:text-7xl border-l-4 pl-8" 
-                  style={{ 
-                    borderColor: brandColor,
-                    fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                    fontStyle: 'italic',
-                    fontWeight: 'normal'
-                  }}
-                >
-                  {agency?.about_title || t('about.title') || "Notre Histoire"}
-                </h1>
-                
-                <div className="prose prose-lg max-w-none">
-                  <div 
-                    className="text-slate-600 leading-relaxed whitespace-pre-wrap text-xl"
-                    style={{ 
-                      fontFamily: `${fontFamily}, sans-serif`,
-                      fontWeight: 300,
-                      fontStyle: 'normal'
-                    }}
-                  >
-                    {agency?.about_text || t('about.text') || "L'excellence immobilière à votre service."}
-                  </div>
-                </div>
-              </div>
-
-              {agency?.hero_url && (
-                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
-                  <img 
-                    src={agency.hero_url} 
-                    alt={agency.agency_name} 
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Section Signature */}
-        <section className="py-32 bg-slate-50 border-y border-black/5">
-          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
-            <h2 
-              className="text-3xl" 
-              style={{ 
-                color: brandColor,
-                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                fontStyle: 'italic',
-                fontWeight: 'normal'
-              }}
-            >
-              {agency?.agency_name}
-            </h2>
-            <p 
-              className="text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold"
-              style={{ fontFamily: `${fontFamily}, sans-serif` }}
-            >
-              {t('about.signature') || "L'immobilier sous un nouveau regard"}
-            </p>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-}
 </file>
 
 <file path="src/app/[locale]/(agency_site)/[slug]/contact/page.tsx">

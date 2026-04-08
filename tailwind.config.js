@@ -13,8 +13,13 @@ export default {
         primary: 'var(--brand-primary)',
       },
       fontFamily: {
-        serif: ['var(--font-serif)', 'Playfair Display', 'Georgia', 'serif'],
-        sans: ['var(--font-main)', 'Montserrat', 'system-ui', 'sans-serif'],
+        // "playfair.variable" dans layout.tsx est "--font-playfair"
+        serif: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
+        // "montserrat.variable" dans layout.tsx est "--font-montserrat"
+        sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
+        // Optionnel : ajouter les autres si besoin
+        mono: ['var(--font-roboto)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        poppins: ['var(--font-poppins)', 'sans-serif'],
       },
       borderRadius: {
         '4xl': '2rem',
