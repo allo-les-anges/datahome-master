@@ -3,8 +3,9 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon, ArrowLeft
 } from "lucide-react";
+import Link from "next/link";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
 
@@ -14,7 +15,7 @@ interface PropertyDetailClientProps {
 }
 
 export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
-  const { locale } = useTranslation() as any;
+  const { t, locale } = useTranslation() as any;
   const searchParams = useSearchParams();
   const [activeImage, setActiveImage] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -40,22 +41,21 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // 1. GESTION DES IMAGES (Tableau JSON dans ta table)
+  // 1. GESTION DES IMAGES (Correction du parsing JSON)
   const images = useMemo(() => {
     if (!property?.images) return [];
     if (Array.isArray(property.images)) return property.images;
     try {
-      // Dans ton export, c'est un string JSON "[""url1"", ""url2""]"
+      // Nettoyage des doubles quotes si c'est un export CSV/SQL mal formaté
       const cleanedJson = property.images.replace(/""/g, '"');
       const parsed = JSON.parse(cleanedJson);
       return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      console.error("Erreur parsing images:", e);
       return [];
     }
   }, [property?.images]);
 
-  // 2. LOGIQUE DE TITRE (Priorité aux versions traduites)
+  // 2. LOGIQUE DE TITRE (Multi-colonnes)
   const displayTitle = useMemo(() => {
     if (!property) return "";
     return (
@@ -64,15 +64,15 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       property.titre_en || 
       property.titre || 
       property.development_name ||
-      "Propriété Exclusive"
+      t('propertyDetail.fallbackTitle') || "Propriété Exclusive"
     );
-  }, [property, locale]);
+  }, [property, locale, t]);
 
-  // 3. LOGIQUE DE DESCRIPTION (Priorité aux colonnes description_XX)
+  // 3. LOGIQUE DE DESCRIPTION + NETTOYAGE HTML (Crucial)
   const descriptionContent = useMemo(() => {
     if (!property) return "";
     
-    const content = 
+    const rawContent = 
       property[`description_${locale}`] || 
       property.description_fr || 
       property.description_en || 
@@ -80,15 +80,24 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       property.details ||
       "";
 
-    if (!content || content === "null" || content === "undefined") return "";
+    if (!rawContent || rawContent === "null" || rawContent === "undefined") return "";
     
-    // Ton contenu est déjà en HTML (<p>...), donc on le retourne tel quel
-    return content;
+    // Nettoyage des styles Word/HTML qui cassent le design (comme dans le code 1)
+    return rawContent
+      .replace(/style="[^"]*"/gi, '')
+      .replace(/color="[^"]*"/gi, '')
+      .replace(/<font[^>]*>/gi, '')
+      .replace(/<\/font>/gi, '')
+      .replace(/ /g, ' ');
   }, [property, locale]);
 
-  // Données numériques
+  // Données numériques et URL
   const numericPrice = Number(property?.price || property?.prix || 0);
   const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
+  
+  // Correction de l'URL Google Maps (Syntaxe corrigée)
+  const mapQuery = encodeURIComponent(`${property?.town || property?.ville || ""}, ${property?.region || ""}, Espagne`);
+  const mapUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
 
   if (!mounted || !property) return null;
 
@@ -97,6 +106,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       <div className="pb-20"> 
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           
+          {/* BOUTON RETOUR */}
+          <div className="mb-8">
+            <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold" style={{ color: primaryColor }}>
+              <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR"}
+            </Link>
+          </div>
+
           {/* GALERIE D'IMAGES */}
           <section className="mb-12 md:mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[350px] md:h-[600px]">
@@ -116,11 +132,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                         pointerEvents: activeImage === idx ? 'auto' : 'none'
                       }}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                      <img src={img} className="w-full h-full object-cover" alt="" />
                     </div>
                   )) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-500">
-                      <ImageIcon size={48} className="mb-2 opacity-20" />
+                      <ImageIcon size={48} className="opacity-20" />
                     </div>
                   )}
                 </div>
@@ -135,7 +151,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 {images.map((img: string, idx: number) => (
                   <button 
                     key={idx} 
-                    onClick={() => setActiveImage(idx)} 
+                    onClick={() => {
+                      setActiveImage(idx);
+                      scrollContainerRef.current?.scrollTo({ left: idx * (scrollContainerRef.current?.clientWidth || 0), behavior: 'smooth' });
+                    }} 
                     className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
                     style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
                   >
@@ -155,17 +174,17 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
               <div className="flex items-center gap-3 text-slate-500 mb-10 text-[11px] uppercase tracking-[0.2em] font-bold">
                 <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville || property.city} • {property.region || property.province}
+                {property.town || property.ville} • {property.region}
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 md:mb-16">
                 {[
-                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
-                  { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
-                  { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
-                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
-                  { icon: Car, val: "OUI", label: 'PARKING' },
+                  { icon: Bed, val: property.beds, label: t('propertyDetail.bedrooms') || 'CHAMBRES' },
+                  { icon: Bath, val: property.baths, label: t('propertyDetail.bathrooms') || 'BAINS' },
+                  { icon: Maximize, val: property.surface_built, label: t('propertyDetail.built') || 'M² CONSTRUIT' },
+                  { icon: Home, val: property.surface_plot, label: t('propertyDetail.plot') || 'M² TERRAIN' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: t('propertyDetail.pool') || 'PISCINE' },
+                  { icon: Car, val: "OUI", label: t('propertyDetail.parking') || 'PARKING' },
                 ].map((item, i) => (
                   <div key={i} className={`p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5'}`}>
                     <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
@@ -178,26 +197,25 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               {/* DESCRIPTION */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                  Description
+                  {t('propertyDetail.artOfLiving') || "Description"}
                 </h2>
                 <div 
-                  className={`prose prose-lg max-w-none ${isLight ? 'text-slate-700' : 'text-slate-300'} 
-                  ${!isLight && 'prose-headings:text-white prose-strong:text-white prose-p:leading-relaxed'}`}
-                >
-                  {descriptionContent ? (
-                    <div dangerouslySetInnerHTML={{ __html: descriptionContent }} />
-                  ) : (
-                    <p className="text-slate-500 italic">Description non disponible.</p>
-                  )}
-                </div>
+                  className={`prose prose-lg max-w-none text-lg leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'} 
+                  ${!isLight && 'prose-headings:text-white prose-strong:text-white'}`}
+                  dangerouslySetInnerHTML={{ __html: descriptionContent }} 
+                />
               </div>
 
               {/* LOCALISATION */}
               <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-4 mb-6">
+                   <Navigation color={primaryColor} />
+                   <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('propertyDetail.location')}</h3>
+                </div>
                 <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px]">
                   <iframe
                     width="100%" height="100%" style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    src={`https://maps.google.com/maps?q=${property.latitude || property.town},${property.longitude || property.region}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    src={mapUrl}
                     title="Location map"
                   ></iframe>
                 </div>
@@ -208,7 +226,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-6 md:p-10 pb-4">
-                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">{t('propertyDetail.price') || "PRIX"}</p>
                   <p className={`text-3xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {numericPrice > 0 ? numericPrice.toLocaleString("fr-FR") + " €" : "Sur demande"}
                   </p>
@@ -218,11 +236,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 </div>
                 <div className="p-6 md:p-10 pt-0">
                   <a 
-                    href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer"
+                    href={`https://wa.me/${whatsappNumber}?text=Info ref: ${property.ref || property.id}`} 
+                    target="_blank" rel="noopener noreferrer"
                     className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border transition-all"
                     style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)', color: isLight ? '#0f172a' : '#ffffff' }}
                   >
-                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
+                    <MessageCircle size={18} className="text-green-500" /> {t('propertyDetail.whatsappDirect') || "WHATSAPP DIRECT"}
                   </a>
                 </div>
               </div>
