@@ -400,10 +400,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         favorites={favorites}
                         onToggleFavorite={toggleFavorite}
                         onPropertyClick={(p: Villa) => { 
-                          console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id, hasDescriptionFr: !!p.description_fr });
-                          setSelectedProperty(p); 
-                          window.scrollTo({ top: 0 }); 
-                        }}
+                        console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id });
+                        setSelectedProperty(p); 
+                        window.scrollTo({ top: 0 }); 
+                      }}
                       />
                     ) : (
                       <motion.div 

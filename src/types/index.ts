@@ -1,3 +1,5 @@
+// src/types/index.ts
+
 // Définition de la Villa
 export interface Villa {
     id: string;
@@ -19,6 +21,20 @@ export interface Villa {
     latitude: number | null;
     longitude: number | null;
     adresse?: string;
+    // ✅ AJOUT : Champs de description multilingues
+    description_fr?: string;
+    description_en?: string;
+    description_es?: string;
+    description_nl?: string;
+    description_pl?: string;
+    description_ar?: string;
+    // ✅ AJOUT : Champs de titre multilingues (optionnels)
+    titre_fr?: string;
+    titre_en?: string;
+    titre_es?: string;
+    titre_nl?: string;
+    titre_pl?: string;
+    titre_ar?: string;
     // -------------------------------------------
     // Fallbacks pour la compatibilité
     prix?: number;
@@ -26,6 +42,15 @@ export interface Villa {
     pieces?: number;
     surface?: number;
     slug?: string;
+    // Autres champs potentiels
+    development_name?: string;
+    promoteur_name?: string;
+    xml_source?: string;
+    agency_id?: string;
+    commission_percentage?: number;
+    is_excluded?: boolean;
+    updated_at?: string;
+    created_at?: string;
 }
 
 // Définition de l'Agence
@@ -42,6 +67,20 @@ export interface Agency {
     package_level?: 'light' | 'premium' | 'ultimate';
     default_lang?: string;
     email?: string;
+    phone?: string;
+    whatsapp_number?: string;
+    address?: string;
+    footer_config?: any;
+    team_data?: any[];
+    button_color?: string;
+    button_style?: string;
+    button_animation?: string;
+    about_title?: string;
+    about_text?: string;
+    privacy_policy?: string;
+    cookie_consent_enabled?: boolean;
+    hero_type?: 'image' | 'video';
+    font_family?: string;
 }
 
 // Définition des Filtres
