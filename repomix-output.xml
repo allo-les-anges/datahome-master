@@ -533,54 +533,6 @@ habihub-light-template
 ```
 </file>
 
-<file path="src/app/[locale]/layout.tsx">
-import { Inter, Montserrat, Playfair_Display, Poppins, Roboto_Mono } from "next/font/google";
-import "@/app/globals.css";
-import { ReactNode } from "react";
-import { notFound } from "next/navigation";
-
-// Configuration des polices
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
-const poppins = Poppins({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-poppins" });
-const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-roboto" });
-
-export default async function LocaleLayout({
-  children,
-  params,
-}: {
-  children: ReactNode;
-  params: Promise<{ locale: string }>; // Correction : params est une Promise
-}) {
-  // On attend la résolution des paramètres
-  const { locale } = await params;
-
-  // Vérification des langues supportées
-  const supportedLocales = ['fr', 'en', 'es', 'nl', 'ar', 'pl']; // J'ai ajouté les langues vues dans votre dashboard
-  if (!supportedLocales.includes(locale)) {
-    notFound();
-  }
-
-  return (
-    <html lang={locale} className="scroll-smooth">
-      <body suppressHydrationWarning={true}
-        className={`
-          ${inter.variable} 
-          ${montserrat.variable} 
-          ${playfair.variable} 
-          ${poppins.variable} 
-          ${robotoMono.variable} 
-          antialiased
-        `}
-      >
-        {children}
-      </body>
-    </html>
-  );
-}
-</file>
-
 <file path="src/app/admin/agencies/page.tsx">
 "use client";
 import AgencyDashboard from "@/components/admin/AgencyDashboard";
@@ -3368,50 +3320,6 @@ export async function GET(request: Request) {
 }
 </file>
 
-<file path="src/app/api/sync-villas/route.ts">
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { parseStringPromise } from "xml2js"; // Tu devras peut-être faire : npm install xml2js
-
-const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-
-export async function POST(req: Request) {
-  const { agencyId, xmlUrl } = await req.json();
-
-  try {
-    // 1. Télécharger le XML
-    const response = await fetch(xmlUrl);
-    const xmlText = await response.text();
-    
-    // 2. Parser le XML en objet JavaScript
-    const result = await parseStringPromise(xmlText);
-    const properties = result. ads.ad; // Structure typique des flux Habihub
-
-    // 3. Préparer les données pour Supabase
-    const villasToInsert = properties.map((p: any) => ({
-      id_externe: p.id[0],
-      titre: p.title[0],
-      prix: p.price[0],
-      agency_id: agencyId, // L'ÉTIQUETTE !
-      xml_source: xmlUrl,
-      // Ajoute ici les autres champs (images, description...)
-    }));
-
-    // 4. Nettoyer les anciennes villas de cette agence et insérer les nouvelles
-    // Option simple : on supprime et on remplace
-    await supabaseAdmin.from("villas").delete().eq("agency_id", agencyId);
-    const { error } = await supabaseAdmin.from("villas").insert(villasToInsert);
-
-    if (error) throw error;
-
-    return NextResponse.json({ success: true, count: villasToInsert.length });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
-}
-</file>
-
 <file path="src/app/api/webhooks/habihub/route.ts">
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -3454,6 +3362,769 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, message: "Synchro lancée" });
   } catch (error) {
     return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  }
+}
+</file>
+
+<file path="src/components/Hero.tsx">
+// src/components/Hero.tsx - Ajout du lazy loading
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface HeroProps {
+  agency?: any; 
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+  agencyName?: string;
+}
+
+export default function Hero({ agency, title, subtitle, backgroundImage, agencyName }: HeroProps) {
+  const { t } = useTranslation() as any;
+  const [error, setError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  const brandColor = agency?.primary_color || "#D4AF37";
+  const displayTitle = agency?.hero_title || title || t('footer.excellence') || "Luxury Real Estate";
+
+  const rawBgUrl = agency?.hero_url || backgroundImage;
+  const cleanBgUrl = rawBgUrl ? rawBgUrl.replace(/['"]+/g, '').trim() : null;
+  const isValidUrl = cleanBgUrl && (cleanBgUrl.startsWith('http') || cleanBgUrl.startsWith('/'));
+
+  const finalBg = (!isValidUrl || error) 
+    ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" 
+    : cleanBgUrl;
+
+  return (
+    <div className="relative w-full h-[85vh] flex items-center justify-center overflow-hidden bg-slate-900 top-0 left-0 mt-0 block">
+      
+      {/* IMAGE DE FOND AVEC OPTIMISATION */}
+      <div className="absolute inset-0 z-0">
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-slate-800 animate-pulse" />
+        )}
+        <img
+          src={finalBg}
+          alt={agency?.agency_name || agencyName || "Luxury Property"}
+          className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setError(true)}
+          style={{ opacity: 0.85 }}
+          loading="eager"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-black/30" />
+      </div>
+
+      <div className="relative z-10 text-center px-6 max-w-4xl">
+        <span className="inline-block text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-white/70 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          {agency?.agency_name || agencyName || t('footer.excellence') || "EXCELLENCE"}
+        </span>
+        
+        <h1 className="text-4xl md:text-7xl font-serif italic text-white leading-[1.1] mb-10 drop-shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
+          {displayTitle}
+        </h1>
+        
+        <p className="text-white/80 text-[10px] md:text-[12px] uppercase tracking-[0.4em] font-medium max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 mb-8">
+          {subtitle || t('nav.subtitle')}
+        </p>
+
+        <div 
+          className="w-24 h-[2px] mx-auto animate-in fade-in zoom-in duration-1000 delay-700"
+          style={{ backgroundColor: brandColor }}
+        />
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-50 via-slate-50/20 to-transparent z-20" />
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/PropertyGrid.tsx">
+// src/components/PropertyGrid.tsx
+"use client";
+
+import React, { memo } from 'react';
+import { useTranslation } from "@/contexts/I18nContext";
+import { Bed, Bath, Maximize, MapPin, Waves, Map, Car } from "lucide-react";
+import type { Villa, Agency, Filters } from '@/types';
+
+interface PropertyGridProps {
+  agency?: Agency | null;
+  properties: Villa[];
+  onPropertyClick: (property: Villa) => void;
+  isLight?: boolean;
+  favorites?: string[];
+  onToggleFavorite?: (id: string) => void;
+  activeFilters?: Filters; 
+  locale?: string;
+}
+
+// Composant memoizé pour éviter les re-rendus inutiles
+const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
+  const price = Number(property.price || 0);
+  const brandColor = agency?.primary_color || "#10b981";
+  const showDark = !isLight;
+
+  return (
+    <div 
+      onClick={() => onClick(property)}
+      className={`group cursor-pointer rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
+        showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
+      }`}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        {/* Lazy loading avec loading="lazy" */}
+        <img 
+          src={property.images?.[0] || '/placeholder-villa.jpg'} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          alt={property.titre}
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 shadow-sm">
+          {property.type}
+        </div>
+      </div>
+
+      <div className="p-8 space-y-4">
+        <div className="flex justify-between items-start">
+          <div className="text-2xl font-serif italic" style={{ color: showDark ? 'white' : '#0f172a' }}>
+            {price.toLocaleString()} €
+          </div>
+        </div>
+        <h3 className={`text-lg font-medium leading-tight line-clamp-2 ${showDark ? 'text-white/90' : 'text-slate-800'}`}>
+          {property.titre}
+        </h3>
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <MapPin size={14} style={{ color: brandColor }} />
+          {property.town} <span className="opacity-30">|</span> {property.region}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
+        {[
+          { icon: Maximize, value: `${property.surface || property.surface_built || 0} m²` },
+          { icon: Bed, value: `${property.beds || 0}` },
+          { icon: Bath, value: `${property.baths || 0}` },
+          { icon: Waves, value: property.pool === "Oui" || property.pool === true ? "Piscine" : "Non" },
+          { icon: Map, value: `${property.surface_plot || 0} m²` },
+          { icon: Car, value: "Garage" }
+        ].map((item, idx) => (
+          <div key={idx} className="flex flex-col items-center gap-1">
+            <item.icon size={16} className="text-slate-400" />
+            <span className="text-[10px] font-bold text-slate-400">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+PropertyCard.displayName = 'PropertyCard';
+
+// Composant principal également memoizé
+const PropertyGrid = memo(function PropertyGrid({ 
+  properties, 
+  agency, 
+  onPropertyClick, 
+  isLight, 
+  locale 
+}: PropertyGridProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {properties.map((property: Villa) => (
+        <PropertyCard 
+          key={property.id} 
+          property={property} 
+          agency={agency}
+          onClick={onPropertyClick}
+          isLight={isLight}
+          locale={locale}
+        />
+      ))}
+    </div>
+  );
+});
+
+export default PropertyGrid;
+</file>
+
+<file path="src/contexts/I18nContext.tsx">
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams } from 'next/navigation'; // 🟢 Import crucial
+
+// Imports statiques
+import fr from '@/dictionaries/fr.json';
+import en from '@/dictionaries/en.json';
+import nl from '@/dictionaries/nl.json';
+import es from '@/dictionaries/es.json';
+import pl from '@/dictionaries/pl.json'; // 🟢 Ajouté
+import ar from '@/dictionaries/ar.json'; // 🟢 Ajouté
+
+const dictionaries: any = { fr, en, nl, es, pl, ar };
+type Language = 'fr' | 'en' | 'nl' | 'es' | 'pl' | 'ar';
+
+interface I18nContextType {
+  locale: Language;
+  setLocale: (lang: Language) => void;
+  t: (key: string, params?: Record<string, string | number>) => any;
+  dir: 'ltr' | 'rtl';
+}
+
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
+
+export const I18nProvider = ({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Language }) => {
+  const params = useParams();
+  
+  // 🟢 On synchronise la locale avec l'URL en priorité
+  const localeFromUrl = (params?.locale as Language);
+  
+  const [locale, setLocaleState] = useState<Language>(localeFromUrl || initialLocale || 'fr');
+
+  // 🟢 Effet de synchronisation : si l'URL change, on met à jour l'état
+  useEffect(() => {
+    if (localeFromUrl && localeFromUrl !== locale) {
+      setLocaleState(localeFromUrl);
+    }
+  }, [localeFromUrl, locale]);
+
+  const dictionary = useMemo(() => dictionaries[locale] || dictionaries.fr, [locale]);
+
+  const setLocale = useCallback((newLang: Language) => {
+    if (newLang === locale) return;
+
+    // Mise à jour du cookie pour le SSR
+    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
+    
+    setLocaleState(newLang);
+    // Note : Le changement d'URL réel doit être géré dans la Navbar via router.push
+  }, [locale]);
+
+  const t = useCallback((key: string, params?: Record<string, string | number>) => {
+    const keys = key.split('.');
+    let value = dictionary;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key;
+      }
+    }
+    if (typeof value === 'string' && params) {
+      return value.replace(/\{(\w+)\}/g, (_, p) => params[p]?.toString() || `{${p}}`);
+    }
+    return value;
+  }, [dictionary]);
+
+  return (
+    <I18nContext.Provider value={{ 
+      locale, 
+      setLocale, 
+      t, 
+      dir: locale === 'ar' ? 'rtl' : 'ltr' 
+    }}>
+      <div dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+        {children}
+      </div>
+    </I18nContext.Provider>
+  );
+};
+
+export const useTranslation = () => {
+  const context = useContext(I18nContext);
+  if (!context) return { locale: 'fr' as Language, t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
+  return context;
+};
+</file>
+
+<file path="src/app/[locale]/layout.tsx">
+import { Inter, Montserrat, Playfair_Display, Poppins, Roboto_Mono } from "next/font/google";
+import "@/app/globals.css";
+import { ReactNode } from "react";
+import { notFound } from "next/navigation";
+
+// Configuration des polices avec leurs variables CSS respectives
+const inter = Inter({ 
+  subsets: ["latin"], 
+  variable: "--font-inter" 
+});
+
+const montserrat = Montserrat({ 
+  subsets: ["latin"], 
+  variable: "--font-montserrat" 
+});
+
+const playfair = Playfair_Display({ 
+  subsets: ["latin"], 
+  variable: "--font-playfair" 
+});
+
+const poppins = Poppins({ 
+  weight: ["400", "700"], 
+  subsets: ["latin"], 
+  variable: "--font-poppins" 
+});
+
+const robotoMono = Roboto_Mono({ 
+  subsets: ["latin"], 
+  variable: "--font-roboto" 
+});
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  // Résolution de la promesse des paramètres
+  const { locale } = await params;
+
+  // Liste des langues supportées par votre application
+  const supportedLocales = ['fr', 'en', 'es', 'nl', 'ar', 'pl'];
+  
+  if (!supportedLocales.includes(locale)) {
+    notFound();
+  }
+
+  return (
+    <html lang={locale} className="scroll-smooth">
+      <body 
+        suppressHydrationWarning={true}
+        className={`${inter.variable} ${montserrat.variable} ${playfair.variable} ${poppins.variable} ${robotoMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="src/components/Footer.tsx">
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface FooterProps {
+  isLight?: boolean;
+  agency?: any;
+}
+
+export default function Footer({ isLight = true, agency }: FooterProps) {
+  const { t } = useTranslation();
+  const params = useParams();
+  const slug = params?.slug || "";
+  const locale = params?.locale || "en";
+  
+  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
+  const textColor = isLight ? "text-slate-900" : "text-white";
+  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
+  
+  const footerData = typeof agency?.footer_config === 'string' 
+    ? JSON.parse(agency.footer_config || '{}') 
+    : (agency?.footer_config || {});
+
+  const brandColor = agency?.primary_color || '#10b981';
+
+  // Logique SaaS : Nom légal vs Nom commercial
+  const legalName = agency?.legal_name || agency?.agency_name || "Datahome";
+
+  return (
+    <footer 
+      className={`${bgColor} py-16 transition-colors duration-500`}
+      style={{ '--brand-primary': brandColor } as React.CSSProperties}
+    >
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+          
+          {/* Identité & Copyrighting */}
+          <div className="col-span-1 md:col-span-1 space-y-6">
+            <h3 className={`text-xl font-serif italic ${textColor}`}>
+              {agency?.agency_name || t('footer.excellence')}
+            </h3>
+            <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
+            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
+              {t('footer.description')}
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li>
+                <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
+                  {t('nav.home')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
+                  {t('nav.contact')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Légal & Privacy (Le coeur du SaaS) */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li>
+                <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
+                  <ShieldCheck size={12} />
+                  {t('footer.privacy')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors">
+                  {t('footer.terms')}
+                </Link>
+              </li>
+              {/* Si l'agence a un numéro de licence (ex: Carte T en France) */}
+              {agency?.license_number && (
+                <li className="text-[9px] normal-case opacity-70">
+                  Licence: {agency.license_number}
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Contact & Réseaux */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
+            <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <p className="flex items-start gap-3">
+                <MapPin size={14} style={{ color: brandColor }} />
+                <span>{footerData?.address || agency?.address}</span>
+              </p>
+              <div className="flex gap-4 pt-2">
+                {(footerData?.socials?.facebook || agency?.facebook_url) && (
+                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank"><Facebook size={18} /></a>
+                )}
+                {(footerData?.socials?.instagram || agency?.instagram_url) && (
+                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank"><Instagram size={18} /></a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Bottom : Le Copyright Multi-Tenant */}
+        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
+            © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
+          </p>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
+            Powered by <a href="https://datahome.fr" className="hover:underline">Datahome</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+</file>
+
+<file path="src/components/PropertyDetailClient.tsx">
+"use client";
+
+import { useEffect, useState, useRef, useMemo } from "react";
+import ContactForm from "@/components/ContactForm";
+import { 
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
+} from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useSearchParams } from "next/navigation";
+
+interface PropertyDetailClientProps {
+  property: any;
+  agency: any;
+}
+
+export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
+  const { t, locale } = useTranslation() as any;
+  const searchParams = useSearchParams();
+  const [activeImage, setActiveImage] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
+
+  const primaryColor = useMemo(() => {
+    return agency?.primary_color || 
+           agency?.theme?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      if (clientWidth > 0) {
+        const newIndex = Math.round(scrollLeft / clientWidth);
+        if (newIndex !== activeImage) setActiveImage(newIndex);
+      }
+    }
+  };
+
+  const description = useMemo(() => {
+    if (!property) return "";
+    return property[`description_${locale}`] || property.description || property.description_fr || "";
+  }, [property, locale]);
+
+  const images = property?.images || [];
+  const numericPrice = Number(property?.price || property?.prix || 0);
+  const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
+
+  if (!mounted || !property) return null;
+
+  return (
+    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
+      <div className="pb-20"> 
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          
+          {/* GALERIE D'IMAGES */}
+          <section className="mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
+              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
+                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                  {images.map((img: string, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
+                      style={{ 
+                        opacity: activeImage === idx ? 1 : 0, 
+                        zIndex: activeImage === idx ? 10 : 0,
+                        pointerEvents: activeImage === idx ? 'auto' : 'none'
+                      }}
+                    >
+                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
+                </div>
+              </div>
+
+              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                {images.map((img: string, idx: number) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => setActiveImage(idx)} 
+                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
+                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
+                  >
+                    <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* GRILLE DE CONTENU */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
+            <div className="lg:col-span-2">
+              <h1 className={`text-4xl md:text-6xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                {property.titre || property.title || "Propriété Exclusive"}
+              </h1>
+
+              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={18} color={primaryColor} />
+                {property.town || property.ville} • {property.region}
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+                {[
+                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
+                  { icon: Bath, val: property.baths, label: 'BAINS' },
+                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
+                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
+                  { icon: Car, val: "OUI", label: 'PARKING' },
+                ].map((item, i) => (
+                  <div 
+                    key={i} 
+                    className={`p-6 md:p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                  >
+                    <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
+                    <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div 
+                className={`text-lg md:text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+
+              <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                    <Navigation size={24} color={primaryColor} />
+                  </div>
+                  <div>
+                    <h2 className={`text-2xl md:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                  </div>
+                </div>
+                <div className="relative rounded-[2.5rem] overflow-hidden shadow-xl h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    title="Location map"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+
+            {/* SIDEBAR - Contact Form */}
+            <div className="lg:col-span-1">
+              <div className={`sticky top-32 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
+                <div className="p-6 md:p-8 pb-4">
+                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className={`text-4xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    {numericPrice.toLocaleString("fr-FR")} €
+                  </p>
+                </div>
+                
+                {/* ContactForm - sans padding supplémentaire qui pourrait casser les styles */}
+                <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
+
+                <div className="p-6 md:p-8 pt-0">
+                  <a 
+                    href={`https://wa.me/${whatsappNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all"
+                    style={{ 
+                      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                      color: isLight ? '#0f172a' : '#ffffff',
+                      backgroundColor: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+}
+</file>
+
+<file path="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: 'class',
+  content: [
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: 'var(--brand-primary)',
+      },
+      fontFamily: {
+        // "playfair.variable" dans layout.tsx est "--font-playfair"
+        serif: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
+        // "montserrat.variable" dans layout.tsx est "--font-montserrat"
+        sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
+        // Optionnel : ajouter les autres si besoin
+        mono: ['var(--font-roboto)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        poppins: ['var(--font-poppins)', 'sans-serif'],
+      },
+      borderRadius: {
+        '4xl': '2rem',
+        '5xl': '2.5rem',
+        '6xl': '3rem',
+      },
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+</file>
+
+<file path="src/app/api/sync-villas/route.ts">
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { parseStringPromise } from "xml2js"; // Tu devras peut-être faire : npm install xml2js
+
+const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function POST(req: Request) {
+  const { agencyId, xmlUrl } = await req.json();
+
+  try {
+    // 1. Télécharger le XML
+    const response = await fetch(xmlUrl);
+    const xmlText = await response.text();
+    
+    // 2. Parser le XML en objet JavaScript
+    const result = await parseStringPromise(xmlText);
+    const properties = result. ads.ad; // Structure typique des flux Habihub
+
+    // 3. Préparer les données pour Supabase
+    const villasToInsert = properties.map((p: any) => ({
+      id_externe: p.id[0],
+      titre: p.title[0],
+      prix: p.price[0],
+      agency_id: agencyId, // L'ÉTIQUETTE !
+      xml_source: xmlUrl,
+      // Ajoute ici les autres champs (images, description...)
+    }));
+
+    // 4. Nettoyer les anciennes villas de cette agence et insérer les nouvelles
+    // Option simple : on supprime et on remplace
+    await supabaseAdmin.from("villas").delete().eq("agency_id", agencyId);
+    const { error } = await supabaseAdmin.from("villas").insert(villasToInsert);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, count: villasToInsert.length });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }
 </file>
@@ -4981,657 +5652,6 @@ export default function AgencyDashboard() {
 }
 </file>
 
-<file path="src/components/Hero.tsx">
-// src/components/Hero.tsx - Ajout du lazy loading
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface HeroProps {
-  agency?: any; 
-  title?: string;
-  subtitle?: string;
-  backgroundImage?: string;
-  agencyName?: string;
-}
-
-export default function Hero({ agency, title, subtitle, backgroundImage, agencyName }: HeroProps) {
-  const { t } = useTranslation() as any;
-  const [error, setError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  const brandColor = agency?.primary_color || "#D4AF37";
-  const displayTitle = agency?.hero_title || title || t('footer.excellence') || "Luxury Real Estate";
-
-  const rawBgUrl = agency?.hero_url || backgroundImage;
-  const cleanBgUrl = rawBgUrl ? rawBgUrl.replace(/['"]+/g, '').trim() : null;
-  const isValidUrl = cleanBgUrl && (cleanBgUrl.startsWith('http') || cleanBgUrl.startsWith('/'));
-
-  const finalBg = (!isValidUrl || error) 
-    ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" 
-    : cleanBgUrl;
-
-  return (
-    <div className="relative w-full h-[85vh] flex items-center justify-center overflow-hidden bg-slate-900 top-0 left-0 mt-0 block">
-      
-      {/* IMAGE DE FOND AVEC OPTIMISATION */}
-      <div className="absolute inset-0 z-0">
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-slate-800 animate-pulse" />
-        )}
-        <img
-          src={finalBg}
-          alt={agency?.agency_name || agencyName || "Luxury Property"}
-          className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setError(true)}
-          style={{ opacity: 0.85 }}
-          loading="eager"
-          fetchPriority="high"
-        />
-        <div className="absolute inset-0 bg-black/30" />
-      </div>
-
-      <div className="relative z-10 text-center px-6 max-w-4xl">
-        <span className="inline-block text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-white/70 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-          {agency?.agency_name || agencyName || t('footer.excellence') || "EXCELLENCE"}
-        </span>
-        
-        <h1 className="text-4xl md:text-7xl font-serif italic text-white leading-[1.1] mb-10 drop-shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
-          {displayTitle}
-        </h1>
-        
-        <p className="text-white/80 text-[10px] md:text-[12px] uppercase tracking-[0.4em] font-medium max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 mb-8">
-          {subtitle || t('nav.subtitle')}
-        </p>
-
-        <div 
-          className="w-24 h-[2px] mx-auto animate-in fade-in zoom-in duration-1000 delay-700"
-          style={{ backgroundColor: brandColor }}
-        />
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-50 via-slate-50/20 to-transparent z-20" />
-    </div>
-  );
-}
-</file>
-
-<file path="src/components/PropertyGrid.tsx">
-// src/components/PropertyGrid.tsx
-"use client";
-
-import React, { memo } from 'react';
-import { useTranslation } from "@/contexts/I18nContext";
-import { Bed, Bath, Maximize, MapPin, Waves, Map, Car } from "lucide-react";
-import type { Villa, Agency, Filters } from '@/types';
-
-interface PropertyGridProps {
-  agency?: Agency | null;
-  properties: Villa[];
-  onPropertyClick: (property: Villa) => void;
-  isLight?: boolean;
-  favorites?: string[];
-  onToggleFavorite?: (id: string) => void;
-  activeFilters?: Filters; 
-  locale?: string;
-}
-
-// Composant memoizé pour éviter les re-rendus inutiles
-const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
-  const price = Number(property.price || 0);
-  const brandColor = agency?.primary_color || "#10b981";
-  const showDark = !isLight;
-
-  return (
-    <div 
-      onClick={() => onClick(property)}
-      className={`group cursor-pointer rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
-        showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
-      }`}
-    >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        {/* Lazy loading avec loading="lazy" */}
-        <img 
-          src={property.images?.[0] || '/placeholder-villa.jpg'} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          alt={property.titre}
-          loading="lazy"
-          decoding="async"
-        />
-        <div className="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 shadow-sm">
-          {property.type}
-        </div>
-      </div>
-
-      <div className="p-8 space-y-4">
-        <div className="flex justify-between items-start">
-          <div className="text-2xl font-serif italic" style={{ color: showDark ? 'white' : '#0f172a' }}>
-            {price.toLocaleString()} €
-          </div>
-        </div>
-        <h3 className={`text-lg font-medium leading-tight line-clamp-2 ${showDark ? 'text-white/90' : 'text-slate-800'}`}>
-          {property.titre}
-        </h3>
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-          <MapPin size={14} style={{ color: brandColor }} />
-          {property.town} <span className="opacity-30">|</span> {property.region}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
-        {[
-          { icon: Maximize, value: `${property.surface || property.surface_built || 0} m²` },
-          { icon: Bed, value: `${property.beds || 0}` },
-          { icon: Bath, value: `${property.baths || 0}` },
-          { icon: Waves, value: property.pool === "Oui" || property.pool === true ? "Piscine" : "Non" },
-          { icon: Map, value: `${property.surface_plot || 0} m²` },
-          { icon: Car, value: "Garage" }
-        ].map((item, idx) => (
-          <div key={idx} className="flex flex-col items-center gap-1">
-            <item.icon size={16} className="text-slate-400" />
-            <span className="text-[10px] font-bold text-slate-400">{item.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-});
-
-PropertyCard.displayName = 'PropertyCard';
-
-// Composant principal également memoizé
-const PropertyGrid = memo(function PropertyGrid({ 
-  properties, 
-  agency, 
-  onPropertyClick, 
-  isLight, 
-  locale 
-}: PropertyGridProps) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {properties.map((property: Villa) => (
-        <PropertyCard 
-          key={property.id} 
-          property={property} 
-          agency={agency}
-          onClick={onPropertyClick}
-          isLight={isLight}
-          locale={locale}
-        />
-      ))}
-    </div>
-  );
-});
-
-export default PropertyGrid;
-</file>
-
-<file path="src/contexts/I18nContext.tsx">
-"use client";
-
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams } from 'next/navigation'; // 🟢 Import crucial
-
-// Imports statiques
-import fr from '@/dictionaries/fr.json';
-import en from '@/dictionaries/en.json';
-import nl from '@/dictionaries/nl.json';
-import es from '@/dictionaries/es.json';
-import pl from '@/dictionaries/pl.json'; // 🟢 Ajouté
-import ar from '@/dictionaries/ar.json'; // 🟢 Ajouté
-
-const dictionaries: any = { fr, en, nl, es, pl, ar };
-type Language = 'fr' | 'en' | 'nl' | 'es' | 'pl' | 'ar';
-
-interface I18nContextType {
-  locale: Language;
-  setLocale: (lang: Language) => void;
-  t: (key: string, params?: Record<string, string | number>) => any;
-  dir: 'ltr' | 'rtl';
-}
-
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
-
-export const I18nProvider = ({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Language }) => {
-  const params = useParams();
-  
-  // 🟢 On synchronise la locale avec l'URL en priorité
-  const localeFromUrl = (params?.locale as Language);
-  
-  const [locale, setLocaleState] = useState<Language>(localeFromUrl || initialLocale || 'fr');
-
-  // 🟢 Effet de synchronisation : si l'URL change, on met à jour l'état
-  useEffect(() => {
-    if (localeFromUrl && localeFromUrl !== locale) {
-      setLocaleState(localeFromUrl);
-    }
-  }, [localeFromUrl, locale]);
-
-  const dictionary = useMemo(() => dictionaries[locale] || dictionaries.fr, [locale]);
-
-  const setLocale = useCallback((newLang: Language) => {
-    if (newLang === locale) return;
-
-    // Mise à jour du cookie pour le SSR
-    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
-    
-    setLocaleState(newLang);
-    // Note : Le changement d'URL réel doit être géré dans la Navbar via router.push
-  }, [locale]);
-
-  const t = useCallback((key: string, params?: Record<string, string | number>) => {
-    const keys = key.split('.');
-    let value = dictionary;
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return key;
-      }
-    }
-    if (typeof value === 'string' && params) {
-      return value.replace(/\{(\w+)\}/g, (_, p) => params[p]?.toString() || `{${p}}`);
-    }
-    return value;
-  }, [dictionary]);
-
-  return (
-    <I18nContext.Provider value={{ 
-      locale, 
-      setLocale, 
-      t, 
-      dir: locale === 'ar' ? 'rtl' : 'ltr' 
-    }}>
-      <div dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-        {children}
-      </div>
-    </I18nContext.Provider>
-  );
-};
-
-export const useTranslation = () => {
-  const context = useContext(I18nContext);
-  if (!context) return { locale: 'fr' as Language, t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
-  return context;
-};
-</file>
-
-<file path="tailwind.config.js">
-/** @type {import('tailwindcss').Config} */
-export default {
-  darkMode: 'class',
-  content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        primary: 'var(--brand-primary)',
-      },
-      fontFamily: {
-        serif: ['var(--font-serif)', 'Playfair Display', 'Georgia', 'serif'],
-        sans: ['var(--font-main)', 'Montserrat', 'system-ui', 'sans-serif'],
-      },
-      borderRadius: {
-        '4xl': '2rem',
-        '5xl': '2.5rem',
-        '6xl': '3rem',
-      },
-      animation: {
-        'spin-slow': 'spin 3s linear infinite',
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-      },
-    },
-  },
-  plugins: [],
-}
-</file>
-
-<file path="src/components/Footer.tsx">
-"use client";
-
-import React from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface FooterProps {
-  isLight?: boolean;
-  agency?: any;
-}
-
-export default function Footer({ isLight = true, agency }: FooterProps) {
-  const { t } = useTranslation();
-  const params = useParams();
-  const slug = params?.slug || "";
-  const locale = params?.locale || "en";
-  
-  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
-  const textColor = isLight ? "text-slate-900" : "text-white";
-  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
-  
-  const footerData = typeof agency?.footer_config === 'string' 
-    ? JSON.parse(agency.footer_config || '{}') 
-    : (agency?.footer_config || {});
-
-  const brandColor = agency?.primary_color || '#10b981';
-
-  // Logique SaaS : Nom légal vs Nom commercial
-  const legalName = agency?.legal_name || agency?.agency_name || "Datahome";
-
-  return (
-    <footer 
-      className={`${bgColor} py-16 transition-colors duration-500`}
-      style={{ '--brand-primary': brandColor } as React.CSSProperties}
-    >
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
-          
-          {/* Identité & Copyrighting */}
-          <div className="col-span-1 md:col-span-1 space-y-6">
-            <h3 className={`text-xl font-serif italic ${textColor}`}>
-              {agency?.agency_name || t('footer.excellence')}
-            </h3>
-            <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
-            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
-              {t('footer.description')}
-            </p>
-          </div>
-
-          {/* Navigation */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li>
-                <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
-                  {t('nav.home')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
-                  {t('nav.contact')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Légal & Privacy (Le coeur du SaaS) */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li>
-                <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
-                  <ShieldCheck size={12} />
-                  {t('footer.privacy')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors">
-                  {t('footer.terms')}
-                </Link>
-              </li>
-              {/* Si l'agence a un numéro de licence (ex: Carte T en France) */}
-              {agency?.license_number && (
-                <li className="text-[9px] normal-case opacity-70">
-                  Licence: {agency.license_number}
-                </li>
-              )}
-            </ul>
-          </div>
-
-          {/* Contact & Réseaux */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
-            <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <p className="flex items-start gap-3">
-                <MapPin size={14} style={{ color: brandColor }} />
-                <span>{footerData?.address || agency?.address}</span>
-              </p>
-              <div className="flex gap-4 pt-2">
-                {(footerData?.socials?.facebook || agency?.facebook_url) && (
-                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank"><Facebook size={18} /></a>
-                )}
-                {(footerData?.socials?.instagram || agency?.instagram_url) && (
-                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank"><Instagram size={18} /></a>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Bottom : Le Copyright Multi-Tenant */}
-        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
-            © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
-          </p>
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
-            Powered by <a href="https://datahome.fr" className="hover:underline">Datahome</a>
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-</file>
-
-<file path="src/components/PropertyDetailClient.tsx">
-"use client";
-
-import { useEffect, useState, useRef, useMemo } from "react";
-import ContactForm from "@/components/ContactForm";
-import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
-} from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useSearchParams } from "next/navigation";
-
-interface PropertyDetailClientProps {
-  property: any;
-  agency: any;
-}
-
-export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
-  const { t, locale } = useTranslation() as any;
-  const searchParams = useSearchParams();
-  const [activeImage, setActiveImage] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
-  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
-
-  const primaryColor = useMemo(() => {
-    return agency?.primary_color || 
-           agency?.theme?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      if (clientWidth > 0) {
-        const newIndex = Math.round(scrollLeft / clientWidth);
-        if (newIndex !== activeImage) setActiveImage(newIndex);
-      }
-    }
-  };
-
-  const description = useMemo(() => {
-    if (!property) return "";
-    return property[`description_${locale}`] || property.description || property.description_fr || "";
-  }, [property, locale]);
-
-  const images = property?.images || [];
-  const numericPrice = Number(property?.price || property?.prix || 0);
-  const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
-
-  if (!mounted || !property) return null;
-
-  return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
-      <div className="pb-20"> 
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          
-          {/* GALERIE D'IMAGES */}
-          <section className="mb-16">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
-              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
-                  {images.map((img: string, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
-                      style={{ 
-                        opacity: activeImage === idx ? 1 : 0, 
-                        zIndex: activeImage === idx ? 10 : 0,
-                        pointerEvents: activeImage === idx ? 'auto' : 'none'
-                      }}
-                    >
-                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
-                    </div>
-                  ))}
-                </div>
-                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
-                </div>
-              </div>
-
-              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-                {images.map((img: string, idx: number) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => setActiveImage(idx)} 
-                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
-                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
-                  >
-                    <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* GRILLE DE CONTENU */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
-            <div className="lg:col-span-2">
-              <h1 className={`text-4xl md:text-6xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                {property.titre || property.title || "Propriété Exclusive"}
-              </h1>
-
-              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville} • {property.region}
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
-                {[
-                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
-                  { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
-                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
-                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
-                  { icon: Car, val: "OUI", label: 'PARKING' },
-                ].map((item, i) => (
-                  <div 
-                    key={i} 
-                    className={`p-6 md:p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
-                  >
-                    <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
-                    <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div 
-                className={`text-lg md:text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                dangerouslySetInnerHTML={{ __html: description }}
-              />
-
-              <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                    <Navigation size={24} color={primaryColor} />
-                  </div>
-                  <div>
-                    <h2 className={`text-2xl md:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
-                  </div>
-                </div>
-                <div className="relative rounded-[2.5rem] overflow-hidden shadow-xl h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    loading="lazy"
-                    allowFullScreen
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                    title="Location map"
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-
-            {/* SIDEBAR - Contact Form */}
-            <div className="lg:col-span-1">
-              <div className={`sticky top-32 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
-                <div className="p-6 md:p-8 pb-4">
-                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-4xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice.toLocaleString("fr-FR")} €
-                  </p>
-                </div>
-                
-                {/* ContactForm - sans padding supplémentaire qui pourrait casser les styles */}
-                <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
-
-                <div className="p-6 md:p-8 pt-0">
-                  <a 
-                    href={`https://wa.me/${whatsappNumber}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all"
-                    style={{ 
-                      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-                      color: isLight ? '#0f172a' : '#ffffff',
-                      backgroundColor: 'transparent'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
-  );
-}
-</file>
-
 <file path="src/app/globals.css">
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
@@ -6968,6 +6988,135 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
 }
 </file>
 
+<file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
+"use client";
+
+import { useEffect, useState, use } from "react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
+import { Loader2 } from "lucide-react";
+
+interface AboutPageProps {
+  params: Promise<{
+    slug: string;
+    locale: string;
+  }>;
+}
+
+export default function AboutPage({ params }: AboutPageProps) {
+  const resolvedParams = use(params);
+  const { t, locale } = useTranslation();
+  const { agency, loading, setAgencyBySlug } = useAgency();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const currentSlug = resolvedParams.slug;
+    if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
+      setAgencyBySlug(currentSlug);
+    }
+  }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
+
+  const brandColor = agency?.primary_color || "#c5a059";
+  const fontFamily = agency?.font_family || 'Montserrat';
+
+  if (loading || !mounted) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+          {t('common.loading') || "Chargement..."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="min-h-screen bg-white text-slate-900 transition-colors duration-500"
+      style={{ 
+        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important`,
+        fontWeight: 400
+      }}
+    >
+      <main>
+        {/* Header / Hero Section */}
+        <section className="pt-52 pb-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row items-start gap-16">
+              
+              <div className="flex-1 space-y-8">
+                <h1 
+                  className="text-5xl md:text-7xl border-l-4 pl-8" 
+                  style={{ 
+                    borderColor: brandColor,
+                    fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                    fontStyle: 'italic',
+                    fontWeight: 'normal'
+                  }}
+                >
+                  {agency?.about_title || t('about.title') || "Notre Histoire"}
+                </h1>
+                
+                <div className="prose prose-lg max-w-none">
+                  <div 
+                    className="text-slate-600 leading-relaxed whitespace-pre-wrap text-xl"
+                    style={{ 
+                      fontFamily: `${fontFamily}, sans-serif`,
+                      fontWeight: 300,
+                      fontStyle: 'normal'
+                    }}
+                  >
+                    {agency?.about_text || t('about.text') || "L'excellence immobilière à votre service."}
+                  </div>
+                </div>
+              </div>
+
+              {agency?.hero_url && (
+                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
+                  <img 
+                    src={agency.hero_url} 
+                    alt={agency.agency_name} 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Section Signature */}
+        <section className="py-32 bg-slate-50 border-y border-black/5">
+          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
+            <h2 
+              className="text-3xl" 
+              style={{ 
+                color: brandColor,
+                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                fontStyle: 'italic',
+                fontWeight: 'normal'
+              }}
+            >
+              {agency?.agency_name}
+            </h2>
+            <p 
+              className="text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold"
+              style={{ fontFamily: `${fontFamily}, sans-serif` }}
+            >
+              {t('about.signature') || "L'immobilier sous un nouveau regard"}
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+</file>
+
 <file path="src/app/[locale]/(agency_site)/[slug]/privacy/page.tsx">
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
@@ -7032,162 +7181,6 @@ export default async function PrivacyPage({
         <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
           <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
             {agency.privacy_policy || translations.legal?.privacy_default}
-          </div>
-        </div>
-
-        <div className="mt-12 text-center">
-          <Link 
-            href={`/${locale}/${slug}`}
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
-          >
-            <ChevronLeft size={14} />
-            {translations.common?.backToHome || "Back"}
-          </Link>
-        </div>
-      </main>
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
-import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import CookieBanner from "@/components/CookieBanner";
-
-export default async function AgencyLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ slug: string; locale: string }>;
-}) {
-  const { slug } = await params;
-
-  // 1. Récupération des paramètres de l'agence (SSR)
-  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
-  const { data: agency } = await supabase
-    .from('agency_settings') 
-    .select('*')
-    .eq('subdomain', slug) 
-    .maybeSingle();
-
-  // Si l'agence n'existe pas, on renvoie une 404
-  if (!agency) {
-    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
-    return notFound();
-  }
-
-  // 2. Définition des variables CSS dynamiques
-  const dynamicStyles = {
-    '--brand-primary': agency.primary_color || '#e5992e',
-    '--font-main': agency.font_family || 'Montserrat, sans-serif',
-    '--font-serif': 'Playfair Display, serif',
-  } as React.CSSProperties;
-
-  // 3. Parsing sécurisé de la configuration
-  const getFooterData = (config: any) => {
-    if (!config) return {};
-    if (typeof config === 'object') return config;
-    try { return JSON.parse(config); } catch { return {}; }
-  };
-
-  const footerConfig = getFooterData(agency.footer_config);
-
-  return (
-    <div style={dynamicStyles} className="min-h-screen flex flex-col">
-      {/* NAVBAR : Présente sur toutes les pages du slug */}
-      <Navbar agency={agency} />
-
-      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
-      <main className="flex-grow">
-        {children}
-      </main>
-      
-      {/* FOOTER : Présent partout */}
-      <Footer agency={agency} />
-
-      {/* Widgets flottants */}
-      <FloatingWhatsApp 
-        phone={footerConfig?.phone || agency.whatsapp_number} 
-        color={agency.primary_color || '#e5992e'} 
-      />
-      
-      <CookieBanner 
-        enabled={agency.cookie_consent_enabled} 
-        agencyName={agency.agency_name} 
-      />
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/terms/page.tsx">
-import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
-import { FileText, ChevronLeft } from "lucide-react";
-import Link from "next/link";
-
-// Importations depuis le bon dossier : src/dictionaries
-import fr from "../../../../../dictionaries/fr.json";
-import en from "../../../../../dictionaries/en.json";
-import es from "../../../../../dictionaries/es.json";
-import nl from "../../../../../dictionaries/nl.json";
-import pl from "../../../../../dictionaries/pl.json";
-import ar from "../../../../../dictionaries/ar.json";
-
-export const revalidate = 0;
-
-export default async function TermsPage({
-  params,
-}: {
-  params: Promise<{ slug: string; locale: string }>;
-}) {
-  const { slug, locale } = await params;
-
-  const translations: any = 
-    locale === 'en' ? en : 
-    locale === 'es' ? es : 
-    locale === 'nl' ? nl : 
-    locale === 'pl' ? pl : 
-    locale === 'ar' ? ar : fr;
-
-  const { data: agency } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .eq('subdomain', slug)
-    .single();
-
-  if (!agency) return notFound();
-
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-100 py-12">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div 
-              className="p-3 rounded-2xl text-white"
-              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
-            >
-              <FileText size={24} />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
-              {translations.footer?.terms || "Terms & Conditions"}
-            </h1>
-          </div>
-          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
-            {agency.agency_name}
-          </p>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-6 py-16">
-        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
-            {agency.terms_content || translations.legal?.terms_default}
           </div>
         </div>
 
@@ -7426,202 +7419,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
 }
 </file>
 
-<file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
-"use client";
-
-import { useEffect, useState, use } from "react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext";
-import { Loader2 } from "lucide-react";
-
-interface AboutPageProps {
-  params: Promise<{
-    slug: string;
-    locale: string;
-  }>;
-}
-
-export default function AboutPage({ params }: AboutPageProps) {
-  const resolvedParams = use(params);
-  const { t, locale } = useTranslation();
-  const { agency, loading, setAgencyBySlug } = useAgency();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const currentSlug = resolvedParams.slug;
-    if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
-      setAgencyBySlug(currentSlug);
-    }
-  }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
-
-  const brandColor = agency?.primary_color || "#c5a059";
-  const fontFamily = agency?.font_family || 'Montserrat';
-
-  if (loading || !mounted) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-          {t('common.loading') || "Chargement..."}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div 
-      className="min-h-screen bg-white text-slate-900 transition-colors duration-500"
-      style={{ 
-        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important`,
-        fontWeight: 400
-      }}
-    >
-      <main>
-        {/* Header / Hero Section */}
-        <section className="pt-52 pb-20 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row items-start gap-16">
-              
-              <div className="flex-1 space-y-8">
-                <h1 
-                  className="text-5xl md:text-7xl border-l-4 pl-8" 
-                  style={{ 
-                    borderColor: brandColor,
-                    fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                    fontStyle: 'italic',
-                    fontWeight: 'normal'
-                  }}
-                >
-                  {agency?.about_title || t('about.title') || "Notre Histoire"}
-                </h1>
-                
-                <div className="prose prose-lg max-w-none">
-                  <div 
-                    className="text-slate-600 leading-relaxed whitespace-pre-wrap text-xl"
-                    style={{ 
-                      fontFamily: `${fontFamily}, sans-serif`,
-                      fontWeight: 300,
-                      fontStyle: 'normal'
-                    }}
-                  >
-                    {agency?.about_text || t('about.text') || "L'excellence immobilière à votre service."}
-                  </div>
-                </div>
-              </div>
-
-              {agency?.hero_url && (
-                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
-                  <img 
-                    src={agency.hero_url} 
-                    alt={agency.agency_name} 
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Section Signature */}
-        <section className="py-32 bg-slate-50 border-y border-black/5">
-          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
-            <h2 
-              className="text-3xl" 
-              style={{ 
-                color: brandColor,
-                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                fontStyle: 'italic',
-                fontWeight: 'normal'
-              }}
-            >
-              {agency?.agency_name}
-            </h2>
-            <p 
-              className="text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold"
-              style={{ fontFamily: `${fontFamily}, sans-serif` }}
-            >
-              {t('about.signature') || "L'immobilier sous un nouveau regard"}
-            </p>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
-import { supabase } from '@/lib/supabase';
-import AgencyPageClient from "@/app/AgencyPageClient";
-import { notFound } from 'next/navigation';
-
-// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
-export const dynamic = 'force-dynamic';
-
-export default async function DynamicAgencyPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string, locale: string }> 
-}) {
-  const { slug } = await params;
-
-  // 1. Récupération de l'agence (Table: agency_settings)
-  const { data: agencies, error: agencyError } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .eq('subdomain', slug);
-
-  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
-
-  if (agencyError || !agency) {
-    console.error("[SUPABASE ERROR - AGENCY]", agencyError);
-    return notFound();
-  }
-
-  // 2. Récupération des villas filtrées par l'ID de l'agence
-  const { data: villas, error: villasError } = await supabase
-    .from('villas')
-    .select(`
-      id, 
-      id_externe, 
-      titre, 
-      prix, 
-      town, 
-      region, 
-      images, 
-      beds, 
-      baths, 
-      surface_built, 
-      surface_plot, 
-      type, 
-      pool, 
-      is_excluded, 
-      agency_id
-    `)
-    .eq('agency_id', agency.id)
-    .eq('is_excluded', false)
-    .order('prix', { ascending: false });
-
-  if (villasError) {
-    console.error("[SUPABASE ERROR - VILLAS]", villasError);
-  }
-
-  // 3. Rendu du composant Client
-  return (
-    <AgencyPageClient 
-      slug={slug} 
-      initialAgency={agency} 
-      initialProperties={villas || []} 
-    />
-  );
-}
-</file>
-
 <file path="src/contexts/AgencyContext.tsx">
 "use client";
 
@@ -7748,6 +7545,229 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAgency = () => useContext(AgencyContext);
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import CookieBanner from "@/components/CookieBanner";
+
+export default async function AgencyLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération des paramètres de l'agence (SSR)
+  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
+  const { data: agency } = await supabase
+    .from('agency_settings') 
+    .select('*')
+    .eq('subdomain', slug) 
+    .maybeSingle();
+
+  // Si l'agence n'existe pas, on renvoie une 404
+  if (!agency) {
+    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
+    return notFound();
+  }
+
+  // 2. Définition des variables CSS dynamiques
+  const dynamicStyles = {
+    '--brand-primary': agency.primary_color || '#e5992e',
+    '--font-main': agency.font_family || 'Montserrat, sans-serif',
+    '--font-serif': 'Playfair Display, serif',
+  } as React.CSSProperties;
+
+  // 3. Parsing sécurisé de la configuration
+  const getFooterData = (config: any) => {
+    if (!config) return {};
+    if (typeof config === 'object') return config;
+    try { return JSON.parse(config); } catch { return {}; }
+  };
+
+  const footerConfig = getFooterData(agency.footer_config);
+
+  return (
+    <div style={dynamicStyles} className="min-h-screen flex flex-col">
+      {/* NAVBAR : Présente sur toutes les pages du slug */}
+      <Navbar agency={agency} />
+
+      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
+      <main className="flex-grow">
+        {children}
+      </main>
+      
+      {/* FOOTER : Présent partout */}
+      <Footer agency={agency} />
+
+      {/* Widgets flottants */}
+      <FloatingWhatsApp 
+        phone={footerConfig?.phone || agency.whatsapp_number} 
+        color={agency.primary_color || '#e5992e'} 
+      />
+      
+      <CookieBanner 
+        enabled={agency.cookie_consent_enabled} 
+        agencyName={agency.agency_name} 
+      />
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/terms/page.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import { FileText, ChevronLeft } from "lucide-react";
+import Link from "next/link";
+
+// Importations depuis le bon dossier : src/dictionaries
+import fr from "../../../../../dictionaries/fr.json";
+import en from "../../../../../dictionaries/en.json";
+import es from "../../../../../dictionaries/es.json";
+import nl from "../../../../../dictionaries/nl.json";
+import pl from "../../../../../dictionaries/pl.json";
+import ar from "../../../../../dictionaries/ar.json";
+
+export const revalidate = 0;
+
+export default async function TermsPage({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug, locale } = await params;
+
+  const translations: any = 
+    locale === 'en' ? en : 
+    locale === 'es' ? es : 
+    locale === 'nl' ? nl : 
+    locale === 'pl' ? pl : 
+    locale === 'ar' ? ar : fr;
+
+  const { data: agency } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug)
+    .single();
+
+  if (!agency) return notFound();
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-100 py-12">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div 
+              className="p-3 rounded-2xl text-white"
+              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
+            >
+              <FileText size={24} />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
+              {translations.footer?.terms || "Terms & Conditions"}
+            </h1>
+          </div>
+          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
+            {agency.agency_name}
+          </p>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-16">
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
+          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
+            {agency.terms_content || translations.legal?.terms_default}
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <Link 
+            href={`/${locale}/${slug}`}
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
+          >
+            <ChevronLeft size={14} />
+            {translations.common?.backToHome || "Back"}
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
+import { supabase } from '@/lib/supabase';
+import AgencyPageClient from "@/app/AgencyPageClient";
+import { notFound } from 'next/navigation';
+
+// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
+export const dynamic = 'force-dynamic';
+
+export default async function DynamicAgencyPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string, locale: string }> 
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération de l'agence (Table: agency_settings)
+  const { data: agencies, error: agencyError } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug);
+
+  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
+
+  if (agencyError || !agency) {
+    console.error("[SUPABASE ERROR - AGENCY]", agencyError);
+    return notFound();
+  }
+
+  // 2. Récupération des villas filtrées par l'ID de l'agence
+  const { data: villas, error: villasError } = await supabase
+    .from('villas')
+    .select(`
+      id, 
+      id_externe, 
+      titre, 
+      prix, 
+      town, 
+      region, 
+      images, 
+      beds, 
+      baths, 
+      surface_built, 
+      surface_plot, 
+      type, 
+      pool, 
+      is_excluded, 
+      agency_id
+    `)
+    .eq('agency_id', agency.id)
+    .eq('is_excluded', false)
+    .order('prix', { ascending: false });
+
+  if (villasError) {
+    console.error("[SUPABASE ERROR - VILLAS]", villasError);
+  }
+
+  // 3. Rendu du composant Client
+  return (
+    <AgencyPageClient 
+      slug={slug} 
+      initialAgency={agency} 
+      initialProperties={villas || []} 
+    />
+  );
+}
 </file>
 
 <file path="src/app/[locale]/(agency_site)/[slug]/contact/page.tsx">
