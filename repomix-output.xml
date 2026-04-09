@@ -860,54 +860,6 @@ export async function GET() {
 }
 </file>
 
-<file path="src/app/bien/[id]/page.tsx">
-"use client";
-
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import PropertyDetailClient from "@/components/PropertyDetailClient";
-
-export default function PropertyDetailPage() {
-  const { id } = useParams();
-  const [property, setProperty] = useState<any>(null);
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        // ✅ CORRECTION : Utiliser l'API dédiée qui renvoie la description complète
-        const [propRes, agencyRes] = await Promise.all([
-          fetch(`/api/property/${id}`),  // ← Changement clé ici
-          fetch("/api/agency")
-        ]);
-
-        const propertyData = await propRes.json();
-        const agencyData = await agencyRes.json();
-
-        // Vérifier que la propriété a été trouvée
-        if (propertyData && !propertyData.error) {
-          setProperty(propertyData);
-          setAgency(agencyData);
-        } else {
-          console.error("Propriété non trouvée");
-        }
-      } catch (err) {
-        console.error("Erreur de chargement:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (id) load();
-  }, [id]);
-
-  if (loading) return <div className="h-screen flex items-center justify-center">Chargement...</div>;
-  if (!property) return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
-
-  return <PropertyDetailClient property={property} agency={agency} />;
-}
-</file>
-
 <file path="src/app/developpement/[devId]/page.tsx">
 "use client";
 
@@ -3223,43 +3175,6 @@ export interface Filters {
 }
 </file>
 
-<file path="tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
-}
-</file>
-
 <file path="_archives/sync-properties/route.ts.old">
 // src/app/api/sync-properties/route.ts - Optimisation
 import { NextResponse } from 'next/server';
@@ -3612,6 +3527,54 @@ export async function GET(request: Request) {
 }
 </file>
 
+<file path="src/app/bien/[id]/page.tsx">
+"use client";
+
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import PropertyDetailClient from "@/components/PropertyDetailClient";
+
+export default function PropertyDetailPage() {
+  const { id } = useParams();
+  const [property, setProperty] = useState<any>(null);
+  const [agency, setAgency] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        // ✅ CORRECTION : Utiliser l'API dédiée qui renvoie la description complète
+        const [propRes, agencyRes] = await Promise.all([
+          fetch(`/api/property/${id}`),  // ← Changement clé ici
+          fetch("/api/agency")
+        ]);
+
+        const propertyData = await propRes.json();
+        const agencyData = await agencyRes.json();
+
+        // Vérifier que la propriété a été trouvée
+        if (propertyData && !propertyData.error) {
+          setProperty(propertyData);
+          setAgency(agencyData);
+        } else {
+          console.error("Propriété non trouvée");
+        }
+      } catch (err) {
+        console.error("Erreur de chargement:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (id) load();
+  }, [id]);
+
+  if (loading) return <div className="h-screen flex items-center justify-center">Chargement...</div>;
+  if (!property) return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
+
+  return <PropertyDetailClient property={property} agency={agency} />;
+}
+</file>
+
 <file path="src/components/Footer.tsx">
 "use client";
 
@@ -3925,6 +3888,43 @@ const PropertyGrid = memo(function PropertyGrid({
 });
 
 export default PropertyGrid;
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+, "_archives/sync-properties/route.ts.old"  ],
+  "exclude": ["node_modules"]
+}
 </file>
 
 <file path="src/app/[locale]/layout.tsx">
@@ -6190,6 +6190,135 @@ export default function AgencyDashboard() {
 }
 </file>
 
+<file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
+"use client";
+
+import { useEffect, useState, use } from "react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
+import { Loader2 } from "lucide-react";
+
+interface AboutPageProps {
+  params: Promise<{
+    slug: string;
+    locale: string;
+  }>;
+}
+
+export default function AboutPage({ params }: AboutPageProps) {
+  const resolvedParams = use(params);
+  const { t, locale } = useTranslation();
+  const { agency, loading, setAgencyBySlug } = useAgency();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const currentSlug = resolvedParams.slug;
+    if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
+      setAgencyBySlug(currentSlug);
+    }
+  }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
+
+  const brandColor = agency?.primary_color || "#c5a059";
+  const fontFamily = agency?.font_family || 'Montserrat';
+
+  if (loading || !mounted) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+          {t('common.loading') || "Chargement..."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="min-h-screen bg-white text-slate-900 transition-colors duration-500"
+      style={{ 
+        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important`,
+        fontWeight: 400
+      }}
+    >
+      <main>
+        {/* Header / Hero Section */}
+        <section className="pt-52 pb-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row items-start gap-16">
+              
+              <div className="flex-1 space-y-8">
+                <h1 
+                  className="text-5xl md:text-7xl border-l-4 pl-8" 
+                  style={{ 
+                    borderColor: brandColor,
+                    fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                    fontStyle: 'italic',
+                    fontWeight: 'normal'
+                  }}
+                >
+                  {agency?.about_title || t('about.title') || "Notre Histoire"}
+                </h1>
+                
+                <div className="prose prose-lg max-w-none">
+                  <div 
+                    className="text-slate-600 leading-relaxed whitespace-pre-wrap text-xl"
+                    style={{ 
+                      fontFamily: `${fontFamily}, sans-serif`,
+                      fontWeight: 300,
+                      fontStyle: 'normal'
+                    }}
+                  >
+                    {agency?.about_text || t('about.text') || "L'excellence immobilière à votre service."}
+                  </div>
+                </div>
+              </div>
+
+              {agency?.hero_url && (
+                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
+                  <img 
+                    src={agency.hero_url} 
+                    alt={agency.agency_name} 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Section Signature */}
+        <section className="py-32 bg-slate-50 border-y border-black/5">
+          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
+            <h2 
+              className="text-3xl" 
+              style={{ 
+                color: brandColor,
+                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
+                fontStyle: 'italic',
+                fontWeight: 'normal'
+              }}
+            >
+              {agency?.agency_name}
+            </h2>
+            <p 
+              className="text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold"
+              style={{ fontFamily: `${fontFamily}, sans-serif` }}
+            >
+              {t('about.signature') || "L'immobilier sous un nouveau regard"}
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+</file>
+
 <file path="src/app/api/sync-villas/route.ts">
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -7038,135 +7167,6 @@ export async function GET(req: Request) {
     "privacy_default": "Agencja SCHMIDT-PRIVILEGE zobowiązuje się do zapewnienia, że gromadzenie i przetwarzanie danych osobowych jest zgodne z RODO. Dane (imię, e-mail, telefon) zebrane za pośrednictwem formularzy są wykorzystywane wyłącznie do kontaktu z Państwem. Nie są one udostępniane osobom trzecim. Przysługuje Państwu prawo do wglądu, poprawiania i usuwania danych drogą mailową.",
     "terms_default": "Niniejszy regulamin określa zasady korzystania z witryny agencji SCHMIDT-PRIVILEGE.\n\n1. Wydawca: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Własność intelektualna: Wszystkie treści są własnością agencji lub jej licencjodawców.\n4. Odpowiedzialność: Informacje o nieruchomościach są dostarczane z zastrzeżeniem błędów lub pominięć."
   }
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/about/page.tsx">
-"use client";
-
-import { useEffect, useState, use } from "react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext";
-import { Loader2 } from "lucide-react";
-
-interface AboutPageProps {
-  params: Promise<{
-    slug: string;
-    locale: string;
-  }>;
-}
-
-export default function AboutPage({ params }: AboutPageProps) {
-  const resolvedParams = use(params);
-  const { t, locale } = useTranslation();
-  const { agency, loading, setAgencyBySlug } = useAgency();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const currentSlug = resolvedParams.slug;
-    if (currentSlug && agency?.subdomain !== currentSlug && !loading) {
-      setAgencyBySlug(currentSlug);
-    }
-  }, [resolvedParams.slug, agency?.subdomain, loading, setAgencyBySlug]);
-
-  const brandColor = agency?.primary_color || "#c5a059";
-  const fontFamily = agency?.font_family || 'Montserrat';
-
-  if (loading || !mounted) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-slate-400 mb-4" size={40} />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-          {t('common.loading') || "Chargement..."}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div 
-      className="min-h-screen bg-white text-slate-900 transition-colors duration-500"
-      style={{ 
-        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif !important`,
-        fontWeight: 400
-      }}
-    >
-      <main>
-        {/* Header / Hero Section */}
-        <section className="pt-52 pb-20 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row items-start gap-16">
-              
-              <div className="flex-1 space-y-8">
-                <h1 
-                  className="text-5xl md:text-7xl border-l-4 pl-8" 
-                  style={{ 
-                    borderColor: brandColor,
-                    fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                    fontStyle: 'italic',
-                    fontWeight: 'normal'
-                  }}
-                >
-                  {agency?.about_title || t('about.title') || "Notre Histoire"}
-                </h1>
-                
-                <div className="prose prose-lg max-w-none">
-                  <div 
-                    className="text-slate-600 leading-relaxed whitespace-pre-wrap text-xl"
-                    style={{ 
-                      fontFamily: `${fontFamily}, sans-serif`,
-                      fontWeight: 300,
-                      fontStyle: 'normal'
-                    }}
-                  >
-                    {agency?.about_text || t('about.text') || "L'excellence immobilière à votre service."}
-                  </div>
-                </div>
-              </div>
-
-              {agency?.hero_url && (
-                <div className="w-full md:w-1/3 aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
-                  <img 
-                    src={agency.hero_url} 
-                    alt={agency.agency_name} 
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Section Signature */}
-        <section className="py-32 bg-slate-50 border-y border-black/5">
-          <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
-            <h2 
-              className="text-3xl" 
-              style={{ 
-                color: brandColor,
-                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                fontStyle: 'italic',
-                fontWeight: 'normal'
-              }}
-            >
-              {agency?.agency_name}
-            </h2>
-            <p 
-              className="text-slate-500 uppercase tracking-[0.4em] text-[10px] font-bold"
-              style={{ fontFamily: `${fontFamily}, sans-serif` }}
-            >
-              {t('about.signature') || "L'immobilier sous un nouveau regard"}
-            </p>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
 }
 </file>
 
