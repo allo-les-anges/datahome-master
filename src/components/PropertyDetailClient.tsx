@@ -41,27 +41,35 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // 1. TRAITEMENT DES IMAGES (Conversion String JSON -> Array)
+  // 1. GESTION DES IMAGES (JSON String -> Array)
   const images = useMemo(() => {
     if (!property?.images) return [];
     if (Array.isArray(property.images)) return property.images;
     try {
       return JSON.parse(property.images);
     } catch (e) {
-      console.error("Erreur parsing images:", e);
       return [];
     }
   }, [property?.images]);
 
-  // 2. EXTRACTION DU TITRE ET DE LA DESCRIPTION (Basé sur votre table)
+  // 2. GESTION DU TITRE SELON LA LANGUE
   const displayTitle = useMemo(() => {
+    if (!property) return "";
     return property[`titre_${locale}`] || property.titre_fr || property.titre || "Propriété Exclusive";
   }, [property, locale]);
 
+  // 3. GESTION DE LA DESCRIPTION SELON LA LANGUE (CORRECTION CRITIQUE)
   const descriptionContent = useMemo(() => {
     if (!property) return "";
-    // Priorité aux colonnes détectées dans votre structure : description_fr, description_en, etc.
-    const content = property[`description_${locale}`] || property.description_fr || property.description || "";
+    
+    // On cherche d'abord dans la langue sélectionnée (ex: description_fr)
+    // Sinon on prend le français par défaut, sinon le champ description
+    const content = property[`description_${locale}`] || 
+                    property.description_fr || 
+                    property.description_en || 
+                    property.description || 
+                    "";
+                    
     return content;
   }, [property, locale]);
 
@@ -103,7 +111,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 </div>
               </div>
 
-              {/* MINIATURES DESKTOP */}
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
                 {images.map((img: string, idx: number) => (
                   <button 
@@ -119,7 +126,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* GRILLE DE CONTENU PRINCIPALE */}
+          {/* CONTENU PROPRIÉTÉ */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -141,10 +148,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
                   { icon: Car, val: "OUI", label: 'PARKING' },
                 ].map((item, i) => (
-                  <div 
-                    key={i} 
-                    className={`p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5'}`}
-                  >
+                  <div key={i} className={`p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5'}`}>
                     <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
                     <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
                     <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
@@ -152,23 +156,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* SECTION DESCRIPTION - OPTIMISÉE SMARTPHONE */}
+              {/* SECTION DESCRIPTION (MOBILE FRIENDLY) */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
                 {descriptionContent ? (
                   <div 
-                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 prose prose-invert max-w-none ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                    style={{ display: 'block', minHeight: '50px' }}
+                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 overflow-hidden ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                    style={{ wordBreak: 'break-word' }}
                     dangerouslySetInnerHTML={{ __html: descriptionContent }}
                   />
                 ) : (
-                  <p className="text-slate-500 italic">Détails de la propriété à venir.</p>
+                  <p className="text-slate-500 italic">Information non disponible dans cette langue.</p>
                 )}
               </div>
 
-              {/* LOCALISATION (VIA COORDONNÉES GPS) */}
+              {/* LOCALISATION */}
               <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
@@ -181,19 +185,15 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 </div>
                 <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px]">
                   <iframe
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    loading="lazy"
-                    allowFullScreen
-                    src={`https://maps.google.com/maps?q=${property.latitude},${property.longitude}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                    title="Property Map"
+                    width="100%" height="100%" style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
+                    src={`https://maps.google.com/maps?q=${property.latitude || 0},${property.longitude || 0}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    title="Location map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* BARRE LATÉRALE (SIDEBAR) */}
+            {/* SIDEBAR PRIX & CONTACT */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-6 md:p-10 pb-4">
@@ -202,21 +202,14 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     {numericPrice > 0 ? numericPrice.toLocaleString("fr-FR") + " €" : "Sur demande"}
                   </p>
                 </div>
-                
                 <div className="px-2 md:px-4">
                   <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
                 </div>
-
                 <div className="p-6 md:p-10 pt-0">
                   <a 
-                    href={`https://wa.me/${whatsappNumber}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer"
                     className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest border transition-all"
-                    style={{ 
-                      borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)',
-                      color: isLight ? '#0f172a' : '#ffffff'
-                    }}
+                    style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)', color: isLight ? '#0f172a' : '#ffffff' }}
                   >
                     <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
                   </a>
