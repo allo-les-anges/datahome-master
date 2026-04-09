@@ -28,8 +28,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   useEffect(() => {
     setMounted(true);
-    console.log("Property Data Loaded:", property);
-  }, [property]);
+  }, []);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -41,7 +40,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // 1. GESTION DES IMAGES (JSON String -> Array)
+  // 1. EXTRACTION DES IMAGES (Gestion String JSON vs Array)
   const images = useMemo(() => {
     if (!property?.images) return [];
     if (Array.isArray(property.images)) return property.images;
@@ -52,25 +51,29 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   }, [property?.images]);
 
-  // 2. GESTION DU TITRE SELON LA LANGUE
+  // 2. LOGIQUE DE TITRE MULTILINGUE
   const displayTitle = useMemo(() => {
     if (!property) return "";
-    return property[`titre_${locale}`] || property.titre_fr || property.titre || "Propriété Exclusive";
+    return property[`titre_${locale}`] || property.titre_fr || property.titre_en || property.titre || "Propriété Exclusive";
   }, [property, locale]);
 
-  // 3. GESTION DE LA DESCRIPTION SELON LA LANGUE (CORRECTION CRITIQUE)
+  // 3. LOGIQUE DE DESCRIPTION MULTILINGUE (FORCÉE)
   const descriptionContent = useMemo(() => {
     if (!property) return "";
     
-    // On cherche d'abord dans la langue sélectionnée (ex: description_fr)
-    // Sinon on prend le français par défaut, sinon le champ description
-    const content = property[`description_${locale}`] || 
-                    property.description_fr || 
-                    property.description_en || 
-                    property.description || 
-                    "";
-                    
-    return content;
+    // On cherche dans l'ordre : la langue actuelle, puis fr, puis en, puis le champ générique
+    const possibleContent = 
+      property[`description_${locale}`] || 
+      property.description_fr || 
+      property.description_en || 
+      property.description || 
+      property.details ||
+      "";
+
+    // Si le contenu est une chaîne vide ou "null" en string
+    if (!possibleContent || possibleContent === "null") return "";
+    
+    return possibleContent;
   }, [property, locale]);
 
   const numericPrice = Number(property?.price || property?.prix || 0);
@@ -126,7 +129,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* CONTENU PROPRIÉTÉ */}
+          {/* GRILLE DE CONTENU */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -138,7 +141,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 {property.town || property.ville} • {property.region}
               </div>
               
-              {/* CARACTÉRISTIQUES */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 md:mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
@@ -156,20 +158,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* SECTION DESCRIPTION (MOBILE FRIENDLY) */}
+              {/* DESCRIPTION - CORRIGÉE POUR MOBILE */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
-                {descriptionContent ? (
-                  <div 
-                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 overflow-hidden ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                    style={{ wordBreak: 'break-word' }}
-                    dangerouslySetInnerHTML={{ __html: descriptionContent }}
-                  />
-                ) : (
-                  <p className="text-slate-500 italic">Information non disponible dans cette langue.</p>
-                )}
+                <div 
+                  className={`text-base md:text-xl font-light leading-relaxed property-description-container ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                >
+                  {descriptionContent ? (
+                    <div 
+                      className="space-y-4"
+                      dangerouslySetInnerHTML={{ __html: descriptionContent }} 
+                    />
+                  ) : (
+                    <p className="text-slate-500 italic">Description en cours de traduction...</p>
+                  )}
+                </div>
               </div>
 
               {/* LOCALISATION */}
@@ -187,30 +192,26 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   <iframe
                     width="100%" height="100%" style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
                     src={`https://maps.google.com/maps?q=${property.latitude || 0},${property.longitude || 0}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                    title="Location map"
+                    title="Map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* SIDEBAR PRIX & CONTACT */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
-              <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
-                <div className="p-6 md:p-10 pb-4">
+              <div className={`sticky top-32 rounded-[2rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
+                <div className="p-8 pb-4">
                   <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
                   <p className={`text-3xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice > 0 ? numericPrice.toLocaleString("fr-FR") + " €" : "Sur demande"}
+                    {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
-                <div className="px-2 md:px-4">
-                  <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
+                <div className="px-4">
+                  <ContactForm agency={agency} propertyRef={property.ref || property.id_externe} isLight={isLight} />
                 </div>
-                <div className="p-6 md:p-10 pt-0">
-                  <a 
-                    href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest border transition-all"
-                    style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)', color: isLight ? '#0f172a' : '#ffffff' }}
-                  >
+                <div className="p-8 pt-0">
+                  <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border transition-all" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)', color: isLight ? '#0f172a' : '#ffffff' }}>
                     <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
                   </a>
                 </div>
