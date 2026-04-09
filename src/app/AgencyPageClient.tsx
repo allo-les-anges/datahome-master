@@ -69,9 +69,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // Formatage optimisé des villas
+  // Formatage optimisé des villas - CORRIGÉ pour conserver toutes les descriptions
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
-    // Utiliser un Map pour éviter les doublons par id_externe
     const uniqueMap = new Map();
     
     for (const v of villas) {
@@ -87,20 +86,35 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
       uniqueMap.set(key, {
+        // Garder toutes les propriétés originales
         ...v,
+        // Puis surcharger/nettoyer les champs importants
         id: v.id || `v-${key}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
         ref: String(v.id_externe || v.ref || v.reference || ""),
         titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
-        description: v[`description_${locale}`] || v.description || v.details || "",
+        // ⚠️ CRUCIAL: Conserver TOUS les champs de description multilingues
+        description: v[`description_${locale}`] || v.description_fr || v.description || "",
+        description_fr: v.description_fr || "",
+        description_en: v.description_en || "",
+        description_es: v.description_es || "",
+        description_nl: v.description_nl || "",
+        description_pl: v.description_pl || "",
+        description_ar: v.description_ar || "",
         price: Number(v.price || v.prix || 0),
         town: String(v.town || v.ville || v.city || "").trim(),
         region: String(v.region || v.province || v.state || "").trim(),
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
         surface: Number(v.surface || v.m2 || v.built || 0),
+        surface_built: v.surface_built || v.built || "0",
+        surface_plot: v.surface_plot || v.plot || "0",
         type: String(v.type || "Villa").trim(),
         images: imageArray,
+        pool: v.pool === "Oui" || v.pool === true ? "Oui" : "Non",
+        latitude: v.latitude || null,
+        longitude: v.longitude || null,
+        adresse: v.adresse || "",
       });
     }
     
@@ -201,7 +215,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       // Tri par prix croissant (du moins cher au plus cher)
       const { data, error } = await query
         .order('price', { ascending: true })
-        .limit(500); // Limiter pour la performance
+        .limit(500);
 
       setLoadingProgress(80);
 
@@ -214,7 +228,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
     } catch (err) {
       console.error("Erreur chargement propriétés:", err);
-      // En cas d'erreur, essayer de récupérer les initialProperties comme fallback
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -271,18 +284,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     const results = allProperties.filter((p) => {
       const pPrice = Number(p.price) || 0;
       
-      // Filtre prix simplifié
       const matchPrice = pPrice >= min && pPrice <= max;
-      
       const matchType = !searchType || searchType === "all" || 
         p.type.toLowerCase().includes(searchType);
-      
       const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
-      
       const matchLocation = !searchLocation || 
         (p.town && p.town.toLowerCase().includes(searchLocation)) || 
         (p.region && p.region.toLowerCase().includes(searchLocation));
-
       const matchRef = !searchRef || 
         (p.ref && p.ref.toLowerCase().includes(searchRef)) ||
         (p.id_externe && p.id_externe.toLowerCase().includes(searchRef));
@@ -290,7 +298,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
-    // Les résultats sont déjà triés car allProperties est trié
     setFilteredProperties(results);
     setDisplayLimit(12);
     setIsSearchOpen(false);

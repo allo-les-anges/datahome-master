@@ -43,10 +43,53 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
+  // Récupération améliorée de la description avec fallbacks
   const description = useMemo(() => {
     if (!property) return "";
-    return property[`description_${locale}`] || property.description || property.description_fr || "";
+    
+    // Priorité à la version localisée
+    if (property[`description_${locale}`]) {
+      console.log(`✅ Description trouvée en ${locale}`);
+      return property[`description_${locale}`];
+    }
+    // Sinon description_fr
+    if (property.description_fr) {
+      console.log(`✅ Description trouvée en français (fallback)`);
+      return property.description_fr;
+    }
+    // Sinon description générique
+    if (property.description) {
+      console.log(`✅ Description générique trouvée`);
+      return property.description;
+    }
+    // Sinon description provenant de l'API formatée
+    if (property.details) {
+      console.log(`✅ Description provenant du champ details`);
+      return property.details;
+    }
+    
+    console.warn(`⚠️ Aucune description trouvée pour la propriété`);
+    return "";
   }, [property, locale]);
+
+  // Ajout d'un log pour debugger les propriétés reçues
+  useEffect(() => {
+    if (property && mounted) {
+      console.log("📦 [PropertyDetailClient] Propriété reçue:", {
+        id: property.id,
+        titre: property.titre,
+        hasDescriptionFr: !!property.description_fr,
+        hasDescriptionEn: !!property.description_en,
+        hasDescriptionEs: !!property.description_es,
+        hasDescriptionNl: !!property.description_nl,
+        hasDescriptionPl: !!property.description_pl,
+        hasDescriptionAr: !!property.description_ar,
+        descriptionLength: property.description?.length,
+        descriptionFrLength: property.description_fr?.length,
+        localeActuelle: locale
+      });
+    }
+  }, [property, mounted, locale]);
 
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
@@ -55,7 +98,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   if (!mounted || !property) return null;
 
   // Nettoyer la description des balises HTML pour un meilleur affichage
-  const cleanDescription = description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">');
+  const cleanDescription = description ? description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">') : "";
 
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
@@ -138,15 +181,21 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-4 md:mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
-                <div 
-                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                  dangerouslySetInnerHTML={{ __html: cleanDescription }}
-                  style={{ 
-                    wordBreak: 'break-word',
-                    overflowWrap: 'break-word',
-                    maxWidth: '100%'
-                  }}
-                />
+                {cleanDescription ? (
+                  <div 
+                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                    dangerouslySetInnerHTML={{ __html: cleanDescription }}
+                    style={{ 
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      maxWidth: '100%'
+                    }}
+                  />
+                ) : (
+                  <p className={`text-base md:text-xl font-light italic ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {t('propertyDetail.noDescription') || "Aucune description disponible pour ce bien."}
+                  </p>
+                )}
               </div>
 
               {/* SECTION LOCALISATION */}

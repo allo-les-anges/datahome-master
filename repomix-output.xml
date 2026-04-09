@@ -681,92 +681,6 @@ export async function GET(request: Request) {
 }
 </file>
 
-<file path="src/app/api/property/[id]/route.ts">
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export const dynamic = 'force-dynamic';
-
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
-    const { searchParams } = new URL(request.url);
-    const lang = searchParams.get('lang') || 'fr';
-
-    console.log(`[API] 🔍 Recherche de la propriété : ${id}`);
-
-    // 1. Recherche par UUID (ID natif)
-    let { data: property } = await supabase
-      .from('villas')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    // 2. Si non trouvé, on cherche dans id_externe OU dans ref
-    if (!property) {
-      console.log(`[API] 📡 UUID non trouvé, test id_externe et ref...`);
-      
-      const cleanId = id.includes('-') ? id.split('-')[0] : id;
-      
-      // On construit une requête OR qui scanne id_externe et ref
-      // On ajoute des guillemets pour les IDs qui sont des strings
-      const { data: altProperty, error: extError } = await supabase
-        .from('villas')
-        .select('*')
-        .or(`id_externe.eq."${id}",id_externe.eq."${cleanId}",ref.eq."${id}",ref.eq."${cleanId}"`)
-        .maybeSingle();
-
-      if (extError) console.error("[API] Erreur Supabase OR:", extError);
-      property = altProperty;
-    }
-
-    // 3. Si toujours rien, on tente un scan partiel sur ref (très courant dans les flux immo)
-    if (!property) {
-       console.log(`[API] ⚠️ Recherche par correspondance partielle sur ref...`);
-       const { data: finalTry } = await supabase
-        .from('villas')
-        .select('*')
-        .ilike('ref', `%${id}%`)
-        .limit(1)
-        .maybeSingle();
-       
-       property = finalTry;
-    }
-
-    if (!property) {
-      console.error(`[API] ❌ Propriété ${id} introuvable dans toutes les colonnes.`);
-      return NextResponse.json({ error: 'Property not found' }, { status: 404 });
-    }
-
-    // Formatage dynamique
-    const formatted = {
-      ...property,
-      titre: property[`titre_${lang}`] || property.titre_fr || property.titre || "Villa",
-      description: property[`description_${lang}`] || property.description_fr || property.description || "",
-      // Gestion sécurisée des images (parfois string, parfois tableau)
-      images: Array.isArray(property.images) ? property.images : 
-              (typeof property.images === 'string' ? JSON.parse(property.images) : [])
-    };
-
-    console.log(`[API] ✅ Trouvé : ${formatted.titre} (Ref: ${formatted.ref})`);
-    return NextResponse.json(formatted);
-
-  } catch (error) {
-    console.error('Erreur API Critique:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
-</file>
-
 <file path="src/app/api/proxy-xml/route.ts">
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -3527,51 +3441,99 @@ export async function GET(request: Request) {
 }
 </file>
 
-<file path="src/app/bien/[id]/page.tsx">
-"use client";
+<file path="src/app/api/property/[id]/route.ts">
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import PropertyDetailClient from "@/components/PropertyDetailClient";
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-export default function PropertyDetailPage() {
-  const { id } = useParams();
-  const [property, setProperty] = useState<any>(null);
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export const dynamic = 'force-dynamic';
 
-  useEffect(() => {
-    async function load() {
-      try {
-        // ✅ CORRECTION : Utiliser l'API dédiée qui renvoie la description complète
-        const [propRes, agencyRes] = await Promise.all([
-          fetch(`/api/property/${id}`),  // ← Changement clé ici
-          fetch("/api/agency")
-        ]);
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
+    const { searchParams } = new URL(request.url);
+    const lang = searchParams.get('lang') || 'fr';
+    const agencyId = searchParams.get('agencyId');
 
-        const propertyData = await propRes.json();
-        const agencyData = await agencyRes.json();
+    console.log(`[API] 🔍 Recherche: id=${id}, agencyId=${agencyId}, lang=${lang}`);
 
-        // Vérifier que la propriété a été trouvée
-        if (propertyData && !propertyData.error) {
-          setProperty(propertyData);
-          setAgency(agencyData);
-        } else {
-          console.error("Propriété non trouvée");
-        }
-      } catch (err) {
-        console.error("Erreur de chargement:", err);
-      } finally {
-        setLoading(false);
-      }
+    // Construction de la requête de base
+    let query = supabase.from('villas').select('*');
+
+    // 1. Recherche par UUID
+    query = query.eq('id', id);
+    
+    // 2. Filtrer par agency_id si fourni
+    if (agencyId) {
+      query = query.eq('agency_id', agencyId);
     }
-    if (id) load();
-  }, [id]);
 
-  if (loading) return <div className="h-screen flex items-center justify-center">Chargement...</div>;
-  if (!property) return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
+    let { data: property } = await query.maybeSingle();
 
-  return <PropertyDetailClient property={property} agency={agency} />;
+    // 3. Si non trouvé, chercher par id_externe
+    if (!property && agencyId) {
+      console.log(`[API] Recherche par id_externe: ${id}`);
+      const { data: altProperty } = await supabase
+        .from('villas')
+        .select('*')
+        .eq('id_externe', id)
+        .eq('agency_id', agencyId)
+        .maybeSingle();
+      property = altProperty;
+    }
+
+    // 4. Si non trouvé, chercher par ref
+    if (!property && agencyId) {
+      console.log(`[API] Recherche par ref: ${id}`);
+      const { data: refProperty } = await supabase
+        .from('villas')
+        .select('*')
+        .eq('ref', id)
+        .eq('agency_id', agencyId)
+        .maybeSingle();
+      property = refProperty;
+    }
+
+    // 5. Dernier recours: recherche élargie sans filtre agence
+    if (!property) {
+      console.log(`[API] Recherche élargie sans filtre agence`);
+      const { data: finalTry } = await supabase
+        .from('villas')
+        .select('*')
+        .or(`id.eq.${id},id_externe.eq.${id},ref.eq.${id}`)
+        .maybeSingle();
+      property = finalTry;
+    }
+
+    if (!property) {
+      console.error(`[API] ❌ Propriété ${id} introuvable`);
+      return NextResponse.json({ error: 'Property not found' }, { status: 404 });
+    }
+
+    // Formatage dynamique
+    const formatted = {
+      ...property,
+      titre: property[`titre_${lang}`] || property.titre_fr || property.titre || "Villa",
+      description: property[`description_${lang}`] || property.description_fr || property.description || "",
+      images: Array.isArray(property.images) ? property.images : 
+              (typeof property.images === 'string' ? JSON.parse(property.images || '[]') : [])
+    };
+
+    console.log(`[API] ✅ Trouvé: ${formatted.titre.substring(0, 50)}...`);
+    return NextResponse.json(formatted);
+
+  } catch (error) {
+    console.error('Erreur API Critique:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
 </file>
 
@@ -4331,6 +4293,72 @@ export default {
     },
   },
   plugins: [],
+}
+</file>
+
+<file path="src/app/bien/[id]/page.tsx">
+"use client";
+
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import PropertyDetailClient from "@/components/PropertyDetailClient";
+import { useAgency } from "@/contexts/AgencyContext";
+
+export default function PropertyDetailPage() {
+  const { id } = useParams();
+  const { agency, loading: agencyLoading } = useAgency();
+  const [property, setProperty] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      console.log("🔍 [Page] Début chargement, agencyLoading:", agencyLoading, "agency:", agency?.id);
+      
+      if (agencyLoading) {
+        console.log("⏳ Attente chargement agence...");
+        return;
+      }
+
+      try {
+        let url = `/api/property/${id}`;
+        if (agency?.id) {
+          url += `?agencyId=${agency.id}`;
+        }
+        
+        console.log("🔍 [Page] Appel API:", url);
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        console.log("📦 [Page] Réponse reçue:", {
+          status: res.status,
+          hasDescription: !!data.description,
+          descriptionLength: data.description?.length
+        });
+        
+        if (data && !data.error) {
+          setProperty(data);
+        }
+      } catch (err) {
+        console.error("❌ Erreur:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      load();
+    }
+  }, [id, agency?.id, agencyLoading]);
+
+  if (agencyLoading || loading) {
+    return <div className="h-screen flex items-center justify-center">Chargement...</div>;
+  }
+
+  if (!property) {
+    return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
+  }
+
+  return <PropertyDetailClient property={property} agency={agency} />;
 }
 </file>
 
