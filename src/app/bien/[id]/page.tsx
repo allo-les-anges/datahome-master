@@ -13,8 +13,12 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     async function load() {
+      console.log("🔍 [PAGE] 1. Début - id:", id);
+      console.log("🔍 [PAGE] 2. agencyLoading:", agencyLoading);
+      console.log("🔍 [PAGE] 3. agency?.id:", agency?.id);
+      
       if (agencyLoading) {
-        console.log("⏳ Attente chargement agence...");
+        console.log("⏳ Attente agence...");
         return;
       }
 
@@ -24,20 +28,23 @@ export default function PropertyDetailPage() {
           url += `?agencyId=${agency.id}`;
         }
         
-        console.log("🔍 [Page] Appel API:", url);
+        console.log("🔍 [PAGE] 4. Appel API:", url);
         const res = await fetch(url);
         const data = await res.json();
         
-        console.log("📦 [Page] Réponse API - a description_fr:", !!data.description_fr);
+        console.log("🔍 [PAGE] 5. Réponse reçue");
+        console.log("🔍 [PAGE] 6. data a description_fr:", !!data.description_fr);
+        console.log("🔍 [PAGE] 7. data.description_fr (100 premiers chars):", data.description_fr?.substring(0, 100));
         
         if (data && !data.error) {
-          // ✅ On passe TOUTES les données, sans filtre
           setProperty(data);
+          console.log("🔍 [PAGE] 8. Property mise à jour avec description_fr:", !!data.description_fr);
         }
       } catch (err) {
         console.error("❌ Erreur:", err);
       } finally {
         setLoading(false);
+        console.log("🔍 [PAGE] 9. Chargement terminé");
       }
     }
 
@@ -45,6 +52,8 @@ export default function PropertyDetailPage() {
       load();
     }
   }, [id, agency?.id, agencyLoading]);
+
+  console.log("🔍 [PAGE] RENDER - loading:", loading, "hasProperty:", !!property, "hasDescriptionFr:", !!property?.description_fr);
 
   if (agencyLoading || loading) {
     return <div className="h-screen flex items-center justify-center">Chargement...</div>;
@@ -54,9 +63,5 @@ export default function PropertyDetailPage() {
     return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
   }
 
-  // ✅ Vérification avant rendu
-  console.log("🎯 [Page] Rendu final - property a description_fr:", !!property.description_fr);
-  console.log("🎯 [Page] description_fr preview:", property.description_fr?.substring(0, 100));
-  
   return <PropertyDetailClient property={property} agency={agency} />;
 }
