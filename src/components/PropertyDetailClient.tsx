@@ -14,7 +14,7 @@ interface PropertyDetailClientProps {
 }
 
 export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
-  const { t, locale } = useTranslation() as any;
+  const { locale } = useTranslation() as any;
   const searchParams = useSearchParams();
   const [activeImage, setActiveImage] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -23,16 +23,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
 
   const primaryColor = useMemo(() => {
-    return agency?.primary_color || 
-           agency?.theme?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
+    return agency?.primary_color || agency?.theme?.primary || agency?.color || "#D4AF37"; 
   }, [agency]);
 
   useEffect(() => {
     setMounted(true);
-    // On garde ton log de debug pour voir l'objet dans la console
-    console.log("Property Data:", property);
+    console.log("Property Data Loaded:", property);
   }, [property]);
 
   const handleScroll = () => {
@@ -45,45 +41,30 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // LOGIQUE D'EXTRACTION DE DESCRIPTION AVANCÉE
-  const descriptionContent = useMemo(() => {
-    if (!property) return "";
-
-    // 1. Recherche par clés prioritaires (selon la locale)
-    const priorityKeys = [
-      `description_${locale}`,
-      `description_${locale === 'en' ? 'en' : 'fr'}`,
-      'description_fr',
-      'description_en',
-      'description',
-      'desc',
-      'details'
-    ];
-
-    for (const key of priorityKeys) {
-      if (property[key] && typeof property[key] === 'string' && property[key].length > 5) {
-        const val = property[key];
-        return val.includes('<') ? val : val.replace(/\n/g, '<br />');
-      }
+  // 1. TRAITEMENT DES IMAGES (Conversion String JSON -> Array)
+  const images = useMemo(() => {
+    if (!property?.images) return [];
+    if (Array.isArray(property.images)) return property.images;
+    try {
+      return JSON.parse(property.images);
+    } catch (e) {
+      console.error("Erreur parsing images:", e);
+      return [];
     }
+  }, [property?.images]);
 
-    // 2. Recherche automatique (si les clés classiques échouent)
-    // On cherche n'importe quelle clé qui contient "desc" et qui a du texte long
-    const autoKey = Object.keys(property).find(key => 
-      key.toLowerCase().includes('desc') && 
-      typeof property[key] === 'string' && 
-      property[key].length > 10
-    );
-
-    if (autoKey) {
-      const val = property[autoKey];
-      return val.includes('<') ? val : val.replace(/\n/g, '<br />');
-    }
-
-    return "";
+  // 2. EXTRACTION DU TITRE ET DE LA DESCRIPTION (Basé sur votre table)
+  const displayTitle = useMemo(() => {
+    return property[`titre_${locale}`] || property.titre_fr || property.titre || "Propriété Exclusive";
   }, [property, locale]);
 
-  const images = property?.images || [];
+  const descriptionContent = useMemo(() => {
+    if (!property) return "";
+    // Priorité aux colonnes détectées dans votre structure : description_fr, description_en, etc.
+    const content = property[`description_${locale}`] || property.description_fr || property.description || "";
+    return content;
+  }, [property, locale]);
+
   const numericPrice = Number(property?.price || property?.prix || 0);
   const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
 
@@ -122,6 +103,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 </div>
               </div>
 
+              {/* MINIATURES DESKTOP */}
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
                 {images.map((img: string, idx: number) => (
                   <button 
@@ -137,23 +119,24 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* GRILLE DE CONTENU */}
+          {/* GRILLE DE CONTENU PRINCIPALE */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                {property.titre || property.title || "Propriété Exclusive"}
+                {displayTitle}
               </h1>
 
               <div className="flex items-center gap-3 text-slate-500 mb-10 text-[11px] uppercase tracking-[0.2em] font-bold">
                 <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville || property.city} • {property.region}
+                {property.town || property.ville} • {property.region}
               </div>
               
+              {/* CARACTÉRISTIQUES */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 md:mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
                   { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built || property.surface, label: 'M² CONSTRUIT' },
+                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
                   { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
                   { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
                   { icon: Car, val: "OUI", label: 'PARKING' },
@@ -169,22 +152,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* DESCRIPTION SECTION */}
+              {/* SECTION DESCRIPTION - OPTIMISÉE SMARTPHONE */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
                 {descriptionContent ? (
                   <div 
-                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 prose prose-invert max-w-none ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                    style={{ display: 'block', minHeight: '50px' }}
                     dangerouslySetInnerHTML={{ __html: descriptionContent }}
                   />
                 ) : (
-                  <p className="text-slate-500 italic">Aucune description disponible pour ce bien.</p>
+                  <p className="text-slate-500 italic">Détails de la propriété à venir.</p>
                 )}
               </div>
 
-              {/* LOCALISATION */}
+              {/* LOCALISATION (VIA COORDONNÉES GPS) */}
               <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
@@ -202,15 +186,14 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
                     loading="lazy"
                     allowFullScreen
-                    referrerPolicy="no-referrer-when-downgrade"
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                    title="Location map"
+                    src={`https://maps.google.com/maps?q=${property.latitude},${property.longitude}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    title="Property Map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* SIDEBAR */}
+            {/* BARRE LATÉRALE (SIDEBAR) */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-6 md:p-10 pb-4">
