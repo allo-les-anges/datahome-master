@@ -3,9 +3,8 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon, ArrowLeft
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
 } from "lucide-react";
-import Link from "next/link";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
 
@@ -24,7 +23,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
 
   const primaryColor = useMemo(() => {
-    return agency?.primary_color || agency?.theme?.primary || agency?.color || "#D4AF37"; 
+    return agency?.primary_color || 
+           agency?.theme?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
   }, [agency]);
 
   useEffect(() => {
@@ -41,88 +43,31 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // 1. GESTION DES IMAGES (Correction du parsing JSON)
-  const images = useMemo(() => {
-    if (!property?.images) return [];
-    if (Array.isArray(property.images)) return property.images;
-    try {
-      // Nettoyage des doubles quotes si c'est un export CSV/SQL mal formaté
-      const cleanedJson = property.images.replace(/""/g, '"');
-      const parsed = JSON.parse(cleanedJson);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-      return [];
-    }
-  }, [property?.images]);
-
-  // 2. LOGIQUE DE TITRE (Multi-colonnes)
-  const displayTitle = useMemo(() => {
+  const description = useMemo(() => {
     if (!property) return "";
-    return (
-      property[`titre_${locale}`] || 
-      property.titre_fr || 
-      property.titre_en || 
-      property.titre || 
-      property.development_name ||
-      t('propertyDetail.fallbackTitle') || "Propriété Exclusive"
-    );
-  }, [property, locale, t]);
-
-  // 3. LOGIQUE DE DESCRIPTION + NETTOYAGE HTML (Crucial)
-  const descriptionContent = useMemo(() => {
-    if (!property) return "";
-    
-    const rawContent = 
-      property[`description_${locale}`] || 
-      property.description_fr || 
-      property.description_en || 
-      property.description || 
-      property.details ||
-      "";
-
-    if (!rawContent || rawContent === "null" || rawContent === "undefined") return "";
-    
-    // Nettoyage des styles Word/HTML qui cassent le design (comme dans le code 1)
-    return rawContent
-      .replace(/style="[^"]*"/gi, '')
-      .replace(/color="[^"]*"/gi, '')
-      .replace(/<font[^>]*>/gi, '')
-      .replace(/<\/font>/gi, '')
-      .replace(/ /g, ' ');
+    return property[`description_${locale}`] || property.description || property.description_fr || "";
   }, [property, locale]);
 
-  // Données numériques et URL
+  const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
   const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
-  
-  // Correction de l'URL Google Maps (Syntaxe corrigée)
-  const mapQuery = encodeURIComponent(`${property?.town || property?.ville || ""}, ${property?.region || ""}, Espagne`);
-  const mapUrl = `https://maps.google.com/maps?q=${mapQuery}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
 
   if (!mounted || !property) return null;
+
+  // Nettoyer la description des balises HTML pour un meilleur affichage
+  const cleanDescription = description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">');
 
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
       <div className="pb-20"> 
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           
-          {/* BOUTON RETOUR */}
-          <div className="mb-8">
-            <Link href="/" className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold" style={{ color: primaryColor }}>
-              <ArrowLeft size={14} /> {t('propertyDetail.back') || "RETOUR"}
-            </Link>
-          </div>
-
           {/* GALERIE D'IMAGES */}
           <section className="mb-12 md:mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[350px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div 
-                  ref={scrollContainerRef} 
-                  onScroll={handleScroll} 
-                  className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide"
-                >
-                  {images.length > 0 ? images.map((img: string, idx: number) => (
+                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                  {images.map((img: string, idx: number) => (
                     <div 
                       key={idx} 
                       className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
@@ -132,116 +77,134 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                         pointerEvents: activeImage === idx ? 'auto' : 'none'
                       }}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt="" />
+                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
                     </div>
-                  )) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-500">
-                      <ImageIcon size={48} className="opacity-20" />
-                    </div>
-                  )}
+                  ))}
                 </div>
-                {images.length > 0 && (
-                  <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                    <ImageIcon size={14} /> {activeImage + 1} / {images.length}
-                  </div>
-                )}
+                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
+                </div>
               </div>
 
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
                 {images.map((img: string, idx: number) => (
                   <button 
                     key={idx} 
-                    onClick={() => {
-                      setActiveImage(idx);
-                      scrollContainerRef.current?.scrollTo({ left: idx * (scrollContainerRef.current?.clientWidth || 0), behavior: 'smooth' });
-                    }} 
+                    onClick={() => setActiveImage(idx)} 
                     className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
                     style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
                   >
-                    <img src={img} className="w-full h-full object-cover" alt="" />
+                    <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
                   </button>
                 ))}
               </div>
             </div>
           </section>
 
-          {/* CONTENU PRINCIPAL */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
+          {/* GRILLE DE CONTENU */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
             <div className="lg:col-span-2">
-              <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                {displayTitle}
+              <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-4 md:mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
-              <div className="flex items-center gap-3 text-slate-500 mb-10 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={18} color={primaryColor} />
+              <div className="flex items-center gap-2 md:gap-3 text-slate-500 mb-8 md:mb-12 text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={14} className="md:size-18" color={primaryColor} />
                 {property.town || property.ville} • {property.region}
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 md:mb-16">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-12 md:mb-16">
                 {[
-                  { icon: Bed, val: property.beds, label: t('propertyDetail.bedrooms') || 'CHAMBRES' },
-                  { icon: Bath, val: property.baths, label: t('propertyDetail.bathrooms') || 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: t('propertyDetail.built') || 'M² CONSTRUIT' },
-                  { icon: Home, val: property.surface_plot, label: t('propertyDetail.plot') || 'M² TERRAIN' },
-                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: t('propertyDetail.pool') || 'PISCINE' },
-                  { icon: Car, val: "OUI", label: t('propertyDetail.parking') || 'PARKING' },
+                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
+                  { icon: Bath, val: property.baths, label: 'BAINS' },
+                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
+                  { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
+                  { icon: Car, val: "OUI", label: 'PARKING' },
                 ].map((item, i) => (
-                  <div key={i} className={`p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5'}`}>
-                    <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
-                    <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                  <div 
+                    key={i} 
+                    className={`p-4 md:p-6 lg:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                  >
+                    <item.icon className="mb-3 md:mb-4 lg:mb-6" color={primaryColor} size={20} />
+                    <p className={`text-xl md:text-2xl lg:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
                 ))}
               </div>
 
-              {/* DESCRIPTION */}
-              <div className="mb-16">
-                <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                  {t('propertyDetail.artOfLiving') || "Description"}
+              {/* SECTION DESCRIPTION - VERSION AMÉLIORÉE POUR MOBILE */}
+              <div className="mb-12 md:mb-16">
+                <h2 className={`text-xl md:text-2xl font-serif italic mb-4 md:mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  Description
                 </h2>
                 <div 
-                  className={`prose prose-lg max-w-none text-lg leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'} 
-                  ${!isLight && 'prose-headings:text-white prose-strong:text-white'}`}
-                  dangerouslySetInnerHTML={{ __html: descriptionContent }} 
+                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                  dangerouslySetInnerHTML={{ __html: cleanDescription }}
+                  style={{ 
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    maxWidth: '100%'
+                  }}
                 />
               </div>
 
-              {/* LOCALISATION */}
-              <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
-                <div className="flex items-center gap-4 mb-6">
-                   <Navigation color={primaryColor} />
-                   <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('propertyDetail.location')}</h3>
+              {/* SECTION LOCALISATION */}
+              <div className="mt-8 md:mt-10 border-t pt-8 md:pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                    <Navigation size={20} className="md:size-24" color={primaryColor} />
+                  </div>
+                  <div>
+                    <h2 className={`text-xl md:text-2xl lg:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                  </div>
                 </div>
-                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px]">
+                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[250px] md:h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
                   <iframe
-                    width="100%" height="100%" style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    src={mapUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                     title="Location map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* SIDEBAR */}
+            {/* SIDEBAR - Contact Form (sticky only on desktop) */}
             <div className="lg:col-span-1">
-              <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
-                <div className="p-6 md:p-10 pb-4">
-                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">{t('propertyDetail.price') || "PRIX"}</p>
-                  <p className={`text-3xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice > 0 ? numericPrice.toLocaleString("fr-FR") + " €" : "Sur demande"}
+              <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
+                <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
+                  <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className={`text-3xl md:text-4xl lg:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
-                <div className="px-2 md:px-4">
-                  <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
-                </div>
-                <div className="p-6 md:p-10 pt-0">
+                
+                <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
+
+                <div className="p-5 md:p-6 lg:p-8 pt-0">
                   <a 
-                    href={`https://wa.me/${whatsappNumber}?text=Info ref: ${property.ref || property.id}`} 
-                    target="_blank" rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest border transition-all"
-                    style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)', color: isLight ? '#0f172a' : '#ffffff' }}
+                    href={`https://wa.me/${whatsappNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest transition-all"
+                    style={{ 
+                      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                      color: isLight ? '#0f172a' : '#ffffff',
+                      backgroundColor: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                   >
-                    <MessageCircle size={18} className="text-green-500" /> {t('propertyDetail.whatsappDirect') || "WHATSAPP DIRECT"}
+                    <MessageCircle size={16} className="md:size-18 text-green-500" /> WHATSAPP DIRECT
                   </a>
                 </div>
               </div>
