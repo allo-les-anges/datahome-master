@@ -870,27 +870,27 @@ import PropertyDetailClient from "@/components/PropertyDetailClient";
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const [property, setProperty] = useState<any>(null);
-  const [agency, setAgency] = useState<any>(null); // État pour stocker les données de l'agence
+  const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        // Récupération simultanée de la propriété et de l'agence
+        // ✅ CORRECTION : Utiliser l'API dédiée qui renvoie la description complète
         const [propRes, agencyRes] = await Promise.all([
-          fetch("/api/properties"),
+          fetch(`/api/property/${id}`),  // ← Changement clé ici
           fetch("/api/agency")
         ]);
 
-        const properties = await propRes.json();
+        const propertyData = await propRes.json();
         const agencyData = await agencyRes.json();
 
-        // Recherche du bien spécifique
-        const found = properties.find((p: any) => String(p.id) === String(id));
-        
-        if (found) {
-          setProperty(found);
-          setAgency(agencyData); // Injection des données de l'agence (thème, couleurs)
+        // Vérifier que la propriété a été trouvée
+        if (propertyData && !propertyData.error) {
+          setProperty(propertyData);
+          setAgency(agencyData);
+        } else {
+          console.error("Propriété non trouvée");
         }
       } catch (err) {
         console.error("Erreur de chargement:", err);
@@ -904,7 +904,6 @@ export default function PropertyDetailPage() {
   if (loading) return <div className="h-screen flex items-center justify-center">Chargement...</div>;
   if (!property) return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
 
-  // Maintenant agency contient les couleurs, donc PropertyDetailClient pourra les appliquer
   return <PropertyDetailClient property={property} agency={agency} />;
 }
 </file>
@@ -2855,6 +2854,224 @@ export const SiteConfig = {
 };
 </file>
 
+<file path="src/contexts/AgencyContext.tsx">
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
+
+interface AgencyContextType {
+  agency: any;
+  loading: boolean;
+  setAgencyBySlug: (slug: string) => Promise<void>;
+}
+
+const AgencyContext = createContext<AgencyContextType>({
+  agency: null,
+  loading: true,
+  setAgencyBySlug: async () => {},
+});
+
+export function AgencyProvider({ children }: { children: React.ReactNode }) {
+  const [agency, setAgency] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+
+  // On utilise useCallback pour que la fonction ne change pas à chaque rendu
+  const fetchAgencyData = useCallback(async (slug: string) => {
+    if (!slug) return null;
+    
+    console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
+    const { data, error } = await supabase
+      .from('agency_settings')
+      .select('*')
+      .eq('subdomain', slug) // On interroge la colonne subdomain
+      .maybeSingle();
+    
+    if (error) {
+      console.error("❌ [Supabase] Erreur:", error);
+      return null;
+    }
+    return data;
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initAgency() {
+      if (!isMounted) return;
+      
+      console.log("🚀 [AgencyContext] Initialisation...");
+      setLoading(true);
+      
+      try {
+        const host = window.location.hostname;
+        const segments = pathname.split('/').filter(Boolean);
+        
+        // Détection du slug dans l'URL (ex: /fr/schmidt-privilege -> schmidt-privilege)
+        const locales = ['fr', 'en', 'nl', 'es', 'ar', 'pl'];
+        const urlSlug = segments.find(s => !locales.includes(s));
+        
+        let data = null;
+
+        // 1. Priorité au slug détecté dans l'URL
+        if (urlSlug) {
+          data = await fetchAgencyData(urlSlug);
+        }
+
+        // 2. Si pas de slug, test via le domaine/sous-domaine (SaaS mode)
+        if (!data) {
+          const subdomain = host.split('.')[0];
+          if (subdomain !== 'datahome' && subdomain !== 'localhost' && subdomain !== 'www') {
+            const { data: subData } = await supabase
+              .from('agency_settings')
+              .select('*')
+              .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
+              .maybeSingle();
+            data = subData;
+          }
+        }
+
+        // 3. Fallback ultime si rien n'est trouvé
+        if (!data) {
+          console.log("🏠 [Fallback] Utilisation de l'agence par défaut");
+          data = await fetchAgencyData('schmidt-privilege');
+        }
+
+        if (isMounted) {
+          setAgency(data);
+          console.log("💾 [State] AgencyContext mis à jour.");
+        }
+      } catch (err) {
+        console.error("💥 [AgencyContext] Erreur critique:", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          console.log("🏁 [AgencyContext] Chargement terminé.");
+        }
+      }
+    }
+
+    initAgency();
+    return () => { isMounted = false; };
+  }, [pathname, fetchAgencyData]); // fetchAgencyData est stable grâce au useCallback
+
+  // Mémoïsation de la valeur du contexte pour optimiser les performances
+  const contextValue = useMemo(() => ({
+    agency,
+    loading,
+    setAgencyBySlug: async (slug: string) => {
+      // Éviter de recharger si c'est déjà la même agence
+      if (agency?.subdomain === slug) return;
+      
+      setLoading(true);
+      const d = await fetchAgencyData(slug);
+      if (d) setAgency(d);
+      setLoading(false);
+    }
+  }), [agency, loading, fetchAgencyData]);
+
+  return (
+    <AgencyContext.Provider value={contextValue}>
+      {children}
+    </AgencyContext.Provider>
+  );
+}
+
+export const useAgency = () => useContext(AgencyContext);
+</file>
+
+<file path="src/contexts/I18nContext.tsx">
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams } from 'next/navigation'; // 🟢 Import crucial
+
+// Imports statiques
+import fr from '@/dictionaries/fr.json';
+import en from '@/dictionaries/en.json';
+import nl from '@/dictionaries/nl.json';
+import es from '@/dictionaries/es.json';
+import pl from '@/dictionaries/pl.json'; // 🟢 Ajouté
+import ar from '@/dictionaries/ar.json'; // 🟢 Ajouté
+
+const dictionaries: any = { fr, en, nl, es, pl, ar };
+type Language = 'fr' | 'en' | 'nl' | 'es' | 'pl' | 'ar';
+
+interface I18nContextType {
+  locale: Language;
+  setLocale: (lang: Language) => void;
+  t: (key: string, params?: Record<string, string | number>) => any;
+  dir: 'ltr' | 'rtl';
+}
+
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
+
+export const I18nProvider = ({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Language }) => {
+  const params = useParams();
+  
+  // 🟢 On synchronise la locale avec l'URL en priorité
+  const localeFromUrl = (params?.locale as Language);
+  
+  const [locale, setLocaleState] = useState<Language>(localeFromUrl || initialLocale || 'fr');
+
+  // 🟢 Effet de synchronisation : si l'URL change, on met à jour l'état
+  useEffect(() => {
+    if (localeFromUrl && localeFromUrl !== locale) {
+      setLocaleState(localeFromUrl);
+    }
+  }, [localeFromUrl, locale]);
+
+  const dictionary = useMemo(() => dictionaries[locale] || dictionaries.fr, [locale]);
+
+  const setLocale = useCallback((newLang: Language) => {
+    if (newLang === locale) return;
+
+    // Mise à jour du cookie pour le SSR
+    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
+    
+    setLocaleState(newLang);
+    // Note : Le changement d'URL réel doit être géré dans la Navbar via router.push
+  }, [locale]);
+
+  const t = useCallback((key: string, params?: Record<string, string | number>) => {
+    const keys = key.split('.');
+    let value = dictionary;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key;
+      }
+    }
+    if (typeof value === 'string' && params) {
+      return value.replace(/\{(\w+)\}/g, (_, p) => params[p]?.toString() || `{${p}}`);
+    }
+    return value;
+  }, [dictionary]);
+
+  return (
+    <I18nContext.Provider value={{ 
+      locale, 
+      setLocale, 
+      t, 
+      dir: locale === 'ar' ? 'rtl' : 'ltr' 
+    }}>
+      <div dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+        {children}
+      </div>
+    </I18nContext.Provider>
+  );
+};
+
+export const useTranslation = () => {
+  const context = useContext(I18nContext);
+  if (!context) return { locale: 'fr' as Language, t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
+  return context;
+};
+</file>
+
 <file path="src/lib/supabase.ts">
 import { createClient } from '@supabase/supabase-js';
 
@@ -3174,6 +3391,81 @@ export async function GET() {
 }
 </file>
 
+<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import CookieBanner from "@/components/CookieBanner";
+
+export default async function AgencyLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération des paramètres de l'agence (SSR)
+  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
+  const { data: agency } = await supabase
+    .from('agency_settings') 
+    .select('*')
+    .eq('subdomain', slug) 
+    .maybeSingle();
+
+  // Si l'agence n'existe pas, on renvoie une 404
+  if (!agency) {
+    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
+    return notFound();
+  }
+
+  // 2. Définition des variables CSS dynamiques
+  const dynamicStyles = {
+    '--brand-primary': agency.primary_color || '#e5992e',
+    '--font-main': agency.font_family || 'Montserrat, sans-serif',
+    '--font-serif': 'Playfair Display, serif',
+  } as React.CSSProperties;
+
+  // 3. Parsing sécurisé de la configuration
+  const getFooterData = (config: any) => {
+    if (!config) return {};
+    if (typeof config === 'object') return config;
+    try { return JSON.parse(config); } catch { return {}; }
+  };
+
+  const footerConfig = getFooterData(agency.footer_config);
+
+  return (
+    <div style={dynamicStyles} className="min-h-screen flex flex-col">
+      {/* NAVBAR : Présente sur toutes les pages du slug */}
+      <Navbar agency={agency} />
+
+      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
+      <main className="flex-grow">
+        {children}
+      </main>
+      
+      {/* FOOTER : Présent partout */}
+      <Footer agency={agency} />
+
+      {/* Widgets flottants */}
+      <FloatingWhatsApp 
+        phone={footerConfig?.phone || agency.whatsapp_number} 
+        color={agency.primary_color || '#e5992e'} 
+      />
+      
+      <CookieBanner 
+        enabled={agency.cookie_consent_enabled} 
+        agencyName={agency.agency_name} 
+      />
+    </div>
+  );
+}
+</file>
+
 <file path="src/app/api/contact/route.ts">
 import { NextResponse } from "next/server";
 
@@ -3317,6 +3609,134 @@ export async function GET(request: Request) {
     console.error("Erreur API Properties:", error.message);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
+}
+</file>
+
+<file path="src/components/Footer.tsx">
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface FooterProps {
+  isLight?: boolean;
+  agency?: any;
+}
+
+export default function Footer({ isLight = true, agency }: FooterProps) {
+  const { t } = useTranslation();
+  const params = useParams();
+  const slug = params?.slug || "";
+  const locale = params?.locale || "en";
+  
+  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
+  const textColor = isLight ? "text-slate-900" : "text-white";
+  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
+  
+  const footerData = typeof agency?.footer_config === 'string' 
+    ? JSON.parse(agency.footer_config || '{}') 
+    : (agency?.footer_config || {});
+
+  const brandColor = agency?.primary_color || '#10b981';
+
+  // Logique SaaS : Nom légal vs Nom commercial
+  const legalName = agency?.legal_name || agency?.agency_name || "Datahome";
+
+  return (
+    <footer 
+      className={`${bgColor} py-16 transition-colors duration-500`}
+      style={{ '--brand-primary': brandColor } as React.CSSProperties}
+    >
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+          
+          {/* Identité & Copyrighting */}
+          <div className="col-span-1 md:col-span-1 space-y-6">
+            <h3 className={`text-xl font-serif italic ${textColor}`}>
+              {agency?.agency_name || t('footer.excellence')}
+            </h3>
+            <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
+            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
+              {t('footer.description')}
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li>
+                <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
+                  {t('nav.home')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
+                  {t('nav.contact')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Légal & Privacy (Le coeur du SaaS) */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
+            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <li>
+                <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
+                  <ShieldCheck size={12} />
+                  {t('footer.privacy')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors">
+                  {t('footer.terms')}
+                </Link>
+              </li>
+              {/* Si l'agence a un numéro de licence (ex: Carte T en France) */}
+              {agency?.license_number && (
+                <li className="text-[9px] normal-case opacity-70">
+                  Licence: {agency.license_number}
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Contact & Réseaux */}
+          <div className="space-y-6">
+            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
+            <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              <p className="flex items-start gap-3">
+                <MapPin size={14} style={{ color: brandColor }} />
+                <span>{footerData?.address || agency?.address}</span>
+              </p>
+              <div className="flex gap-4 pt-2">
+                {(footerData?.socials?.facebook || agency?.facebook_url) && (
+                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank"><Facebook size={18} /></a>
+                )}
+                {(footerData?.socials?.instagram || agency?.instagram_url) && (
+                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank"><Instagram size={18} /></a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Bottom : Le Copyright Multi-Tenant */}
+        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
+            © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
+          </p>
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
+            Powered by <a href="https://datahome.fr" className="hover:underline">Datahome</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
 }
 </file>
 
@@ -3507,96 +3927,6 @@ const PropertyGrid = memo(function PropertyGrid({
 export default PropertyGrid;
 </file>
 
-<file path="src/contexts/I18nContext.tsx">
-"use client";
-
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams } from 'next/navigation'; // 🟢 Import crucial
-
-// Imports statiques
-import fr from '@/dictionaries/fr.json';
-import en from '@/dictionaries/en.json';
-import nl from '@/dictionaries/nl.json';
-import es from '@/dictionaries/es.json';
-import pl from '@/dictionaries/pl.json'; // 🟢 Ajouté
-import ar from '@/dictionaries/ar.json'; // 🟢 Ajouté
-
-const dictionaries: any = { fr, en, nl, es, pl, ar };
-type Language = 'fr' | 'en' | 'nl' | 'es' | 'pl' | 'ar';
-
-interface I18nContextType {
-  locale: Language;
-  setLocale: (lang: Language) => void;
-  t: (key: string, params?: Record<string, string | number>) => any;
-  dir: 'ltr' | 'rtl';
-}
-
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
-
-export const I18nProvider = ({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Language }) => {
-  const params = useParams();
-  
-  // 🟢 On synchronise la locale avec l'URL en priorité
-  const localeFromUrl = (params?.locale as Language);
-  
-  const [locale, setLocaleState] = useState<Language>(localeFromUrl || initialLocale || 'fr');
-
-  // 🟢 Effet de synchronisation : si l'URL change, on met à jour l'état
-  useEffect(() => {
-    if (localeFromUrl && localeFromUrl !== locale) {
-      setLocaleState(localeFromUrl);
-    }
-  }, [localeFromUrl, locale]);
-
-  const dictionary = useMemo(() => dictionaries[locale] || dictionaries.fr, [locale]);
-
-  const setLocale = useCallback((newLang: Language) => {
-    if (newLang === locale) return;
-
-    // Mise à jour du cookie pour le SSR
-    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
-    
-    setLocaleState(newLang);
-    // Note : Le changement d'URL réel doit être géré dans la Navbar via router.push
-  }, [locale]);
-
-  const t = useCallback((key: string, params?: Record<string, string | number>) => {
-    const keys = key.split('.');
-    let value = dictionary;
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return key;
-      }
-    }
-    if (typeof value === 'string' && params) {
-      return value.replace(/\{(\w+)\}/g, (_, p) => params[p]?.toString() || `{${p}}`);
-    }
-    return value;
-  }, [dictionary]);
-
-  return (
-    <I18nContext.Provider value={{ 
-      locale, 
-      setLocale, 
-      t, 
-      dir: locale === 'ar' ? 'rtl' : 'ltr' 
-    }}>
-      <div dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-        {children}
-      </div>
-    </I18nContext.Provider>
-  );
-};
-
-export const useTranslation = () => {
-  const context = useContext(I18nContext);
-  if (!context) return { locale: 'fr' as Language, t: (k: string) => k, setLocale: () => {}, dir: 'ltr' };
-  return context;
-};
-</file>
-
 <file path="src/app/[locale]/layout.tsx">
 import { Inter, Montserrat, Playfair_Display, Poppins, Roboto_Mono } from "next/font/google";
 import "@/app/globals.css";
@@ -3739,336 +4069,222 @@ export async function GET() {
 }
 </file>
 
-<file path="src/components/Footer.tsx">
+<file path="src/components/Navbar.tsx">
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
+import { motion, AnimatePresence } from "framer-motion"; // <-- CET IMPORT EST CRUCIAL
 
-interface FooterProps {
-  isLight?: boolean;
+const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
+    <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
+    <text x="10" y="28" fontFamily="sans-serif" fontSize="22" fontWeight="300" fill="currentColor" letterSpacing="-0.02em">data home</text>
+  </svg>
+);
+
+interface NavbarProps {
   agency?: any;
 }
 
-export default function Footer({ isLight = true, agency }: FooterProps) {
-  const { t } = useTranslation();
-  const params = useParams();
-  const slug = params?.slug || "";
-  const locale = params?.locale || "en";
-  
-  const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
-  const textColor = isLight ? "text-slate-900" : "text-white";
-  const mutedText = isLight ? "text-slate-500" : "text-slate-400";
-  
-  const footerData = typeof agency?.footer_config === 'string' 
-    ? JSON.parse(agency.footer_config || '{}') 
-    : (agency?.footer_config || {});
-
-  const brandColor = agency?.primary_color || '#10b981';
-
-  // Logique SaaS : Nom légal vs Nom commercial
-  const legalName = agency?.legal_name || agency?.agency_name || "Datahome";
-
-  return (
-    <footer 
-      className={`${bgColor} py-16 transition-colors duration-500`}
-      style={{ '--brand-primary': brandColor } as React.CSSProperties}
-    >
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
-          
-          {/* Identité & Copyrighting */}
-          <div className="col-span-1 md:col-span-1 space-y-6">
-            <h3 className={`text-xl font-serif italic ${textColor}`}>
-              {agency?.agency_name || t('footer.excellence')}
-            </h3>
-            <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
-            <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
-              {t('footer.description')}
-            </p>
-          </div>
-
-          {/* Navigation */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li>
-                <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
-                  {t('nav.home')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
-                  {t('nav.contact')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Légal & Privacy (Le coeur du SaaS) */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <li>
-                <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
-                  <ShieldCheck size={12} />
-                  {t('footer.privacy')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors">
-                  {t('footer.terms')}
-                </Link>
-              </li>
-              {/* Si l'agence a un numéro de licence (ex: Carte T en France) */}
-              {agency?.license_number && (
-                <li className="text-[9px] normal-case opacity-70">
-                  Licence: {agency.license_number}
-                </li>
-              )}
-            </ul>
-          </div>
-
-          {/* Contact & Réseaux */}
-          <div className="space-y-6">
-            <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
-            <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <p className="flex items-start gap-3">
-                <MapPin size={14} style={{ color: brandColor }} />
-                <span>{footerData?.address || agency?.address}</span>
-              </p>
-              <div className="flex gap-4 pt-2">
-                {(footerData?.socials?.facebook || agency?.facebook_url) && (
-                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank"><Facebook size={18} /></a>
-                )}
-                {(footerData?.socials?.instagram || agency?.instagram_url) && (
-                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank"><Instagram size={18} /></a>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Bottom : Le Copyright Multi-Tenant */}
-        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
-            © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
-          </p>
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
-            Powered by <a href="https://datahome.fr" className="hover:underline">Datahome</a>
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-</file>
-
-<file path="src/components/PropertyDetailClient.tsx">
-"use client";
-
-import { useEffect, useState, useRef, useMemo } from "react";
-import ContactForm from "@/components/ContactForm";
-import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
-} from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useSearchParams } from "next/navigation";
-
-interface PropertyDetailClientProps {
-  property: any;
-  agency: any;
-}
-
-export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
+export default function Navbar({ agency: propsAgency }: NavbarProps) {
+  const pathname = usePathname();
+  const router = useRouter();
   const { t, locale } = useTranslation() as any;
-  const searchParams = useSearchParams();
-  const [activeImage, setActiveImage] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
+  const { agency: contextAgency } = useAgency();
+  const agency = propsAgency || contextAgency;
 
-  const primaryColor = useMemo(() => {
-    return agency?.primary_color || 
-           agency?.theme?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
+  const brandColor = agency?.primary_color || "#D4AF37";
+
+  const [mounted, setMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
+  const baseUrl = `/${locale}/${agencySlug}`;
 
   useEffect(() => {
     setMounted(true);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      if (clientWidth > 0) {
-        const newIndex = Math.round(scrollLeft / clientWidth);
-        if (newIndex !== activeImage) setActiveImage(newIndex);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsLangOpen(false);
       }
-    }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (!mounted) return null;
+
+  const textColor = isScrolled ? "text-slate-900" : "text-white";
+  const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
+
+  const navLinks = [
+    { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
+    { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
+  ];
+
+  const handleLangChange = (newLang: string) => {
+    const pathSegments = pathname.split('/').filter(Boolean);
+    const slug = agency?.subdomain || pathSegments[1] || "default";
+    const remainingPath = pathSegments.slice(2).join('/');
+    const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
+    
+    setIsMenuOpen(false);
+    setIsLangOpen(false);
+    router.push(newPath);
   };
 
-  const description = useMemo(() => {
-    if (!property) return "";
-    return property[`description_${locale}`] || property.description || property.description_fr || "";
-  }, [property, locale]);
-
-  const images = property?.images || [];
-  const numericPrice = Number(property?.price || property?.prix || 0);
-  const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
-
-  if (!mounted || !property) return null;
-
   return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
-      <div className="pb-20"> 
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          
-          {/* GALERIE D'IMAGES */}
-          <section className="mb-16">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
-              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
-                  {images.map((img: string, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
-                      style={{ 
-                        opacity: activeImage === idx ? 1 : 0, 
-                        zIndex: activeImage === idx ? 10 : 0,
-                        pointerEvents: activeImage === idx ? 'auto' : 'none'
-                      }}
+    <>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
+          isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
+        }`}
+        style={{
+          backdropFilter: isScrolled ? 'blur(16px)' : 'none',
+          WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
+          <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
+            {agency?.logo_url ? (
+               <img 
+                 src={agency.logo_url} 
+                 alt={agency?.agency_name || "Logo"} 
+                 className="h-16 md:h-20 w-auto object-contain transition-all duration-500" 
+               />
+            ) : (
+               <DataHomeLogo 
+                 className="h-12 md:h-16 w-auto transition-colors duration-500" 
+                 style={{ color: logoHexColor }}
+               />
+            )}
+          </Link>
+
+          <div className="hidden md:flex items-center gap-12">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.href} 
+                href={link.href} 
+                className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
+              >
+                <span 
+                  className="pb-1" 
+                  style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}
+                >
+                  {link.name}
+                </span>
+              </Link>
+            ))}
+
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsLangOpen(!isLangOpen)}
+                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${textColor}`}
+              >
+                <Globe size={14} style={{ color: brandColor }} />
+                {locale}
+              </button>
+              
+              {isLangOpen && (
+                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLangChange(lang)}
+                      className={`w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        locale === lang ? 'text-blue-400' : 'text-white hover:bg-white/10'
+                      }`}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
-                    </div>
+                      {lang}
+                    </button>
                   ))}
                 </div>
-                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
-                </div>
-              </div>
-
-              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-                {images.map((img: string, idx: number) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => setActiveImage(idx)} 
-                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
-                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
-                  >
-                    <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
-                  </button>
-                ))}
-              </div>
+              )}
             </div>
-          </section>
+          </div>
 
-          {/* GRILLE DE CONTENU */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
-            <div className="lg:col-span-2">
-              <h1 className={`text-4xl md:text-6xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                {property.titre || property.title || "Propriété Exclusive"}
-              </h1>
+          <button 
+            className={`md:hidden p-2 transition-colors relative z-[160] ${textColor}`} 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={28} className="text-white" /> : <Menu size={28} />}
+          </button>
+        </div>
+      </nav>
 
-              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville} • {property.region}
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
-                {[
-                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
-                  { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
-                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
-                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
-                  { icon: Car, val: "OUI", label: 'PARKING' },
-                ].map((item, i) => (
-                  <div 
-                    key={i} 
-                    className={`p-6 md:p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
-                  >
-                    <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
-                    <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
-                  </div>
-                ))}
-              </div>
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center z-[150] md:hidden"
+          >
+            <div className="flex flex-col items-center gap-10">
+              <Link 
+                href={baseUrl} 
+                onClick={() => setIsMenuOpen(false)} 
+                className="text-xl font-black uppercase tracking-[0.5em] text-white"
+              >
+                {t('nav.home') || 'Accueil'}
+              </Link>
 
-              <div 
-                className={`text-lg md:text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                dangerouslySetInnerHTML={{ __html: description }}
-              />
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href} 
+                  onClick={() => setIsMenuOpen(false)} 
+                  className="text-xl font-black uppercase tracking-[0.5em] text-white"
+                >
+                  {link.name}
+                </Link>
+              ))}
 
-              <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                    <Navigation size={24} color={primaryColor} />
-                  </div>
-                  <div>
-                    <h2 className={`text-2xl md:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
-                  </div>
-                </div>
-                <div className="relative rounded-[2.5rem] overflow-hidden shadow-xl h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    loading="lazy"
-                    allowFullScreen
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                    title="Location map"
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-
-            {/* SIDEBAR - Contact Form */}
-            <div className="lg:col-span-1">
-              <div className={`sticky top-32 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
-                <div className="p-6 md:p-8 pb-4">
-                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-4xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice.toLocaleString("fr-FR")} €
-                  </p>
+              <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
+                <div className="flex items-center gap-3 text-slate-500">
+                  <Globe size={16} style={{ color: brandColor }} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('common.language') || 'Language'}</span>
                 </div>
                 
-                {/* ContactForm - sans padding supplémentaire qui pourrait casser les styles */}
-                <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
-
-                <div className="p-6 md:p-8 pt-0">
-                  <a 
-                    href={`https://wa.me/${whatsappNumber}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all"
-                    style={{ 
-                      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-                      color: isLight ? '#0f172a' : '#ffffff',
-                      backgroundColor: 'transparent'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
-                  </a>
+                <div className="flex flex-wrap justify-center gap-6">
+                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLangChange(lang)}
+                      className={`text-sm font-black uppercase tracking-widest transition-all ${
+                        locale === lang 
+                          ? 'text-white scale-125' 
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                      style={{ color: locale === lang ? brandColor : '' }}
+                    >
+                      {lang}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-          </section>
-        </div>
-      </div>
-    </main>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 </file>
@@ -4115,6 +4331,339 @@ export default {
     },
   },
   plugins: [],
+}
+</file>
+
+<file path="src/app/globals.css">
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+/* ===== 1. VARIABLES & BASE ===== */
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --accent-gold: #D4AF37;
+    /* Valeur par défaut si l'agence n'en fournit pas */
+    --brand-primary: #D4AF37;
+    --font-main: 'Montserrat', system-ui, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-mono: 'Roboto Mono', monospace;
+  }
+
+  html.dark:not([data-package="light"]) {
+    --background: #020617;
+    --foreground: #ffffff;
+    --brand-primary: #D4AF37;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-main);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+}
+
+/* ===== 2. COLOR-SCHEME & BEHAVIOR ===== */
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+html.dark:not([data-package="light"]) {
+  color-scheme: dark;
+}
+
+/* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
+/* Utilisé pour garder un rendu clair même si l'utilisateur est en mode sombre système */
+
+html[data-package="light"] {
+  color: #0f172a !important;
+  color-scheme: light;
+}
+
+html[data-package="light"] body {
+  background-color: #ffffff;
+  color: #0f172a !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar : Transparente par défaut pour laisser voir le Hero */
+html[data-package="light"] nav {
+  background-color: transparent !important;
+}
+
+/* Sections de contenu : On force le blanc pour la lisibilité */
+html[data-package="light"] section:not(.no-forced-bg) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* FOOTER : On ne force PAS le fond blanc ici pour laisser passer la couleur de l'agence */
+html[data-package="light"] footer {
+  color: #0f172a;
+}
+
+/* Main : Doit rester transparent pour ne pas bloquer les fonds dynamiques */
+html[data-package="light"] main {
+  background-color: transparent !important;
+}
+
+/* ===== 4. VIGNETTES & CARTES (MODE SOMBRE RÉEL) ===== */
+html.dark:not([data-package="light"]) .property-card,
+html.dark:not([data-package="light"]) .bg-slate-50,
+html.dark:not([data-package="light"]) .bg-gray-50 {
+  background-color: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===== 5. SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--brand-primary, var(--accent-gold));
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--brand-primary) 80%, black);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-primary) transparent;
+}
+
+/* ===== 6. COMPOSANTS SPÉCIFIQUES ===== */
+
+/* Menu Mobile en mode sombre */
+.dark .mobile-menu-link {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Masquer le switch de thème si mode light forcé */
+html[data-package="light"] .theme-toggle-component {
+  display: none !important;
+}
+
+/* Badge Type (commun) */
+.badge-type {
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Badge Référence - Mode Light */
+.badge-ref-light {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Badge Référence - Mode Dark */
+.badge-ref-dark {
+  background-color: var(--brand-primary) !important;
+  color: #000000 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Utilitaire pour empêcher le forçage du fond blanc sur certains éléments spécifiques */
+.no-forced-bg {
+  background-color: transparent !important;
+}
+
+/* ===== 7. CONTACT FORM WRAPPER ===== */
+.contact-form-wrapper {
+  all: initial;
+  display: block;
+}
+
+.contact-form-wrapper * {
+  all: revert;
+  box-sizing: border-box;
+}
+
+/* ===== 8. UTILITAIRES PERSONNALISÉS ===== */
+
+/* Masquer la scrollbar sur mobile tout en gardant la fonctionnalité */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scrollbar personnalisée */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--brand-primary);
+  border-radius: 10px;
+}
+
+/* Animations personnalisées */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.4s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* ===== 9. TYPOGRAPHIE ===== */
+
+/* Limiter les lignes pour les textes longs */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== 10. RESPONSIVE UTILITIES ===== */
+
+/* Container personnalisé */
+.container-custom {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container-custom {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-custom {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+/* ===== 11. TRANSITIONS GLOBALES ===== */
+.transition-theme {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ===== 12. FOCUS STYLES ===== */
+*:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== 13. SELECTION TEXT ===== */
+::selection {
+  background-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  color: var(--foreground);
 }
 </file>
 
@@ -5862,840 +6411,6 @@ export async function GET(req: Request) {
 }
 </file>
 
-<file path="src/app/globals.css">
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
-
-/* ===== 1. VARIABLES & BASE ===== */
-@layer base {
-  :root {
-    --background: #ffffff;
-    --foreground: #0f172a;
-    --accent-gold: #D4AF37;
-    /* Valeur par défaut si l'agence n'en fournit pas */
-    --brand-primary: #D4AF37;
-    --font-main: 'Montserrat', system-ui, sans-serif;
-    --font-serif: 'Playfair Display', Georgia, serif;
-    --font-mono: 'Roboto Mono', monospace;
-  }
-
-  html.dark:not([data-package="light"]) {
-    --background: #020617;
-    --foreground: #ffffff;
-    --brand-primary: #D4AF37;
-  }
-
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-main);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    margin: 0;
-    padding: 0;
-  }
-
-  h1, h2, h3, h4, h5, h6, p {
-    margin: 0;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  button {
-    cursor: pointer;
-    background: none;
-    border: none;
-  }
-}
-
-/* ===== 2. COLOR-SCHEME & BEHAVIOR ===== */
-html {
-  color-scheme: light;
-  scroll-behavior: smooth;
-}
-
-html.dark:not([data-package="light"]) {
-  color-scheme: dark;
-}
-
-/* ===== 3. MODE LIGHT FORCÉ (data-package="light") ===== */
-/* Utilisé pour garder un rendu clair même si l'utilisateur est en mode sombre système */
-
-html[data-package="light"] {
-  color: #0f172a !important;
-  color-scheme: light;
-}
-
-html[data-package="light"] body {
-  background-color: #ffffff;
-  color: #0f172a !important;
-  margin: 0;
-  padding: 0;
-}
-
-/* Navbar : Transparente par défaut pour laisser voir le Hero */
-html[data-package="light"] nav {
-  background-color: transparent !important;
-}
-
-/* Sections de contenu : On force le blanc pour la lisibilité */
-html[data-package="light"] section:not(.no-forced-bg) {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-
-/* FOOTER : On ne force PAS le fond blanc ici pour laisser passer la couleur de l'agence */
-html[data-package="light"] footer {
-  color: #0f172a;
-}
-
-/* Main : Doit rester transparent pour ne pas bloquer les fonds dynamiques */
-html[data-package="light"] main {
-  background-color: transparent !important;
-}
-
-/* ===== 4. VIGNETTES & CARTES (MODE SOMBRE RÉEL) ===== */
-html.dark:not([data-package="light"]) .property-card,
-html.dark:not([data-package="light"]) .bg-slate-50,
-html.dark:not([data-package="light"]) .bg-gray-50 {
-  background-color: #0f172a !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* ===== 5. SCROLLBAR ===== */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--brand-primary, var(--accent-gold));
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--brand-primary) 80%, black);
-}
-
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--brand-primary) transparent;
-}
-
-/* ===== 6. COMPOSANTS SPÉCIFIQUES ===== */
-
-/* Menu Mobile en mode sombre */
-.dark .mobile-menu-link {
-  color: #ffffff !important;
-  opacity: 1 !important;
-}
-
-/* Masquer le switch de thème si mode light forcé */
-html[data-package="light"] .theme-toggle-component {
-  display: none !important;
-}
-
-/* Badge Type (commun) */
-.badge-type {
-  background-color: rgba(0, 0, 0, 0.75) !important;
-  color: #ffffff !important;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
-
-/* Badge Référence - Mode Light */
-.badge-ref-light {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-/* Badge Référence - Mode Dark */
-.badge-ref-dark {
-  background-color: var(--brand-primary) !important;
-  color: #000000 !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Utilitaire pour empêcher le forçage du fond blanc sur certains éléments spécifiques */
-.no-forced-bg {
-  background-color: transparent !important;
-}
-
-/* ===== 7. CONTACT FORM WRAPPER ===== */
-.contact-form-wrapper {
-  all: initial;
-  display: block;
-}
-
-.contact-form-wrapper * {
-  all: revert;
-  box-sizing: border-box;
-}
-
-/* ===== 8. UTILITAIRES PERSONNALISÉS ===== */
-
-/* Masquer la scrollbar sur mobile tout en gardant la fonctionnalité */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Scrollbar personnalisée */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--brand-primary);
-  border-radius: 10px;
-}
-
-/* Animations personnalisées */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.4s ease-out;
-}
-
-.animate-slide-down {
-  animation: slideDown 0.4s ease-out;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out;
-}
-
-/* ===== 9. TYPOGRAPHIE ===== */
-
-/* Limiter les lignes pour les textes longs */
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ===== 10. RESPONSIVE UTILITIES ===== */
-
-/* Container personnalisé */
-.container-custom {
-  width: 100%;
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-
-@media (min-width: 640px) {
-  .container-custom {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container-custom {
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
-  }
-}
-
-/* ===== 11. TRANSITIONS GLOBALES ===== */
-.transition-theme {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-/* ===== 12. FOCUS STYLES ===== */
-*:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ===== 13. SELECTION TEXT ===== */
-::selection {
-  background-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
-  color: var(--foreground);
-}
-</file>
-
-<file path="src/app/page.tsx">
-"use client";
-
-import { useEffect, useState } from "react";
-import PropertyCard from "@/components/PropertyCard";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { Loader2 } from "lucide-react";
-
-export default function HomePage() {
-  const [properties, setProperties] = useState<any[]>([]);
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Chargement parallèle des propriétés et des infos agence
-        const [propRes, agencyRes] = await Promise.all([
-          fetch("/api/properties"),
-          fetch("/api/agency")
-        ]);
-
-        if (propRes.ok && agencyRes.ok) {
-          const propData = await propRes.json();
-          const agencyData = await agencyRes.json();
-          
-          setProperties(propData);
-          setAgency(agencyData);
-        }
-      } catch (err) {
-        console.error("Erreur lors du chargement initial:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-[#0A0A0A]">
-        <Loader2 className="animate-spin text-[#D4AF37] mb-4" size={40} />
-      </div>
-    );
-  }
-
-  return (
-    <main className="min-h-screen bg-[#0A0A0A]">
-      <Navbar agency={agency} />
-      
-      {/* Hero Section ou Header */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-5xl md:text-8xl font-serif text-white mb-12">
-            Notre Sélection <br />
-            <span className="text-zinc-500 italic">Exclusive</span>
-          </h1>
-
-          {/* Grille des propriétés */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {properties.map((property) => (
-              <PropertyCard 
-                key={property.id} 
-                property={property} 
-                agency={agency} 
-              />
-            ))}
-          </div>
-
-          {properties.length === 0 && (
-            <div className="text-center py-20">
-              <p className="text-zinc-500 font-serif text-xl">
-                Aucune propriété disponible pour le moment.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <Footer agency={agency} />
-    </main>
-  );
-}
-</file>
-
-<file path="src/components/ContactForm.tsx">
-"use client";
-
-import React, { useState, useMemo } from "react";
-import { Send, CheckCircle, Loader2, User, Mail, MessageSquare, AlertCircle } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-
-interface ContactFormProps {
-  agency: any;
-  propertyRef: string;
-  isLight?: boolean;
-}
-
-export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
-  const { t } = useTranslation();
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-  const primaryColor = useMemo(() => {
-    return agency?.primary_color || 
-           agency?.theme?.primary || 
-           agency?.colors?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
-  }, [agency]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('loading');
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      message: formData.get('message'),
-      property_ref: propertyRef, 
-    };
-
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (res.ok) {
-        setStatus('success');
-      } else {
-        setStatus('error');
-      }
-    } catch (err) {
-      setStatus('error');
-    }
-  };
-
-  if (status === 'success') {
-    return (
-      <div className="p-10 text-center space-y-4 animate-in fade-in zoom-in duration-500">
-        <CheckCircle className="mx-auto text-green-500" size={48} />
-        <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
-          {t('contact.success_title') || "Message envoyé avec succès !"}
-        </h3>
-        <p className="text-xs text-slate-400">
-          {t('contact.ref_label') || "Réf"} {propertyRef} {t('contact.success_message') || "bien reçue."}
-        </p>
-        <button 
-          onClick={() => setStatus('idle')}
-          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500 hover:text-slate-700 transition-colors"
-        >
-          {t('common.back') || "Retour"}
-        </button>
-      </div>
-    );
-  }
-
-  // Styles inline pour garantir l'application
-  const containerStyle = {
-    backgroundColor: isLight ? '#ffffff' : '#0A0A0A',
-    borderRadius: '2rem',
-    overflow: 'hidden',
-  };
-
-  const inputStyle = {
-    width: '100%',
-    height: '56px',
-    paddingLeft: '48px',
-    paddingRight: '16px',
-    borderRadius: '16px',
-    border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-    backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
-    color: isLight ? '#0f172a' : '#ffffff',
-    fontSize: '14px',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-  };
-
-  const textareaStyle = {
-    width: '100%',
-    padding: '16px',
-    paddingLeft: '48px',
-    borderRadius: '16px',
-    border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-    backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
-    color: isLight ? '#0f172a' : '#ffffff',
-    fontSize: '14px',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-    resize: 'none' as const,
-  };
-
-  const buttonStyle = {
-    width: '100%',
-    padding: '20px',
-    backgroundColor: primaryColor,
-    color: '#000000',
-    borderRadius: '16px',
-    fontWeight: 900,
-    fontSize: '11px',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.2em',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '12px',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    marginTop: '16px',
-  };
-
-  return (
-    <div style={containerStyle}>
-      <form onSubmit={handleSubmit} style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ 
-            fontSize: '24px', 
-            fontFamily: 'serif', 
-            fontStyle: 'italic', 
-            marginBottom: '4px',
-            color: isLight ? '#0f172a' : '#ffffff'
-          }}>
-            {t('contact.title') || "Contactez-nous"}
-          </h3>
-          <p style={{ 
-            fontSize: '10px', 
-            textTransform: 'uppercase' as const, 
-            letterSpacing: '0.2em',
-            color: '#64748b',
-            fontWeight: 'bold'
-          }}>
-            {t('contact.ref_label') || "Réf"} : {propertyRef}
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Champ Nom */}
-          <div style={{ position: 'relative' }}>
-            <User style={{ 
-              position: 'absolute', 
-              left: '16px', 
-              top: '50%', 
-              transform: 'translateY(-50%)',
-              color: '#94a3b8',
-              width: '18px',
-              height: '18px'
-            }} />
-            <input 
-              name="name"
-              type="text" 
-              placeholder={t('contact.placeholder_name') || "VOTRE NOM"} 
-              required
-              style={inputStyle}
-              onFocus={(e) => {
-                e.target.style.borderColor = primaryColor;
-                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
-
-          {/* Champ Email */}
-          <div style={{ position: 'relative' }}>
-            <Mail style={{ 
-              position: 'absolute', 
-              left: '16px', 
-              top: '50%', 
-              transform: 'translateY(-50%)',
-              color: '#94a3b8',
-              width: '18px',
-              height: '18px'
-            }} />
-            <input 
-              name="email"
-              type="email" 
-              placeholder={t('contact.placeholder_email') || "VOTRE EMAIL"} 
-              required
-              style={inputStyle}
-              onFocus={(e) => {
-                e.target.style.borderColor = primaryColor;
-                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
-
-          {/* Champ Message */}
-          <div style={{ position: 'relative' }}>
-            <MessageSquare style={{ 
-              position: 'absolute', 
-              left: '16px', 
-              top: '16px',
-              color: '#94a3b8',
-              width: '18px',
-              height: '18px'
-            }} />
-            <textarea 
-              name="message"
-              placeholder={t('contact.placeholder_message') || "DÉTAILS DE VOTRE PROJET..."} 
-              rows={4}
-              required
-              style={textareaStyle}
-              onFocus={(e) => {
-                e.target.style.borderColor = primaryColor;
-                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
-        </div>
-
-        {status === 'error' && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            color: '#ef4444',
-            fontSize: '10px',
-            textTransform: 'uppercase' as const,
-            fontWeight: 'bold',
-            letterSpacing: '0.05em'
-          }}>
-            <AlertCircle size={14} /> {t('contact.error_message') || "Erreur lors de l'envoi."}
-          </div>
-        )}
-        
-        <button 
-          type="submit"
-          disabled={status === 'loading'}
-          style={buttonStyle}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.filter = 'brightness(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.filter = 'brightness(1)';
-          }}
-        >
-          {status === 'loading' ? (
-            <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={18} />
-          ) : (
-            <>
-              <Send size={16} /> 
-              {t('contact.send_btn') || "Envoyer la demande"}
-            </>
-          )}
-        </button>
-      </form>
-
-      {/* Ajout de l'animation spin pour le loader */}
-      <style jsx global>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
-}
-</file>
-
-<file path="src/contexts/AgencyContext.tsx">
-"use client";
-
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
-import { supabase } from "@/lib/supabase";
-import { usePathname } from "next/navigation";
-
-interface AgencyContextType {
-  agency: any;
-  loading: boolean;
-  setAgencyBySlug: (slug: string) => Promise<void>;
-}
-
-const AgencyContext = createContext<AgencyContextType>({
-  agency: null,
-  loading: true,
-  setAgencyBySlug: async () => {},
-});
-
-export function AgencyProvider({ children }: { children: React.ReactNode }) {
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const pathname = usePathname();
-
-  // On utilise useCallback pour que la fonction ne change pas à chaque rendu
-  const fetchAgencyData = useCallback(async (slug: string) => {
-    if (!slug) return null;
-    
-    console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
-    const { data, error } = await supabase
-      .from('agency_settings')
-      .select('*')
-      .eq('subdomain', slug) // On interroge la colonne subdomain
-      .maybeSingle();
-    
-    if (error) {
-      console.error("❌ [Supabase] Erreur:", error);
-      return null;
-    }
-    return data;
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function initAgency() {
-      if (!isMounted) return;
-      
-      console.log("🚀 [AgencyContext] Initialisation...");
-      setLoading(true);
-      
-      try {
-        const host = window.location.hostname;
-        const segments = pathname.split('/').filter(Boolean);
-        
-        // Détection du slug dans l'URL (ex: /fr/schmidt-privilege -> schmidt-privilege)
-        const locales = ['fr', 'en', 'nl', 'es', 'ar', 'pl'];
-        const urlSlug = segments.find(s => !locales.includes(s));
-        
-        let data = null;
-
-        // 1. Priorité au slug détecté dans l'URL
-        if (urlSlug) {
-          data = await fetchAgencyData(urlSlug);
-        }
-
-        // 2. Si pas de slug, test via le domaine/sous-domaine (SaaS mode)
-        if (!data) {
-          const subdomain = host.split('.')[0];
-          if (subdomain !== 'datahome' && subdomain !== 'localhost' && subdomain !== 'www') {
-            const { data: subData } = await supabase
-              .from('agency_settings')
-              .select('*')
-              .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
-              .maybeSingle();
-            data = subData;
-          }
-        }
-
-        // 3. Fallback ultime si rien n'est trouvé
-        if (!data) {
-          console.log("🏠 [Fallback] Utilisation de l'agence par défaut");
-          data = await fetchAgencyData('schmidt-privilege');
-        }
-
-        if (isMounted) {
-          setAgency(data);
-          console.log("💾 [State] AgencyContext mis à jour.");
-        }
-      } catch (err) {
-        console.error("💥 [AgencyContext] Erreur critique:", err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-          console.log("🏁 [AgencyContext] Chargement terminé.");
-        }
-      }
-    }
-
-    initAgency();
-    return () => { isMounted = false; };
-  }, [pathname, fetchAgencyData]); // fetchAgencyData est stable grâce au useCallback
-
-  // Mémoïsation de la valeur du contexte pour optimiser les performances
-  const contextValue = useMemo(() => ({
-    agency,
-    loading,
-    setAgencyBySlug: async (slug: string) => {
-      // Éviter de recharger si c'est déjà la même agence
-      if (agency?.subdomain === slug) return;
-      
-      setLoading(true);
-      const d = await fetchAgencyData(slug);
-      if (d) setAgency(d);
-      setLoading(false);
-    }
-  }), [agency, loading, fetchAgencyData]);
-
-  return (
-    <AgencyContext.Provider value={contextValue}>
-      {children}
-    </AgencyContext.Provider>
-  );
-}
-
-export const useAgency = () => useContext(AgencyContext);
-</file>
-
 <file path="src/dictionaries/ar.json">
 {
   "common": {
@@ -7455,6 +7170,379 @@ export default function AboutPage({ params }: AboutPageProps) {
 }
 </file>
 
+<file path="src/app/page.tsx">
+"use client";
+
+import { useEffect, useState } from "react";
+import PropertyCard from "@/components/PropertyCard";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Loader2 } from "lucide-react";
+
+export default function HomePage() {
+  const [properties, setProperties] = useState<any[]>([]);
+  const [agency, setAgency] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // Chargement parallèle des propriétés et des infos agence
+        const [propRes, agencyRes] = await Promise.all([
+          fetch("/api/properties"),
+          fetch("/api/agency")
+        ]);
+
+        if (propRes.ok && agencyRes.ok) {
+          const propData = await propRes.json();
+          const agencyData = await agencyRes.json();
+          
+          setProperties(propData);
+          setAgency(agencyData);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement initial:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-[#0A0A0A]">
+        <Loader2 className="animate-spin text-[#D4AF37] mb-4" size={40} />
+      </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[#0A0A0A]">
+      <Navbar agency={agency} />
+      
+      {/* Hero Section ou Header */}
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-5xl md:text-8xl font-serif text-white mb-12">
+            Notre Sélection <br />
+            <span className="text-zinc-500 italic">Exclusive</span>
+          </h1>
+
+          {/* Grille des propriétés */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {properties.map((property) => (
+              <PropertyCard 
+                key={property.id} 
+                property={property} 
+                agency={agency} 
+              />
+            ))}
+          </div>
+
+          {properties.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-zinc-500 font-serif text-xl">
+                Aucune propriété disponible pour le moment.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <Footer agency={agency} />
+    </main>
+  );
+}
+</file>
+
+<file path="src/components/ContactForm.tsx">
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { Send, CheckCircle, Loader2, User, Mail, MessageSquare, AlertCircle } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+
+interface ContactFormProps {
+  agency: any;
+  propertyRef: string;
+  isLight?: boolean;
+}
+
+export default function ContactForm({ agency, propertyRef, isLight }: ContactFormProps) {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const primaryColor = useMemo(() => {
+    return agency?.primary_color || 
+           agency?.theme?.primary || 
+           agency?.colors?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus('loading');
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      message: formData.get('message'),
+      property_ref: propertyRef, 
+    };
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    } catch (err) {
+      setStatus('error');
+    }
+  };
+
+  if (status === 'success') {
+    return (
+      <div className="p-10 text-center space-y-4 animate-in fade-in zoom-in duration-500">
+        <CheckCircle className="mx-auto text-green-500" size={48} />
+        <h3 className={`text-xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>
+          {t('contact.success_title') || "Message envoyé avec succès !"}
+        </h3>
+        <p className="text-xs text-slate-400">
+          {t('contact.ref_label') || "Réf"} {propertyRef} {t('contact.success_message') || "bien reçue."}
+        </p>
+        <button 
+          onClick={() => setStatus('idle')}
+          className="text-[10px] uppercase tracking-widest font-bold underline mt-4 text-slate-500 hover:text-slate-700 transition-colors"
+        >
+          {t('common.back') || "Retour"}
+        </button>
+      </div>
+    );
+  }
+
+  // Styles inline pour garantir l'application
+  const containerStyle = {
+    backgroundColor: isLight ? '#ffffff' : '#0A0A0A',
+    borderRadius: '2rem',
+    overflow: 'hidden',
+  };
+
+  const inputStyle = {
+    width: '100%',
+    height: '56px',
+    paddingLeft: '48px',
+    paddingRight: '16px',
+    borderRadius: '16px',
+    border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+    backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+    color: isLight ? '#0f172a' : '#ffffff',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+  };
+
+  const textareaStyle = {
+    width: '100%',
+    padding: '16px',
+    paddingLeft: '48px',
+    borderRadius: '16px',
+    border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+    backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+    color: isLight ? '#0f172a' : '#ffffff',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    resize: 'none' as const,
+  };
+
+  const buttonStyle = {
+    width: '100%',
+    padding: '20px',
+    backgroundColor: primaryColor,
+    color: '#000000',
+    borderRadius: '16px',
+    fontWeight: 900,
+    fontSize: '11px',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.2em',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    marginTop: '16px',
+  };
+
+  return (
+    <div style={containerStyle}>
+      <form onSubmit={handleSubmit} style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <h3 style={{ 
+            fontSize: '24px', 
+            fontFamily: 'serif', 
+            fontStyle: 'italic', 
+            marginBottom: '4px',
+            color: isLight ? '#0f172a' : '#ffffff'
+          }}>
+            {t('contact.title') || "Contactez-nous"}
+          </h3>
+          <p style={{ 
+            fontSize: '10px', 
+            textTransform: 'uppercase' as const, 
+            letterSpacing: '0.2em',
+            color: '#64748b',
+            fontWeight: 'bold'
+          }}>
+            {t('contact.ref_label') || "Réf"} : {propertyRef}
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Champ Nom */}
+          <div style={{ position: 'relative' }}>
+            <User style={{ 
+              position: 'absolute', 
+              left: '16px', 
+              top: '50%', 
+              transform: 'translateY(-50%)',
+              color: '#94a3b8',
+              width: '18px',
+              height: '18px'
+            }} />
+            <input 
+              name="name"
+              type="text" 
+              placeholder={t('contact.placeholder_name') || "VOTRE NOM"} 
+              required
+              style={inputStyle}
+              onFocus={(e) => {
+                e.target.style.borderColor = primaryColor;
+                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+
+          {/* Champ Email */}
+          <div style={{ position: 'relative' }}>
+            <Mail style={{ 
+              position: 'absolute', 
+              left: '16px', 
+              top: '50%', 
+              transform: 'translateY(-50%)',
+              color: '#94a3b8',
+              width: '18px',
+              height: '18px'
+            }} />
+            <input 
+              name="email"
+              type="email" 
+              placeholder={t('contact.placeholder_email') || "VOTRE EMAIL"} 
+              required
+              style={inputStyle}
+              onFocus={(e) => {
+                e.target.style.borderColor = primaryColor;
+                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+
+          {/* Champ Message */}
+          <div style={{ position: 'relative' }}>
+            <MessageSquare style={{ 
+              position: 'absolute', 
+              left: '16px', 
+              top: '16px',
+              color: '#94a3b8',
+              width: '18px',
+              height: '18px'
+            }} />
+            <textarea 
+              name="message"
+              placeholder={t('contact.placeholder_message') || "DÉTAILS DE VOTRE PROJET..."} 
+              rows={4}
+              required
+              style={textareaStyle}
+              onFocus={(e) => {
+                e.target.style.borderColor = primaryColor;
+                e.target.style.boxShadow = `0 0 0 2px ${primaryColor}20`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+        </div>
+
+        {status === 'error' && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            color: '#ef4444',
+            fontSize: '10px',
+            textTransform: 'uppercase' as const,
+            fontWeight: 'bold',
+            letterSpacing: '0.05em'
+          }}>
+            <AlertCircle size={14} /> {t('contact.error_message') || "Erreur lors de l'envoi."}
+          </div>
+        )}
+        
+        <button 
+          type="submit"
+          disabled={status === 'loading'}
+          style={buttonStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.filter = 'brightness(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+        >
+          {status === 'loading' ? (
+            <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={18} />
+          ) : (
+            <>
+              <Send size={16} /> 
+              {t('contact.send_btn') || "Envoyer la demande"}
+            </>
+          )}
+        </button>
+      </form>
+
+      {/* Ajout de l'animation spin pour le loader */}
+      <style jsx global>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
+</file>
+
 <file path="src/app/[locale]/(agency_site)/[slug]/privacy/page.tsx">
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
@@ -7537,301 +7625,6 @@ export default async function PrivacyPage({
 }
 </file>
 
-<file path="src/components/Navbar.tsx">
-"use client";
-
-import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Globe, Menu, X } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext";
-import { motion, AnimatePresence } from "framer-motion"; // <-- CET IMPORT EST CRUCIAL
-
-const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
-  <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
-    <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
-    <text x="10" y="28" fontFamily="sans-serif" fontSize="22" fontWeight="300" fill="currentColor" letterSpacing="-0.02em">data home</text>
-  </svg>
-);
-
-interface NavbarProps {
-  agency?: any;
-}
-
-export default function Navbar({ agency: propsAgency }: NavbarProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { t, locale } = useTranslation() as any;
-  
-  const { agency: contextAgency } = useAgency();
-  const agency = propsAgency || contextAgency;
-
-  const brandColor = agency?.primary_color || "#D4AF37";
-
-  const [mounted, setMounted] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
-  const baseUrl = `/${locale}/${agencySlug}`;
-
-  useEffect(() => {
-    setMounted(true);
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsLangOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  if (!mounted) return null;
-
-  const textColor = isScrolled ? "text-slate-900" : "text-white";
-  const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
-
-  const navLinks = [
-    { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
-    { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
-  ];
-
-  const handleLangChange = (newLang: string) => {
-    const pathSegments = pathname.split('/').filter(Boolean);
-    const slug = agency?.subdomain || pathSegments[1] || "default";
-    const remainingPath = pathSegments.slice(2).join('/');
-    const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
-    
-    setIsMenuOpen(false);
-    setIsLangOpen(false);
-    router.push(newPath);
-  };
-
-  return (
-    <>
-      <nav 
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
-          isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
-        }`}
-        style={{
-          backdropFilter: isScrolled ? 'blur(16px)' : 'none',
-          WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
-          <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
-            {agency?.logo_url ? (
-               <img 
-                 src={agency.logo_url} 
-                 alt={agency?.agency_name || "Logo"} 
-                 className="h-16 md:h-20 w-auto object-contain transition-all duration-500" 
-               />
-            ) : (
-               <DataHomeLogo 
-                 className="h-12 md:h-16 w-auto transition-colors duration-500" 
-                 style={{ color: logoHexColor }}
-               />
-            )}
-          </Link>
-
-          <div className="hidden md:flex items-center gap-12">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
-                href={link.href} 
-                className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
-              >
-                <span 
-                  className="pb-1" 
-                  style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}
-                >
-                  {link.name}
-                </span>
-              </Link>
-            ))}
-
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setIsLangOpen(!isLangOpen)}
-                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${textColor}`}
-              >
-                <Globe size={14} style={{ color: brandColor }} />
-                {locale}
-              </button>
-              
-              {isLangOpen && (
-                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLangChange(lang)}
-                      className={`w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${
-                        locale === lang ? 'text-blue-400' : 'text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button 
-            className={`md:hidden p-2 transition-colors relative z-[160] ${textColor}`} 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={28} className="text-white" /> : <Menu size={28} />}
-          </button>
-        </div>
-      </nav>
-
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center z-[150] md:hidden"
-          >
-            <div className="flex flex-col items-center gap-10">
-              <Link 
-                href={baseUrl} 
-                onClick={() => setIsMenuOpen(false)} 
-                className="text-xl font-black uppercase tracking-[0.5em] text-white"
-              >
-                {t('nav.home') || 'Accueil'}
-              </Link>
-
-              {navLinks.map((link) => (
-                <Link 
-                  key={link.href}
-                  href={link.href} 
-                  onClick={() => setIsMenuOpen(false)} 
-                  className="text-xl font-black uppercase tracking-[0.5em] text-white"
-                >
-                  {link.name}
-                </Link>
-              ))}
-
-              <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
-                <div className="flex items-center gap-3 text-slate-500">
-                  <Globe size={16} style={{ color: brandColor }} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('common.language') || 'Language'}</span>
-                </div>
-                
-                <div className="flex flex-wrap justify-center gap-6">
-                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLangChange(lang)}
-                      className={`text-sm font-black uppercase tracking-widest transition-all ${
-                        locale === lang 
-                          ? 'text-white scale-125' 
-                          : 'text-slate-500 hover:text-white'
-                      }`}
-                      style={{ color: locale === lang ? brandColor : '' }}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">
-import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import CookieBanner from "@/components/CookieBanner";
-
-export default async function AgencyLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ slug: string; locale: string }>;
-}) {
-  const { slug } = await params;
-
-  // 1. Récupération des paramètres de l'agence (SSR)
-  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
-  const { data: agency } = await supabase
-    .from('agency_settings') 
-    .select('*')
-    .eq('subdomain', slug) 
-    .maybeSingle();
-
-  // Si l'agence n'existe pas, on renvoie une 404
-  if (!agency) {
-    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
-    return notFound();
-  }
-
-  // 2. Définition des variables CSS dynamiques
-  const dynamicStyles = {
-    '--brand-primary': agency.primary_color || '#e5992e',
-    '--font-main': agency.font_family || 'Montserrat, sans-serif',
-    '--font-serif': 'Playfair Display, serif',
-  } as React.CSSProperties;
-
-  // 3. Parsing sécurisé de la configuration
-  const getFooterData = (config: any) => {
-    if (!config) return {};
-    if (typeof config === 'object') return config;
-    try { return JSON.parse(config); } catch { return {}; }
-  };
-
-  const footerConfig = getFooterData(agency.footer_config);
-
-  return (
-    <div style={dynamicStyles} className="min-h-screen flex flex-col">
-      {/* NAVBAR : Présente sur toutes les pages du slug */}
-      <Navbar agency={agency} />
-
-      {/* CONTENU : Les pages (/about, /contact, home) s'injectent ici */}
-      <main className="flex-grow">
-        {children}
-      </main>
-      
-      {/* FOOTER : Présent partout */}
-      <Footer agency={agency} />
-
-      {/* Widgets flottants */}
-      <FloatingWhatsApp 
-        phone={footerConfig?.phone || agency.whatsapp_number} 
-        color={agency.primary_color || '#e5992e'} 
-      />
-      
-      <CookieBanner 
-        enabled={agency.cookie_consent_enabled} 
-        agencyName={agency.agency_name} 
-      />
-    </div>
-  );
-}
-</file>
-
 <file path="src/app/[locale]/(agency_site)/[slug]/terms/page.tsx">
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
@@ -7909,73 +7702,6 @@ export default async function TermsPage({
         </div>
       </main>
     </div>
-  );
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
-import { supabase } from '@/lib/supabase';
-import AgencyPageClient from "@/app/AgencyPageClient";
-import { notFound } from 'next/navigation';
-
-// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
-export const dynamic = 'force-dynamic';
-
-export default async function DynamicAgencyPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string, locale: string }> 
-}) {
-  const { slug } = await params;
-
-  // 1. Récupération de l'agence (Table: agency_settings)
-  const { data: agencies, error: agencyError } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .eq('subdomain', slug);
-
-  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
-
-  if (agencyError || !agency) {
-    console.error("[SUPABASE ERROR - AGENCY]", agencyError);
-    return notFound();
-  }
-
-  // 2. Récupération des villas filtrées par l'ID de l'agence
-  const { data: villas, error: villasError } = await supabase
-    .from('villas')
-    .select(`
-      id, 
-      id_externe, 
-      titre, 
-      prix, 
-      town, 
-      region, 
-      images, 
-      beds, 
-      baths, 
-      surface_built, 
-      surface_plot, 
-      type, 
-      pool, 
-      is_excluded, 
-      agency_id
-    `)
-    .eq('agency_id', agency.id)
-    .eq('is_excluded', false)
-    .order('prix', { ascending: false });
-
-  if (villasError) {
-    console.error("[SUPABASE ERROR - VILLAS]", villasError);
-  }
-
-  // 3. Rendu du composant Client
-  return (
-    <AgencyPageClient 
-      slug={slug} 
-      initialAgency={agency} 
-      initialProperties={villas || []} 
-    />
   );
 }
 </file>
@@ -8264,6 +7990,293 @@ export default function ContactPage({ params }: ContactPageProps) {
         </section>
       </main>
     </div>
+  );
+}
+</file>
+
+<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
+import { supabase } from '@/lib/supabase';
+import AgencyPageClient from "@/app/AgencyPageClient";
+import { notFound } from 'next/navigation';
+
+// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
+export const dynamic = 'force-dynamic';
+
+export default async function DynamicAgencyPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string, locale: string }> 
+}) {
+  const { slug } = await params;
+
+  // 1. Récupération de l'agence (Table: agency_settings)
+  const { data: agencies, error: agencyError } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug);
+
+  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
+
+  if (agencyError || !agency) {
+    console.error("[SUPABASE ERROR - AGENCY]", agencyError);
+    return notFound();
+  }
+
+  // 2. Récupération des villas filtrées par l'ID de l'agence
+  const { data: villas, error: villasError } = await supabase
+    .from('villas')
+    .select(`
+      id, 
+      id_externe, 
+      titre, 
+      prix, 
+      town, 
+      region, 
+      images, 
+      beds, 
+      baths, 
+      surface_built, 
+      surface_plot, 
+      type, 
+      pool, 
+      is_excluded, 
+      agency_id
+    `)
+    .eq('agency_id', agency.id)
+    .eq('is_excluded', false)
+    .order('prix', { ascending: false });
+
+  if (villasError) {
+    console.error("[SUPABASE ERROR - VILLAS]", villasError);
+  }
+
+  // 3. Rendu du composant Client
+  return (
+    <AgencyPageClient 
+      slug={slug} 
+      initialAgency={agency} 
+      initialProperties={villas || []} 
+    />
+  );
+}
+</file>
+
+<file path="src/components/PropertyDetailClient.tsx">
+"use client";
+
+import { useEffect, useState, useRef, useMemo } from "react";
+import ContactForm from "@/components/ContactForm";
+import { 
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
+} from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useSearchParams } from "next/navigation";
+
+interface PropertyDetailClientProps {
+  property: any;
+  agency: any;
+}
+
+export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
+  const { t, locale } = useTranslation() as any;
+  const searchParams = useSearchParams();
+  const [activeImage, setActiveImage] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
+
+  const primaryColor = useMemo(() => {
+    return agency?.primary_color || 
+           agency?.theme?.primary || 
+           agency?.color || 
+           "#D4AF37"; 
+  }, [agency]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      if (clientWidth > 0) {
+        const newIndex = Math.round(scrollLeft / clientWidth);
+        if (newIndex !== activeImage) setActiveImage(newIndex);
+      }
+    }
+  };
+
+  const description = useMemo(() => {
+    if (!property) return "";
+    return property[`description_${locale}`] || property.description || property.description_fr || "";
+  }, [property, locale]);
+
+  const images = property?.images || [];
+  const numericPrice = Number(property?.price || property?.prix || 0);
+  const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
+
+  if (!mounted || !property) return null;
+
+  // Nettoyer la description des balises HTML pour un meilleur affichage
+  const cleanDescription = description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">');
+
+  return (
+    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
+      <div className="pb-20"> 
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          
+          {/* GALERIE D'IMAGES */}
+          <section className="mb-12 md:mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[350px] md:h-[600px]">
+              <div className="md:col-span-3 relative rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
+                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                  {images.map((img: string, idx: number) => (
+                    <div 
+                      key={idx} 
+                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
+                      style={{ 
+                        opacity: activeImage === idx ? 1 : 0, 
+                        zIndex: activeImage === idx ? 10 : 0,
+                        pointerEvents: activeImage === idx ? 'auto' : 'none'
+                      }}
+                    >
+                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
+                </div>
+              </div>
+
+              <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                {images.map((img: string, idx: number) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => setActiveImage(idx)} 
+                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
+                    style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
+                  >
+                    <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* GRILLE DE CONTENU */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
+            <div className="lg:col-span-2">
+              <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-4 md:mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                {property.titre || property.title || "Propriété Exclusive"}
+              </h1>
+
+              <div className="flex items-center gap-2 md:gap-3 text-slate-500 mb-8 md:mb-12 text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={14} className="md:size-18" color={primaryColor} />
+                {property.town || property.ville} • {property.region}
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-12 md:mb-16">
+                {[
+                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
+                  { icon: Bath, val: property.baths, label: 'BAINS' },
+                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
+                  { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
+                  { icon: Car, val: "OUI", label: 'PARKING' },
+                ].map((item, i) => (
+                  <div 
+                    key={i} 
+                    className={`p-4 md:p-6 lg:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                  >
+                    <item.icon className="mb-3 md:mb-4 lg:mb-6" color={primaryColor} size={20} />
+                    <p className={`text-xl md:text-2xl lg:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* SECTION DESCRIPTION - VERSION AMÉLIORÉE POUR MOBILE */}
+              <div className="mb-12 md:mb-16">
+                <h2 className={`text-xl md:text-2xl font-serif italic mb-4 md:mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  Description
+                </h2>
+                <div 
+                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                  dangerouslySetInnerHTML={{ __html: cleanDescription }}
+                  style={{ 
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    maxWidth: '100%'
+                  }}
+                />
+              </div>
+
+              {/* SECTION LOCALISATION */}
+              <div className="mt-8 md:mt-10 border-t pt-8 md:pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                    <Navigation size={20} className="md:size-24" color={primaryColor} />
+                  </div>
+                  <div>
+                    <h2 className={`text-xl md:text-2xl lg:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                  </div>
+                </div>
+                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[250px] md:h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    title="Location map"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+
+            {/* SIDEBAR - Contact Form (sticky only on desktop) */}
+            <div className="lg:col-span-1">
+              <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
+                <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
+                  <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className={`text-3xl md:text-4xl lg:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    {numericPrice.toLocaleString("fr-FR")} €
+                  </p>
+                </div>
+                
+                <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
+
+                <div className="p-5 md:p-6 lg:p-8 pt-0">
+                  <a 
+                    href={`https://wa.me/${whatsappNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest transition-all"
+                    style={{ 
+                      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                      color: isLight ? '#0f172a' : '#ffffff',
+                      backgroundColor: 'transparent'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <MessageCircle size={16} className="md:size-18 text-green-500" /> WHATSAPP DIRECT
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
   );
 }
 </file>

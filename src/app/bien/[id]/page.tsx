@@ -7,27 +7,27 @@ import PropertyDetailClient from "@/components/PropertyDetailClient";
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const [property, setProperty] = useState<any>(null);
-  const [agency, setAgency] = useState<any>(null); // État pour stocker les données de l'agence
+  const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        // Récupération simultanée de la propriété et de l'agence
+        // ✅ CORRECTION : Utiliser l'API dédiée qui renvoie la description complète
         const [propRes, agencyRes] = await Promise.all([
-          fetch("/api/properties"),
+          fetch(`/api/property/${id}`),  // ← Changement clé ici
           fetch("/api/agency")
         ]);
 
-        const properties = await propRes.json();
+        const propertyData = await propRes.json();
         const agencyData = await agencyRes.json();
 
-        // Recherche du bien spécifique
-        const found = properties.find((p: any) => String(p.id) === String(id));
-        
-        if (found) {
-          setProperty(found);
-          setAgency(agencyData); // Injection des données de l'agence (thème, couleurs)
+        // Vérifier que la propriété a été trouvée
+        if (propertyData && !propertyData.error) {
+          setProperty(propertyData);
+          setAgency(agencyData);
+        } else {
+          console.error("Propriété non trouvée");
         }
       } catch (err) {
         console.error("Erreur de chargement:", err);
@@ -41,6 +41,5 @@ export default function PropertyDetailPage() {
   if (loading) return <div className="h-screen flex items-center justify-center">Chargement...</div>;
   if (!property) return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
 
-  // Maintenant agency contient les couleurs, donc PropertyDetailClient pourra les appliquer
   return <PropertyDetailClient property={property} agency={agency} />;
 }
