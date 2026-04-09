@@ -45,7 +45,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   const description = useMemo(() => {
     if (!property) return "";
-    return property[`description_${locale}`] || property.description || property.description_fr || "";
+    // On récupère la description selon la locale ou les fallback
+    const rawDesc = property[`description_${locale}`] || property.description || property.description_fr || "";
+    
+    // Nettoyage et formatage du HTML pour le rendu
+    return rawDesc
+      .replace(/<p class="title">/g, '<p style="font-weight: 700; font-size: 1.1em; margin-top: 1.5rem; margin-bottom: 0.5rem; display: block;">')
+      .replace(/<br\s*\/?>/mg, '<span style="display: block; margin-bottom: 0.8rem;"></span>');
   }, [property, locale]);
 
   const images = property?.images || [];
@@ -53,9 +59,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
 
   if (!mounted || !property) return null;
-
-  // Nettoyer la description des balises HTML pour un meilleur affichage
-  const cleanDescription = description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">');
 
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
@@ -82,7 +85,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   ))}
                 </div>
                 <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
+                  <ImageIcon size={12} /> {activeImage + 1} / {images.length}
                 </div>
               </div>
 
@@ -109,7 +112,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </h1>
 
               <div className="flex items-center gap-2 md:gap-3 text-slate-500 mb-8 md:mb-12 text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={14} className="md:size-18" color={primaryColor} />
+                <MapPin size={14} color={primaryColor} />
                 {property.town || property.ville} • {property.region}
               </div>
               
@@ -133,19 +136,20 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* SECTION DESCRIPTION - VERSION AMÉLIORÉE POUR MOBILE */}
-              <div className="mb-12 md:mb-16">
-                <h2 className={`text-xl md:text-2xl font-serif italic mb-4 md:mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              {/* SECTION DESCRIPTION - FIXÉE POUR MOBILE */}
+              <div className="mb-12 md:mb-16 block w-full">
+                <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
                 <div 
-                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                  dangerouslySetInnerHTML={{ __html: cleanDescription }}
+                  className={`description-content text-base md:text-xl font-light leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
                   style={{ 
                     wordBreak: 'break-word',
                     overflowWrap: 'break-word',
-                    maxWidth: '100%'
+                    display: 'block',
+                    minHeight: '50px' // Sécurité pour mobile
                   }}
+                  dangerouslySetInnerHTML={{ __html: description }}
                 />
               </div>
 
@@ -153,7 +157,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               <div className="mt-8 md:mt-10 border-t pt-8 md:pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
                 <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
                   <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                    <Navigation size={20} className="md:size-24" color={primaryColor} />
+                    <Navigation size={20} color={primaryColor} />
                   </div>
                   <div>
                     <h2 className={`text-xl md:text-2xl lg:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
@@ -174,7 +178,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* SIDEBAR - Contact Form (sticky only on desktop) */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
                 <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
@@ -197,14 +201,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       color: isLight ? '#0f172a' : '#ffffff',
                       backgroundColor: 'transparent'
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
                   >
-                    <MessageCircle size={16} className="md:size-18 text-green-500" /> WHATSAPP DIRECT
+                    <MessageCircle size={16} className="text-green-500" /> WHATSAPP DIRECT
                   </a>
                 </div>
               </div>
