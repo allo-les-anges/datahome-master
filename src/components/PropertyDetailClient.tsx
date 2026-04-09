@@ -31,7 +31,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Debug console pour voir la structure réelle de l'objet property en cas de champ manquant
+    console.log("Property Data:", property);
+  }, [property]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -43,20 +45,22 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // Logique de récupération de description ultra-robuste
+  // RÉCUPÉRATION DE LA DESCRIPTION (Multi-champs + Fallback)
   const descriptionContent = useMemo(() => {
     if (!property) return "";
-    
-    // On cherche dans tous les champs possibles (localisés ou génériques)
+
+    // On cherche la description dans tous les noms de colonnes possibles
     const raw = property[`description_${locale}`] || 
                 property.description || 
                 property.description_fr || 
                 property.description_en || 
+                property.desc || 
+                property.details || 
                 "";
-                
+    
     if (!raw) return "";
 
-    // On remplace les sauts de ligne par des <br/> si ce n'est pas déjà du HTML
+    // Si le texte contient des balises HTML, on le laisse tel quel, sinon on gère les sauts de ligne
     return raw.includes('<') ? raw : raw.replace(/\n/g, '<br />');
   }, [property, locale]);
 
@@ -75,7 +79,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           <section className="mb-12 md:mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[350px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                <div 
+                  ref={scrollContainerRef} 
+                  onScroll={handleScroll} 
+                  className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide"
+                >
                   {images.map((img: string, idx: number) => (
                     <div 
                       key={idx} 
@@ -90,11 +98,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     </div>
                   ))}
                 </div>
+                {/* Compteur d'images */}
                 <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
                   <ImageIcon size={14} /> {activeImage + 1} / {images.length}
                 </div>
               </div>
 
+              {/* Miniatures (Desktop uniquement) */}
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
                 {images.map((img: string, idx: number) => (
                   <button 
@@ -110,7 +120,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* GRILLE DE CONTENU */}
+          {/* GRILLE DE CONTENU PRINCIPALE */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -122,11 +132,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 {property.town || property.ville} • {property.region}
               </div>
               
+              {/* Caractéristiques techniques */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 md:mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
                   { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
+                  { icon: Maximize, val: property.surface_built || property.surface, label: 'M² CONSTRUIT' },
                   { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
                   { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
                   { icon: Car, val: "OUI", label: 'PARKING' },
@@ -142,18 +153,19 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* DESCRIPTION */}
+              {/* BLOC DESCRIPTION - FIX AFFICHAGE */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
                 <div 
                   className={`text-base md:text-xl font-light leading-relaxed space-y-4 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                  dangerouslySetInnerHTML={{ __html: descriptionContent }}
+                  style={{ display: 'block', width: '100%' }}
+                  dangerouslySetInnerHTML={{ __html: descriptionContent || "Description en cours de mise à jour..." }}
                 />
               </div>
 
-              {/* LOCALISATION */}
+              {/* SECTION LOCALISATION (MAPS) */}
               <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
@@ -164,46 +176,51 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
                   </div>
                 </div>
-                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px]">
+                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px] bg-zinc-900">
                   <iframe
                     width="100%"
                     height="100%"
                     style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
                     loading="lazy"
                     allowFullScreen
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                    title="Location map"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://www.google.com/maps/embed/v1/place?key=VOTRE_CLE_API_SI_EXISTE&q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&output=embed`}
+                    title="Carte de localisation"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* SIDEBAR */}
+            {/* BARRE LATÉRALE (SIDEBAR) */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-6 md:p-10 pb-4">
                   <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
                   <p className={`text-3xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice.toLocaleString("fr-FR")} €
+                    {numericPrice > 0 ? numericPrice.toLocaleString("fr-FR") + " €" : "Prix sur demande"}
                   </p>
                 </div>
                 
+                {/* Formulaire de contact intégré */}
                 <div className="px-2 md:px-4">
                   <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
                 </div>
 
+                {/* Bouton WhatsApp */}
                 <div className="p-6 md:p-10 pt-0">
                   <a 
                     href={`https://wa.me/${whatsappNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest border border-white/10 hover:bg-white/5 transition-all text-white"
+                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest border transition-all"
                     style={{ 
                       borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)',
-                      color: isLight ? '#0f172a' : '#ffffff'
+                      color: isLight ? '#0f172a' : '#ffffff',
+                      backgroundColor: isLight ? 'transparent' : 'rgba(255,255,255,0.03)'
                     }}
                   >
-                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
+                    <MessageCircle size={18} className="text-green-500" /> 
+                    WHATSAPP DIRECT
                   </a>
                 </div>
               </div>
