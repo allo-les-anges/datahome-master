@@ -43,10 +43,19 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // Préparation de la description pour éviter les bugs de rendu
+  // Logique de récupération de description ultra-robuste
   const descriptionContent = useMemo(() => {
     if (!property) return "";
-    const raw = property[`description_${locale}`] || property.description || property.description_fr || "";
+    
+    // On cherche dans tous les champs possibles (localisés ou génériques)
+    const raw = property[`description_${locale}`] || 
+                property.description || 
+                property.description_fr || 
+                property.description_en || 
+                "";
+                
+    if (!raw) return "";
+
     // On remplace les sauts de ligne par des <br/> si ce n'est pas déjà du HTML
     return raw.includes('<') ? raw : raw.replace(/\n/g, '<br />');
   }, [property, locale]);
@@ -133,7 +142,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* DESCRIPTION - CORRIGÉE POUR MOBILE */}
+              {/* DESCRIPTION */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
