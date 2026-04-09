@@ -3320,52 +3320,6 @@ export async function GET(request: Request) {
 }
 </file>
 
-<file path="src/app/api/webhooks/habihub/route.ts">
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-// On utilise la clé SERVICE_ROLE pour avoir le droit d'écrire dans la base
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { agent_id, xml_url } = body;
-
-    console.log(`Notification reçue pour l'agent : ${agent_id}`);
-
-    // 1. Trouver quelle agence correspond à cet agent_id
-    const { data: agency, error: agencyError } = await supabaseAdmin
-      .from("agency_settings")
-      .select("id")
-      .eq("habihub_agent_id", agent_id)
-      .single();
-
-    if (agencyError || !agency) {
-      return NextResponse.json({ error: "Agence inconnue" }, { status: 404 });
-    }
-
-    // 2. Déclencher la synchronisation
-    // On appelle notre propre API de synchro en lui passant l'URL et l'ID d'agence
-    const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sync-villas`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        agencyId: agency.id, 
-        xmlUrl: xml_url 
-      }),
-    });
-
-    return NextResponse.json({ success: true, message: "Synchro lancée" });
-  } catch (error) {
-    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
-  }
-}
-</file>
-
 <file path="src/components/Hero.tsx">
 // src/components/Hero.tsx - Ajout du lazy loading
 "use client";
@@ -3703,6 +3657,85 @@ export default async function LocaleLayout({
       </body>
     </html>
   );
+}
+</file>
+
+<file path="src/app/api/webhooks/habihub/route.ts">
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    console.log("📨 Webhook reçu:", body);
+    
+    // HabiHub envoie agent_id et xml_url selon leur documentation
+    const { agent_id, xml_url, email } = body;
+    
+    if (!agent_id && !email) {
+      return NextResponse.json({ error: "agent_id ou email requis" }, { status: 400 });
+    }
+    
+    // Rechercher l'agence par agent_id ou par email
+    let query = supabaseAdmin.from("agency_settings").select("*");
+    
+    if (agent_id) {
+      query = query.eq("habihub_agent_id", agent_id);
+    } else if (email) {
+      query = query.eq("email", email);
+    }
+    
+    const { data: agency, error: agencyError } = await query.maybeSingle();
+    
+    if (agencyError || !agency) {
+      console.error("Agence non trouvée pour:", { agent_id, email });
+      return NextResponse.json({ error: "Agence inconnue" }, { status: 404 });
+    }
+    
+    console.log(`✅ Agence trouvée: ${agency.agency_name} (${agency.id})`);
+    
+    // Lancer la synchronisation en arrière-plan (sans attendre)
+    // On utilise fetch avec un timeout court pour ne pas bloquer le webhook
+    const syncUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://datahome.vercel.app'}/api/sync-villas`;
+    
+    // Ne pas attendre la fin de la synchro pour répondre rapidement
+    fetch(syncUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        agencyId: agency.id,
+        xmlUrl: xml_url,
+        agentId: agent_id
+      }),
+    }).catch(err => console.error("Erreur lancement synchro:", err));
+    
+    // Réponse immédiate
+    return NextResponse.json({ 
+      success: true, 
+      message: "Synchronisation lancée",
+      agency: agency.agency_name
+    });
+    
+  } catch (error) {
+    console.error("Erreur webhook:", error);
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  }
+}
+
+// Endpoint GET pour tester
+export async function GET() {
+  return NextResponse.json({ 
+    status: "Webhook HabiHub actif",
+    endpoints: {
+      post: "POST /api/webhooks/habihub - Reçoit les notifications",
+      test: "GET /api/webhooks/habihub - Test de connexion"
+    }
+  });
 }
 </file>
 
@@ -4082,50 +4115,6 @@ export default {
     },
   },
   plugins: [],
-}
-</file>
-
-<file path="src/app/api/sync-villas/route.ts">
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { parseStringPromise } from "xml2js"; // Tu devras peut-être faire : npm install xml2js
-
-const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-
-export async function POST(req: Request) {
-  const { agencyId, xmlUrl } = await req.json();
-
-  try {
-    // 1. Télécharger le XML
-    const response = await fetch(xmlUrl);
-    const xmlText = await response.text();
-    
-    // 2. Parser le XML en objet JavaScript
-    const result = await parseStringPromise(xmlText);
-    const properties = result. ads.ad; // Structure typique des flux Habihub
-
-    // 3. Préparer les données pour Supabase
-    const villasToInsert = properties.map((p: any) => ({
-      id_externe: p.id[0],
-      titre: p.title[0],
-      prix: p.price[0],
-      agency_id: agencyId, // L'ÉTIQUETTE !
-      xml_source: xmlUrl,
-      // Ajoute ici les autres champs (images, description...)
-    }));
-
-    // 4. Nettoyer les anciennes villas de cette agence et insérer les nouvelles
-    // Option simple : on supprime et on remplace
-    await supabaseAdmin.from("villas").delete().eq("agency_id", agencyId);
-    const { error } = await supabaseAdmin.from("villas").insert(villasToInsert);
-
-    if (error) throw error;
-
-    return NextResponse.json({ success: true, count: villasToInsert.length });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
 }
 </file>
 
@@ -5652,6 +5641,227 @@ export default function AgencyDashboard() {
 }
 </file>
 
+<file path="src/app/api/sync-villas/route.ts">
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { parseStringPromise } from "xml2js";
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Langues supportées
+const LANGUAGES = ['fr', 'en', 'es', 'nl', 'pl', 'ar'];
+
+export async function POST(req: Request) {
+  try {
+    const { agencyId, xmlUrl, agentId } = await req.json();
+    
+    console.log(`🔄 Début synchronisation pour agence ${agencyId}`);
+    console.log(`📡 URL XML: ${xmlUrl}`);
+    
+    if (!xmlUrl) {
+      return NextResponse.json({ error: "xml_url requis" }, { status: 400 });
+    }
+    
+    // 1. Télécharger le XML
+    const response = await fetch(xmlUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const xmlText = await response.text();
+    console.log(`📄 XML téléchargé: ${xmlText.length} caractères`);
+    
+    // 2. Parser le XML
+    const result = await parseStringPromise(xmlText, {
+      explicitArray: false,
+      mergeAttrs: true,
+      trim: true
+    });
+    
+    // Trouver la clé racine (peut être "ads", "properties", etc.)
+    const rootKey = Object.keys(result)[0];
+    let properties = result[rootKey]?.property || result[rootKey]?.ad || [];
+    
+    if (!Array.isArray(properties)) {
+      properties = [properties];
+    }
+    
+    console.log(`🏠 ${properties.length} propriétés trouvées dans le XML`);
+    
+    // 3. Transformer les données
+    const villasToUpsert = [];
+    
+    for (const p of properties) {
+      // Extraction des données
+      const idExterne = String(p.id || p.$.id || "");
+      const ref = String(p.ref || p.$.ref || idExterne);
+      const type = String(p.type || p.property_type || "Villa");
+      const price = parseFloat(p.price || p.prix || 0);
+      const beds = String(p.beds || p.bedrooms || "0");
+      const baths = String(p.baths || p.bathrooms || "0");
+      
+      // Localisation
+      const town = String(p.town || p.city || p.location?.town || "");
+      const province = String(p.province || p.location?.province || "");
+      const region = String(p.region || p.location?.region || "");
+      
+      // Coordonnées
+      let latitude = null, longitude = null;
+      if (p.location?.latitude && p.location?.longitude) {
+        latitude = parseFloat(p.location.latitude);
+        longitude = parseFloat(p.location.longitude);
+      }
+      
+      // Surfaces
+      const surfaceBuilt = String(p.surface_built || p.built_surface || p.surface?.built || "0");
+      const surfacePlot = String(p.surface_plot || p.plot_surface || p.surface?.plot || "0");
+      const surfaceUseful = String(p.surface_useful || p.useful_surface || p.surface?.useful || "0");
+      
+      // Distances
+      const distanceBeach = p.distance_beach || p.distances?.beach || null;
+      const distanceGolf = p.distance_golf || p.distances?.golf || null;
+      const distanceTown = p.distance_town || p.distances?.town || null;
+      
+      // Pool
+      const pool = (p.pool === "1" || p.pool === "true" || p.pool === "Oui") ? "Oui" : "Non";
+      
+      // Images
+      let imagesArray = [];
+      if (p.images) {
+        if (Array.isArray(p.images.image)) {
+          imagesArray = p.images.image.map((img: any) => typeof img === 'string' ? img : img.url);
+        } else if (p.images.image) {
+          imagesArray = [typeof p.images.image === 'string' ? p.images.image : p.images.image.url];
+        }
+      }
+      // Limiter à 20 images max
+      imagesArray = imagesArray.slice(0, 20);
+      
+      // Titres et descriptions multilingues
+      const titleObj = p.title || {};
+      const descObj = p.desc || p.description || {};
+      
+      const villaData: any = {
+        id_externe: idExterne,
+        ref: ref,
+        type: type,
+        price: price,
+        prix: price,
+        beds: beds,
+        baths: baths,
+        town: town,
+        province: province,
+        region: region,
+        latitude: latitude,
+        longitude: longitude,
+        surface_built: surfaceBuilt,
+        surface_plot: surfacePlot,
+        surface_useful: surfaceUseful,
+        pool: pool,
+        images: imagesArray,
+        distance_beach: distanceBeach,
+        distance_golf: distanceGolf,
+        distance_town: distanceTown,
+        currency: p.currency || "EUR",
+        xml_source: xmlUrl,
+        agency_id: agencyId,
+        updated_at: new Date().toISOString(),
+        is_excluded: false,
+        promoteur_name: p.development_name || p.promoter_name || null,
+        commission_percentage: p.commission_percentage || p.commission?.quantity || "0"
+      };
+      
+      // Ajouter les traductions
+      for (const lang of LANGUAGES) {
+        villaData[`titre_${lang}`] = String(
+          titleObj[lang] || 
+          titleObj.fr || 
+          titleObj.en || 
+          p.development_name || 
+          `Propriété ${ref}`
+        ).substring(0, 255);
+        
+        villaData[`description_${lang}`] = String(
+          descObj[lang] || 
+          descObj.fr || 
+          descObj.en || 
+          ""
+        );
+      }
+      
+      villasToUpsert.push(villaData);
+    }
+    
+    if (villasToUpsert.length === 0) {
+      return NextResponse.json({ success: true, message: "Aucune propriété à synchroniser" });
+    }
+    
+    // 4. Upsert dans Supabase (sans supprimer les anciennes)
+    const BATCH_SIZE = 50;
+    let synced = 0;
+    
+    for (let i = 0; i < villasToUpsert.length; i += BATCH_SIZE) {
+      const batch = villasToUpsert.slice(i, i + BATCH_SIZE);
+      const { error, data } = await supabaseAdmin
+        .from("villas")
+        .upsert(batch, { 
+          onConflict: 'id_externe',
+          ignoreDuplicates: false
+        });
+      
+      if (error) {
+        console.error(`❌ Erreur batch ${i}:`, error.message);
+      } else {
+        synced += batch.length;
+      }
+    }
+    
+    console.log(`✅ Synchronisation terminée: ${synced} propriétés traitées`);
+    
+    // 5. Optionnel: Mettre à jour la date de dernière synchro de l'agence
+    await supabaseAdmin
+      .from("agency_settings")
+      .update({ last_sync_at: new Date().toISOString() })
+      .eq("id", agencyId);
+    
+    return NextResponse.json({ 
+      success: true, 
+      count: synced,
+      message: `${synced} propriétés synchronisées`
+    });
+    
+  } catch (error) {
+    console.error("❌ Erreur synchronisation:", error);
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Erreur inconnue"
+    }, { status: 500 });
+  }
+}
+
+// Endpoint GET pour tester manuellement
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const xmlUrl = searchParams.get('url');
+  
+  if (!xmlUrl) {
+    return NextResponse.json({ 
+      message: "Utilisez ?url=URL_DU_XML pour tester",
+      example: "/api/sync-villas?url=https://example.com/feed.xml"
+    });
+  }
+  
+  // Simuler un appel POST pour tester
+  return POST(new Request(req.url, {
+    method: 'POST',
+    body: JSON.stringify({ xmlUrl, agencyId: 'test', agentId: 'test' })
+  }));
+}
+</file>
+
 <file path="src/app/globals.css">
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
@@ -6356,6 +6566,134 @@ export default function ContactForm({ agency, propertyRef, isLight }: ContactFor
     </div>
   );
 }
+</file>
+
+<file path="src/contexts/AgencyContext.tsx">
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
+
+interface AgencyContextType {
+  agency: any;
+  loading: boolean;
+  setAgencyBySlug: (slug: string) => Promise<void>;
+}
+
+const AgencyContext = createContext<AgencyContextType>({
+  agency: null,
+  loading: true,
+  setAgencyBySlug: async () => {},
+});
+
+export function AgencyProvider({ children }: { children: React.ReactNode }) {
+  const [agency, setAgency] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+
+  // On utilise useCallback pour que la fonction ne change pas à chaque rendu
+  const fetchAgencyData = useCallback(async (slug: string) => {
+    if (!slug) return null;
+    
+    console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
+    const { data, error } = await supabase
+      .from('agency_settings')
+      .select('*')
+      .eq('subdomain', slug) // On interroge la colonne subdomain
+      .maybeSingle();
+    
+    if (error) {
+      console.error("❌ [Supabase] Erreur:", error);
+      return null;
+    }
+    return data;
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initAgency() {
+      if (!isMounted) return;
+      
+      console.log("🚀 [AgencyContext] Initialisation...");
+      setLoading(true);
+      
+      try {
+        const host = window.location.hostname;
+        const segments = pathname.split('/').filter(Boolean);
+        
+        // Détection du slug dans l'URL (ex: /fr/schmidt-privilege -> schmidt-privilege)
+        const locales = ['fr', 'en', 'nl', 'es', 'ar', 'pl'];
+        const urlSlug = segments.find(s => !locales.includes(s));
+        
+        let data = null;
+
+        // 1. Priorité au slug détecté dans l'URL
+        if (urlSlug) {
+          data = await fetchAgencyData(urlSlug);
+        }
+
+        // 2. Si pas de slug, test via le domaine/sous-domaine (SaaS mode)
+        if (!data) {
+          const subdomain = host.split('.')[0];
+          if (subdomain !== 'datahome' && subdomain !== 'localhost' && subdomain !== 'www') {
+            const { data: subData } = await supabase
+              .from('agency_settings')
+              .select('*')
+              .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
+              .maybeSingle();
+            data = subData;
+          }
+        }
+
+        // 3. Fallback ultime si rien n'est trouvé
+        if (!data) {
+          console.log("🏠 [Fallback] Utilisation de l'agence par défaut");
+          data = await fetchAgencyData('schmidt-privilege');
+        }
+
+        if (isMounted) {
+          setAgency(data);
+          console.log("💾 [State] AgencyContext mis à jour.");
+        }
+      } catch (err) {
+        console.error("💥 [AgencyContext] Erreur critique:", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          console.log("🏁 [AgencyContext] Chargement terminé.");
+        }
+      }
+    }
+
+    initAgency();
+    return () => { isMounted = false; };
+  }, [pathname, fetchAgencyData]); // fetchAgencyData est stable grâce au useCallback
+
+  // Mémoïsation de la valeur du contexte pour optimiser les performances
+  const contextValue = useMemo(() => ({
+    agency,
+    loading,
+    setAgencyBySlug: async (slug: string) => {
+      // Éviter de recharger si c'est déjà la même agence
+      if (agency?.subdomain === slug) return;
+      
+      setLoading(true);
+      const d = await fetchAgencyData(slug);
+      if (d) setAgency(d);
+      setLoading(false);
+    }
+  }), [agency, loading, fetchAgencyData]);
+
+  return (
+    <AgencyContext.Provider value={contextValue}>
+      {children}
+    </AgencyContext.Provider>
+  );
+}
+
+export const useAgency = () => useContext(AgencyContext);
 </file>
 
 <file path="src/dictionaries/ar.json">
@@ -7417,134 +7755,6 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
     </>
   );
 }
-</file>
-
-<file path="src/contexts/AgencyContext.tsx">
-"use client";
-
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
-import { supabase } from "@/lib/supabase";
-import { usePathname } from "next/navigation";
-
-interface AgencyContextType {
-  agency: any;
-  loading: boolean;
-  setAgencyBySlug: (slug: string) => Promise<void>;
-}
-
-const AgencyContext = createContext<AgencyContextType>({
-  agency: null,
-  loading: true,
-  setAgencyBySlug: async () => {},
-});
-
-export function AgencyProvider({ children }: { children: React.ReactNode }) {
-  const [agency, setAgency] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const pathname = usePathname();
-
-  // On utilise useCallback pour que la fonction ne change pas à chaque rendu
-  const fetchAgencyData = useCallback(async (slug: string) => {
-    if (!slug) return null;
-    
-    console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
-    const { data, error } = await supabase
-      .from('agency_settings')
-      .select('*')
-      .eq('subdomain', slug) // On interroge la colonne subdomain
-      .maybeSingle();
-    
-    if (error) {
-      console.error("❌ [Supabase] Erreur:", error);
-      return null;
-    }
-    return data;
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function initAgency() {
-      if (!isMounted) return;
-      
-      console.log("🚀 [AgencyContext] Initialisation...");
-      setLoading(true);
-      
-      try {
-        const host = window.location.hostname;
-        const segments = pathname.split('/').filter(Boolean);
-        
-        // Détection du slug dans l'URL (ex: /fr/schmidt-privilege -> schmidt-privilege)
-        const locales = ['fr', 'en', 'nl', 'es', 'ar', 'pl'];
-        const urlSlug = segments.find(s => !locales.includes(s));
-        
-        let data = null;
-
-        // 1. Priorité au slug détecté dans l'URL
-        if (urlSlug) {
-          data = await fetchAgencyData(urlSlug);
-        }
-
-        // 2. Si pas de slug, test via le domaine/sous-domaine (SaaS mode)
-        if (!data) {
-          const subdomain = host.split('.')[0];
-          if (subdomain !== 'datahome' && subdomain !== 'localhost' && subdomain !== 'www') {
-            const { data: subData } = await supabase
-              .from('agency_settings')
-              .select('*')
-              .or(`subdomain.eq.${subdomain},custom_domain.eq.${host}`)
-              .maybeSingle();
-            data = subData;
-          }
-        }
-
-        // 3. Fallback ultime si rien n'est trouvé
-        if (!data) {
-          console.log("🏠 [Fallback] Utilisation de l'agence par défaut");
-          data = await fetchAgencyData('schmidt-privilege');
-        }
-
-        if (isMounted) {
-          setAgency(data);
-          console.log("💾 [State] AgencyContext mis à jour.");
-        }
-      } catch (err) {
-        console.error("💥 [AgencyContext] Erreur critique:", err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-          console.log("🏁 [AgencyContext] Chargement terminé.");
-        }
-      }
-    }
-
-    initAgency();
-    return () => { isMounted = false; };
-  }, [pathname, fetchAgencyData]); // fetchAgencyData est stable grâce au useCallback
-
-  // Mémoïsation de la valeur du contexte pour optimiser les performances
-  const contextValue = useMemo(() => ({
-    agency,
-    loading,
-    setAgencyBySlug: async (slug: string) => {
-      // Éviter de recharger si c'est déjà la même agence
-      if (agency?.subdomain === slug) return;
-      
-      setLoading(true);
-      const d = await fetchAgencyData(slug);
-      if (d) setAgency(d);
-      setLoading(false);
-    }
-  }), [agency, loading, fetchAgencyData]);
-
-  return (
-    <AgencyContext.Provider value={contextValue}>
-      {children}
-    </AgencyContext.Provider>
-  );
-}
-
-export const useAgency = () => useContext(AgencyContext);
 </file>
 
 <file path="src/app/[locale]/(agency_site)/[slug]/layout.tsx">

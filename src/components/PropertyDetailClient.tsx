@@ -54,15 +54,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   if (!mounted || !property) return null;
 
+  // Nettoyer la description des balises HTML pour un meilleur affichage
+  const cleanDescription = description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">');
+
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
       <div className="pb-20"> 
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           
           {/* GALERIE D'IMAGES */}
-          <section className="mb-16">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px]">
-              <div className="md:col-span-3 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
+          <section className="mb-12 md:mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[350px] md:h-[600px]">
+              <div className="md:col-span-3 relative rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
                 <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
                   {images.map((img: string, idx: number) => (
                     <div 
@@ -78,8 +81,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     </div>
                   ))}
                 </div>
-                <div className="absolute bottom-6 left-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
+                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
                 </div>
               </div>
 
@@ -99,53 +102,65 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           </section>
 
           {/* GRILLE DE CONTENU */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
             <div className="lg:col-span-2">
-              <h1 className={`text-4xl md:text-6xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-4 md:mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
-              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={18} color={primaryColor} />
+              <div className="flex items-center gap-2 md:gap-3 text-slate-500 mb-8 md:mb-12 text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={14} className="md:size-18" color={primaryColor} />
                 {property.town || property.ville} • {property.region}
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-12 md:mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
                   { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'CONSTRUIT M²' },
-                  { icon: Home, val: property.surface_plot, label: 'TERRAIN M²' },
+                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
+                  { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
                   { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
                   { icon: Car, val: "OUI", label: 'PARKING' },
                 ].map((item, i) => (
                   <div 
                     key={i} 
-                    className={`p-6 md:p-8 rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                    className={`p-4 md:p-6 lg:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
                   >
-                    <item.icon className="mb-4 md:mb-6" color={primaryColor} size={24} />
-                    <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                    <item.icon className="mb-3 md:mb-4 lg:mb-6" color={primaryColor} size={20} className="md:size-24" />
+                    <p className={`text-xl md:text-2xl lg:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
                 ))}
               </div>
 
-              <div 
-                className={`text-lg md:text-xl font-light leading-relaxed mb-16 space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                dangerouslySetInnerHTML={{ __html: description }}
-              />
+              {/* SECTION DESCRIPTION - VERSION AMÉLIORÉE POUR MOBILE */}
+              <div className="mb-12 md:mb-16">
+                <h2 className={`text-xl md:text-2xl font-serif italic mb-4 md:mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  Description
+                </h2>
+                <div 
+                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                  dangerouslySetInnerHTML={{ __html: cleanDescription }}
+                  style={{ 
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    maxWidth: '100%'
+                  }}
+                />
+              </div>
 
-              <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                    <Navigation size={24} color={primaryColor} />
+              {/* SECTION LOCALISATION */}
+              <div className="mt-8 md:mt-10 border-t pt-8 md:pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                    <Navigation size={20} className="md:size-24" color={primaryColor} />
                   </div>
                   <div>
-                    <h2 className={`text-2xl md:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                    <h2 className={`text-xl md:text-2xl lg:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
                   </div>
                 </div>
-                <div className="relative rounded-[2.5rem] overflow-hidden shadow-xl h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
+                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[250px] md:h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
                   <iframe
                     width="100%"
                     height="100%"
@@ -159,25 +174,24 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* SIDEBAR - Contact Form */}
+            {/* SIDEBAR - Contact Form (sticky only on desktop) */}
             <div className="lg:col-span-1">
-              <div className={`sticky top-32 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
-                <div className="p-6 md:p-8 pb-4">
-                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-4xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
+                <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
+                  <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className={`text-3xl md:text-4xl lg:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
                 
-                {/* ContactForm - sans padding supplémentaire qui pourrait casser les styles */}
                 <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
 
-                <div className="p-6 md:p-8 pt-0">
+                <div className="p-5 md:p-6 lg:p-8 pt-0">
                   <a 
                     href={`https://wa.me/${whatsappNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all"
+                    className="w-full flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest transition-all"
                     style={{ 
                       border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
                       color: isLight ? '#0f172a' : '#ffffff',
@@ -190,7 +204,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
+                    <MessageCircle size={16} className="md:size-18 text-green-500" /> WHATSAPP DIRECT
                   </a>
                 </div>
               </div>
