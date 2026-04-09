@@ -126,7 +126,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     key={i} 
                     className={`p-4 md:p-6 lg:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
                   >
-                    <item.icon className="mb-3 md:mb-4 lg:mb-6" color={primaryColor} size={20} className="md:size-24" />
+                    <item.icon className="mb-3 md:mb-4 lg:mb-6" color={primaryColor} size={20} />
                     <p className={`text-xl md:text-2xl lg:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
                     <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
