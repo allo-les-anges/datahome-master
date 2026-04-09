@@ -31,7 +31,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   useEffect(() => {
     setMounted(true);
-    // Debug console pour voir la structure réelle de l'objet property en cas de champ manquant
+    // On garde ton log de debug pour voir l'objet dans la console
     console.log("Property Data:", property);
   }, [property]);
 
@@ -45,23 +45,42 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // RÉCUPÉRATION DE LA DESCRIPTION (Multi-champs + Fallback)
+  // LOGIQUE D'EXTRACTION DE DESCRIPTION AVANCÉE
   const descriptionContent = useMemo(() => {
     if (!property) return "";
 
-    // On cherche la description dans tous les noms de colonnes possibles
-    const raw = property[`description_${locale}`] || 
-                property.description || 
-                property.description_fr || 
-                property.description_en || 
-                property.desc || 
-                property.details || 
-                "";
-    
-    if (!raw) return "";
+    // 1. Recherche par clés prioritaires (selon la locale)
+    const priorityKeys = [
+      `description_${locale}`,
+      `description_${locale === 'en' ? 'en' : 'fr'}`,
+      'description_fr',
+      'description_en',
+      'description',
+      'desc',
+      'details'
+    ];
 
-    // Si le texte contient des balises HTML, on le laisse tel quel, sinon on gère les sauts de ligne
-    return raw.includes('<') ? raw : raw.replace(/\n/g, '<br />');
+    for (const key of priorityKeys) {
+      if (property[key] && typeof property[key] === 'string' && property[key].length > 5) {
+        const val = property[key];
+        return val.includes('<') ? val : val.replace(/\n/g, '<br />');
+      }
+    }
+
+    // 2. Recherche automatique (si les clés classiques échouent)
+    // On cherche n'importe quelle clé qui contient "desc" et qui a du texte long
+    const autoKey = Object.keys(property).find(key => 
+      key.toLowerCase().includes('desc') && 
+      typeof property[key] === 'string' && 
+      property[key].length > 10
+    );
+
+    if (autoKey) {
+      const val = property[autoKey];
+      return val.includes('<') ? val : val.replace(/\n/g, '<br />');
+    }
+
+    return "";
   }, [property, locale]);
 
   const images = property?.images || [];
@@ -98,13 +117,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     </div>
                   ))}
                 </div>
-                {/* Compteur d'images */}
                 <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
                   <ImageIcon size={14} /> {activeImage + 1} / {images.length}
                 </div>
               </div>
 
-              {/* Miniatures (Desktop uniquement) */}
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
                 {images.map((img: string, idx: number) => (
                   <button 
@@ -120,7 +137,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* GRILLE DE CONTENU PRINCIPALE */}
+          {/* GRILLE DE CONTENU */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -129,10 +146,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
               <div className="flex items-center gap-3 text-slate-500 mb-10 text-[11px] uppercase tracking-[0.2em] font-bold">
                 <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville} • {property.region}
+                {property.town || property.ville || property.city} • {property.region}
               </div>
               
-              {/* Caractéristiques techniques */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 md:mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
@@ -153,19 +169,22 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* BLOC DESCRIPTION - FIX AFFICHAGE */}
+              {/* DESCRIPTION SECTION */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
-                <div 
-                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                  style={{ display: 'block', width: '100%' }}
-                  dangerouslySetInnerHTML={{ __html: descriptionContent || "Description en cours de mise à jour..." }}
-                />
+                {descriptionContent ? (
+                  <div 
+                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                    dangerouslySetInnerHTML={{ __html: descriptionContent }}
+                  />
+                ) : (
+                  <p className="text-slate-500 italic">Aucune description disponible pour ce bien.</p>
+                )}
               </div>
 
-              {/* SECTION LOCALISATION (MAPS) */}
+              {/* LOCALISATION */}
               <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
                 <div className="flex items-center gap-4 mb-8">
                   <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
@@ -176,7 +195,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
                   </div>
                 </div>
-                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px] bg-zinc-900">
+                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px]">
                   <iframe
                     width="100%"
                     height="100%"
@@ -184,29 +203,27 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     loading="lazy"
                     allowFullScreen
                     referrerPolicy="no-referrer-when-downgrade"
-                    src={`https://www.google.com/maps/embed/v1/place?key=VOTRE_CLE_API_SI_EXISTE&q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&output=embed`}
-                    title="Carte de localisation"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    title="Location map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* BARRE LATÉRALE (SIDEBAR) */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-6 md:p-10 pb-4">
                   <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
                   <p className={`text-3xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {numericPrice > 0 ? numericPrice.toLocaleString("fr-FR") + " €" : "Prix sur demande"}
+                    {numericPrice > 0 ? numericPrice.toLocaleString("fr-FR") + " €" : "Sur demande"}
                   </p>
                 </div>
                 
-                {/* Formulaire de contact intégré */}
                 <div className="px-2 md:px-4">
                   <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
                 </div>
 
-                {/* Bouton WhatsApp */}
                 <div className="p-6 md:p-10 pt-0">
                   <a 
                     href={`https://wa.me/${whatsappNumber}`}
@@ -215,12 +232,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     className="w-full flex items-center justify-center gap-3 py-4 md:py-5 rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest border transition-all"
                     style={{ 
                       borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)',
-                      color: isLight ? '#0f172a' : '#ffffff',
-                      backgroundColor: isLight ? 'transparent' : 'rgba(255,255,255,0.03)'
+                      color: isLight ? '#0f172a' : '#ffffff'
                     }}
                   >
-                    <MessageCircle size={18} className="text-green-500" /> 
-                    WHATSAPP DIRECT
+                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
                   </a>
                 </div>
               </div>
