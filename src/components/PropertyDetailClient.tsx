@@ -23,10 +23,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
 
   const primaryColor = useMemo(() => {
-    return agency?.primary_color || 
-           agency?.theme?.primary || 
-           agency?.color || 
-           "#D4AF37"; 
+    return agency?.primary_color || agency?.theme?.primary || agency?.color || "#D4AF37"; 
   }, [agency]);
 
   useEffect(() => {
@@ -43,15 +40,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  const description = useMemo(() => {
+  // RÉCUPÉRATION DE LA DESCRIPTION (NETTOYÉE ET SÉCURISÉE)
+  const descriptionHTML = useMemo(() => {
     if (!property) return "";
-    // On récupère la description selon la locale ou les fallback
-    const rawDesc = property[`description_${locale}`] || property.description || property.description_fr || "";
+    let desc = property[`description_${locale}`] || property.description || property.description_fr || "";
     
-    // Nettoyage et formatage du HTML pour le rendu
-    return rawDesc
-      .replace(/<p class="title">/g, '<p style="font-weight: 700; font-size: 1.1em; margin-top: 1.5rem; margin-bottom: 0.5rem; display: block;">')
-      .replace(/<br\s*\/?>/mg, '<span style="display: block; margin-bottom: 0.8rem;"></span>');
+    // On s'assure que les retours à la ligne sont bien des balises <br />
+    return desc.replace(/\n/g, '<br />');
   }, [property, locale]);
 
   const images = property?.images || [];
@@ -80,12 +75,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                         pointerEvents: activeImage === idx ? 'auto' : 'none'
                       }}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                      <img src={img} className="w-full h-full object-cover" alt="" />
                     </div>
                   ))}
                 </div>
-                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={12} /> {activeImage + 1} / {images.length}
+                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                  <ImageIcon size={14} /> {activeImage + 1} / {images.length}
                 </div>
               </div>
 
@@ -97,7 +92,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'scale-95' : 'opacity-40'}`}
                     style={{ borderColor: activeImage === idx ? primaryColor : 'transparent' }}
                   >
-                    <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                    <img src={img} className="w-full h-full object-cover" alt="" />
                   </button>
                 ))}
               </div>
@@ -105,18 +100,18 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           </section>
 
           {/* GRILLE DE CONTENU */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
-              <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-4 md:mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
-              <div className="flex items-center gap-2 md:gap-3 text-slate-500 mb-8 md:mb-12 text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-bold">
-                <MapPin size={14} color={primaryColor} />
+              <div className="flex items-center gap-3 text-slate-500 mb-12 text-[11px] uppercase tracking-[0.2em] font-bold">
+                <MapPin size={18} color={primaryColor} />
                 {property.town || property.ville} • {property.region}
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-12 md:mb-16">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
                   { icon: Bath, val: property.baths, label: 'BAINS' },
@@ -127,44 +122,38 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ].map((item, i) => (
                   <div 
                     key={i} 
-                    className={`p-4 md:p-6 lg:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
+                    className={`p-6 md:p-8 rounded-[2rem] border text-left transition-all ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5'}`}
                   >
-                    <item.icon className="mb-3 md:mb-4 lg:mb-6" color={primaryColor} size={20} />
-                    <p className={`text-xl md:text-2xl lg:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
-                    <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                    <item.icon className="mb-4" color={primaryColor} size={24} />
+                    <p className={`text-2xl md:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p className="text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
                 ))}
               </div>
 
-              {/* SECTION DESCRIPTION - FIXÉE POUR MOBILE */}
-              <div className="mb-12 md:mb-16 block w-full">
-                <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              {/* DESCRIPTION - BLOC VISIBLE SUR TOUT SUPPORT */}
+              <div className="mb-16">
+                <h2 className={`text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
                 <div 
-                  className={`description-content text-base md:text-xl font-light leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                  style={{ 
-                    wordBreak: 'break-word',
-                    overflowWrap: 'break-word',
-                    display: 'block',
-                    minHeight: '50px' // Sécurité pour mobile
-                  }}
-                  dangerouslySetInnerHTML={{ __html: description }}
+                  className={`text-base md:text-xl font-light leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                  dangerouslySetInnerHTML={{ __html: descriptionHTML }}
                 />
               </div>
 
-              {/* SECTION LOCALISATION */}
-              <div className="mt-8 md:mt-10 border-t pt-8 md:pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
-                <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
-                    <Navigation size={20} color={primaryColor} />
+              {/* LOCALISATION */}
+              <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                    <Navigation size={24} color={primaryColor} />
                   </div>
                   <div>
-                    <h2 className={`text-xl md:text-2xl lg:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
-                    <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                    <h2 className={`text-2xl md:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
                   </div>
                 </div>
-                <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[250px] md:h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
+                <div className="relative rounded-[2rem] overflow-hidden shadow-xl h-[300px] md:h-[400px]">
                   <iframe
                     width="100%"
                     height="100%"
@@ -180,29 +169,28 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
             {/* SIDEBAR */}
             <div className="lg:col-span-1">
-              <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
-                <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
-                  <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-3xl md:text-4xl lg:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <div className={`sticky top-32 rounded-[2rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#111] border border-white/10'}`}>
+                <div className="p-8 pb-4">
+                  <p className="text-[10px] uppercase text-slate-400 mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className={`text-4xl md:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
                 
-                <ContactForm agency={agency} propertyRef={property.ref || property.id_externe || property.id} isLight={isLight} />
+                <ContactForm agency={agency} propertyRef={property.ref} isLight={isLight} />
 
-                <div className="p-5 md:p-6 lg:p-8 pt-0">
+                <div className="p-8 pt-0">
                   <a 
                     href={`https://wa.me/${whatsappNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 lg:py-5 rounded-xl md:rounded-2xl font-bold uppercase text-[9px] md:text-[10px] tracking-widest transition-all"
+                    className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all border border-white/10 text-white hover:bg-white/5"
                     style={{ 
-                      border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-                      color: isLight ? '#0f172a' : '#ffffff',
-                      backgroundColor: 'transparent'
+                      borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)',
+                      color: isLight ? '#0f172a' : '#ffffff'
                     }}
                   >
-                    <MessageCircle size={16} className="text-green-500" /> WHATSAPP DIRECT
+                    <MessageCircle size={18} className="text-green-500" /> WHATSAPP DIRECT
                   </a>
                 </div>
               </div>
