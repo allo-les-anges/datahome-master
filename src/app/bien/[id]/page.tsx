@@ -13,8 +13,6 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     async function load() {
-      console.log("🔍 [Page] Début chargement, agencyLoading:", agencyLoading, "agency:", agency?.id);
-      
       if (agencyLoading) {
         console.log("⏳ Attente chargement agence...");
         return;
@@ -30,13 +28,10 @@ export default function PropertyDetailPage() {
         const res = await fetch(url);
         const data = await res.json();
         
-        console.log("📦 [Page] Réponse reçue:", {
-          status: res.status,
-          hasDescription: !!data.description,
-          descriptionLength: data.description?.length
-        });
+        console.log("📦 [Page] Réponse API - a description_fr:", !!data.description_fr);
         
         if (data && !data.error) {
+          // ✅ On passe TOUTES les données, sans filtre
           setProperty(data);
         }
       } catch (err) {
@@ -59,5 +54,9 @@ export default function PropertyDetailPage() {
     return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
   }
 
+  // ✅ Vérification avant rendu
+  console.log("🎯 [Page] Rendu final - property a description_fr:", !!property.description_fr);
+  console.log("🎯 [Page] description_fr preview:", property.description_fr?.substring(0, 100));
+  
   return <PropertyDetailClient property={property} agency={agency} />;
 }
