@@ -31,8 +31,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   useEffect(() => {
     setMounted(true);
-    console.log("Property Data Loaded:", property);
-  }, [property]);
+  }, []);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -44,29 +43,28 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // 1. TRAITEMENT DES IMAGES (Conversion String JSON -> Array si nécessaire)
+  // 1. GESTION DES IMAGES (JSON ou Array)
   const images = useMemo(() => {
     if (!property?.images) return [];
     if (Array.isArray(property.images)) return property.images;
     try {
       return JSON.parse(property.images);
     } catch (e) {
-      console.error("Erreur parsing images:", e);
       return [];
     }
   }, [property?.images]);
 
-  // 2. LOGIQUE DE TITRE MULTILINGUE
+  // 2. LOGIQUE DE TITRE
   const displayTitle = useMemo(() => {
     if (!property) return "";
     return property[`titre_${locale}`] || property.titre_fr || property.titre_en || property.titre || "Propriété Exclusive";
   }, [property, locale]);
 
-  // 3. LOGIQUE DE DESCRIPTION MULTILINGUE (CORRIGÉE POUR SMARTPHONE)
+  // 3. LOGIQUE DE DESCRIPTION (Priorité Langue > FR > EN > Fallback)
   const descriptionContent = useMemo(() => {
     if (!property) return "";
     
-    // On cherche dans l'ordre : langue actuelle, puis fr, puis en, puis champ générique
+    // On définit explicitement les sources par ordre de priorité
     const content = 
       property[`description_${locale}`] || 
       property.description_fr || 
@@ -75,9 +73,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
       property.details ||
       "";
 
-    if (!content || content === "null") return "";
+    // Si le résultat est vide ou la chaîne "null"
+    if (!content || content === "null" || content === "undefined") return "";
     
-    // Nettoyage/Formatage si ce n'est pas du HTML
+    // On s'assure que c'est traité comme du HTML ou du texte avec sauts de ligne
     return content.includes('<') ? content : content.replace(/\n/g, '<br />');
   }, [property, locale]);
 
@@ -134,7 +133,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* GRILLE DE CONTENU */}
+          {/* CONTENU PRINCIPAL */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -163,20 +162,21 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* SECTION DESCRIPTION - OPTIMISÉE POUR MOBILE */}
+              {/* SECTION DESCRIPTION - BLINDÉE */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
-                {descriptionContent ? (
-                  <div 
-                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 overflow-hidden ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                    style={{ wordBreak: 'break-word' }}
-                    dangerouslySetInnerHTML={{ __html: descriptionContent }}
-                  />
-                ) : (
-                  <p className="text-slate-500 italic">Aucune description disponible pour ce bien.</p>
-                )}
+                <div 
+                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 overflow-hidden ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                  style={{ wordBreak: 'break-word', minHeight: '50px' }}
+                >
+                  {descriptionContent ? (
+                    <div dangerouslySetInnerHTML={{ __html: descriptionContent }} />
+                  ) : (
+                    <p className="text-slate-500 italic">La description n'est pas encore disponible pour ce bien.</p>
+                  )}
+                </div>
               </div>
 
               {/* LOCALISATION */}
@@ -200,7 +200,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               </div>
             </div>
 
-            {/* SIDEBAR PRIX & CONTACT */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-6 md:p-10 pb-4">
