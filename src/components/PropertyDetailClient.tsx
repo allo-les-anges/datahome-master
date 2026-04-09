@@ -28,9 +28,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   useEffect(() => {
     setMounted(true);
-    // CRITIQUE : Regardez ce log dans votre console F12 pour voir les vrais noms des clés
-    console.log("Structure réelle du bien :", property);
-  }, [property]);
+  }, []);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -42,52 +40,53 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // 1. GESTION DES IMAGES
+  // 1. GESTION DES IMAGES (Tableau JSON dans ta table)
   const images = useMemo(() => {
     if (!property?.images) return [];
     if (Array.isArray(property.images)) return property.images;
     try {
-      const parsed = JSON.parse(property.images);
+      // Dans ton export, c'est un string JSON "[""url1"", ""url2""]"
+      const cleanedJson = property.images.replace(/""/g, '"');
+      const parsed = JSON.parse(cleanedJson);
       return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
+      console.error("Erreur parsing images:", e);
       return [];
     }
   }, [property?.images]);
 
-  // 2. LOGIQUE DE TITRE MULTILINGUE
+  // 2. LOGIQUE DE TITRE (Priorité aux versions traduites)
   const displayTitle = useMemo(() => {
     if (!property) return "";
-    return property[`titre_${locale}`] || property.titre_fr || property.titre || "Propriété Exclusive";
+    return (
+      property[`titre_${locale}`] || 
+      property.titre_fr || 
+      property.titre_en || 
+      property.titre || 
+      property.development_name ||
+      "Propriété Exclusive"
+    );
   }, [property, locale]);
 
-  // 3. LOGIQUE DE DESCRIPTION "SCAVENGER" (Cherche partout)
+  // 3. LOGIQUE DE DESCRIPTION (Priorité aux colonnes description_XX)
   const descriptionContent = useMemo(() => {
     if (!property) return "";
     
-    // Étape A : Chercher la clé exacte selon la langue
-    let content = property[`description_${locale}`] || property[`desc_${locale}`];
-
-    // Étape B : Si vide, chercher n'importe quelle clé qui contient "description" ou "content"
-    if (!content) {
-      const keys = Object.keys(property);
-      const fallbackKey = keys.find(k => 
-        (k.toLowerCase().includes('description') || k.toLowerCase().includes('desc_fr')) && 
-        property[k] && property[k] !== "null"
-      );
-      if (fallbackKey) content = property[fallbackKey];
-    }
-
-    // Étape C : Fallbacks manuels classiques
-    if (!content) {
-      content = property.description_fr || property.description || property.details || "";
-    }
+    const content = 
+      property[`description_${locale}`] || 
+      property.description_fr || 
+      property.description_en || 
+      property.description || 
+      property.details ||
+      "";
 
     if (!content || content === "null" || content === "undefined") return "";
     
-    // Formatage final
-    return content.includes('<') ? content : content.replace(/\n/g, '<br />');
+    // Ton contenu est déjà en HTML (<p>...), donc on le retourne tel quel
+    return content;
   }, [property, locale]);
 
+  // Données numériques
   const numericPrice = Number(property?.price || property?.prix || 0);
   const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
 
@@ -120,12 +119,16 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
                     </div>
                   )) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-500">Aucune image disponible</div>
+                    <div className="w-full h-full flex items-center justify-center text-zinc-500">
+                      <ImageIcon size={48} className="mb-2 opacity-20" />
+                    </div>
                   )}
                 </div>
-                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={14} /> {images.length > 0 ? activeImage + 1 : 0} / {images.length}
-                </div>
+                {images.length > 0 && (
+                  <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                    <ImageIcon size={14} /> {activeImage + 1} / {images.length}
+                  </div>
+                )}
               </div>
 
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
@@ -152,14 +155,14 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
               <div className="flex items-center gap-3 text-slate-500 mb-10 text-[11px] uppercase tracking-[0.2em] font-bold">
                 <MapPin size={18} color={primaryColor} />
-                {property.town || property.ville || property.city} • {property.region}
+                {property.town || property.ville || property.city} • {property.region || property.province}
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 md:mb-16">
                 {[
                   { icon: Bed, val: property.beds, label: 'CHAMBRES' },
                   { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built || property.surface, label: 'M² CONSTRUIT' },
+                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
                   { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
                   { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
                   { icon: Car, val: "OUI", label: 'PARKING' },
@@ -172,36 +175,36 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 ))}
               </div>
 
-              {/* SECTION DESCRIPTION - AFFICHAGE FINAL */}
+              {/* DESCRIPTION */}
               <div className="mb-16">
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
                 <div 
-                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                  style={{ wordBreak: 'break-word' }}
+                  className={`prose prose-lg max-w-none ${isLight ? 'text-slate-700' : 'text-slate-300'} 
+                  ${!isLight && 'prose-headings:text-white prose-strong:text-white prose-p:leading-relaxed'}`}
                 >
                   {descriptionContent ? (
                     <div dangerouslySetInnerHTML={{ __html: descriptionContent }} />
                   ) : (
-                    <p className="text-slate-500 italic">Description en cours de chargement ou non disponible.</p>
+                    <p className="text-slate-500 italic">Description non disponible.</p>
                   )}
                 </div>
               </div>
 
-              {/* LOCALISATION MAP */}
+              {/* LOCALISATION */}
               <div className="mt-10 border-t pt-10" style={{ borderColor: isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)' }}>
                 <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[300px] md:h-[400px]">
                   <iframe
                     width="100%" height="100%" style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || property.city || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    src={`https://maps.google.com/maps?q=${property.latitude || property.town},${property.longitude || property.region}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                     title="Location map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* SIDEBAR PRIX / CONTACT */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] border overflow-hidden shadow-2xl ${isLight ? 'bg-white border-slate-200' : 'bg-[#0A0A0A] border-white/10'}`}>
                 <div className="p-6 md:p-10 pb-4">
