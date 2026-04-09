@@ -176,15 +176,25 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
 
     // 2. Utiliser les propriétés initiales du SSR si disponibles
-    if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
-      const formatted = formatVillaData(initialProperties);
-      setAllProperties(formatted);
-      setFilteredProperties(formatted);
-      saveToCache(formatted);
-      setLoadingProperties(false);
-      initialLoadDone.current = true;
-      return;
-    }
+if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("📦 [AgencyPageClient] initialProperties reçues du SSR:", initialProperties.length);
+  console.log("📦 [AgencyPageClient] Première propriété brute - a description_fr:", !!initialProperties[0]?.description_fr);
+  console.log("📦 [AgencyPageClient] Première propriété brute - description_fr:", initialProperties[0]?.description_fr?.substring(0, 100));
+  
+  const formatted = formatVillaData(initialProperties);
+  
+  console.log("📦 [AgencyPageClient] Après formatage - a description_fr:", !!formatted[0]?.description_fr);
+  console.log("📦 [AgencyPageClient] Après formatage - description_fr:", formatted[0]?.description_fr?.substring(0, 100));
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  
+  setAllProperties(formatted);
+  setFilteredProperties(formatted);
+  saveToCache(formatted);
+  setLoadingProperties(false);
+  initialLoadDone.current = true;
+  return;
+}
 
     // 3. Fallback : chargement API
     try {
