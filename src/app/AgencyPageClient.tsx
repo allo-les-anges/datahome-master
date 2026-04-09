@@ -92,8 +92,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         id: v.id || `v-${key}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
         ref: String(v.id_externe || v.ref || v.reference || ""),
-        titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
-        // ⚠️ CRUCIAL: Conserver TOUS les champs de description multilingues
+        // ✅ Titre localisé corrigé
+        titre: v[`titre_${locale}`] || v.titre_fr || v.titre || v.development_name || "Propriété",
+        // ✅ Description localisée - CRUCIAL POUR LA PAGE DÉTAIL
         description: v[`description_${locale}`] || v.description_fr || v.description || "",
         description_fr: v.description_fr || "",
         description_en: v.description_en || "",
@@ -398,7 +399,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         properties={filteredProperties.slice(0, displayLimit)} 
                         favorites={favorites}
                         onToggleFavorite={toggleFavorite}
-                        onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
+                        onPropertyClick={(p: Villa) => { 
+                          console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id, hasDescriptionFr: !!p.description_fr });
+                          setSelectedProperty(p); 
+                          window.scrollTo({ top: 0 }); 
+                        }}
                       />
                     ) : (
                       <motion.div 
