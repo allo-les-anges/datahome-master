@@ -13,48 +13,34 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     async function load() {
-      // Attendre que l'agence soit chargée
+      console.log("🔍 [Page] Début chargement, agencyLoading:", agencyLoading, "agency:", agency?.id);
+      
       if (agencyLoading) {
         console.log("⏳ Attente chargement agence...");
         return;
       }
 
-      if (!agency?.id) {
-        console.log("⚠️ Pas d'agence trouvée, tentative sans filtre");
-        // Tentative sans filtre agence
-        try {
-          const res = await fetch(`/api/property/${id}`);
-          const data = await res.json();
-          if (data && !data.error) {
-            setProperty(data);
-          }
-        } catch (err) {
-          console.error("Erreur:", err);
-        } finally {
-          setLoading(false);
-        }
-        return;
-      }
-
       try {
-        console.log(`🔍 Chargement propriété ${id} pour agence ${agency.id}`);
-        const res = await fetch(`/api/property/${id}?agencyId=${agency.id}`);
+        let url = `/api/property/${id}`;
+        if (agency?.id) {
+          url += `?agencyId=${agency.id}`;
+        }
+        
+        console.log("🔍 [Page] Appel API:", url);
+        const res = await fetch(url);
         const data = await res.json();
         
-        console.log("📦 Données reçues:", {
+        console.log("📦 [Page] Réponse reçue:", {
           status: res.status,
           hasDescription: !!data.description,
-          descriptionLength: data.description?.length,
-          keys: Object.keys(data)
+          descriptionLength: data.description?.length
         });
         
         if (data && !data.error) {
           setProperty(data);
-        } else {
-          console.error("Propriété non trouvée");
         }
       } catch (err) {
-        console.error("Erreur de chargement:", err);
+        console.error("❌ Erreur:", err);
       } finally {
         setLoading(false);
       }
@@ -66,22 +52,11 @@ export default function PropertyDetailPage() {
   }, [id, agency?.id, agencyLoading]);
 
   if (agencyLoading || loading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Chargement...</p>
-        </div>
-      </div>
-    );
+    return <div className="h-screen flex items-center justify-center">Chargement...</div>;
   }
 
   if (!property) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <p className="text-slate-500">Bien introuvable</p>
-      </div>
-    );
+    return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
   }
 
   return <PropertyDetailClient property={property} agency={agency} />;
