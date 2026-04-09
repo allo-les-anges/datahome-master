@@ -53,14 +53,13 @@ export interface Villa {
     created_at?: string;
 }
 
-// Définition de l'Agence
+// Définition de l'Agence - CORRIGÉ (suppression du doublon font_family)
 export interface Agency {
     id: string;
     subdomain: string;
     agency_name: string;
     primary_color?: string;
     secondary_color?: string;
-    font_family?: string;
     hero_title?: string;
     hero_url?: string;
     logo_url?: string;
@@ -80,7 +79,7 @@ export interface Agency {
     privacy_policy?: string;
     cookie_consent_enabled?: boolean;
     hero_type?: 'image' | 'video';
-    font_family?: string;
+    font_family?: string;  // ← UNE SEULE FOIS
 }
 
 // Définition des Filtres
