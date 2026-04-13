@@ -10,12 +10,34 @@ export default function AgenciesPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem('admin_auth');
-    if (isAuth !== 'true') {
-      router.push('/admin');
-    } else {
-      setIsAuthorized(true);
-    }
+    const checkAuth = async () => {
+      const savedSecret = sessionStorage.getItem('admin_secret');
+      
+      if (!savedSecret) {
+        router.push('/admin');
+        return;
+      }
+      
+      try {
+        const res = await fetch('/api/admin/check', {
+          headers: {
+            'x-admin-secret': savedSecret
+          }
+        });
+        
+        if (res.ok) {
+          setIsAuthorized(true);
+        } else {
+          sessionStorage.removeItem('admin_auth');
+          sessionStorage.removeItem('admin_secret');
+          router.push('/admin');
+        }
+      } catch (err) {
+        router.push('/admin');
+      }
+    };
+    
+    checkAuth();
   }, [router]);
 
   if (!isAuthorized) {
@@ -23,7 +45,7 @@ export default function AgenciesPage() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mx-auto"></div>
-          <p className="mt-4 text-slate-500">Redirection...</p>
+          <p className="mt-4 text-slate-500">Vérification...</p>
         </div>
       </div>
     );

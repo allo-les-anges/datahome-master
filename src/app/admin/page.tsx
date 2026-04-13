@@ -1,31 +1,47 @@
 // src/app/admin/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminRoot() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  const checkAuth = async (pwd: string) => {
+    try {
+      const res = await fetch('/api/admin/check', {
+        headers: {
+          'x-admin-secret': pwd
+        }
+      });
+      
+      if (res.ok) {
+        sessionStorage.setItem('admin_auth', 'true');
+        sessionStorage.setItem('admin_secret', pwd);
+        setIsAuthorized(true);
+        setError("");
+      } else {
+        setError("Mot de passe incorrect");
+      }
+    } catch (err) {
+      setError("Erreur de connexion");
+    }
+  };
+
   useEffect(() => {
-    // Vérifier si déjà authentifié dans cette session
     const isAuth = sessionStorage.getItem('admin_auth');
-    if (isAuth === 'true') {
-      setIsAuthorized(true);
+    const savedSecret = sessionStorage.getItem('admin_secret');
+    
+    if (isAuth === 'true' && savedSecret) {
+      // Vérifier que le secret est toujours valide
+      checkAuth(savedSecret);
     }
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === "Lea_Iris_171213!") {
-      sessionStorage.setItem('admin_auth', 'true');
-      setIsAuthorized(true);
-      setError("");
-    } else {
-      setError("Mot de passe incorrect");
-      setPassword("");
-    }
+    checkAuth(password);
   };
 
   if (!isAuthorized) {
@@ -66,6 +82,7 @@ export default function AdminRoot() {
         <button
           onClick={() => {
             sessionStorage.removeItem('admin_auth');
+            sessionStorage.removeItem('admin_secret');
             setIsAuthorized(false);
           }}
           className="text-sm text-slate-500 hover:text-red-500 transition-colors"
@@ -74,7 +91,6 @@ export default function AdminRoot() {
         </button>
       </div>
       <p className="text-slate-600">Bienvenue dans votre espace de gestion HabiHub.</p>
-      {/* Vous pouvez ajouter ici vos composants de statistiques ou de raccourcis */}
     </div>
   );
 }
