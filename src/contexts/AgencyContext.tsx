@@ -1,3 +1,4 @@
+// src/contexts/AgencyContext.tsx
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
@@ -7,29 +8,30 @@ import { usePathname } from "next/navigation";
 interface AgencyContextType {
   agency: any;
   loading: boolean;
+  error: string | null;
   setAgencyBySlug: (slug: string) => Promise<void>;
 }
 
 const AgencyContext = createContext<AgencyContextType>({
   agency: null,
   loading: true,
+  error: null,
   setAgencyBySlug: async () => {},
 });
 
 export function AgencyProvider({ children }: { children: React.ReactNode }) {
   const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const pathname = usePathname();
 
-  // On utilise useCallback pour que la fonction ne change pas à chaque rendu
   const fetchAgencyData = useCallback(async (slug: string) => {
     if (!slug) return null;
     
-    console.log(`🔍 [Supabase] Tentative de récupération pour : "${slug}"`);
     const { data, error } = await supabase
       .from('agency_settings')
       .select('*')
-      .eq('subdomain', slug) // On interroge la colonne subdomain
+      .eq('subdomain', slug)
       .maybeSingle();
     
     if (error) {
@@ -45,14 +47,13 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
     async function initAgency() {
       if (!isMounted) return;
       
-      console.log("🚀 [AgencyContext] Initialisation...");
       setLoading(true);
+      setError(null);
       
       try {
         const host = window.location.hostname;
         const segments = pathname.split('/').filter(Boolean);
         
-        // Détection du slug dans l'URL (ex: /fr/schmidt-privilege -> schmidt-privilege)
         const locales = ['fr', 'en', 'nl', 'es', 'ar', 'pl'];
         const urlSlug = segments.find(s => !locales.includes(s));
         
@@ -63,7 +64,7 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
           data = await fetchAgencyData(urlSlug);
         }
 
-        // 2. Si pas de slug, test via le domaine/sous-domaine (SaaS mode)
+        // 2. Si pas de slug, test via le domaine/sous-domaine
         if (!data) {
           const subdomain = host.split('.')[0];
           if (subdomain !== 'datahome' && subdomain !== 'localhost' && subdomain !== 'www') {
@@ -76,44 +77,55 @@ export function AgencyProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // 3. Fallback ultime si rien n'est trouvé
+        // 3. ✅ PLUS DE FALLBACK - on affiche une erreur explicite
         if (!data) {
-          console.log("🏠 [Fallback] Utilisation de l'agence par défaut");
-          data = await fetchAgencyData('schmidt-privilege');
+          const errorMsg = `Agence non trouvée pour: ${urlSlug || host}`;
+          console.error(`❌ ${errorMsg}`);
+          if (isMounted) {
+            setError(errorMsg);
+            setAgency(null);
+          }
+          return;
         }
 
         if (isMounted) {
           setAgency(data);
-          console.log("💾 [State] AgencyContext mis à jour.");
+          setError(null);
         }
       } catch (err) {
         console.error("💥 [AgencyContext] Erreur critique:", err);
+        if (isMounted) {
+          setError("Erreur de chargement de l'agence");
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
-          console.log("🏁 [AgencyContext] Chargement terminé.");
         }
       }
     }
 
     initAgency();
     return () => { isMounted = false; };
-  }, [pathname, fetchAgencyData]); // fetchAgencyData est stable grâce au useCallback
+  }, [pathname, fetchAgencyData]);
 
-  // Mémoïsation de la valeur du contexte pour optimiser les performances
   const contextValue = useMemo(() => ({
     agency,
     loading,
+    error,
     setAgencyBySlug: async (slug: string) => {
-      // Éviter de recharger si c'est déjà la même agence
       if (agency?.subdomain === slug) return;
       
       setLoading(true);
+      setError(null);
       const d = await fetchAgencyData(slug);
-      if (d) setAgency(d);
+      if (d) {
+        setAgency(d);
+      } else {
+        setError(`Agence "${slug}" introuvable`);
+      }
       setLoading(false);
     }
-  }), [agency, loading, fetchAgencyData]);
+  }), [agency, loading, error, fetchAgencyData]);
 
   return (
     <AgencyContext.Provider value={contextValue}>

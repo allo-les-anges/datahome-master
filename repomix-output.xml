@@ -2389,6 +2389,226 @@ const DataHomeLogo = ({ className }: { className?: string }) => (
 );
 </file>
 
+<file path="src/components/Navbar.tsx">
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Globe, Menu, X } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
+import { useAgency } from "@/contexts/AgencyContext";
+import { motion, AnimatePresence } from "framer-motion"; // <-- CET IMPORT EST CRUCIAL
+
+const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
+    <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
+    <text x="10" y="28" fontFamily="sans-serif" fontSize="22" fontWeight="300" fill="currentColor" letterSpacing="-0.02em">data home</text>
+  </svg>
+);
+
+interface NavbarProps {
+  agency?: any;
+}
+
+export default function Navbar({ agency: propsAgency }: NavbarProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { t, locale } = useTranslation() as any;
+  
+  const { agency: contextAgency } = useAgency();
+  const agency = propsAgency || contextAgency;
+
+  const brandColor = agency?.primary_color || "#D4AF37";
+
+  const [mounted, setMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
+  const baseUrl = `/${locale}/${agencySlug}`;
+
+  useEffect(() => {
+    setMounted(true);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (!mounted) return null;
+
+  const textColor = isScrolled ? "text-slate-900" : "text-white";
+  const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
+
+  const navLinks = [
+    { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
+    { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
+  ];
+
+  const handleLangChange = (newLang: string) => {
+    const pathSegments = pathname.split('/').filter(Boolean);
+    const slug = agency?.subdomain || pathSegments[1] || "default";
+    const remainingPath = pathSegments.slice(2).join('/');
+    const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
+    
+    setIsMenuOpen(false);
+    setIsLangOpen(false);
+    router.push(newPath);
+  };
+
+  return (
+    <>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
+          isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
+        }`}
+        style={{
+          backdropFilter: isScrolled ? 'blur(16px)' : 'none',
+          WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
+          <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
+            {agency?.logo_url ? (
+               <img 
+                 src={agency.logo_url} 
+                 alt={agency?.agency_name || "Logo"} 
+                 className="h-16 md:h-20 w-auto object-contain transition-all duration-500" 
+               />
+            ) : (
+               <DataHomeLogo 
+                 className="h-12 md:h-16 w-auto transition-colors duration-500" 
+                 style={{ color: logoHexColor }}
+               />
+            )}
+          </Link>
+
+          <div className="hidden md:flex items-center gap-12">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.href} 
+                href={link.href} 
+                className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
+              >
+                <span 
+                  className="pb-1" 
+                  style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}
+                >
+                  {link.name}
+                </span>
+              </Link>
+            ))}
+
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsLangOpen(!isLangOpen)}
+                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${textColor}`}
+              >
+                <Globe size={14} style={{ color: brandColor }} />
+                {locale}
+              </button>
+              
+              {isLangOpen && (
+                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLangChange(lang)}
+                      className={`w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${
+                        locale === lang ? 'text-blue-400' : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button 
+            className={`md:hidden p-2 transition-colors relative z-[160] ${textColor}`} 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={28} className="text-white" /> : <Menu size={28} />}
+          </button>
+        </div>
+      </nav>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center z-[150] md:hidden"
+          >
+            <div className="flex flex-col items-center gap-10">
+              <Link 
+                href={baseUrl} 
+                onClick={() => setIsMenuOpen(false)} 
+                className="text-xl font-black uppercase tracking-[0.5em] text-white"
+              >
+                {t('nav.home') || 'Accueil'}
+              </Link>
+
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href} 
+                  onClick={() => setIsMenuOpen(false)} 
+                  className="text-xl font-black uppercase tracking-[0.5em] text-white"
+                >
+                  {link.name}
+                </Link>
+              ))}
+
+              <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
+                <div className="flex items-center gap-3 text-slate-500">
+                  <Globe size={16} style={{ color: brandColor }} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('common.language') || 'Language'}</span>
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-6">
+                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLangChange(lang)}
+                      className={`text-sm font-black uppercase tracking-widest transition-all ${
+                        locale === lang 
+                          ? 'text-white scale-125' 
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                      style={{ color: locale === lang ? brandColor : '' }}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+</file>
+
 <file path="src/components/PropertyCard.tsx">
 "use client";
 
@@ -3028,65 +3248,6 @@ const SuiviChantier = ({ clientName, etapeActuelle }) => {
 };
 
 export default SuiviChantier;
-</file>
-
-<file path="src/types/index.ts">
-// Définition de la Villa
-export interface Villa {
-    id: string;
-    id_externe: string;
-    ref: string;
-    titre: string;
-    description: string;
-    price: number;
-    town: string;
-    region: string;
-    beds: number;
-    baths: number;
-    surface_built: string | number;
-    surface_plot: string | number;
-    pool: string;
-    type: string;
-    images: string[];
-    // --- AJOUTS INDISPENSABLES POUR LA CARTE ---
-    latitude: number | null;
-    longitude: number | null;
-    adresse?: string;
-    // -------------------------------------------
-    // Fallbacks pour la compatibilité
-    prix?: number;
-    image?: string;
-    pieces?: number;
-    surface?: number;
-    slug?: string;
-}
-
-// Définition de l'Agence
-export interface Agency {
-    id: string;
-    subdomain: string;
-    agency_name: string;
-    primary_color?: string;
-    secondary_color?: string;
-    font_family?: string;
-    hero_title?: string;
-    hero_url?: string;
-    logo_url?: string;
-    package_level?: 'light' | 'premium' | 'ultimate';
-    default_lang?: string;
-    email?: string;
-}
-
-// Définition des Filtres
-export interface Filters {
-    type: string;
-    town: string;
-    region: string;
-    beds: number;
-    minPrice: number;
-    maxPrice: number;
-    reference: string;
-}
 </file>
 
 <file path="_archives/sync-properties/route.ts.old">
@@ -4031,223 +4192,100 @@ export async function GET() {
 }
 </file>
 
-<file path="src/components/Navbar.tsx">
-"use client";
+<file path="src/types/index.ts">
+// src/types/index.ts
 
-import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Globe, Menu, X } from "lucide-react";
-import { useTranslation } from "@/contexts/I18nContext";
-import { useAgency } from "@/contexts/AgencyContext";
-import { motion, AnimatePresence } from "framer-motion"; // <-- CET IMPORT EST CRUCIAL
-
-const DataHomeLogo = ({ className, style }: { className?: string, style?: React.CSSProperties }) => (
-  <svg viewBox="0 0 150 35" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
-    <path d="M15 12L20 5L25 12H15Z" fill="currentColor" />
-    <text x="10" y="28" fontFamily="sans-serif" fontSize="22" fontWeight="300" fill="currentColor" letterSpacing="-0.02em">data home</text>
-  </svg>
-);
-
-interface NavbarProps {
-  agency?: any;
+// Définition de la Villa
+export interface Villa {
+    id: string;
+    id_externe: string;
+    ref: string;
+    titre: string;
+    description: string;
+    price: number;
+    town: string;
+    region: string;
+    beds: number;
+    baths: number;
+    surface_built: string | number;
+    surface_plot: string | number;
+    pool: string;
+    type: string;
+    images: string[];
+    // --- AJOUTS INDISPENSABLES POUR LA CARTE ---
+    latitude: number | null;
+    longitude: number | null;
+    adresse?: string;
+    // ✅ AJOUT : Champs de description multilingues
+    description_fr?: string;
+    description_en?: string;
+    description_es?: string;
+    description_nl?: string;
+    description_pl?: string;
+    description_ar?: string;
+    // ✅ AJOUT : Champs de titre multilingues (optionnels)
+    titre_fr?: string;
+    titre_en?: string;
+    titre_es?: string;
+    titre_nl?: string;
+    titre_pl?: string;
+    titre_ar?: string;
+    // -------------------------------------------
+    // Fallbacks pour la compatibilité
+    prix?: number;
+    image?: string;
+    pieces?: number;
+    surface?: number;
+    slug?: string;
+    // Autres champs potentiels
+    development_name?: string;
+    promoteur_name?: string;
+    xml_source?: string;
+    agency_id?: string;
+    commission_percentage?: number;
+    is_excluded?: boolean;
+    updated_at?: string;
+    created_at?: string;
 }
 
-export default function Navbar({ agency: propsAgency }: NavbarProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { t, locale } = useTranslation() as any;
-  
-  const { agency: contextAgency } = useAgency();
-  const agency = propsAgency || contextAgency;
+// Définition de l'Agence - CORRIGÉ (suppression du doublon font_family)
+export interface Agency {
+    id: string;
+    subdomain: string;
+    agency_name: string;
+    primary_color?: string;
+    secondary_color?: string;
+    hero_title?: string;
+    hero_url?: string;
+    logo_url?: string;
+    package_level?: 'light' | 'premium' | 'ultimate';
+    default_lang?: string;
+    email?: string;
+    phone?: string;
+    whatsapp_number?: string;
+    address?: string;
+    footer_config?: any;
+    team_data?: any[];
+    button_color?: string;
+    button_style?: string;
+    button_animation?: string;
+    about_title?: string;
+    about_text?: string;
+    privacy_policy?: string;
+    cookie_consent_enabled?: boolean;
+    hero_type?: 'image' | 'video';
+    font_family?: string;  // ← UNE SEULE FOIS
+}
 
-  const brandColor = agency?.primary_color || "#D4AF37";
-
-  const [mounted, setMounted] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const agencySlug = agency?.slug || agency?.subdomain || "schmidt-privilege";
-  const baseUrl = `/${locale}/${agencySlug}`;
-
-  useEffect(() => {
-    setMounted(true);
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsLangOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  if (!mounted) return null;
-
-  const textColor = isScrolled ? "text-slate-900" : "text-white";
-  const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
-
-  const navLinks = [
-    { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
-    { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
-  ];
-
-  const handleLangChange = (newLang: string) => {
-    const pathSegments = pathname.split('/').filter(Boolean);
-    const slug = agency?.subdomain || pathSegments[1] || "default";
-    const remainingPath = pathSegments.slice(2).join('/');
-    const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
-    
-    setIsMenuOpen(false);
-    setIsLangOpen(false);
-    router.push(newPath);
-  };
-
-  return (
-    <>
-      <nav 
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
-          isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
-        }`}
-        style={{
-          backdropFilter: isScrolled ? 'blur(16px)' : 'none',
-          WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between">
-          <Link href={baseUrl} className="relative z-10 block transition-transform hover:scale-105 active:scale-95">
-            {agency?.logo_url ? (
-               <img 
-                 src={agency.logo_url} 
-                 alt={agency?.agency_name || "Logo"} 
-                 className="h-16 md:h-20 w-auto object-contain transition-all duration-500" 
-               />
-            ) : (
-               <DataHomeLogo 
-                 className="h-12 md:h-16 w-auto transition-colors duration-500" 
-                 style={{ color: logoHexColor }}
-               />
-            )}
-          </Link>
-
-          <div className="hidden md:flex items-center gap-12">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
-                href={link.href} 
-                className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all hover:opacity-70 ${textColor}`}
-              >
-                <span 
-                  className="pb-1" 
-                  style={{ borderBottom: pathname === link.href ? `2px solid ${brandColor}` : 'none' }}
-                >
-                  {link.name}
-                </span>
-              </Link>
-            ))}
-
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setIsLangOpen(!isLangOpen)}
-                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all ${textColor}`}
-              >
-                <Globe size={14} style={{ color: brandColor }} />
-                {locale}
-              </button>
-              
-              {isLangOpen && (
-                <div className="absolute right-0 mt-6 py-3 w-32 bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLangChange(lang)}
-                      className={`w-full px-6 py-2 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${
-                        locale === lang ? 'text-blue-400' : 'text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button 
-            className={`md:hidden p-2 transition-colors relative z-[160] ${textColor}`} 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={28} className="text-white" /> : <Menu size={28} />}
-          </button>
-        </div>
-      </nav>
-
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl flex flex-col items-center justify-center z-[150] md:hidden"
-          >
-            <div className="flex flex-col items-center gap-10">
-              <Link 
-                href={baseUrl} 
-                onClick={() => setIsMenuOpen(false)} 
-                className="text-xl font-black uppercase tracking-[0.5em] text-white"
-              >
-                {t('nav.home') || 'Accueil'}
-              </Link>
-
-              {navLinks.map((link) => (
-                <Link 
-                  key={link.href}
-                  href={link.href} 
-                  onClick={() => setIsMenuOpen(false)} 
-                  className="text-xl font-black uppercase tracking-[0.5em] text-white"
-                >
-                  {link.name}
-                </Link>
-              ))}
-
-              <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
-                <div className="flex items-center gap-3 text-slate-500">
-                  <Globe size={16} style={{ color: brandColor }} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('common.language') || 'Language'}</span>
-                </div>
-                
-                <div className="flex flex-wrap justify-center gap-6">
-                  {['fr', 'nl', 'en', 'es', 'ar'].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLangChange(lang)}
-                      className={`text-sm font-black uppercase tracking-widest transition-all ${
-                        locale === lang 
-                          ? 'text-white scale-125' 
-                          : 'text-slate-500 hover:text-white'
-                      }`}
-                      style={{ color: locale === lang ? brandColor : '' }}
-                    >
-                      {lang}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
+// Définition des Filtres
+export interface Filters {
+    type: string;
+    town: string;
+    region: string;
+    beds: number;
+    minPrice: number;
+    maxPrice: number;
+    reference: string;
 }
 </file>
 
@@ -4293,72 +4331,6 @@ export default {
     },
   },
   plugins: [],
-}
-</file>
-
-<file path="src/app/bien/[id]/page.tsx">
-"use client";
-
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import PropertyDetailClient from "@/components/PropertyDetailClient";
-import { useAgency } from "@/contexts/AgencyContext";
-
-export default function PropertyDetailPage() {
-  const { id } = useParams();
-  const { agency, loading: agencyLoading } = useAgency();
-  const [property, setProperty] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      console.log("🔍 [Page] Début chargement, agencyLoading:", agencyLoading, "agency:", agency?.id);
-      
-      if (agencyLoading) {
-        console.log("⏳ Attente chargement agence...");
-        return;
-      }
-
-      try {
-        let url = `/api/property/${id}`;
-        if (agency?.id) {
-          url += `?agencyId=${agency.id}`;
-        }
-        
-        console.log("🔍 [Page] Appel API:", url);
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        console.log("📦 [Page] Réponse reçue:", {
-          status: res.status,
-          hasDescription: !!data.description,
-          descriptionLength: data.description?.length
-        });
-        
-        if (data && !data.error) {
-          setProperty(data);
-        }
-      } catch (err) {
-        console.error("❌ Erreur:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (id) {
-      load();
-    }
-  }, [id, agency?.id, agencyLoading]);
-
-  if (agencyLoading || loading) {
-    return <div className="h-screen flex items-center justify-center">Chargement...</div>;
-  }
-
-  if (!property) {
-    return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
-  }
-
-  return <PropertyDetailClient property={property} agency={agency} />;
 }
 </file>
 
@@ -7198,6 +7170,76 @@ export async function GET(req: Request) {
 }
 </file>
 
+<file path="src/app/bien/[id]/page.tsx">
+"use client";
+
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import PropertyDetailClient from "@/components/PropertyDetailClient";
+import { useAgency } from "@/contexts/AgencyContext";
+
+export default function PropertyDetailPage() {
+  const { id } = useParams();
+  const { agency, loading: agencyLoading } = useAgency();
+  const [property, setProperty] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      console.log("🔍 [PAGE] 1. Début - id:", id);
+      console.log("🔍 [PAGE] 2. agencyLoading:", agencyLoading);
+      console.log("🔍 [PAGE] 3. agency?.id:", agency?.id);
+      
+      if (agencyLoading) {
+        console.log("⏳ Attente agence...");
+        return;
+      }
+
+      try {
+        let url = `/api/property/${id}`;
+        if (agency?.id) {
+          url += `?agencyId=${agency.id}`;
+        }
+        
+        console.log("🔍 [PAGE] 4. Appel API:", url);
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        console.log("🔍 [PAGE] 5. Réponse reçue");
+        console.log("🔍 [PAGE] 6. data a description_fr:", !!data.description_fr);
+        console.log("🔍 [PAGE] 7. data.description_fr (100 premiers chars):", data.description_fr?.substring(0, 100));
+        
+        if (data && !data.error) {
+          setProperty(data);
+          console.log("🔍 [PAGE] 8. Property mise à jour avec description_fr:", !!data.description_fr);
+        }
+      } catch (err) {
+        console.error("❌ Erreur:", err);
+      } finally {
+        setLoading(false);
+        console.log("🔍 [PAGE] 9. Chargement terminé");
+      }
+    }
+
+    if (id) {
+      load();
+    }
+  }, [id, agency?.id, agencyLoading]);
+
+  console.log("🔍 [PAGE] RENDER - loading:", loading, "hasProperty:", !!property, "hasDescriptionFr:", !!property?.description_fr);
+
+  if (agencyLoading || loading) {
+    return <div className="h-screen flex items-center justify-center">Chargement...</div>;
+  }
+
+  if (!property) {
+    return <div className="h-screen flex items-center justify-center">Bien introuvable</div>;
+  }
+
+  return <PropertyDetailClient property={property} agency={agency} />;
+}
+</file>
+
 <file path="src/app/page.tsx">
 "use client";
 
@@ -7653,6 +7695,127 @@ export default async function PrivacyPage({
 }
 </file>
 
+<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
+import { supabase } from '@/lib/supabase';
+import AgencyPageClient from "@/app/AgencyPageClient";
+import { notFound } from 'next/navigation';
+
+// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
+export const dynamic = 'force-dynamic';
+
+export default async function DynamicAgencyPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string, locale: string }> 
+}) {
+  const { slug } = await params;
+
+  console.log("🔍 [SSR] Début - slug:", slug);
+
+  // 1. Récupération de l'agence (Table: agency_settings)
+  const { data: agencies, error: agencyError } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug);
+
+  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
+
+  if (agencyError || !agency) {
+    console.error("[SSR] ❌ Agence non trouvée:", agencyError);
+    return notFound();
+  }
+
+  console.log("🔍 [SSR] ✅ Agence trouvée:", agency.agency_name, "ID:", agency.id);
+
+  // 2. Récupération des villas avec TOUS les champs de description
+  console.log("🔍 [SSR] Chargement des propriétés pour agency_id:", agency.id);
+  
+  const { data: villas, error: villasError } = await supabase
+    .from('villas')
+    .select(`
+      id, 
+      id_externe,
+      ref,
+      titre,
+      titre_fr,
+      titre_en,
+      titre_es,
+      titre_nl,
+      titre_pl,
+      titre_ar,
+      prix,
+      price,
+      town,
+      ville,
+      region,
+      province,
+      images,
+      beds,
+      bedrooms,
+      baths,
+      bathroom,
+      surface_built,
+      built,
+      surface_plot,
+      plot,
+      type,
+      pool,
+      is_excluded,
+      agency_id,
+      description,
+      description_fr,
+      description_en,
+      description_es,
+      description_nl,
+      description_pl,
+      description_ar,
+      development_name,
+      promoteur_name,
+      latitude,
+      longitude,
+      adresse,
+      distance_beach,
+      distance_golf,
+      distance_town,
+      currency,
+      commission_percentage,
+      xml_source
+    `)
+    .eq('agency_id', agency.id)
+    .eq('is_excluded', false)
+    .order('prix', { ascending: false });
+
+  if (villasError) {
+    console.error("[SSR] ❌ Erreur chargement villas:", villasError);
+  }
+
+  console.log(`📦 [SSR] ${villas?.length || 0} propriétés chargées`);
+  
+  if (villas && villas.length > 0) {
+    const firstVilla = villas[0];
+    console.log("📦 [SSR] Première propriété - ID:", firstVilla.id);
+    console.log("📦 [SSR] Première propriété - titre:", firstVilla.titre);
+    console.log("📦 [SSR] Première propriété - a description_fr:", !!firstVilla.description_fr);
+    console.log("📦 [SSR] Première propriété - description_fr (100 premiers chars):", firstVilla.description_fr?.substring(0, 100));
+    console.log("📦 [SSR] Première propriété - a description_es:", !!firstVilla.description_es);
+    console.log("📦 [SSR] Première propriété - clés disponibles:", Object.keys(firstVilla).filter(k => k.includes('description')));
+  } else {
+    console.log("📦 [SSR] ⚠️ Aucune propriété trouvée");
+  }
+
+  // 3. Rendu du composant Client
+  console.log("🔍 [SSR] Rendu du AgencyPageClient");
+  
+  return (
+    <AgencyPageClient 
+      slug={slug} 
+      initialAgency={agency} 
+      initialProperties={villas || []} 
+    />
+  );
+}
+</file>
+
 <file path="src/app/[locale]/(agency_site)/[slug]/terms/page.tsx">
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
@@ -8022,73 +8185,6 @@ export default function ContactPage({ params }: ContactPageProps) {
 }
 </file>
 
-<file path="src/app/[locale]/(agency_site)/[slug]/page.tsx">
-import { supabase } from '@/lib/supabase';
-import AgencyPageClient from "@/app/AgencyPageClient";
-import { notFound } from 'next/navigation';
-
-// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
-export const dynamic = 'force-dynamic';
-
-export default async function DynamicAgencyPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string, locale: string }> 
-}) {
-  const { slug } = await params;
-
-  // 1. Récupération de l'agence (Table: agency_settings)
-  const { data: agencies, error: agencyError } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .eq('subdomain', slug);
-
-  const agency = agencies && agencies.length > 0 ? agencies[0] : null;
-
-  if (agencyError || !agency) {
-    console.error("[SUPABASE ERROR - AGENCY]", agencyError);
-    return notFound();
-  }
-
-  // 2. Récupération des villas filtrées par l'ID de l'agence
-  const { data: villas, error: villasError } = await supabase
-    .from('villas')
-    .select(`
-      id, 
-      id_externe, 
-      titre, 
-      prix, 
-      town, 
-      region, 
-      images, 
-      beds, 
-      baths, 
-      surface_built, 
-      surface_plot, 
-      type, 
-      pool, 
-      is_excluded, 
-      agency_id
-    `)
-    .eq('agency_id', agency.id)
-    .eq('is_excluded', false)
-    .order('prix', { ascending: false });
-
-  if (villasError) {
-    console.error("[SUPABASE ERROR - VILLAS]", villasError);
-  }
-
-  // 3. Rendu du composant Client
-  return (
-    <AgencyPageClient 
-      slug={slug} 
-      initialAgency={agency} 
-      initialProperties={villas || []} 
-    />
-  );
-}
-</file>
-
 <file path="src/components/PropertyDetailClient.tsx">
 "use client";
 
@@ -8135,10 +8231,53 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
+  // Récupération améliorée de la description avec fallbacks
   const description = useMemo(() => {
     if (!property) return "";
-    return property[`description_${locale}`] || property.description || property.description_fr || "";
+    
+    // Priorité à la version localisée
+    if (property[`description_${locale}`]) {
+      console.log(`✅ Description trouvée en ${locale}`);
+      return property[`description_${locale}`];
+    }
+    // Sinon description_fr
+    if (property.description_fr) {
+      console.log(`✅ Description trouvée en français (fallback)`);
+      return property.description_fr;
+    }
+    // Sinon description générique
+    if (property.description) {
+      console.log(`✅ Description générique trouvée`);
+      return property.description;
+    }
+    // Sinon description provenant de l'API formatée
+    if (property.details) {
+      console.log(`✅ Description provenant du champ details`);
+      return property.details;
+    }
+    
+    console.warn(`⚠️ Aucune description trouvée pour la propriété`);
+    return "";
   }, [property, locale]);
+
+  // Ajout d'un log pour debugger les propriétés reçues
+  useEffect(() => {
+    if (property && mounted) {
+      console.log("📦 [PropertyDetailClient] Propriété reçue:", {
+        id: property.id,
+        titre: property.titre,
+        hasDescriptionFr: !!property.description_fr,
+        hasDescriptionEn: !!property.description_en,
+        hasDescriptionEs: !!property.description_es,
+        hasDescriptionNl: !!property.description_nl,
+        hasDescriptionPl: !!property.description_pl,
+        hasDescriptionAr: !!property.description_ar,
+        descriptionLength: property.description?.length,
+        descriptionFrLength: property.description_fr?.length,
+        localeActuelle: locale
+      });
+    }
+  }, [property, mounted, locale]);
 
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
@@ -8147,7 +8286,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   if (!mounted || !property) return null;
 
   // Nettoyer la description des balises HTML pour un meilleur affichage
-  const cleanDescription = description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">');
+  const cleanDescription = description ? description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">') : "";
 
   return (
     <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
@@ -8230,15 +8369,21 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                 <h2 className={`text-xl md:text-2xl font-serif italic mb-4 md:mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Description
                 </h2>
-                <div 
-                  className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
-                  dangerouslySetInnerHTML={{ __html: cleanDescription }}
-                  style={{ 
-                    wordBreak: 'break-word',
-                    overflowWrap: 'break-word',
-                    maxWidth: '100%'
-                  }}
-                />
+                {cleanDescription ? (
+                  <div 
+                    className={`text-base md:text-xl font-light leading-relaxed space-y-4 md:space-y-6 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}
+                    dangerouslySetInnerHTML={{ __html: cleanDescription }}
+                    style={{ 
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      maxWidth: '100%'
+                    }}
+                  />
+                ) : (
+                  <p className={`text-base md:text-xl font-light italic ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {t('propertyDetail.noDescription') || "Aucune description disponible pour ce bien."}
+                  </p>
+                )}
               </div>
 
               {/* SECTION LOCALISATION */}
@@ -8381,9 +8526,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // Formatage optimisé des villas
+  // Formatage optimisé des villas - CORRIGÉ pour conserver toutes les descriptions
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
-    // Utiliser un Map pour éviter les doublons par id_externe
     const uniqueMap = new Map();
     
     for (const v of villas) {
@@ -8399,20 +8543,36 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
       uniqueMap.set(key, {
+        // Garder toutes les propriétés originales
         ...v,
+        // Puis surcharger/nettoyer les champs importants
         id: v.id || `v-${key}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
         ref: String(v.id_externe || v.ref || v.reference || ""),
-        titre: v[`titre_${locale}`] || v.titre || v.development_name || "Propriété",
-        description: v[`description_${locale}`] || v.description || v.details || "",
+        // ✅ Titre localisé corrigé
+        titre: v[`titre_${locale}`] || v.titre_fr || v.titre || v.development_name || "Propriété",
+        // ✅ Description localisée - CRUCIAL POUR LA PAGE DÉTAIL
+        description: v[`description_${locale}`] || v.description_fr || v.description || "",
+        description_fr: v.description_fr || "",
+        description_en: v.description_en || "",
+        description_es: v.description_es || "",
+        description_nl: v.description_nl || "",
+        description_pl: v.description_pl || "",
+        description_ar: v.description_ar || "",
         price: Number(v.price || v.prix || 0),
         town: String(v.town || v.ville || v.city || "").trim(),
         region: String(v.region || v.province || v.state || "").trim(),
         beds: parseInt(v.beds || v.bedrooms) || 0,
         baths: parseInt(v.baths || v.bathrooms) || 0,
         surface: Number(v.surface || v.m2 || v.built || 0),
+        surface_built: v.surface_built || v.built || "0",
+        surface_plot: v.surface_plot || v.plot || "0",
         type: String(v.type || "Villa").trim(),
         images: imageArray,
+        pool: v.pool === "Oui" || v.pool === true ? "Oui" : "Non",
+        latitude: v.latitude || null,
+        longitude: v.longitude || null,
+        adresse: v.adresse || "",
       });
     }
     
@@ -8473,15 +8633,25 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
 
     // 2. Utiliser les propriétés initiales du SSR si disponibles
-    if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
-      const formatted = formatVillaData(initialProperties);
-      setAllProperties(formatted);
-      setFilteredProperties(formatted);
-      saveToCache(formatted);
-      setLoadingProperties(false);
-      initialLoadDone.current = true;
-      return;
-    }
+if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("📦 [AgencyPageClient] initialProperties reçues du SSR:", initialProperties.length);
+  console.log("📦 [AgencyPageClient] Première propriété brute - a description_fr:", !!initialProperties[0]?.description_fr);
+  console.log("📦 [AgencyPageClient] Première propriété brute - description_fr:", initialProperties[0]?.description_fr?.substring(0, 100));
+  
+  const formatted = formatVillaData(initialProperties);
+  
+  console.log("📦 [AgencyPageClient] Après formatage - a description_fr:", !!formatted[0]?.description_fr);
+  console.log("📦 [AgencyPageClient] Après formatage - description_fr:", formatted[0]?.description_fr?.substring(0, 100));
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  
+  setAllProperties(formatted);
+  setFilteredProperties(formatted);
+  saveToCache(formatted);
+  setLoadingProperties(false);
+  initialLoadDone.current = true;
+  return;
+}
 
     // 3. Fallback : chargement API
     try {
@@ -8513,7 +8683,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       // Tri par prix croissant (du moins cher au plus cher)
       const { data, error } = await query
         .order('price', { ascending: true })
-        .limit(500); // Limiter pour la performance
+        .limit(500);
 
       setLoadingProgress(80);
 
@@ -8526,7 +8696,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
     } catch (err) {
       console.error("Erreur chargement propriétés:", err);
-      // En cas d'erreur, essayer de récupérer les initialProperties comme fallback
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -8583,18 +8752,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     const results = allProperties.filter((p) => {
       const pPrice = Number(p.price) || 0;
       
-      // Filtre prix simplifié
       const matchPrice = pPrice >= min && pPrice <= max;
-      
       const matchType = !searchType || searchType === "all" || 
         p.type.toLowerCase().includes(searchType);
-      
       const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
-      
       const matchLocation = !searchLocation || 
         (p.town && p.town.toLowerCase().includes(searchLocation)) || 
         (p.region && p.region.toLowerCase().includes(searchLocation));
-
       const matchRef = !searchRef || 
         (p.ref && p.ref.toLowerCase().includes(searchRef)) ||
         (p.id_externe && p.id_externe.toLowerCase().includes(searchRef));
@@ -8602,7 +8766,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
-    // Les résultats sont déjà triés car allProperties est trié
     setFilteredProperties(results);
     setDisplayLimit(12);
     setIsSearchOpen(false);
@@ -8703,7 +8866,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         properties={filteredProperties.slice(0, displayLimit)} 
                         favorites={favorites}
                         onToggleFavorite={toggleFavorite}
-                        onPropertyClick={(p: Villa) => { setSelectedProperty(p); window.scrollTo({ top: 0 }); }}
+                        onPropertyClick={(p: Villa) => { 
+                        console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id });
+                        setSelectedProperty(p); 
+                        window.scrollTo({ top: 0 }); 
+                      }}
                       />
                     ) : (
                       <motion.div 
