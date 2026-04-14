@@ -3,20 +3,33 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// On initialise le client en dehors du handler pour le réutiliser
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
+// Fonction pour obtenir le client Supabase de manière sécurisée (Lazy Init)
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceKey) {
+    throw new Error("Variables Supabase manquantes dans l'environnement.");
+  }
+
+  return createClient(url, serviceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
-  }
-);
+  });
+}
 
 export async function POST(req: Request) {
   try {
+    // 1. SÉCURITÉ : Vérification de la clé API (Correction Claude Point n°3)
+    const apiKey = req.headers.get('x-api-key');
+    const INGEST_API_KEY = process.env.INGEST_API_KEY;
+
+    if (!apiKey || apiKey !== INGEST_API_KEY) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { email, projectId } = body;
 
@@ -24,10 +37,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email requis" }, { status: 400 });
     }
 
+    const supabaseAdmin = getSupabaseAdmin();
     const pinCode = Math.floor(1000 + Math.random() * 9000).toString();
     const tempPassword = "Client" + pinCode + "!";
 
-    // 1. Création de l'utilisateur
+    // 2. Création de l'utilisateur via Admin Auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: tempPassword,
@@ -36,11 +50,10 @@ export async function POST(req: Request) {
     });
 
     if (authError) {
-      // Si l'utilisateur existe déjà, on renvoie une erreur claire
       return NextResponse.json({ error: authError.message }, { status: 400 });
     }
 
-    // 2. Liaison optionnelle
+    // 3. Liaison optionnelle au projet
     if (projectId && authUser.user) {
       await supabaseAdmin
         .from('suivi_chantier')
@@ -59,7 +72,8 @@ export async function POST(req: Request) {
     });
 
   } catch (err: any) {
-    console.error("Erreur API:", err);
+    console.error("Erreur API:", err.message);
+    // SÉCURITÉ : On ne renvoie pas la stack trace (Correction Claude Point n°2)
     return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }

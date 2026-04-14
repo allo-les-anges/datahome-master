@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<root>
+  <property>
+    <id>TEST001</id>
+    <ref>TEST-REF-001</ref>
+    <price>500000</price>
+    <town>Alicante</town>
+    <type>villa</type>
+    <beds>3</beds>
+    <baths>2</baths>
+  </property>
+</root>

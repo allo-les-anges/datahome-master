@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <property>
+    <id>TEST-999</id>
+    <ref>REF-TEST-001</ref>
+    <price>1500000</price>
+    <town>Estepona</town>
+    <province>Málaga</province>
+    <title>
+      <fr>Villa de Test Dynamique</fr>
+      <en>Dynamic Test Villa</en>
+    </title>
+    <desc>
+      <fr>Ceci est un test pour vérifier la communication multi-langues et l'ID agence.</fr>
+      <en>This is a test to verify multi-language communication and agency ID.</en>
+    </desc>
+    <images>
+      <image id="1">
+        <url>https://medianewbuild.com/file/hh-media-bucket/developments_v2/23201709/media/images/4.jpg</url>
+      </image>
+    </images>
+  </property>
+</root>
