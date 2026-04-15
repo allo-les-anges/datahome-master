@@ -9,7 +9,8 @@
     "cancel": "Annuleren",
     "save": "Opslaan",
     "close": "Sluiten",
-    "showMore": "Meer eigendommen tonen"
+    "showMore": "Meer eigendommen tonen",
+    "loadingProperties": "Eigendommen laden..."
   },
   "nav": {
     "home": "Home",

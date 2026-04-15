@@ -343,7 +343,7 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
         <div className="w-16 h-16 border-4 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-4"></div>
         <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">
-          {t('common.loadingProperties') || 'Chargement des propriétés...'}
+          {t('common.loading')}
         </p>
       </div>
     );

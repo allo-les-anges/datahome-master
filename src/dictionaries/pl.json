@@ -9,7 +9,8 @@
     "cancel": "Anuluj",
     "save": "Zapisz",
     "close": "Zamknij",
-    "showMore": "Pokaż więcej nieruchomości"
+    "showMore": "Pokaż więcej nieruchomości",
+    "loadingProperties": "Ładowanie nieruchomości..."
   },
   "nav": {
     "home": "Strona główna",

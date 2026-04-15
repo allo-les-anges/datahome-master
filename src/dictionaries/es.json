@@ -9,7 +9,8 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "close": "Cerrar",
-    "showMore": "Mostrar más propiedades"
+    "showMore": "Mostrar más propiedades",
+    "loadingProperties": "Cargando propiedades..."
   },
   "nav": {
     "home": "Inicio",

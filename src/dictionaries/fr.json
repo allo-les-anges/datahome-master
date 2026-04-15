@@ -9,7 +9,8 @@
     "cancel": "Annuler",
     "save": "Enregistrer",
     "close": "Fermer",
-    "showMore": "Afficher plus de biens"
+    "showMore": "Afficher plus de biens",
+    "loadingProperties": "Chargement des propriétés..."
   },
   "nav": {
     "home": "Accueil",
