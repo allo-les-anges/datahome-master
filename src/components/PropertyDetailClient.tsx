@@ -29,6 +29,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
            "#D4AF37"; 
   }, [agency]);
 
+  const fontFamily = agency?.font_family || 'Montserrat';
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -101,7 +103,13 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const cleanDescription = description ? description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">') : "";
 
   return (
-    <main className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}>
+    <main 
+      className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}
+      style={{ 
+        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`,
+        fontWeight: 400
+      }}
+    >
       <div className="pb-20"> 
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           
@@ -147,7 +155,14 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           {/* GRILLE DE CONTENU */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
             <div className="lg:col-span-2">
-              <h1 className={`text-3xl md:text-5xl lg:text-7xl font-serif mb-4 md:mb-6 leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 
+                className={`text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-6 leading-tight font-normal ${isLight ? 'text-slate-900' : 'text-white'}`}
+                style={{ 
+                  fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                  fontWeight: 400,
+                  letterSpacing: '-0.02em'
+                }}
+              >
                 {property.titre || property.title || "Propriété Exclusive"}
               </h1>
 
@@ -178,7 +193,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
               {/* SECTION DESCRIPTION - VERSION AMÉLIORÉE POUR MOBILE */}
               <div className="mb-12 md:mb-16">
-                <h2 className={`text-xl md:text-2xl font-serif italic mb-4 md:mb-6 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                <h2 
+                  className={`text-xl md:text-2xl italic mb-4 md:mb-6 font-normal ${isLight ? 'text-slate-900' : 'text-white'}`}
+                  style={{ fontFamily: `${fontFamily}, 'Playfair Display', serif` }}
+                >
                   Description
                 </h2>
                 {cleanDescription ? (
@@ -188,7 +206,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     style={{ 
                       wordBreak: 'break-word',
                       overflowWrap: 'break-word',
-                      maxWidth: '100%'
+                      maxWidth: '100%',
+                      fontFamily: `${fontFamily}, sans-serif`
                     }}
                   />
                 ) : (
@@ -205,7 +224,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     <Navigation size={20} className="md:size-24" color={primaryColor} />
                   </div>
                   <div>
-                    <h2 className={`text-xl md:text-2xl lg:text-3xl font-serif italic ${isLight ? 'text-slate-900' : 'text-white'}`}>Localisation</h2>
+                    <h2 
+                      className={`text-xl md:text-2xl lg:text-3xl italic font-normal ${isLight ? 'text-slate-900' : 'text-white'}`}
+                      style={{ fontFamily: `${fontFamily}, 'Playfair Display', serif` }}
+                    >
+                      Localisation
+                    </h2>
                     <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
                   </div>
                 </div>
@@ -228,7 +252,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
                 <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
                   <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-3xl md:text-4xl lg:text-5xl font-serif leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  <p className={`text-3xl md:text-4xl lg:text-5xl leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
