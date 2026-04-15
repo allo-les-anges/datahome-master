@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck } from "lucide-react";
+import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck, Scale } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
 interface FooterProps {
@@ -66,24 +67,26 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
             </ul>
           </div>
 
-          {/* Légal & Privacy (Le coeur du SaaS) */}
+          {/* Légal & Privacy */}
           <div className="space-y-6">
             <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
             <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
               <li>
                 <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
-                  <ShieldCheck size={12} />
+                  <ShieldCheck size={12} className="shrink-0" />
                   {t('footer.privacy')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors">
+                {/* AJOUT DE L'ICÔNE SCALE ICI */}
+                <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors flex items-center gap-2">
+                  <Scale size={12} className="shrink-0" />
                   {t('footer.terms')}
                 </Link>
               </li>
-              {/* Si l'agence a un numéro de licence (ex: Carte T en France) */}
               {agency?.license_number && (
-                <li className="text-[9px] normal-case opacity-70">
+                <li className="text-[9px] normal-case opacity-70 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-current opacity-30" />
                   Licence: {agency.license_number}
                 </li>
               )}
@@ -95,28 +98,37 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
             <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
             <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
               <p className="flex items-start gap-3">
-                <MapPin size={14} style={{ color: brandColor }} />
+                <MapPin size={14} className="shrink-0" style={{ color: brandColor }} />
                 <span>{footerData?.address || agency?.address}</span>
               </p>
               <div className="flex gap-4 pt-2">
                 {(footerData?.socials?.facebook || agency?.facebook_url) && (
-                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank"><Facebook size={18} /></a>
+                   <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">
+                     <Facebook size={18} />
+                   </a>
                 )}
                 {(footerData?.socials?.instagram || agency?.instagram_url) && (
-                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank"><Instagram size={18} /></a>
+                   <a href={footerData?.socials?.instagram || agency?.instagram_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">
+                     <Instagram size={18} />
+                   </a>
+                )}
+                {(footerData?.socials?.linkedin || agency?.linkedin_url) && (
+                   <a href={footerData?.socials?.linkedin || agency?.linkedin_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">
+                     <Linkedin size={18} />
+                   </a>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer Bottom : Le Copyright Multi-Tenant */}
+        {/* Footer Bottom */}
         <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
           <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
             © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
           </p>
           <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
-            Powered by <a href="https://datahome.fr" className="hover:underline">Datahome</a>
+            Powered by <a href="https://datahome.fr" className="hover:underline" target="_blank" rel="noopener noreferrer">Datahome</a>
           </p>
         </div>
       </div>
