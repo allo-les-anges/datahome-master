@@ -87,7 +87,6 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
               </li>
               <li>
                 <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors flex items-center gap-2">
-                  {/* L'icône Scale apparaît ici */}
                   <Scale size={12} className="shrink-0" />
                   {t('footer.terms')}
                 </Link>
@@ -130,13 +129,22 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
           </div>
         </div>
 
-        {/* Footer Bottom */}
+        {/* Footer Bottom : Copyright & Attribution Datahome */}
         <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
           <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
             © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
           </p>
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50`}>
-            Powered by <a href="https://datahome.fr" className="hover:underline" target="_blank" rel="noopener noreferrer">Datahome</a>
+          
+          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50 hover:opacity-100 transition-opacity`}>
+            Powered by{" "}
+            <a 
+              href="https://datahome.fr" 
+              className="hover:text-primary transition-colors underline decoration-dotted underline-offset-4"
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              Datahome
+            </a>
           </p>
         </div>
       </div>
