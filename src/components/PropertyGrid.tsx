@@ -21,6 +21,7 @@ interface PropertyGridProps {
 const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
   const price = Number(property.price || 0);
   const brandColor = agency?.primary_color || "#10b981";
+  const fontFamily = agency?.font_family || 'Montserrat';
   const showDark = !isLight;
 
   return (
@@ -29,6 +30,9 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
       className={`group cursor-pointer rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
         showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
       }`}
+      style={{ 
+        fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`
+      }}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {/* Lazy loading avec loading="lazy" */}
@@ -46,16 +50,31 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
 
       <div className="p-8 space-y-4">
         <div className="flex justify-between items-start">
-          <div className="text-2xl font-serif italic" style={{ color: showDark ? 'white' : '#0f172a' }}>
+          <div 
+            className="text-2xl font-normal"
+            style={{ 
+              fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+              color: showDark ? 'white' : '#0f172a',
+              fontWeight: 400
+            }}
+          >
             {price.toLocaleString()} €
           </div>
         </div>
-        <h3 className={`text-lg font-medium leading-tight line-clamp-2 ${showDark ? 'text-white/90' : 'text-slate-800'}`}>
+        <h3 
+          className={`text-lg leading-tight line-clamp-2 font-normal ${showDark ? 'text-white/90' : 'text-slate-800'}`}
+          style={{ 
+            fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+            fontWeight: 400
+          }}
+        >
           {property.titre}
         </h3>
         <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
           <MapPin size={14} style={{ color: brandColor }} />
-          {property.town} <span className="opacity-30">|</span> {property.region}
+          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town}</span>
+          <span className="opacity-30">|</span>
+          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span>
         </div>
       </div>
 
@@ -70,7 +89,12 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
         ].map((item, idx) => (
           <div key={idx} className="flex flex-col items-center gap-1">
             <item.icon size={16} className="text-slate-400" />
-            <span className="text-[10px] font-bold text-slate-400">{item.value}</span>
+            <span 
+              className="text-[10px] font-medium text-slate-400"
+              style={{ fontFamily: `${fontFamily}, sans-serif` }}
+            >
+              {item.value}
+            </span>
           </div>
         ))}
       </div>
