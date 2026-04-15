@@ -45,49 +45,30 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  // Récupération améliorée de la description avec fallbacks
   const description = useMemo(() => {
     if (!property) return "";
     
-    // Priorité à la version localisée
     if (property[`description_${locale}`]) {
-      console.log(`✅ Description trouvée en ${locale}`);
       return property[`description_${locale}`];
     }
-    // Sinon description_fr
     if (property.description_fr) {
-      console.log(`✅ Description trouvée en français (fallback)`);
       return property.description_fr;
     }
-    // Sinon description générique
     if (property.description) {
-      console.log(`✅ Description générique trouvée`);
       return property.description;
     }
-    // Sinon description provenant de l'API formatée
     if (property.details) {
-      console.log(`✅ Description provenant du champ details`);
       return property.details;
     }
-    
-    console.warn(`⚠️ Aucune description trouvée pour la propriété`);
     return "";
   }, [property, locale]);
 
-  // Ajout d'un log pour debugger les propriétés reçues
   useEffect(() => {
     if (property && mounted) {
       console.log("📦 [PropertyDetailClient] Propriété reçue:", {
         id: property.id,
         titre: property.titre,
         hasDescriptionFr: !!property.description_fr,
-        hasDescriptionEn: !!property.description_en,
-        hasDescriptionEs: !!property.description_es,
-        hasDescriptionNl: !!property.description_nl,
-        hasDescriptionPl: !!property.description_pl,
-        hasDescriptionAr: !!property.description_ar,
-        descriptionLength: property.description?.length,
-        descriptionFrLength: property.description_fr?.length,
         localeActuelle: locale
       });
     }
@@ -99,7 +80,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   if (!mounted || !property) return null;
 
-  // Nettoyer la description des balises HTML pour un meilleur affichage
   const cleanDescription = description ? description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">') : "";
 
   return (
@@ -156,9 +136,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 
-                className={`text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-6 leading-tight font-normal ${isLight ? 'text-slate-900' : 'text-white'}`}
+                className="text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-6 leading-tight font-normal"
                 style={{ 
                   fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                  color: isLight ? '#0f172a' : '#ffffff',
                   fontWeight: 400,
                   letterSpacing: '-0.02em'
                 }}
@@ -168,7 +149,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
               <div className="flex items-center gap-2 md:gap-3 text-slate-500 mb-8 md:mb-12 text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-bold">
                 <MapPin size={14} className="md:size-18" color={primaryColor} />
-                {property.town || property.ville} • {property.region}
+                <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town || property.ville}</span>
+                <span className="opacity-30">•</span>
+                <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-12 md:mb-16">
@@ -185,17 +168,29 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     className={`p-4 md:p-6 lg:p-8 rounded-[1.5rem] md:rounded-[2rem] border text-left transition-all hover:scale-[1.02] ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#111] border-white/5 hover:border-white/10'}`}
                   >
                     <item.icon className="mb-3 md:mb-4 lg:mb-6" color={primaryColor} size={20} />
-                    <p className={`text-xl md:text-2xl lg:text-3xl font-serif mb-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.val || "0"}</p>
+                    <p 
+                      className="text-xl md:text-2xl lg:text-3xl mb-1 font-normal"
+                      style={{ 
+                        fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                        color: isLight ? '#0f172a' : '#ffffff',
+                        fontWeight: 400
+                      }}
+                    >
+                      {item.val || "0"}
+                    </p>
                     <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
                   </div>
                 ))}
               </div>
 
-              {/* SECTION DESCRIPTION - VERSION AMÉLIORÉE POUR MOBILE */}
+              {/* SECTION DESCRIPTION */}
               <div className="mb-12 md:mb-16">
                 <h2 
-                  className={`text-xl md:text-2xl italic mb-4 md:mb-6 font-normal ${isLight ? 'text-slate-900' : 'text-white'}`}
-                  style={{ fontFamily: `${fontFamily}, 'Playfair Display', serif` }}
+                  className="text-xl md:text-2xl italic mb-4 md:mb-6 font-normal"
+                  style={{ 
+                    fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                    color: isLight ? '#0f172a' : '#ffffff'
+                  }}
                 >
                   Description
                 </h2>
@@ -225,12 +220,17 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   </div>
                   <div>
                     <h2 
-                      className={`text-xl md:text-2xl lg:text-3xl italic font-normal ${isLight ? 'text-slate-900' : 'text-white'}`}
-                      style={{ fontFamily: `${fontFamily}, 'Playfair Display', serif` }}
+                      className="text-xl md:text-2xl lg:text-3xl italic font-normal"
+                      style={{ 
+                        fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                        color: isLight ? '#0f172a' : '#ffffff'
+                      }}
                     >
                       Localisation
                     </h2>
-                    <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">{property.town}, {property.region}</p>
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+                      {property.town || property.ville}, {property.region}
+                    </p>
                   </div>
                 </div>
                 <div className="relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-xl h-[250px] md:h-[400px]" style={{ border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
@@ -240,19 +240,26 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     style={{ border: 0, filter: isLight ? "none" : "grayscale(1) invert(0.9) contrast(1.2)" }}
                     loading="lazy"
                     allowFullScreen
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(property.town || property.ville || "")},${encodeURIComponent(property.region || "")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                     title="Location map"
                   ></iframe>
                 </div>
               </div>
             </div>
 
-            {/* SIDEBAR - Contact Form (sticky only on desktop) */}
+            {/* SIDEBAR - Contact Form */}
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
                 <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
                   <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">PRIX</p>
-                  <p className={`text-3xl md:text-4xl lg:text-5xl leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  <p 
+                    className="text-3xl md:text-4xl lg:text-5xl leading-none font-normal"
+                    style={{ 
+                      fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                      color: isLight ? '#0f172a' : '#ffffff',
+                      fontWeight: 400
+                    }}
+                  >
                     {numericPrice.toLocaleString("fr-FR")} €
                   </p>
                 </div>
@@ -268,7 +275,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     style={{ 
                       border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
                       color: isLight ? '#0f172a' : '#ffffff',
-                      backgroundColor: 'transparent'
+                      backgroundColor: 'transparent',
+                      fontFamily: `${fontFamily}, sans-serif`
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = isLight ? '#f1f5f9' : 'rgba(255,255,255,0.05)';
