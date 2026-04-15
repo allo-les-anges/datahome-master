@@ -75,10 +75,10 @@ export default function AboutPage({ params }: AboutPageProps) {
           <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
             <div className={`transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
               <h1 
-                className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6"
+                className="text-3xl md:text-4xl lg:text-5xl text-white mb-6 font-normal"
                 style={{ 
                   fontFamily: `${fontFamily}, 'Playfair Display', serif`,
-                  fontWeight: 600,
+                  fontWeight: 400,
                   letterSpacing: '-0.02em'
                 }}
               >
