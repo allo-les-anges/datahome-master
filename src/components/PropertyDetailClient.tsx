@@ -1,9 +1,10 @@
+// src/components/PropertyDetailClient.tsx
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon, Play, X
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
@@ -18,6 +19,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const searchParams = useSearchParams();
   const [activeImage, setActiveImage] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
@@ -30,6 +32,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   }, [agency]);
 
   const fontFamily = agency?.font_family || 'Montserrat';
+
+  // Récupérer la vidéo (peut être une URL ou un objet)
+  const videoUrl = useMemo(() => {
+    if (!property) return null;
+    
+    // Si video_url est une chaîne directe
+    if (typeof property.video_url === 'string' && property.video_url) {
+      return property.video_url;
+    }
+    
+    // Si video_url est un objet avec des URLs par langue
+    if (property.video_url && typeof property.video_url === 'object') {
+      return property.video_url[locale] || property.video_url.fr || property.video_url.en || null;
+    }
+    
+    return null;
+  }, [property, locale]);
 
   useEffect(() => {
     setMounted(true);
@@ -69,10 +88,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
         id: property.id,
         titre: property.titre,
         hasDescriptionFr: !!property.description_fr,
-        localeActuelle: locale
+        localeActuelle: locale,
+        videoUrl: videoUrl
       });
     }
-  }, [property, mounted, locale]);
+  }, [property, mounted, locale, videoUrl]);
 
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
@@ -82,6 +102,34 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   const cleanDescription = description ? description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">') : "";
 
+  // Fonction pour extraire l'ID YouTube ou Vimeo
+  const getEmbedUrl = (url: string) => {
+    if (!url) return null;
+    
+    // YouTube
+    const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+    
+    // Vimeo
+    const vimeoRegex = /vimeo\.com\/(\d+)/;
+    const vimeoMatch = url.match(vimeoRegex);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    // Si c'est déjà une URL d'embed
+    if (url.includes('embed') || url.includes('player')) {
+      return url;
+    }
+    
+    return url;
+  };
+
+  const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : null;
+
   return (
     <main 
       className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}
@@ -90,34 +138,96 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
         fontWeight: 400
       }}
     >
+      {/* Modal vidéo */}
+      {isVideoModalOpen && embedUrl && (
+        <div 
+          className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setIsVideoModalOpen(false)}
+        >
+          <button 
+            onClick={() => setIsVideoModalOpen(false)}
+            className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors z-[310]"
+          >
+            <X size={32} />
+          </button>
+          <div 
+            className="relative w-full max-w-5xl aspect-video"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe
+              src={embedUrl}
+              className="w-full h-full rounded-2xl"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="pb-20"> 
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           
-          {/* GALERIE D'IMAGES */}
+          {/* GALERIE D'IMAGES / VIDÉO */}
           <section className="mb-12 md:mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[350px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
-                  {images.map((img: string, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
-                      style={{ 
-                        opacity: activeImage === idx ? 1 : 0, 
-                        zIndex: activeImage === idx ? 10 : 0,
-                        pointerEvents: activeImage === idx ? 'auto' : 'none'
-                      }}
+                
+                {/* Affichage de la vidéo en premier si disponible */}
+                {embedUrl && activeImage === -1 ? (
+                  <div className="relative w-full h-full">
+                    <iframe
+                      src={embedUrl}
+                      className="w-full h-full"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                    <button
+                      onClick={() => setIsVideoModalOpen(true)}
+                      className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20 hover:bg-black/80 transition-colors"
                     >
-                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                      <Play size={14} /> Plein écran
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                      {images.map((img: string, idx: number) => (
+                        <div 
+                          key={idx} 
+                          className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
+                          style={{ 
+                            opacity: activeImage === idx ? 1 : 0, 
+                            zIndex: activeImage === idx ? 10 : 0,
+                            pointerEvents: activeImage === idx ? 'auto' : 'none'
+                          }}
+                        >
+                          <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
-                </div>
+                    <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                      <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                {/* Bouton vidéo en premier si disponible */}
+                {embedUrl && (
+                  <button 
+                    onClick={() => setActiveImage(-1)} 
+                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === -1 ? 'scale-95' : 'opacity-40'}`}
+                    style={{ borderColor: activeImage === -1 ? primaryColor : 'transparent' }}
+                  >
+                    <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+                      <Play size={24} className="text-white" />
+                    </div>
+                    <span className="absolute bottom-2 left-2 text-white text-[8px] bg-black/50 px-2 py-0.5 rounded-full">VIDÉO</span>
+                  </button>
+                )}
+                
+                {/* Images miniatures */}
                 {images.map((img: string, idx: number) => (
                   <button 
                     key={idx} 
@@ -132,7 +242,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* GRILLE DE CONTENU */}
+          {/* RESTE DU CODE INCHANGÉ... */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 
