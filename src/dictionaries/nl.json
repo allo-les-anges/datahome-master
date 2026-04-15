@@ -9,29 +9,29 @@
     "cancel": "Annuleren",
     "save": "Opslaan",
     "close": "Sluiten",
-    "showMore": "Meer woningen weergeven"
+    "showMore": "Meer eigendommen tonen"
   },
   "nav": {
     "home": "Home",
     "about": "Over ons",
-    "results": "Ons aanbod",
+    "results": "Onze Eigendommen",
     "contact": "Contact",
     "back": "Terug naar lijst",
-    "search": "Zoek een woning",
+    "search": "Eigendom zoeken",
     "clientAccess": "Projectopvolging"
   },
   "home": {
     "heroTitleLine1": "Luxe Villa's &",
-    "heroTitleLine2": "Uitzonderlijk Vastgoed",
+    "heroTitleLine2": "Uitzonderlijke Eigendommen",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Vind uw villa",
     "noMatch": "Geen overeenkomsten gevonden",
-    "reset": "Filters wissen"
+    "reset": "Filters resetten"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
-    "beds": "slpks",
-    "baths": "badks",
+    "beds": "slaapk",
+    "baths": "badk",
     "surface": "m²",
     "plot": "m² perceel"
   },
@@ -40,63 +40,59 @@
     "ref": "Ref: {ref}",
     "bedrooms": "Slaapkamers",
     "bathrooms": "Badkamers",
-    "built": "m² Bebouwd",
+    "built": "m² Gebouwd",
     "plot": "Perceel m²",
     "pool": "Zwembad",
     "description": "Beschrijving",
     "features": "Kenmerken",
-    "parking": "Parkeergelegenheid",
+    "parking": "Parking",
     "price": "Verkoopprijs",
     "brochure": "PDF Brochure",
-    "whatsapp": "Contact WhatsApp",
-    "bookVisit": "Bezoek plannen",
+    "whatsapp": "WhatsApp Contact",
+    "bookVisit": "Bezoek boeken",
     "location": "Locatie",
     "distanceSea": "Zee op {distance}km",
-    "propertyNotFound": "Woning niet gevonden"
+    "propertyNotFound": "Eigendom niet gevonden"
   },
   "contact": {
-  "title": "Neem contact op",
-  "ref_label": "Ref",
-  "placeholder_name": "UW NAAM",
-  "placeholder_email": "UW EMAIL",
-  "placeholder_message": "DETAILS VAN UW PROJECT...",
-  "send_btn": "Aanvraag versturen",
-  "success_title": "Bericht succesvol verzonden!",
-  "success_message": "succesvol ontvangen.",
-  "error_message": "Fout bij het verzenden.",
-  "directContact": "Direct Contact",
-  "teamTitle": "Het Team"
-},
+    "title": "Contacteer ons",
+    "ref_label": "Ref",
+    "placeholder_name": "UW NAAM",
+    "placeholder_email": "UW EMAIL",
+    "placeholder_message": "DETAILS VAN UW PROJECT...",
+    "send_btn": "Verzend aanvraag",
+    "success_title": "Bericht succesvol verzonden!",
+    "success_message": "goed ontvangen.",
+    "error_message": "Fout bij verzenden bericht.",
+    "directContact": "Direct Contact",
+    "teamTitle": "Het Team"
+  },
   "footer": {
-    "description": "De kunst van uitzonderlijk vastgoed. Wij bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
+    "description": "De kunst van exceptioneel vastgoed. We bouwen bruggen tussen uw ambities en de meest prestigieuze eigendommen.",
     "city": "Orihuela Costa, Spanje",
-    "eliteEdition": "Elite Edition v2.0"
+    "eliteEdition": "Elite Edition v2.0",
+    "privacy": "Privacybeleid",
+    "terms": "Algemene Voorwaarden",
+    "address": "Adres",
+    "excellence": "Vastgoed Excellentie"
   },
   "projectTracker": {
-    "title": "Uw projectopvolging",
-    "phaseLabel": "Huidige fase:",
-    "quit": "Ruimte verlaten",
-    "documents": "Administratieve documenten",
-    "technicalReports": "Werfverslagen",
+    "title": "Projectopvolging",
+    "phaseLabel": "Huidige Fase:",
+    "quit": "Verlaat ruimte",
+    "documents": "Administratieve Documenten",
+    "technicalReports": "Werf Rapportages",
     "visitDate": "Bezoekdatum: {date}",
     "statusConforme": "STATUS: CONFORM",
-    "certification": "Informatie gecertificeerd door de technische afdeling."
+    "certification": "Informatie gecertificeerd door de technische dienst."
   },
   "about": {
     "title": "Ons Verhaal",
-    "text": "Vastgoedexcellentie in uw dienst.",
+    "text": "Vastgoed excellentie in uw dienst.",
     "signature": "Vastgoed door een nieuwe lens"
   },
-  "footer": {
-    "privacy": "Privacybeleid",
-    "terms": "Algemene Voorwaarden",
-    "eliteEdition": "Elite Editie",
-    "address": "Adres",
-    "excellence": "Vastgoed Excellence",
-    "description": "Uw betrouwbare partner voor exclusief vastgoed."
-  },
   "legal": {
-    "privacy_default": "Agentschap SCHMIDT-PRIVILEGE verbindt zich ertoe dat de verzameling en verwerking van uw gegevens voldoen aan de AVG (GDPR). Persoonsgegevens (naam, e-mail, telefoon) die via de formulieren op deze site worden verzameld, worden uitsluitend gebruikt om contact met u op te nemen. Ze worden nooit aan derden verstrekt. U heeft recht op inzage, correctie en verwijdering via e-mail.",
-    "terms_default": "Deze voorwaarden zijn van toepassing op het gebruik van de website van SCHMIDT-PRIVILEGE.\n\n1. Uitgever: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Intellectueel eigendom: Alle inhoud is eigendom van het agentschap of zijn licentiegevers.\n4. Aansprakelijkheid: Informatie over woningen wordt verstrekt onder voorbehoud van fouten of weglatingen."
+    "privacy_default": "Het agentschap verbindt zich ertoe dat de verzameling en verwerking van uw gegevens voldoet aan de AVG. Persoonlijke gegevens (naam, email, telefoon) verzameld via de formulieren op deze site worden uitsluitend gebruikt om contact met u op te nemen in het kader van uw vastgoedzoektocht of verkoop. Ze worden nooit aan derden doorgegeven. U hebt het recht op toegang, rectificatie en verwijdering van uw gegevens. Om dit recht uit te oefenen, neemt u contact met ons op via e-mail: onze klantendienst.",
+    "terms_default": "Deze voorwaarden zijn van toepassing op het gebruik van de website.\n\n1. Uitgever: Het vastgoedagentschap.\n2. Hosting: Vercel Inc.\n3. Intellectueel eigendom: Alle inhoud (foto's, tekst) is eigendom van het agentschap of zijn licentiegevers.\n4. Aansprakelijkheid: Informatie over eigendommen wordt verstrekt onder voorbehoud van fouten of weglatingen."
   }
 }

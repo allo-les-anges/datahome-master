@@ -48,7 +48,6 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
   if (!mounted) return null;
   const showDark = resolvedTheme === 'dark' && !isLight;
   
-  // Correction du chemin vers la page détail (doit correspondre à votre structure [id])
   const detailUrl = `/bien/${property.id}${isLight ? '?pack=light' : ''}`;
 
   return (
@@ -67,7 +66,7 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90" />
 
-        {/* BADGES GAUCHE - Utilise primaryColor */}
+        {/* BADGES GAUCHE */}
         <div className="absolute bottom-6 left-6 flex flex-wrap gap-2 max-w-[70%] z-10">
           <span 
             className="text-[9px] font-black px-4 py-2 rounded-none uppercase tracking-widest shadow-xl border border-white/10"
@@ -79,7 +78,7 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
             {translate('propertyCard.ref', { ref: property.ref || property.id_externe })}
           </span>
           <span className="bg-black/60 backdrop-blur-md text-white border border-white/30 text-[8px] font-bold px-4 py-2 rounded-none uppercase tracking-[0.2em]">
-            {property.type || t('propertyCard.exclusivity')}
+            {property.type || "EXCLUSIVITÉ"}
           </span>
         </div>
 
@@ -118,19 +117,45 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
         </div>
         <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-bold" style={{ color: showDark ? '#e2e8f0' : '#475569' }}>
           <span style={{ color: isLight ? 'black' : primaryColor }}>●</span>
-          {property.town} <span className="opacity-30">|</span> {property.region}
+          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town}</span>
+          <span className="opacity-30">|</span>
+          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span>
         </div>
       </div>
 
       {/* ICONES TECHNIQUES */}
       <div className="grid grid-cols-3 gap-y-6 pt-6 border-t" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
         {[
-          { icon: Maximize, value: `${property.surface_built || 0} m²` },
-          { icon: Bed, value: `${property.beds || 0} ${t('propertyCard.beds') || 'Beds'}` },
-          { icon: Bath, value: `${property.baths || 0} ${t('propertyCard.baths') || 'Baths'}` },
-          { icon: Waves, value: (property.pool === "Oui" || property.pool === true) ? (t('propertyCard.pool') || 'Piscine') : (t('propertyCard.noPool') || 'Sans Piscine') },
-          { icon: Map, value: `${property.surface_plot || 0} m²` },
-          { icon: Car, value: t('propertyCard.garage') || 'Parking' }
+          { 
+            icon: Maximize, 
+            value: `${property.surface_built || 0} ${t('propertyCard.surface') || 'm²'}`,
+            label: t('propertyCard.surface') || 'm²'
+          },
+          { 
+            icon: Bed, 
+            value: `${property.beds || 0}`,
+            label: t('propertyCard.beds') || 'lits'
+          },
+          { 
+            icon: Bath, 
+            value: `${property.baths || 0}`,
+            label: t('propertyCard.baths') || 'sdb'
+          },
+          { 
+            icon: Waves, 
+            value: (property.pool === "Oui" || property.pool === true) ? "✓" : "✗",
+            label: t('propertyDetail.pool') || 'Piscine'
+          },
+          { 
+            icon: Map, 
+            value: `${property.surface_plot || 0} ${t('propertyCard.plot') || 'm² terrain'}`,
+            label: t('propertyCard.plot') || 'm² terrain'
+          },
+          { 
+            icon: Car, 
+            value: "✓",
+            label: t('propertyDetail.parking') || 'Parking'
+          }
         ].map((item, idx) => (
           <div key={idx} className="flex items-center gap-3">
             <div 
@@ -142,15 +167,23 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
             >
               <item.icon size={14} style={{ color: isLight ? 'black' : primaryColor }} />
             </div>
-            <span 
-              className="text-[11px] font-medium"
-              style={{ 
-                fontFamily: `${fontFamily}, sans-serif`,
-                color: showDark ? '#f1f5f9' : '#1e293b'
-              }}
-            >
-              {item.value}
-            </span>
+            <div className="flex flex-col">
+              <span 
+                className="text-[11px] font-medium"
+                style={{ 
+                  fontFamily: `${fontFamily}, sans-serif`,
+                  color: showDark ? '#f1f5f9' : '#1e293b'
+                }}
+              >
+                {item.value}
+              </span>
+              <span 
+                className="text-[8px] uppercase tracking-wider text-slate-500"
+                style={{ fontFamily: `${fontFamily}, sans-serif` }}
+              >
+                {item.label}
+              </span>
+            </div>
           </div>
         ))}
       </div>

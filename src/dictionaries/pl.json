@@ -1,7 +1,7 @@
 {
   "common": {
-    "back": "Powrót",
-    "backToHome": "Powrót do strony głównej",
+    "back": "Wróć",
+    "backToHome": "Wróć do strony głównej",
     "loading": "Ładowanie...",
     "error": "Wystąpił błąd",
     "search": "Szukaj",
@@ -9,12 +9,12 @@
     "cancel": "Anuluj",
     "save": "Zapisz",
     "close": "Zamknij",
-    "showMore": "Pokaż więcej ofert"
+    "showMore": "Pokaż więcej nieruchomości"
   },
   "nav": {
     "home": "Strona główna",
     "about": "O nas",
-    "results": "Nasze oferty",
+    "results": "Nasze Nieruchomości",
     "contact": "Kontakt",
     "back": "Powrót do listy",
     "search": "Szukaj nieruchomości",
@@ -25,7 +25,7 @@
     "heroTitleLine2": "Wyjątkowe Nieruchomości",
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Znajdź swoją willę",
-    "noMatch": "Nie znaleziono dopasowań",
+    "noMatch": "Nie znaleziono wyników",
     "reset": "Resetuj filtry"
   },
   "propertyCard": {
@@ -33,15 +33,15 @@
     "beds": "sypialnie",
     "baths": "łazienki",
     "surface": "m²",
-    "plot": "m² działki"
+    "plot": "m² działka"
   },
   "propertyDetail": {
     "back": "Powrót do wyboru",
     "ref": "Ref: {ref}",
     "bedrooms": "Sypialnie",
     "bathrooms": "Łazienki",
-    "built": "m² Pow. zabudowy",
-    "plot": "Pow. działki m²",
+    "built": "m² Zabudowy",
+    "plot": "Działka m²",
     "pool": "Basen",
     "description": "Opis",
     "features": "Cechy",
@@ -51,52 +51,48 @@
     "whatsapp": "Kontakt WhatsApp",
     "bookVisit": "Zarezerwuj wizytę",
     "location": "Lokalizacja",
-    "distanceSea": "Morze w odległości {distance}km",
+    "distanceSea": "Morze {distance}km",
     "propertyNotFound": "Nie znaleziono nieruchomości"
   },
   "contact": {
-  "title": "Skontaktuj się z nami",
-  "ref_label": "Nr ref",
-  "placeholder_name": "TWOJE IMIĘ",
-  "placeholder_email": "TWÓJ EMAIL",
-  "placeholder_message": "SZCZEGÓŁY PROJEKTU...",
-  "send_btn": "Wyślij zapytanie",
-  "success_title": "Wiadomość wysłana pomyślnie!",
-  "success_message": "została pomyślnie odebrana.",
-  "error_message": "Błąd podczas wysyłania.",
-  "directContact": "Kontakt bezpośredni",
-  "teamTitle": "Zespół"
-},
+    "title": "Skontaktuj się z nami",
+    "ref_label": "Ref",
+    "placeholder_name": "TWOJE IMIĘ",
+    "placeholder_email": "TWOJ EMAIL",
+    "placeholder_message": "SZCZEGÓŁY TWOJEGO PROJEKTU...",
+    "send_btn": "Wyślij zapytanie",
+    "success_title": "Wiadomość wysłana pomyślnie!",
+    "success_message": "otrzymana.",
+    "error_message": "Błąd podczas wysyłania.",
+    "directContact": "Bezpośredni Kontakt",
+    "teamTitle": "Zespół"
+  },
   "footer": {
-    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi ofertami.",
+    "description": "Sztuka wyjątkowych nieruchomości. Budujemy mosty między Twoimi ambicjami a najbardziej prestiżowymi nieruchomościami.",
     "city": "Orihuela Costa, Hiszpania",
-    "eliteEdition": "Elite Edition v2.0"
+    "eliteEdition": "Elite Edition v2.0",
+    "privacy": "Polityka Prywatności",
+    "terms": "Warunki Użytkowania",
+    "address": "Adres",
+    "excellence": "Doskonałość w Nieruchomościach"
   },
   "projectTracker": {
-    "title": "Śledzenie Twojego projektu",
-    "phaseLabel": "Aktualna faza:",
-    "quit": "Wyloguj się",
-    "documents": "Dokumenty administracyjne",
-    "technicalReports": "Raporty z budowy",
+    "title": "Śledzenie Projektu",
+    "phaseLabel": "Aktualna Faza:",
+    "quit": "Opuść przestrzeń",
+    "documents": "Dokumenty Administracyjne",
+    "technicalReports": "Raporty z Placu Budowy",
     "visitDate": "Data wizyty: {date}",
     "statusConforme": "STATUS: ZGODNY",
     "certification": "Informacje certyfikowane przez dział techniczny."
   },
   "about": {
     "title": "Nasza Historia",
-    "text": "Doskonałość w nieruchomościach na Twoją usługę.",
+    "text": "Doskonałość w nieruchomościach na Twoje usługi.",
     "signature": "Nieruchomości w nowym świetle"
   },
-  "footer": {
-    "privacy": "Polityka Prywatności",
-    "terms": "Regulamin",
-    "eliteEdition": "Edycja Elitarna",
-    "address": "Adres",
-    "excellence": "Doskonałość w Nieruchomościach",
-    "description": "Twój zaufany partner w segmencie nieruchomości luksusowych."
-  },
   "legal": {
-    "privacy_default": "Agencja SCHMIDT-PRIVILEGE zobowiązuje się do zapewnienia, że gromadzenie i przetwarzanie danych osobowych jest zgodne z RODO. Dane (imię, e-mail, telefon) zebrane za pośrednictwem formularzy są wykorzystywane wyłącznie do kontaktu z Państwem. Nie są one udostępniane osobom trzecim. Przysługuje Państwu prawo do wglądu, poprawiania i usuwania danych drogą mailową.",
-    "terms_default": "Niniejszy regulamin określa zasady korzystania z witryny agencji SCHMIDT-PRIVILEGE.\n\n1. Wydawca: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Własność intelektualna: Wszystkie treści są własnością agencji lub jej licencjodawców.\n4. Odpowiedzialność: Informacje o nieruchomościach są dostarczane z zastrzeżeniem błędów lub pominięć."
+    "privacy_default": "Agencja zobowiązuje się, że gromadzenie i przetwarzanie danych będzie zgodne z RODO. Dane osobowe (imię, email, telefon) zbierane za pośrednictwem formularzy na tej stronie są wykorzystywane wyłącznie w celu kontaktu w ramach poszukiwania nieruchomości lub sprzedaży. Nie są przekazywane stronom trzecim. Masz prawo dostępu, sprostowania i usunięcia swoich danych. Aby skorzystać z tego prawa, skontaktuj się z nami e-mailem: nasza obsługa klienta.",
+    "terms_default": "Niniejsze warunki regulują korzystanie z witryny.\n\n1. Wydawca: Agencja nieruchomości.\n2. Hosting: Vercel Inc.\n3. Własność intelektualna: Wszystkie treści (zdjęcia, teksty) są własnością agencji lub jej licencjodawców.\n4. Odpowiedzialność: Informacje o nieruchomościach są podawane z zastrzeżeniem błędów lub pominięć."
   }
 }

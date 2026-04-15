@@ -1,7 +1,7 @@
 {
   "common": {
     "back": "Back",
-    "backToHome": "Back to Home",
+    "backToHome": "Back to home",
     "loading": "Loading...",
     "error": "An error occurred",
     "search": "Search",
@@ -17,7 +17,7 @@
     "results": "Our Properties",
     "contact": "Contact",
     "back": "Back to list",
-    "search": "Search a property",
+    "search": "Search property",
     "clientAccess": "Project Tracking"
   },
   "home": {
@@ -40,7 +40,7 @@
     "ref": "Ref: {ref}",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
-    "built": "Sqm Built",
+    "built": "sqm Built",
     "plot": "Plot sqm",
     "pool": "Pool",
     "description": "Description",
@@ -48,34 +48,38 @@
     "parking": "Parking",
     "price": "Sale price",
     "brochure": "PDF Brochure",
-    "whatsapp": "Contact WhatsApp",
+    "whatsapp": "WhatsApp Contact",
     "bookVisit": "Book a visit",
     "location": "Location",
     "distanceSea": "Sea at {distance}km",
     "propertyNotFound": "Property not found"
   },
   "contact": {
-  "title": "Contact Us",
-  "ref_label": "Ref",
-  "placeholder_name": "YOUR NAME",
-  "placeholder_email": "YOUR EMAIL",
-  "placeholder_message": "PROJECT DETAILS...",
-  "send_btn": "Send Request",
-  "success_title": "Message sent successfully!",
-  "success_message": "successfully received.",
-  "error_message": "Error while sending.",
-  "directContact": "Direct Contact",
-  "teamTitle": "The Team"
-},
+    "title": "Contact us",
+    "ref_label": "Ref",
+    "placeholder_name": "YOUR NAME",
+    "placeholder_email": "YOUR EMAIL",
+    "placeholder_message": "YOUR PROJECT DETAILS...",
+    "send_btn": "Send request",
+    "success_title": "Message sent successfully!",
+    "success_message": "well received.",
+    "error_message": "Error sending message.",
+    "directContact": "Direct Contact",
+    "teamTitle": "The Team"
+  },
   "footer": {
     "description": "The art of exceptional real estate. We build bridges between your ambitions and the most prestigious properties.",
     "city": "Orihuela Costa, Spain",
-    "eliteEdition": "Elite Edition v2.0"
+    "eliteEdition": "Elite Edition v2.0",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "address": "Address",
+    "excellence": "Real Estate Excellence"
   },
   "projectTracker": {
-    "title": "Your Project Tracking",
+    "title": "Project Tracking",
     "phaseLabel": "Current Phase:",
-    "quit": "Leave area",
+    "quit": "Exit space",
     "documents": "Administrative Documents",
     "technicalReports": "Site Reports",
     "visitDate": "Visit date: {date}",
@@ -87,16 +91,8 @@
     "text": "Real estate excellence at your service.",
     "signature": "Real estate through a new lens"
   },
-  "footer": {
-    "privacy": "Privacy Policy",
-    "terms": "Terms & Conditions",
-    "eliteEdition": "Elite Edition",
-    "address": "Address",
-    "excellence": "Real Estate Excellence",
-    "description": "Your trusted partner for exceptional real estate."
-  },
   "legal": {
-    "privacy_default": "SCHMIDT-PRIVILEGE is committed to ensuring that the collection and processing of your data comply with the GDPR. Personal data collected (name, email, phone) is used exclusively to contact you regarding your real estate search or property sale. It is never shared with third parties. You have the right to access, rectify, and delete your data. To exercise this right, please contact us via email.",
-    "terms_default": "These terms govern the use of the SCHMIDT-PRIVILEGE agency website.\n\n1. Site Publisher: SCHMIDT-PRIVILEGE.\n2. Hosting: Vercel Inc.\n3. Intellectual Property: All content (photos, text) is the property of the agency or its licensors.\n4. Liability: Property information is provided subject to errors or omissions."
+    "privacy_default": "The agency is committed to ensuring that the collection and processing of your data complies with GDPR. Personal data collected (name, email, phone) via the forms on this site is used exclusively to contact you regarding your property search or sale. It is never shared with third parties. You have the right to access, rectify, and delete your data. To exercise this right, contact us by email at: our customer service.",
+    "terms_default": "These terms govern the use of the website.\n\n1. Publisher: The real estate agency.\n2. Hosting: Vercel Inc.\n3. Intellectual property: All content (photos, text) is the property of the agency or its licensors.\n4. Liability: Property information is provided subject to errors or omissions."
   }
 }
