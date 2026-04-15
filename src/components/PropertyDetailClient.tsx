@@ -156,12 +156,12 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-12 md:mb-16">
                 {[
-                  { icon: Bed, val: property.beds, label: 'CHAMBRES' },
-                  { icon: Bath, val: property.baths, label: 'BAINS' },
-                  { icon: Maximize, val: property.surface_built, label: 'M² CONSTRUIT' },
-                  { icon: Home, val: property.surface_plot, label: 'M² TERRAIN' },
-                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? "OUI" : "NON"), label: 'PISCINE' },
-                  { icon: Car, val: "OUI", label: 'PARKING' },
+                  { icon: Bed, val: property.beds, labelKey: 'propertyCard.beds', defaultLabel: 'CHAMBRES' },
+                  { icon: Bath, val: property.baths, labelKey: 'propertyCard.baths', defaultLabel: 'BAINS' },
+                  { icon: Maximize, val: property.surface_built, labelKey: 'propertyCard.surface', defaultLabel: 'M² CONSTRUIT' },
+                  { icon: Home, val: property.surface_plot, labelKey: 'propertyCard.land', defaultLabel: 'M² TERRAIN' },
+                  { icon: Waves, val: (property.pool === "Oui" || property.pool === true ? t('propertyCard.yes') || "OUI" : t('propertyCard.no') || "NON"), labelKey: 'propertyCard.pool', defaultLabel: 'PISCINE' },
+                  { icon: Car, val: t('propertyCard.yes') || "OUI", labelKey: 'propertyCard.parking', defaultLabel: 'PARKING' },
                 ].map((item, i) => (
                   <div 
                     key={i} 
@@ -178,7 +178,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     >
                       {item.val || "0"}
                     </p>
-                    <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">{item.label}</p>
+                    <p className="text-[8px] md:text-[9px] uppercase text-slate-500 font-bold tracking-[0.2em]">
+                      {t(item.labelKey) || item.defaultLabel}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -192,7 +194,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                     color: isLight ? '#0f172a' : '#ffffff'
                   }}
                 >
-                  Description
+                  {t('propertyDetail.description') || "Description"}
                 </h2>
                 {cleanDescription ? (
                   <div 
@@ -226,7 +228,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                         color: isLight ? '#0f172a' : '#ffffff'
                       }}
                     >
-                      Localisation
+                      {t('propertyDetail.location') || "Localisation"}
                     </h2>
                     <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-bold">
                       {property.town || property.ville}, {property.region}
@@ -251,7 +253,9 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             <div className="lg:col-span-1">
               <div className={`sticky top-32 rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl ${isLight ? 'bg-white border border-slate-200' : 'bg-[#0A0A0A] border border-white/10'}`}>
                 <div className="p-5 md:p-6 lg:p-8 pb-3 md:pb-4">
-                  <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">PRIX</p>
+                  <p className="text-[9px] md:text-[10px] uppercase text-slate-400 mb-1 md:mb-2 font-bold tracking-widest">
+                    {t('propertyDetail.price') || "PRIX"}
+                  </p>
                   <p 
                     className="text-3xl md:text-4xl lg:text-5xl leading-none font-normal"
                     style={{ 
@@ -285,7 +289,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <MessageCircle size={16} className="md:size-18 text-green-500" /> WHATSAPP DIRECT
+                    <MessageCircle size={16} className="md:size-18 text-green-500" /> 
+                    {t('propertyDetail.whatsapp') || "WHATSAPP DIRECT"}
                   </a>
                 </div>
               </div>
