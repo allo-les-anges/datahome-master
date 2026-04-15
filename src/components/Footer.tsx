@@ -1,10 +1,18 @@
 "use client";
 
 import React from "react";
-import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Mail, Phone, Instagram, Facebook, MapPin, Linkedin, ShieldCheck, Scale } from "lucide-react";
+import { 
+  Mail, 
+  Phone, 
+  Instagram, 
+  Facebook, 
+  MapPin, 
+  Linkedin, 
+  ShieldCheck, 
+  Scale 
+} from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
 interface FooterProps {
@@ -78,8 +86,8 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
                 </Link>
               </li>
               <li>
-                {/* AJOUT DE L'ICÔNE SCALE ICI */}
                 <Link href={`/${locale}/${slug}/terms`} className="hover:text-primary transition-colors flex items-center gap-2">
+                  {/* L'icône Scale apparaît ici */}
                   <Scale size={12} className="shrink-0" />
                   {t('footer.terms')}
                 </Link>
@@ -97,10 +105,10 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
           <div className="space-y-6">
             <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
             <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <p className="flex items-start gap-3">
+              <div className="flex items-start gap-3">
                 <MapPin size={14} className="shrink-0" style={{ color: brandColor }} />
-                <span>{footerData?.address || agency?.address}</span>
-              </p>
+                <span className="leading-tight">{footerData?.address || agency?.address}</span>
+              </div>
               <div className="flex gap-4 pt-2">
                 {(footerData?.socials?.facebook || agency?.facebook_url) && (
                    <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">
