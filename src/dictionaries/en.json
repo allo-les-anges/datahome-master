@@ -33,7 +33,10 @@
     "beds": "beds",
     "baths": "baths",
     "surface": "sqm",
-    "plot": "sqm plot"
+    "plot": "sqm plot",
+    "land": "PLOT",
+    "pool": "POOL",
+    "parking": "PARKING"
   },
   "propertyDetail": {
     "back": "Back to selection",

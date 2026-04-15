@@ -33,7 +33,10 @@
     "beds": "sypialnie",
     "baths": "łazienki",
     "surface": "m²",
-    "plot": "m² działka"
+    "plot": "m² działka",
+    "land": "DZIAŁKA",
+    "pool": "BASEN",
+    "parking": "PARKING"
   },
   "propertyDetail": {
     "back": "Powrót do wyboru",

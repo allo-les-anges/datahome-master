@@ -33,7 +33,10 @@
     "beds": "dorm",
     "baths": "baños",
     "surface": "m²",
-    "plot": "m² terreno"
+    "plot": "m² terreno",
+    "land": "TERRENO",
+    "pool": "PISCINA",
+    "parking": "ESTACIONAMIENTO"
   },
   "propertyDetail": {
     "back": "Volver a la selección",

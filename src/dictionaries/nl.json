@@ -33,7 +33,10 @@
     "beds": "slaapk",
     "baths": "badk",
     "surface": "m²",
-    "plot": "m² perceel"
+    "plot": "m² perceel",
+    "land": "PERCEEL",
+    "pool": "ZWEMBAD",
+    "parking": "PARKEREN"
   },
   "propertyDetail": {
     "back": "Terug naar selectie",

@@ -33,7 +33,10 @@
     "beds": "lits",
     "baths": "sdb",
     "surface": "m²",
-    "plot": "m² terrain"
+    "plot": "m² terrain",
+    "land": "TERRAIN",
+    "pool": "PISCINE",
+    "parking": "PARKING"
   },
   "propertyDetail": {
     "back": "Retour à la sélection",
