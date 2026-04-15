@@ -8,7 +8,7 @@ import { useTranslation } from "@/contexts/I18nContext";
 
 interface PropertyCardProps {
   property: any;
-  agency?: any; // Ajout pour corriger l'erreur de build
+  agency?: any;
   isLight?: boolean;
 }
 
@@ -24,6 +24,11 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
            agency?.colors?.primary || 
            agency?.color || 
            "#D4AF37"; 
+  }, [agency]);
+
+  // --- EXTRACTION DE LA POLICE DYNAMIQUE ---
+  const fontFamily = useMemo(() => {
+    return agency?.font_family || 'Montserrat';
   }, [agency]);
 
   useEffect(() => {
@@ -97,7 +102,14 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
 
       <div className="py-8 px-2">
         <div className="flex justify-between items-start gap-4 mb-3">
-          <h3 className="font-serif text-2xl italic leading-tight flex-grow line-clamp-1" style={{ color: showDark ? '#ffffff' : '#0f172a' }}>
+          <h3 
+            className="text-2xl italic leading-tight flex-grow line-clamp-1 font-normal"
+            style={{ 
+              fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+              color: showDark ? '#ffffff' : '#0f172a',
+              fontWeight: 400
+            }}
+          >
             {property.titre}
           </h3>
           <span className="text-xl font-bold pt-1" style={{ color: isLight ? 'black' : primaryColor }}>
@@ -130,7 +142,13 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
             >
               <item.icon size={14} style={{ color: isLight ? 'black' : primaryColor }} />
             </div>
-            <span className="text-[11px] font-medium" style={{ color: showDark ? '#f1f5f9' : '#1e293b' }}>
+            <span 
+              className="text-[11px] font-medium"
+              style={{ 
+                fontFamily: `${fontFamily}, sans-serif`,
+                color: showDark ? '#f1f5f9' : '#1e293b'
+              }}
+            >
               {item.value}
             </span>
           </div>
