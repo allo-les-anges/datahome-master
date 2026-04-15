@@ -118,11 +118,11 @@ export default function ContactPage({ params }: ContactPageProps) {
             <motion.h1 
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
-              className="text-4xl md:text-6xl text-white mb-4"
+              className="text-4xl md:text-6xl text-white mb-4 font-normal"
               style={{ 
-                fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                fontStyle: 'italic',
-                fontWeight: 'normal'
+                fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                fontWeight: 400,
+                letterSpacing: '-0.02em'
               }}
             >
               {t('contact.title')}
@@ -147,11 +147,10 @@ export default function ContactPage({ params }: ContactPageProps) {
           <div className="xl:col-span-7 space-y-10">
             <div className="flex items-center gap-4 border-l-4 pl-6" style={{ borderColor: brandColor }}>
               <h2 
-                className="text-3xl uppercase tracking-widest"
+                className="text-3xl uppercase tracking-widest font-normal"
                 style={{ 
-                  fontFamily: `'Playfair Display', ${fontFamily}, serif`,
-                  fontStyle: 'italic',
-                  fontWeight: 'normal'
+                  fontFamily: `${fontFamily}, 'Playfair Display', serif`,
+                  fontWeight: 400
                 }}
               >
                 {agency?.about_title || t('contact.teamTitle')}
@@ -192,7 +191,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                 {status === "success" ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-12">
                     <CheckCircle size={48} className="text-green-500" />
-                    <h3 className="text-xl text-white" style={{ fontFamily: `'Playfair Display', ${fontFamily}, serif`, fontStyle: 'italic' }}>
+                    <h3 className="text-xl text-white" style={{ fontFamily: `${fontFamily}, 'Playfair Display', serif` }}>
                       {t('contact.success_title')}
                     </h3>
                     <p className="text-xs text-slate-400">
@@ -207,7 +206,7 @@ export default function ContactPage({ params }: ContactPageProps) {
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-lg text-white mb-6 text-center tracking-widest uppercase" style={{ fontFamily: `'Playfair Display', ${fontFamily}, serif`, fontStyle: 'italic' }}>
+                    <h3 className="text-lg text-white mb-6 text-center tracking-widest uppercase font-normal" style={{ fontFamily: `${fontFamily}, 'Playfair Display', serif` }}>
                       {t('contact.directContact')}
                     </h3>
                     
