@@ -36,7 +36,9 @@
     "plot": "m² terrain",
     "land": "TERRAIN",
     "pool": "PISCINE",
-    "parking": "PARKING"
+    "parking": "PARKING",
+    "yes": "OUI",
+    "no": "NON"
   },
   "propertyDetail": {
     "back": "Retour à la sélection",

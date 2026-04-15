@@ -36,7 +36,9 @@
     "plot": "m² perceel",
     "land": "PERCEEL",
     "pool": "ZWEMBAD",
-    "parking": "PARKEREN"
+    "parking": "PARKEREN",
+    "yes": "JA",
+    "no": "NEEN"
   },
   "propertyDetail": {
     "back": "Terug naar selectie",

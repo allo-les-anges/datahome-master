@@ -36,7 +36,9 @@
     "plot": "sqm plot",
     "land": "PLOT",
     "pool": "POOL",
-    "parking": "PARKING"
+    "parking": "PARKING",
+    "yes": "YES",
+    "no": "NO"
   },
   "propertyDetail": {
     "back": "Back to selection",

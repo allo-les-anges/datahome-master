@@ -36,7 +36,9 @@
     "plot": "m² działka",
     "land": "DZIAŁKA",
     "pool": "BASEN",
-    "parking": "PARKING"
+    "parking": "PARKING",
+    "yes": "TAK",
+    "no": "NIE"
   },
   "propertyDetail": {
     "back": "Powrót do wyboru",
