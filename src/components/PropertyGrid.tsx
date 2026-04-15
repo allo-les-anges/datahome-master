@@ -19,6 +19,7 @@ interface PropertyGridProps {
 
 // Composant memoizé pour éviter les re-rendus inutiles
 const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
+  const { t } = useTranslation() as any;
   const price = Number(property.price || 0);
   const brandColor = agency?.primary_color || "#10b981";
   const fontFamily = agency?.font_family || 'Montserrat';
@@ -35,7 +36,6 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
       }}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        {/* Lazy loading avec loading="lazy" */}
         <img 
           src={property.images?.[0] || '/placeholder-villa.jpg'} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -80,12 +80,38 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
 
       <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
         {[
-          { icon: Maximize, value: `${property.surface || property.surface_built || 0} m²` },
-          { icon: Bed, value: `${property.beds || 0}` },
-          { icon: Bath, value: `${property.baths || 0}` },
-          { icon: Waves, value: property.pool === "Oui" || property.pool === true ? "Piscine" : "Non" },
-          { icon: Map, value: `${property.surface_plot || 0} m²` },
-          { icon: Car, value: "Garage" }
+          { 
+            icon: Maximize, 
+            value: `${property.surface || property.surface_built || 0} ${t('propertyCard.surface') || 'm²'}`,
+            labelKey: 'propertyCard.surface'
+          },
+          { 
+            icon: Bed, 
+            value: `${property.beds || 0}`,
+            labelKey: 'propertyCard.beds'
+          },
+          { 
+            icon: Bath, 
+            value: `${property.baths || 0}`,
+            labelKey: 'propertyCard.baths'
+          },
+          { 
+            icon: Waves, 
+            value: (property.pool === "Oui" || property.pool === true) 
+              ? (t('propertyCard.yes') || 'OUI') 
+              : (t('propertyCard.no') || 'NON'),
+            labelKey: 'propertyCard.pool'
+          },
+          { 
+            icon: Map, 
+            value: `${property.surface_plot || 0} ${t('propertyCard.plot') || 'm²'}`,
+            labelKey: 'propertyCard.land'
+          },
+          { 
+            icon: Car, 
+            value: t('propertyCard.yes') || 'OUI',
+            labelKey: 'propertyCard.parking'
+          }
         ].map((item, idx) => (
           <div key={idx} className="flex flex-col items-center gap-1">
             <item.icon size={16} className="text-slate-400" />
@@ -94,6 +120,12 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
               style={{ fontFamily: `${fontFamily}, sans-serif` }}
             >
               {item.value}
+            </span>
+            <span 
+              className="text-[8px] uppercase tracking-wider text-slate-500"
+              style={{ fontFamily: `${fontFamily}, sans-serif` }}
+            >
+              {t(item.labelKey) || ''}
             </span>
           </div>
         ))}
