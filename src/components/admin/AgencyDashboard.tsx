@@ -1,463 +1,888 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase'; 
 import { 
   Save, Plus, Globe, Image as ImageIcon, Loader2, 
   CheckCircle2, AlertCircle, Palette, Phone, Mail, Layout, X,
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram, 
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
-  MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, UserMinus, Briefcase, FileText
+  MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, Briefcase, FileText,
+  Building2, ChevronRight, Settings, Plug, Eye
 } from 'lucide-react';
 
 // ============================================================
-// DICTIONNAIRE DE TRADUCTION COMPLET
+// COMPOSANTS RÉUTILISABLES
+// ============================================================
+
+const SectionHeader = ({ icon: Icon, title, description }: any) => (
+  <div className="mb-8 pb-4 border-b border-slate-200">
+    <div className="flex items-center gap-3 mb-2">
+      <div className="p-2 bg-slate-100 rounded-xl">
+        <Icon size={20} className="text-slate-700" />
+      </div>
+      <h2 className="text-xl font-serif italic text-slate-900">{title}</h2>
+    </div>
+    {description && <p className="text-slate-500 text-sm ml-11">{description}</p>}
+  </div>
+);
+
+const FormField = ({ label, icon: Icon, children, helper, required }: any) => (
+  <div className="space-y-2">
+    <label className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+      {Icon && <Icon size={14} className="text-slate-400" />}
+      {label}
+      {required && <span className="text-red-500">*</span>}
+    </label>
+    {children}
+    {helper && <p className="text-[10px] text-slate-400">{helper}</p>}
+  </div>
+);
+
+const ColorPicker = ({ value, onChange, label }: any) => (
+  <div className="flex items-center gap-3">
+    <input 
+      type="color" 
+      value={value || '#0f172a'} 
+      onChange={(e) => onChange(e.target.value)}
+      className="w-12 h-12 rounded-xl cursor-pointer border border-slate-200 p-1 shadow-sm"
+    />
+    <input 
+      type="text" 
+      value={value || ''} 
+      onChange={(e) => onChange(e.target.value)}
+      className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-slate-900 outline-none"
+      placeholder={label}
+    />
+  </div>
+);
+
+const ImageUpload = ({ value, onChange, label, accept = "image/*" }: any) => (
+  <div className="relative group">
+    <input 
+      type="file" 
+      accept={accept}
+      onChange={onChange}
+      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+    />
+    <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
+      {value ? (
+        <div className="relative">
+          <img src={value} className="h-20 w-auto object-contain" alt={label} />
+          <button 
+            type="button"
+            onClick={(e) => { e.preventDefault(); onChange(null); }}
+            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ) : (
+        <>
+          <UploadCloud size={32} className="text-slate-300" />
+          <span className="text-xs text-slate-500">{label || "Cliquer pour uploader"}</span>
+        </>
+      )}
+    </div>
+  </div>
+);
+
+// ============================================================
+// DICTIONNAIRE DE TRADUCTION
 // ============================================================
 const translations = {
   fr: {
     admin: "Administration",
     saas_title: "SaaS Agences",
     new_agency: "Nouvelle Agence",
-    select_agency: "Sélectionnez une agence pour configurer son branding.",
-    save: "Enregistrer les modifications",
-    saving: "Enregistrement en cours...",
-    success_save: "Configuration enregistrée avec succès !",
-    error_save: "Erreur lors de la sauvegarde.",
-    generate: "Générer l'agence",
-    sections: {
-      lang_xml: "Langues & Flux XML",
-      socials: "Réseaux Sociaux & Contact",
-      integrations: "Intégrations (CRM & IA)",
-      branding: "Identité Visuelle & Couleurs",
-      hero: "Configuration du Hero Header",
-      preview: "Aperçu en temps réel",
-      legal: "Conformité & Légal",
-      about: "Pages Statiques (About)",
-      team: "Gestion de l'Équipe"
+    select_agency: "Sélectionnez une agence pour commencer",
+    save: "Enregistrer",
+    saving: "Enregistrement...",
+    success_save: "Configuration enregistrée !",
+    error_save: "Erreur lors de la sauvegarde",
+    generate: "Créer l'agence",
+    tabs: {
+      general: "Général",
+      appearance: "Apparence",
+      hero: "Bannière",
+      pages: "Pages",
+      team: "Équipe",
+      social: "Réseaux",
+      integrations: "Intégrations",
+      languages: "Langues & XML"
     },
     fields: {
-      allowed_langs: "Langues autorisées sur le site",
-      xml_sources: "Flux Immobilier (XML)",
-      facebook: "Lien Facebook",
-      instagram: "Lien Instagram",
-      linkedin: "Lien LinkedIn",
-      tiktok: "Lien TikTok",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Nom de l'enseigne",
-      subdomain: "URL du site (Slug)",
-      logo: "Logo de l'agence",
-      font: "Police de caractères",
-      font_family: "Police de caractères",
-      primary_color: "Couleur Principale (Accents)",
-      button_color: "Couleur des Boutons (CTA)",
+      agency_name: "Nom de l'agence",
+      subdomain: "Adresse du site",
+      logo: "Logo",
+      package: "Abonnement",
+      primary_color: "Couleur principale",
+      button_color: "Couleur des boutons",
       button_style: "Style des boutons",
-      button_animation: "Animation des boutons",
-      hero_title: "Titre d'accroche (Hero)",
+      button_animation: "Animation",
+      font_family: "Police",
+      hero_title: "Titre d'accroche",
       hero_type: "Type de média",
-      hero_file: "Fichier Média (Image/Vidéo)",
-      email: "Email de contact",
-      phone: "Téléphone Fixe",
-      whatsapp: "Numéro WhatsApp (GSM)",
-      about_title: "Titre Page À Propos",
-      about_text: "Contenu Page À Propos",
+      hero_file: "Fichier média",
+      about_title: "Titre de la page À propos",
+      about_text: "Contenu",
       privacy_policy: "Politique de confidentialité",
-      member_name: "Nom complet",
-      member_role: "Poste / Rôle",
+      email: "Email",
+      phone: "Téléphone",
+      whatsapp: "WhatsApp",
+      facebook: "Facebook",
+      instagram: "Instagram",
+      linkedin: "LinkedIn",
+      tiktok: "TikTok",
+      zoho: "Zoho CRM",
+      taskade: "Taskade AI",
+      allowed_langs: "Langues disponibles",
+      default_lang: "Langue par défaut",
+      xml_sources: "Flux XML",
+      member_name: "Nom",
+      member_role: "Poste",
       member_bio: "Biographie",
-      member_photo: "Photo du membre"
+      member_photo: "Photo"
     },
     placeholders: {
-      slug: "nom-de-lagence",
-      hero_text: "Découvrez nos biens d'exception...",
-      about_title: "L'art de vivre l'exceptionnel...",
+      agency_name: "Ex: Prestige Immobilier",
+      subdomain: "mon-agence",
+      hero_title: "Découvrez l'excellence immobilière...",
+      about_title: "Notre histoire",
       about_text: "Décrivez votre agence...",
-      click_upload: "Cliquer pour uploader",
-      media_upload: "Charger le média",
-      button: "Bouton",
-      whatsapp: "Ex: 33600000000 (sans +)",
       member_name: "Jean Dupont",
       member_role: "Agent Commercial",
-      member_bio: "Expert en immobilier depuis 15 ans..."
+      member_bio: "Expert en immobilier depuis 15 ans...",
+      whatsapp: "33600000000",
+      email: "contact@agence.fr",
+      phone: "+33 1 23 45 67 89"
     },
     buttons: {
       add_member: "Ajouter un membre",
-      remove_member: "Supprimer"
+      save: "Enregistrer",
+      create: "Créer"
     }
   },
   en: {
     admin: "Administration",
     saas_title: "SaaS Agencies",
     new_agency: "New Agency",
-    select_agency: "Select an agency to configure its branding.",
-    save: "Save Settings",
+    select_agency: "Select an agency to start",
+    save: "Save",
     saving: "Saving...",
-    success_save: "Settings saved successfully!",
-    error_save: "Error while saving.",
-    generate: "Generate Agency",
-    sections: {
-      lang_xml: "Languages & XML Feeds",
-      socials: "Social Networks & Contact",
-      integrations: "Integrations (CRM & AI)",
-      branding: "Visual Identity & Colors",
-      hero: "Hero Header Setup",
-      preview: "Live Preview",
-      legal: "Compliance & Legal",
-      about: "Static Pages (About)",
-      team: "Team Management"
+    success_save: "Settings saved!",
+    error_save: "Error saving",
+    generate: "Create Agency",
+    tabs: {
+      general: "General",
+      appearance: "Appearance",
+      hero: "Hero",
+      pages: "Pages",
+      team: "Team",
+      social: "Social",
+      integrations: "Integrations",
+      languages: "Languages & XML"
     },
     fields: {
-      allowed_langs: "Allowed site languages",
-      xml_sources: "Real Estate Feeds (XML)",
-      facebook: "Facebook Link",
-      instagram: "Instagram Link",
-      linkedin: "LinkedIn Link",
-      tiktok: "TikTok Link",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
       agency_name: "Agency Name",
-      subdomain: "Site URL (Slug)",
-      logo: "Agency Logo",
-      font: "Font Family",
-      font_family: "Font Family",
-      primary_color: "Primary Color (Accents)",
-      button_color: "Button Color (CTA)",
+      subdomain: "Website Address",
+      logo: "Logo",
+      package: "Plan",
+      primary_color: "Primary Color",
+      button_color: "Button Color",
       button_style: "Button Style",
-      button_animation: "Button Animation",
+      button_animation: "Animation",
+      font_family: "Font",
       hero_title: "Hero Title",
       hero_type: "Media Type",
-      hero_file: "Hero Media (Image/Video)",
-      email: "Contact Email",
-      phone: "Landline Phone",
-      whatsapp: "WhatsApp Number (Mobile)",
+      hero_file: "Media File",
       about_title: "About Page Title",
-      about_text: "About Page Content",
+      about_text: "Content",
       privacy_policy: "Privacy Policy",
-      member_name: "Full Name",
-      member_role: "Position / Role",
-      member_bio: "Biography",
-      member_photo: "Member Photo"
+      email: "Email",
+      phone: "Phone",
+      whatsapp: "WhatsApp",
+      facebook: "Facebook",
+      instagram: "Instagram",
+      linkedin: "LinkedIn",
+      tiktok: "TikTok",
+      zoho: "Zoho CRM",
+      taskade: "Taskade AI",
+      allowed_langs: "Available Languages",
+      default_lang: "Default Language",
+      xml_sources: "XML Feeds",
+      member_name: "Name",
+      member_role: "Role",
+      member_bio: "Bio",
+      member_photo: "Photo"
     },
     placeholders: {
-      slug: "agency-name",
-      hero_text: "Discover our exceptional properties...",
-      about_title: "The art of exceptional living...",
+      agency_name: "Ex: Prestige Real Estate",
+      subdomain: "my-agency",
+      hero_title: "Discover real estate excellence...",
+      about_title: "Our story",
       about_text: "Describe your agency...",
-      click_upload: "Click to upload",
-      media_upload: "Upload media",
-      button: "Button",
-      whatsapp: "Ex: 44600000000 (no +)",
       member_name: "John Doe",
       member_role: "Real Estate Agent",
-      member_bio: "Real estate expert for 15 years..."
+      member_bio: "Real estate expert for 15 years...",
+      whatsapp: "447000000000",
+      email: "contact@agency.com",
+      phone: "+44 20 1234 5678"
     },
     buttons: {
-      add_member: "Add member",
-      remove_member: "Remove"
-    }
-  },
-  es: {
-    admin: "Administración",
-    saas_title: "SaaS Agencias",
-    new_agency: "Nueva Agencia",
-    select_agency: "Seleccione una agencia para configurar su branding.",
-    save: "Guardar cambios",
-    saving: "Guardando...",
-    success_save: "¡Configuración guardada con éxito!",
-    error_save: "Error al guardar.",
-    generate: "Generar Agencia",
-    sections: {
-      lang_xml: "Idiomas y Flujos XML",
-      socials: "Redes Sociales y Contacto",
-      integrations: "Integraciones (CRM e IA)",
-      branding: "Identidad Visual y Colores",
-      hero: "Configuración del Hero Header",
-      preview: "Vista previa en tiempo real",
-      legal: "Cumplimiento y Legal",
-      about: "Páginas Estáticas (About)",
-      team: "Gestión de Equipo"
-    },
-    fields: {
-      allowed_langs: "Idiomas permitidos en el sitio",
-      xml_sources: "Flujos Inmobiliarios (XML)",
-      facebook: "Enlace Facebook",
-      instagram: "Enlace Instagram",
-      linkedin: "Enlace LinkedIn",
-      tiktok: "Enlace TikTok",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Nombre de la agencia",
-      subdomain: "URL del sitio (Slug)",
-      logo: "Logo de la agencia",
-      font: "Fuente tipográfica",
-      font_family: "Fuente tipográfica",
-      primary_color: "Color principal (Acentos)",
-      button_color: "Color de botones (CTA)",
-      button_style: "Estilo de botones",
-      button_animation: "Animación de botones",
-      hero_title: "Título de cabecera (Hero)",
-      hero_type: "Tipo de medio",
-      hero_file: "Archivo multimedia (Imagen/Video)",
-      email: "Correo de contacto",
-      phone: "Teléfono fijo",
-      whatsapp: "Número WhatsApp (Móvil)",
-      about_title: "Título de la página Sobre Nosotros",
-      about_text: "Texto de la página Sobre Nosotros",
-      privacy_policy: "Política de Privacidad",
-      member_name: "Nombre completo",
-      member_role: "Puesto / Rol",
-      member_bio: "Biografía",
-      member_photo: "Foto del miembro"
-    },
-    placeholders: {
-      slug: "nombre-de-la-agencia",
-      hero_text: "Descubra nuestras propiedades excepcionales...",
-      about_title: "El arte de vivir excepcionalmente...",
-      about_text: "Describa su agencia...",
-      click_upload: "Clic para subir",
-      media_upload: "Cargar medio",
-      button: "Botón",
-      whatsapp: "Ej: 34600000000 (sin +)",
-      member_name: "Juan Pérez",
-      member_role: "Agente Inmobiliario",
-      member_bio: "Experto en bienes raíces desde hace 15 años..."
-    },
-    buttons: {
-      add_member: "Añadir miembro",
-      remove_member: "Eliminar"
-    }
-  },
-  pl: {
-    admin: "Administracja",
-    saas_title: "SaaS Agencje",
-    new_agency: "Nowa Agencja",
-    select_agency: "Wybierz agencję, aby skonfigurować jej branding.",
-    save: "Zapisz zmiany",
-    saving: "Zapisywanie...",
-    success_save: "Konfiguracja zapisana pomyślnie!",
-    error_save: "Błąd podczas zapisywania.",
-    generate: "Generuj Agencję",
-    sections: {
-      lang_xml: "Języki i kanały XML",
-      socials: "Media społecznościowe i kontakt",
-      integrations: "Integracje (CRM i AI)",
-      branding: "Tożsamość wizualna i kolory",
-      hero: "Konfiguracja nagłówka Hero",
-      preview: "Podgląd na żywo",
-      legal: "Zgodność i prawo",
-      about: "Strony statyczne (O nas)",
-      team: "Zarządzanie zespołem"
-    },
-    fields: {
-      allowed_langs: "Dozwolone języki witryny",
-      xml_sources: "Kanały nieruchomości (XML)",
-      facebook: "Link do Facebooka",
-      instagram: "Link do Instagrama",
-      linkedin: "Link do LinkedIn",
-      tiktok: "Link do TikToka",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Nazwa agencji",
-      subdomain: "URL witryny (Slug)",
-      logo: "Logo agencji",
-      font: "Czcionka",
-      font_family: "Czcionka",
-      primary_color: "Kolor główny (Akcenty)",
-      button_color: "Kolor przycisków (CTA)",
-      button_style: "Styl przycisków",
-      button_animation: "Animacja przycisków",
-      hero_title: "Tytuł nagłówka (Hero)",
-      hero_type: "Typ mediów",
-      hero_file: "Plik multimedialny (Obraz/Wideo)",
-      email: "E-mail kontaktowy",
-      phone: "Telefon stacjonarny",
-      whatsapp: "Numer WhatsApp (Komórkowy)",
-      about_title: "Tytuł strony O nas",
-      about_text: "Tekst strony O nas",
-      privacy_policy: "Polityka prywatności",
-      member_name: "Imię i nazwisko",
-      member_role: "Stanowisko / Rola",
-      member_bio: "Biografia",
-      member_photo: "Zdjęcie członka"
-    },
-    placeholders: {
-      slug: "nazwa-agencji",
-      hero_text: "Odkryj nasze wyjątkowe nieruchomości...",
-      about_title: "Sztuka wyjątkowego życia...",
-      about_text: "Opisz swoją agencję...",
-      click_upload: "Kliknij, aby przesłać",
-      media_upload: "Prześlij media",
-      button: "Przycisk",
-      whatsapp: "Np: 48600000000 (bez +)",
-      member_name: "Jan Kowalski",
-      member_role: "Agent nieruchomości",
-      member_bio: "Ekspert nieruchomości od 15 lat..."
-    },
-    buttons: {
-      add_member: "Dodaj członka",
-      remove_member: "Usuń"
-    }
-  },
-  nl: {
-    admin: "Administratie",
-    saas_title: "SaaS Agentschappen",
-    new_agency: "Nieuw Agentschap",
-    select_agency: "Selecteer een agentschap om de branding te configureren.",
-    save: "Wijzigingen opslaan",
-    saving: "Opslaan...",
-    success_save: "Configuratie succesvol opgeslagen!",
-    error_save: "Fout bij het opslaan.",
-    generate: "Agentschap genereren",
-    sections: {
-      lang_xml: "Talen & XML-feeds",
-      socials: "Sociale netwerken & Contact",
-      integrations: "Integraties (CRM & AI)",
-      branding: "Visuele identiteit & Kleuren",
-      hero: "Hero Header configuratie",
-      preview: "Live voorbeeld",
-      legal: "Compliance & Wettelijk",
-      about: "Statische Pagina's (Over ons)",
-      team: "Teambeheer"
-    },
-    fields: {
-      allowed_langs: "Toegestane talen op de site",
-      xml_sources: "Vastgoedfeeds (XML)",
-      facebook: "Facebook-link",
-      instagram: "Instagram-link",
-      linkedin: "LinkedIn-link",
-      tiktok: "TikTok-link",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Naam van het agentschap",
-      subdomain: "Website URL (Slug)",
-      logo: "Logo van het agentschap",
-      font: "Lettertype",
-      font_family: "Lettertype",
-      primary_color: "Hoofdkleur (Accenten)",
-      button_color: "Kleur van knoppen (CTA)",
-      button_style: "Stijl van knoppen",
-      button_animation: "Animatie van knoppen",
-      hero_title: "Hero titel",
-      hero_type: "Mediatype",
-      hero_file: "Mediabestand (Afbeelding/Video)",
-      email: "Contact e-mail",
-      phone: "Vaste lijn",
-      whatsapp: "WhatsApp-nummer (Mobiel)",
-      about_title: "Titel over ons pagina",
-      about_text: "Tekst over ons pagina",
-      privacy_policy: "Privacybeleid",
-      member_name: "Volledige naam",
-      member_role: "Functie / Rol",
-      member_bio: "Biografie",
-      member_photo: "Foto van het lid"
-    },
-    placeholders: {
-      slug: "naam-van-agentschap",
-      hero_text: "Ontdek onze exclusieve panden...",
-      about_title: "De kunst van exceptioneel wonen...",
-      about_text: "Beschrijf uw agentschap...",
-      click_upload: "Klik om te uploaden",
-      media_upload: "Media uploaden",
-      button: "Knop",
-      whatsapp: "Bijv: 31600000000 (zonder +)",
-      member_name: "Jan Jansen",
-      member_role: "Makelaar",
-      member_bio: "Vastgoedexpert sinds 15 jaar..."
-    },
-    buttons: {
-      add_member: "Lid toevoegen",
-      remove_member: "Verwijderen"
-    }
-  },
-  ar: {
-    admin: "الإدارة",
-    saas_title: "نظام إدارة الوكالات",
-    new_agency: "وكالة جديدة",
-    select_agency: "اختر وكالة لتكوين هويتها التجارية.",
-    save: "حفظ التغييرات",
-    saving: "جاري الحفظ...",
-    success_save: "تم حفظ الإعدادات بنجاح!",
-    error_save: "خطأ أثناء الحفظ.",
-    generate: "إنشاء الوكالة",
-    sections: {
-      lang_xml: "اللغات وخلاصات XML",
-      socials: "شبكات التواصل والاتصال",
-      integrations: "التكاملات (CRM وذكاء اصطناعي)",
-      branding: "الهوية البصرية والألوان",
-      hero: "إعداد واجهة العرض (Hero)",
-      preview: "معاينة مباشرة",
-      legal: "المطابقة والقانوني",
-      about: "الصفحات الثابتة (من نحن)",
-      team: "إدارة الفريق"
-    },
-    fields: {
-      allowed_langs: "اللغات المسموح بها في الموقع",
-      xml_sources: "خلاصات العقارات (XML)",
-      facebook: "رابط فيسبوك",
-      instagram: "رابط إنستغرام",
-      linkedin: "رابط لينكد إن",
-      tiktok: "رابط تيك توك",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "اسم الوكالة",
-      subdomain: "رابط الموقع (Slug)",
-      logo: "شعار الوكالة",
-      font: "نوع الخط",
-      font_family: "نوع الخط",
-      primary_color: "اللون الأساسي",
-      button_color: "لون الأزرار",
-      button_style: "نمط الأزرار",
-      button_animation: "حركة الأزرار",
-      hero_title: "عنوان واجهة العرض",
-      hero_type: "نوع الوسائط",
-      hero_file: "ملف الوسائط (صورة/فيديو)",
-      email: "البريد الإلكتروني للاتصال",
-      phone: "الهاتف الثابت",
-      whatsapp: "رقم الواتساب (الجوال)",
-      about_title: "عنوان صفحة 'من نحن'",
-      about_text: "نص صفحة 'من نحن'",
-      privacy_policy: "سياسة الخصوصية",
-      member_name: "الاسم الكامل",
-      member_role: "المنصب / الدور",
-      member_bio: "السيرة الذاتية",
-      member_photo: "صورة العضو"
-    },
-    placeholders: {
-      slug: "اسم-الوكالة",
-      hero_text: "اكتشف عقاراتنا الاستثنائية...",
-      about_title: "فن العيش الاستثنائي...",
-      about_text: "صف وكالتك...",
-      click_upload: "انقر للتحميل",
-      media_upload: "تحميل الوسائط",
-      button: "زر",
-      whatsapp: "مثال: 966500000000 (بدون +)",
-      member_name: "أحمد محمد",
-      member_role: "وكيل عقاري",
-      member_bio: "خبير عقاري منذ 15 عاماً..."
-    },
-    buttons: {
-      add_member: "إضافة عضو",
-      remove_member: "حذف"
+      add_member: "Add Member",
+      save: "Save",
+      create: "Create"
     }
   }
 };
 
-const DISPONIBLE_XML_SOURCES = [
-  { id: 'cb', name: "Costa Blanca", url: "https://medianewbuild.com/file/hh-media-bucket/agents/6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2/feed_blanca_calida.xml" },
-  { id: 'cs', name: "Costa del Sol", url: "https://medianewbuild.com/file/hh-media-bucket/agents/6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2/feed_sol.xml" }
-];
+// ============================================================
+// SECTIONS DU DASHBOARD
+// ============================================================
 
-const SUPPORTED_LANGUAGES = [
-  { code: 'fr', label: 'Français' },
-  { code: 'en', label: 'English' },
-  { code: 'es', label: 'Español' },
-  { code: 'nl', label: 'Nederlands' },
-];
+// 1. SECTION GÉNÉRALE
+const GeneralSection = ({ agency, setSelectedAgency, onFileUpload, t }: any) => (
+  <div className="space-y-8">
+    <SectionHeader icon={Building2} title={t.tabs.general} description="Informations principales de votre agence" />
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormField label={t.fields.agency_name} icon={Building2} required>
+        <input 
+          type="text"
+          value={agency?.agency_name || ''}
+          onChange={(e) => setSelectedAgency({...agency, agency_name: e.target.value})}
+          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-900 outline-none"
+          placeholder={t.placeholders.agency_name}
+        />
+      </FormField>
 
+      <FormField label={t.fields.subdomain} icon={Globe} helper="https://[slug].datahome.fr">
+        <input 
+          type="text"
+          value={agency?.subdomain || ''}
+          onChange={(e) => setSelectedAgency({...agency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})}
+          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-slate-900 outline-none"
+          placeholder={t.placeholders.subdomain}
+        />
+      </FormField>
+
+      <FormField label={t.fields.logo} icon={ImageIcon}>
+        <ImageUpload 
+          value={agency?.logo_url}
+          onChange={(e) => onFileUpload(e, 'branding', 'logo_url')}
+          label="Logo"
+        />
+      </FormField>
+
+      <FormField label={t.fields.package} icon={Settings}>
+        <select 
+          value={agency?.package_level || 'silver'}
+          onChange={(e) => setSelectedAgency({...agency, package_level: e.target.value})}
+          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium bg-white focus:ring-2 focus:ring-slate-900 outline-none"
+        >
+          <option value="light">Light (Démarrage)</option>
+          <option value="premium">Premium (Professionnel)</option>
+          <option value="ultimate">Ultimate (Agence)</option>
+        </select>
+      </FormField>
+    </div>
+  </div>
+);
+
+// 2. SECTION APPARENCE
+const AppearanceSection = ({ agency, setSelectedAgency, t }: any) => {
+  const fontOptions = [
+    { value: 'Montserrat', label: 'Montserrat' },
+    { value: 'Inter', label: 'Inter' },
+    { value: "'Playfair Display', serif", label: 'Playfair Display' },
+    { value: 'Poppins', label: 'Poppins' },
+  ];
+
+  const presets = [
+    { name: 'Luxe Doré', colors: { primary: '#D4AF37', button: '#D4AF37' } },
+    { name: 'Bleu Méditerranée', colors: { primary: '#1E90FF', button: '#1E90FF' } },
+    { name: 'Nature & Bois', colors: { primary: '#8B4513', button: '#8B4513' } },
+    { name: 'Minimal Élégant', colors: { primary: '#1A1A1A', button: '#1A1A1A' } },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader icon={Palette} title={t.tabs.appearance} description="Personnalisez l'identité visuelle" />
+      
+      {/* Thèmes prédéfinis */}
+      <div>
+        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3 block">Thèmes prédéfinis</label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {presets.map((theme, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setSelectedAgency({...agency, primary_color: theme.colors.primary, button_color: theme.colors.button});
+              }}
+              className="p-3 border border-slate-200 rounded-xl text-center hover:shadow-lg transition-all hover:border-slate-300"
+            >
+              <div className="flex gap-2 justify-center mb-2">
+                <div className="w-8 h-8 rounded-full" style={{ backgroundColor: theme.colors.primary }} />
+              </div>
+              <span className="text-[10px] font-bold text-slate-600">{theme.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField label={t.fields.primary_color} icon={Palette}>
+          <ColorPicker 
+            value={agency?.primary_color}
+            onChange={(color) => setSelectedAgency({...agency, primary_color: color})}
+            label="#D4AF37"
+          />
+        </FormField>
+
+        <FormField label={t.fields.button_color} icon={MousePointer2}>
+          <ColorPicker 
+            value={agency?.button_color}
+            onChange={(color) => setSelectedAgency({...agency, button_color: color})}
+            label="#3b82f6"
+          />
+        </FormField>
+
+        <FormField label={t.fields.font_family} icon={Type}>
+          <select 
+            value={agency?.font_family || 'Montserrat'}
+            onChange={(e) => setSelectedAgency({...agency, font_family: e.target.value})}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium bg-white focus:ring-2 focus:ring-slate-900 outline-none"
+            style={{ fontFamily: agency?.font_family || 'Montserrat' }}
+          >
+            {fontOptions.map(font => (
+              <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                {font.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
+
+        <FormField label={t.fields.button_style} icon={Monitor}>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setSelectedAgency({...agency, button_style: 'rounded-none'})}
+              className={`flex-1 py-3 px-4 border-2 rounded-xl transition-all text-center ${
+                agency?.button_style === 'rounded-none' ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+              }`}
+            >
+              <div className="w-full h-3 bg-slate-800 mb-2" style={{ borderRadius: 0 }} />
+              <span className="text-[9px] font-bold uppercase">Carrés</span>
+            </button>
+            <button
+              onClick={() => setSelectedAgency({...agency, button_style: 'rounded-full'})}
+              className={`flex-1 py-3 px-4 border-2 rounded-xl transition-all text-center ${
+                agency?.button_style === 'rounded-full' ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+              }`}
+            >
+              <div className="w-full h-3 bg-slate-800 mb-2 rounded-full" />
+              <span className="text-[9px] font-bold uppercase">Arrondis</span>
+            </button>
+          </div>
+        </FormField>
+
+        <FormField label={t.fields.button_animation} icon={Zap}>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'none', label: 'Aucune' },
+              { value: 'scale', label: 'Zoom' },
+              { value: 'glow', label: 'Lueur' },
+              { value: 'slide', label: 'Glissement' }
+            ].map(anim => (
+              <button
+                key={anim.value}
+                onClick={() => setSelectedAgency({...agency, button_animation: anim.value})}
+                className={`py-2 px-3 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all ${
+                  agency?.button_animation === anim.value ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                {anim.label}
+              </button>
+            ))}
+          </div>
+        </FormField>
+      </div>
+    </div>
+  );
+};
+
+// 3. SECTION HERO
+const HeroSection = ({ agency, setSelectedAgency, onFileUpload, t }: any) => (
+  <div className="space-y-8">
+    <SectionHeader icon={ImageIcon} title={t.tabs.hero} description="La première chose que voient vos visiteurs" />
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormField label={t.fields.hero_type} icon={Video}>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setSelectedAgency({...agency, hero_type: 'image'})}
+            className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
+              agency?.hero_type !== 'video' ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+            }`}
+          >
+            <ImageIcon size={16} /> Image
+          </button>
+          <button
+            onClick={() => setSelectedAgency({...agency, hero_type: 'video'})}
+            className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
+              agency?.hero_type === 'video' ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+            }`}
+          >
+            <Video size={16} /> Vidéo
+          </button>
+        </div>
+      </FormField>
+
+      <FormField label={t.fields.hero_title} icon={Type}>
+        <textarea 
+          rows={3}
+          value={agency?.hero_title || ''}
+          onChange={(e) => setSelectedAgency({...agency, hero_title: e.target.value})}
+          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none resize-none"
+          placeholder={t.placeholders.hero_title}
+        />
+      </FormField>
+
+      <div className="md:col-span-2">
+        <FormField label={t.fields.hero_file} icon={agency?.hero_type === 'video' ? Video : ImageIcon}>
+          <ImageUpload 
+            value={agency?.hero_url}
+            onChange={(e) => onFileUpload(e, 'hero', 'hero_url')}
+            label={agency?.hero_type === 'video' ? "MP4, WebM" : "JPG, PNG, WebP"}
+            accept={agency?.hero_type === 'video' ? 'video/*' : 'image/*'}
+          />
+        </FormField>
+      </div>
+    </div>
+  </div>
+);
+
+// 4. SECTION PAGES STATIQUES
+const StaticPagesSection = ({ agency, setSelectedAgency, t }: any) => (
+  <div className="space-y-8">
+    <SectionHeader icon={FileText} title={t.tabs.pages} description="Contenu des pages statiques" />
+    
+    <div className="space-y-6">
+      <FormField label={t.fields.about_title} icon={Type}>
+        <input 
+          type="text"
+          value={agency?.about_title || ''}
+          onChange={(e) => setSelectedAgency({...agency, about_title: e.target.value})}
+          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+          placeholder={t.placeholders.about_title}
+        />
+      </FormField>
+
+      <FormField label={t.fields.about_text}>
+        <textarea 
+          rows={6}
+          value={agency?.about_text || ''}
+          onChange={(e) => setSelectedAgency({...agency, about_text: e.target.value})}
+          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+          placeholder={t.placeholders.about_text}
+        />
+      </FormField>
+
+      <FormField label={t.fields.privacy_policy} icon={ShieldCheck}>
+        <textarea 
+          rows={5}
+          value={agency?.privacy_policy || ''}
+          onChange={(e) => setSelectedAgency({...agency, privacy_policy: e.target.value})}
+          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-slate-900 outline-none"
+          placeholder="Mentions légales et politique de confidentialité..."
+        />
+      </FormField>
+    </div>
+  </div>
+);
+
+// 5. SECTION ÉQUIPE
+const TeamSection = ({ team, setTeam, agency, setSelectedAgency, onMemberPhotoUpload, t }: any) => (
+  <div className="space-y-8">
+    <SectionHeader icon={Users} title={t.tabs.team} description="Présentez les membres de votre agence" />
+    
+    <div className="flex justify-end">
+      <button
+        onClick={() => {
+          const newTeam = [...team, { name: "", role: "", bio: "", photo: "" }];
+          setTeam(newTeam);
+          setSelectedAgency({ ...agency, team_data: newTeam });
+        }}
+        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all"
+      >
+        <UserPlus size={14} /> {t.buttons.add_member}
+      </button>
+    </div>
+
+    {team.length === 0 ? (
+      <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100">
+        <Users size={48} className="mx-auto mb-3 text-slate-300" />
+        <p className="text-sm text-slate-400">Aucun membre dans l'équipe</p>
+        <button
+          onClick={() => {
+            const newTeam = [{ name: "", role: "", bio: "", photo: "" }];
+            setTeam(newTeam);
+            setSelectedAgency({ ...agency, team_data: newTeam });
+          }}
+          className="mt-4 text-slate-600 text-sm underline"
+        >
+          Ajouter un premier membre
+        </button>
+      </div>
+    ) : (
+      <div className="space-y-6">
+        {team.map((member: any, index: number) => (
+          <div key={index} className="relative border border-slate-200 rounded-2xl p-6 bg-white">
+            <button
+              onClick={() => {
+                const newTeam = team.filter((_: any, i: number) => i !== index);
+                setTeam(newTeam);
+                setSelectedAgency({ ...agency, team_data: newTeam });
+              }}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-500 transition-colors"
+            >
+              <Trash2 size={16} />
+            </button>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField label={t.fields.member_photo} icon={ImageIcon}>
+                <div className="relative">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => onMemberPhotoUpload(e, index)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                  />
+                  <div className="flex items-center gap-4 p-3 border border-slate-200 rounded-xl bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
+                    {member.photo ? (
+                      <img src={member.photo} className="w-12 h-12 rounded-full object-cover" alt={member.name} />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center">
+                        <UserPlus size={20} className="text-slate-400" />
+                      </div>
+                    )}
+                    <span className="text-xs text-slate-500">Cliquer pour uploader</span>
+                  </div>
+                </div>
+              </FormField>
+
+              <FormField label={t.fields.member_name} icon={Users}>
+                <input
+                  type="text"
+                  value={member.name || ''}
+                  onChange={(e) => {
+                    const newTeam = [...team];
+                    newTeam[index].name = e.target.value;
+                    setTeam(newTeam);
+                    setSelectedAgency({ ...agency, team_data: newTeam });
+                  }}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+                  placeholder={t.placeholders.member_name}
+                />
+              </FormField>
+
+              <FormField label={t.fields.member_role} icon={Briefcase}>
+                <input
+                  type="text"
+                  value={member.role || ''}
+                  onChange={(e) => {
+                    const newTeam = [...team];
+                    newTeam[index].role = e.target.value;
+                    setTeam(newTeam);
+                    setSelectedAgency({ ...agency, team_data: newTeam });
+                  }}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+                  placeholder={t.placeholders.member_role}
+                />
+              </FormField>
+
+              <div className="md:col-span-2">
+                <FormField label={t.fields.member_bio} icon={FileText}>
+                  <textarea
+                    rows={3}
+                    value={member.bio || ''}
+                    onChange={(e) => {
+                      const newTeam = [...team];
+                      newTeam[index].bio = e.target.value;
+                      setTeam(newTeam);
+                      setSelectedAgency({ ...agency, team_data: newTeam });
+                    }}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+                    placeholder={t.placeholders.member_bio}
+                  />
+                </FormField>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+// 6. SECTION RÉSEAUX SOCIAUX
+const SocialSection = ({ agency, updateNestedConfig, updateRootConfig, t }: any) => {
+  const socials = agency?.footer_config?.socials || {};
+  
+  return (
+    <div className="space-y-8">
+      <SectionHeader icon={Share2} title={t.tabs.social} description="Connectez vos profils sociaux" />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField label={t.fields.facebook} icon={Facebook}>
+          <input
+            type="url"
+            value={socials.facebook || ''}
+            onChange={(e) => updateNestedConfig('socials', 'facebook', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder="https://facebook.com/votre-agence"
+          />
+        </FormField>
+
+        <FormField label={t.fields.instagram} icon={Instagram}>
+          <input
+            type="url"
+            value={socials.instagram || ''}
+            onChange={(e) => updateNestedConfig('socials', 'instagram', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder="https://instagram.com/votre-agence"
+          />
+        </FormField>
+
+        <FormField label={t.fields.linkedin} icon={Linkedin}>
+          <input
+            type="url"
+            value={socials.linkedin || ''}
+            onChange={(e) => updateNestedConfig('socials', 'linkedin', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder="https://linkedin.com/company/votre-agence"
+          />
+        </FormField>
+
+        <FormField label={t.fields.tiktok} icon={TikTokIcon}>
+          <input
+            type="url"
+            value={socials.tiktok || ''}
+            onChange={(e) => updateNestedConfig('socials', 'tiktok', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder="https://tiktok.com/@votre-agence"
+          />
+        </FormField>
+
+        <FormField label={t.fields.email} icon={Mail}>
+          <input
+            type="email"
+            value={agency?.footer_config?.email || agency?.email || ''}
+            onChange={(e) => updateRootConfig('email', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder={t.placeholders.email}
+          />
+        </FormField>
+
+        <FormField label={t.fields.phone} icon={Phone}>
+          <input
+            type="tel"
+            value={agency?.footer_config?.phone || agency?.phone || ''}
+            onChange={(e) => updateRootConfig('phone', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder={t.placeholders.phone}
+          />
+        </FormField>
+
+        <FormField label={t.fields.whatsapp} icon={MessageCircle} helper="Numéro sans espaces, sans le +">
+          <input
+            type="tel"
+            value={socials.whatsapp || agency?.whatsapp_number || ''}
+            onChange={(e) => updateNestedConfig('socials', 'whatsapp', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none"
+            placeholder={t.placeholders.whatsapp}
+          />
+        </FormField>
+      </div>
+    </div>
+  );
+};
+
+// 7. SECTION INTÉGRATIONS
+const IntegrationsSection = ({ agency, updateNestedConfig, t }: any) => {
+  const integrations = agency?.footer_config?.integrations || {};
+  
+  return (
+    <div className="space-y-8">
+      <SectionHeader icon={Plug} title={t.tabs.integrations} description="Connectez vos outils externes" />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField label={t.fields.zoho} icon={Zap} helper="Identifiant ou token d'API">
+          <input
+            type="text"
+            value={integrations.zoho_id || ''}
+            onChange={(e) => updateNestedConfig('integrations', 'zoho_id', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder="zoho_id_123456"
+          />
+        </FormField>
+
+        <FormField label={t.fields.taskade} icon={Cpu} helper="ID de l'agent IA Taskade">
+          <input
+            type="text"
+            value={integrations.taskade_id || ''}
+            onChange={(e) => updateNestedConfig('integrations', 'taskade_id', e.target.value)}
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-slate-900 outline-none"
+            placeholder="taskade_agent_123"
+          />
+        </FormField>
+      </div>
+    </div>
+  );
+};
+
+// 8. SECTION LANGUES & XML
+const LanguagesXmlSection = ({ agency, toggleLanguage, toggleXmlSource, setDefaultLang, t }: any) => {
+  const allowedLangs = agency?.footer_config?.allowed_langs || ['fr'];
+  const xmlUrls = agency?.footer_config?.xml_urls || [];
+  const defaultLang = agency?.default_lang || 'fr';
+
+  const languages = [
+    { code: 'fr', label: 'Français' },
+    { code: 'en', label: 'English' },
+    { code: 'es', label: 'Español' },
+    { code: 'nl', label: 'Nederlands' },
+    { code: 'pl', label: 'Polski' },
+    { code: 'ar', label: 'العربية' },
+  ];
+
+  const xmlSources = [
+    { id: 'cb', name: "Costa Blanca", url: "https://medianewbuild.com/file/hh-media-bucket/agents/6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2/feed_blanca_calida.xml" },
+    { id: 'cs', name: "Costa del Sol", url: "https://medianewbuild.com/file/hh-media-bucket/agents/6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2/feed_sol.xml" }
+  ];
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader icon={Globe} title={t.tabs.languages} description="Configurez les langues et sources de biens" />
+      
+      <div className="space-y-6">
+        <div>
+          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3 block">{t.fields.allowed_langs}</label>
+          <div className="flex flex-wrap gap-2">
+            {languages.map(lang => (
+              <button
+                key={lang.code}
+                onClick={() => toggleLanguage(lang.code)}
+                className={`px-4 py-2 rounded-full text-[11px] font-bold transition-all ${
+                  allowedLangs.includes(lang.code) 
+                    ? 'bg-slate-900 text-white shadow-md' 
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {allowedLangs.length > 0 && (
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3 block">{t.fields.default_lang}</label>
+            <div className="flex flex-wrap gap-2">
+              {allowedLangs.map(code => {
+                const lang = languages.find(l => l.code === code);
+                return (
+                  <button
+                    key={code}
+                    onClick={() => setDefaultLang(code)}
+                    className={`px-4 py-2 rounded-full text-[11px] font-bold transition-all ${
+                      defaultLang === code 
+                        ? 'bg-emerald-600 text-white shadow-md' 
+                        : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    {lang?.label || code} {defaultLang === code && "⭐"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3 block">{t.fields.xml_sources}</label>
+          <div className="space-y-2">
+            {xmlSources.map(source => (
+              <button
+                key={source.id}
+                onClick={() => toggleXmlSource(source.url)}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                  xmlUrls.includes(source.url) ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    xmlUrls.includes(source.url) ? 'bg-slate-900 border-slate-900' : 'border-slate-300'
+                  }`}>
+                    {xmlUrls.includes(source.url) && <CheckCircle2 size={12} className="text-white" />}
+                  </div>
+                  <span className="text-sm font-bold">{source.name}</span>
+                </div>
+                <span className="text-[10px] text-slate-400 truncate max-w-[200px]">{source.url}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 8. APERÇU EN TEMPS RÉEL
+const LivePreview = ({ agency, t }: any) => (
+  <div className="sticky top-8">
+    <div className="bg-slate-900 rounded-2xl p-4 shadow-xl">
+      <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-wider mb-3">
+        <Eye size={14} /> {t.tabs.preview || "Aperçu"}
+      </div>
+      <div 
+        className="relative aspect-[16/9] rounded-xl overflow-hidden bg-slate-800"
+        style={{ fontFamily: agency?.font_family || 'Montserrat' }}
+      >
+        {agency?.hero_url && agency?.hero_type !== 'video' && (
+          <img src={agency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-50" alt="aperçu" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+        <div className="absolute inset-0 p-5 flex flex-col justify-end">
+          {agency?.logo_url && (
+            <img src={agency.logo_url} className="h-8 w-auto object-contain mb-3" alt="logo" />
+          )}
+          <h3 className="text-white text-lg font-serif italic mb-2 line-clamp-2">
+            {agency?.hero_title || t.placeholders.hero_title}
+          </h3>
+          <div 
+            className="inline-block px-5 py-2 text-[9px] font-bold text-white uppercase tracking-wider shadow-lg"
+            style={{ 
+              backgroundColor: agency?.button_color || agency?.primary_color || '#3b82f6',
+              borderRadius: agency?.button_style === 'rounded-full' ? '9999px' : '0px'
+            }}
+          >
+            Découvrir
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// ============================================================
+// COMPOSANT PRINCIPAL
+// ============================================================
 export default function AgencyDashboard() {
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const t = translations[lang];
 
+  const [activeTab, setActiveTab] = useState('general');
   const [agencies, setAgencies] = useState<any[]>([]);
   const [selectedAgency, setSelectedAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -465,28 +890,27 @@ export default function AgencyDashboard() {
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
-  const [newAgency, setNewAgency] = useState({
-    agency_name: '',
-    subdomain: '',
-    package_level: 'silver'
-  });
-
+  const [newAgency, setNewAgency] = useState({ agency_name: '', subdomain: '', package_level: 'silver' });
   const [team, setTeam] = useState<any[]>([]);
 
+  // TABS DE NAVIGATION
+  const tabs = [
+    { id: 'general', label: t.tabs.general, icon: Building2 },
+    { id: 'appearance', label: t.tabs.appearance, icon: Palette },
+    { id: 'hero', label: t.tabs.hero, icon: ImageIcon },
+    { id: 'pages', label: t.tabs.pages, icon: FileText },
+    { id: 'team', label: t.tabs.team, icon: Users },
+    { id: 'social', label: t.tabs.social, icon: Share2 },
+    { id: 'integrations', label: t.tabs.integrations, icon: Plug },
+    { id: 'languages', label: t.tabs.languages, icon: Globe },
+  ];
+
+  // Chargement des agences
   useEffect(() => {
     const fetchAgencies = async () => {
       try {
-        const { data, error } = await supabase
-          .from('agency_settings')
-          .select('*');
-        
+        const { data, error } = await supabase.from('agency_settings').select('*');
         if (error) throw error;
-        
-        console.log("🔵 CHARGEMENT - Données de Supabase:", data);
-        console.log("🔵 CHARGEMENT - team_data de l'agence:", data?.[0]?.team_data);
-        console.log("🔍 IDs des agences chargées:", data?.map(a => ({ id: a.id, name: a.agency_name, subdomain: a.subdomain })));
-        
         setAgencies(data || []);
         if (data && data.length > 0 && !selectedAgency) {
           setSelectedAgency(data[0]);
@@ -498,112 +922,82 @@ export default function AgencyDashboard() {
         setLoading(false); 
       }
     };
-    
     fetchAgencies();
   }, []);
 
   useEffect(() => {
-    if (selectedAgency) {
-      setTeam(selectedAgency.team_data || []);
-    }
+    if (selectedAgency) setTeam(selectedAgency.team_data || []);
   }, [selectedAgency]);
 
+  // Fonctions utilitaires
   const updateNestedConfig = (section: string, field: string, value: any) => {
     if (!selectedAgency) return;
-    
     setSelectedAgency((prev: any) => {
       let currentConfig: any = {};
-      
       if (typeof prev.footer_config === 'string') {
-        try {
-          currentConfig = JSON.parse(prev.footer_config);
-        } catch (e) {
-          currentConfig = {};
-        }
-      } else {
-        currentConfig = prev.footer_config || {};
-      }
-
+        try { currentConfig = JSON.parse(prev.footer_config); } catch { currentConfig = {}; }
+      } else { currentConfig = prev.footer_config || {}; }
       const currentSection = currentConfig[section] || {};
-
       return {
         ...prev,
-        footer_config: {
-          ...currentConfig,
-          [section]: {
-            ...currentSection,
-            [field]: value
-          }
-        }
+        footer_config: { ...currentConfig, [section]: { ...currentSection, [field]: value } }
       };
     });
   };
 
   const updateRootConfig = (field: string, value: any) => {
     if (!selectedAgency) return;
-    
     setSelectedAgency((prev: any) => {
       let currentConfig: any = {};
-      
       if (typeof prev.footer_config === 'string') {
-        try {
-          currentConfig = JSON.parse(prev.footer_config);
-        } catch (e) {
-          currentConfig = {};
-        }
-      } else {
-        currentConfig = prev.footer_config || {};
-      }
-      
-      return {
-        ...prev,
-        footer_config: {
-          ...currentConfig,
-          [field]: value
-        }
-      };
+        try { currentConfig = JSON.parse(prev.footer_config); } catch { currentConfig = {}; }
+      } else { currentConfig = prev.footer_config || {}; }
+      return { ...prev, footer_config: { ...currentConfig, [field]: value } };
     });
   };
 
   const toggleXmlSource = (url: string) => {
     if (!selectedAgency) return;
-
     setSelectedAgency((prev: any) => {
       const currentFooterConfig = prev.footer_config || {};
       const currentXmlUrls = currentFooterConfig.xml_urls || [];
-
       const newXmlUrls = currentXmlUrls.includes(url)
         ? currentXmlUrls.filter((u: string) => u !== url)
         : [...currentXmlUrls, url];
-
-      return {
-        ...prev,
-        footer_config: {
-          ...currentFooterConfig,
-          xml_urls: newXmlUrls
-        }
-      };
+      return { ...prev, footer_config: { ...currentFooterConfig, xml_urls: newXmlUrls } };
     });
   };
 
-  const addMember = () => {
-    const newMember = { name: "", role: "", bio: "", photo: "" };
-    const newTeam = [...team, newMember];
-    setTeam(newTeam);
-    setSelectedAgency({ ...selectedAgency, team_data: newTeam });
+  const toggleLanguage = (code: string) => {
+    const currentConfig = selectedAgency.footer_config || {};
+    const currentLangs = currentConfig.allowed_langs || ['fr'];
+    const newLangs = currentLangs.includes(code)
+      ? currentLangs.filter((l: string) => l !== code)
+      : [...currentLangs, code];
+    setSelectedAgency({ ...selectedAgency, footer_config: { ...currentConfig, allowed_langs: newLangs } });
   };
 
-  const updateMember = (index: number, field: string, value: string) => {
-    const newTeam = [...team];
-    newTeam[index][field] = value;
-    setTeam(newTeam);
-    setSelectedAgency({ ...selectedAgency, team_data: newTeam });
+  const setDefaultLang = (code: string) => {
+    setSelectedAgency({ ...selectedAgency, default_lang: code });
   };
 
-  const removeMember = (index: number) => {
-    const newTeam = team.filter((_, i) => i !== index);
-    setTeam(newTeam);
-    setSelectedAgency({ ...selectedAgency, team_data: newTeam });
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, folder: string, field: string) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedAgency) return;
+    try {
+      setIsSaving(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
+      const filePath = `${selectedAgency.subdomain}/${folder}/${fileName}`;
+      const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
+      setSelectedAgency({ ...selectedAgency, [field]: publicUrl });
+    } catch (err) { 
+      setMessage({ type: 'error', text: "Erreur d'upload" }); 
+    } finally { 
+      setIsSaving(false); 
+    }
   };
 
   const handleMemberPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -617,13 +1011,12 @@ export default function AgencyDashboard() {
       const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
-      
       const newTeam = [...team];
       newTeam[index].photo = publicUrl;
       setTeam(newTeam);
       setSelectedAgency({ ...selectedAgency, team_data: newTeam });
     } catch (err) { 
-      setMessage({ type: 'error', text: "Upload Error" }); 
+      setMessage({ type: 'error', text: "Erreur d'upload" }); 
     } finally { 
       setIsSaving(false); 
     }
@@ -633,23 +1026,15 @@ export default function AgencyDashboard() {
     if (!confirm(`Supprimer définitivement l'agence "${name}" ?`)) return;
     try {
       setIsSaving(true);
-      
-      const { error } = await supabase
-        .from('agency_settings')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from('agency_settings').delete().eq('id', id);
       if (error) throw error;
-      
       setMessage({ type: 'success', text: "Agence supprimée" });
-      
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
       if (data && data.length > 0) setSelectedAgency(data[0]);
       else setSelectedAgency(null);
-      
     } catch (err) { 
-      setMessage({ type: 'error', text: t.error_save }); 
+      setMessage({ type: 'error', text: "Erreur lors de la suppression" }); 
     } finally { 
       setIsSaving(false); 
       setTimeout(() => setMessage(null), 3000); 
@@ -657,28 +1042,15 @@ export default function AgencyDashboard() {
   };
 
   const handleSave = async (e: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
+    e?.preventDefault?.();
     if (!selectedAgency || !selectedAgency.id) {
-      console.error("❌ ID de l'agence manquant");
       setMessage({ type: 'error', text: "ID de l'agence manquant" });
       return;
     }
-
     setIsSaving(true);
-
     try {
       const teamDataToSave = JSON.parse(JSON.stringify(team));
-
-      console.log("✅ team_data à sauvegarder:", teamDataToSave);
-      console.log("🔍 ID de l'agence à mettre à jour:", selectedAgency.id);
-      console.log("🔍 Nom de l'agence:", selectedAgency.agency_name);
-      console.log("🔍 Subdomain (pour info):", selectedAgency.subdomain);
-
-      const { data, error, status } = await supabase
+      const { data, error } = await supabase
         .from('agency_settings')
         .update({
           agency_name: selectedAgency.agency_name,
@@ -704,59 +1076,19 @@ export default function AgencyDashboard() {
         })
         .eq('id', selectedAgency.id)
         .select();
-
-      console.log("📊 RÉPONSE SUPABASE - status:", status);
-      console.log("📊 RÉPONSE SUPABASE - error:", error);
-      console.log("📊 RÉPONSE SUPABASE - data:", data);
-
-      if (error) {
-        console.error("❌ ERREUR SUPABASE:", error);
-        throw error;
-      }
-
+      if (error) throw error;
       if (data && data.length > 0) {
-        console.log("✅ SAUVEGARDÉ DANS SUPABASE :", data[0].team_data);
         setMessage({ type: 'success', text: t.success_save });
-        
         setSelectedAgency(data[0]);
         setTeam(data[0].team_data || []);
         setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
-      } else {
-        console.warn("⚠️ Aucune donnée retournée par Supabase - Vérifiez l'ID");
-        setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
       }
     } catch (err: any) {
-      console.error("❌ ERREUR:", err.message);
       setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
       setIsSaving(false);
       setTimeout(() => setMessage(null), 3000);
     }
-  };
-
-  const toggleLanguage = (code: string) => {
-    const currentConfig = selectedAgency.footer_config || {};
-    const currentLangs = currentConfig.allowed_langs || ['fr'];
-    const newLangs = currentLangs.includes(code)
-      ? currentLangs.filter((l: string) => l !== code)
-      : [...currentLangs, code];
-    setSelectedAgency({ ...selectedAgency, footer_config: { ...currentConfig, allowed_langs: newLangs } });
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, folder: string, field: string) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedAgency) return;
-    try {
-      setIsSaving(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${selectedAgency.subdomain}/${folder}/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
-      setSelectedAgency({ ...selectedAgency, [field]: publicUrl });
-    } catch (err) { setMessage({ type: 'error', text: "Upload Error" }); }
-    finally { setIsSaving(false); }
   };
 
   const handleCreateAgency = async (e: React.FormEvent) => {
@@ -771,62 +1103,74 @@ export default function AgencyDashboard() {
           package_level: newAgency.package_level,
           button_style: 'rounded-full',
           button_animation: 'none',
-          footer_config: {
-            allowed_langs: ['fr', 'en'],
-            xml_urls: [],
-            socials: {},
-            integrations: {}
-          },
+          footer_config: { allowed_langs: ['fr', 'en'], xml_urls: [], socials: {}, integrations: {} },
           team_data: [],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .select();
-      
       if (error) throw error;
-      
       setShowCreateModal(false);
       setNewAgency({ agency_name: '', subdomain: '', package_level: 'silver' });
-      
       const { data: agenciesData } = await supabase.from('agency_settings').select('*');
       setAgencies(agenciesData || []);
       if (data && data[0]) setSelectedAgency(data[0]);
-      
     } catch (err) { 
-      console.error(err);
-      setMessage({ type: 'error', text: "Create Error" }); 
+      setMessage({ type: 'error', text: "Erreur lors de la création" }); 
     } finally { 
       setIsCreating(false); 
     }
   };
 
-  const setDefaultLang = (code: string) => {
-    setSelectedAgency({
-      ...selectedAgency,
-      default_lang: code
-    });
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'general':
+        return <GeneralSection agency={selectedAgency} setSelectedAgency={setSelectedAgency} onFileUpload={handleFileUpload} t={t} />;
+      case 'appearance':
+        return <AppearanceSection agency={selectedAgency} setSelectedAgency={setSelectedAgency} t={t} />;
+      case 'hero':
+        return <HeroSection agency={selectedAgency} setSelectedAgency={setSelectedAgency} onFileUpload={handleFileUpload} t={t} />;
+      case 'pages':
+        return <StaticPagesSection agency={selectedAgency} setSelectedAgency={setSelectedAgency} t={t} />;
+      case 'team':
+        return <TeamSection team={team} setTeam={setTeam} agency={selectedAgency} setSelectedAgency={setSelectedAgency} onMemberPhotoUpload={handleMemberPhotoUpload} t={t} />;
+      case 'social':
+        return <SocialSection agency={selectedAgency} updateNestedConfig={updateNestedConfig} updateRootConfig={updateRootConfig} t={t} />;
+      case 'integrations':
+        return <IntegrationsSection agency={selectedAgency} updateNestedConfig={updateNestedConfig} t={t} />;
+      case 'languages':
+        return <LanguagesXmlSection agency={selectedAgency} toggleLanguage={toggleLanguage} toggleXmlSource={toggleXmlSource} setDefaultLang={setDefaultLang} t={t} />;
+      default:
+        return null;
+    }
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-slate-900" size={40} /></div>;
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="animate-spin text-slate-900" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
-      
       {/* BANDEAU DE VERSION */}
       <div className="bg-red-600 text-white text-[10px] py-1 text-center font-bold uppercase z-[9999] fixed top-0 left-0 right-0">
         V2 ACTIVE - TABLE: AGENCY_SETTINGS
       </div>
 
+      {/* SIDEBAR */}
       <aside className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-sm mt-6">
-        <div className="p-8 border-b border-slate-100 bg-white sticky top-0 z-10">
-          <div className="flex justify-between items-center mb-6">
+        <div className="p-6 border-b border-slate-100">
+          <div className="flex justify-between items-center mb-4">
             <button 
               onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-              className="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all"
+              className="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200"
             >
               <Languages size={12} /> {lang.toUpperCase()}
             </button>
-            <button onClick={() => setShowCreateModal(true)} className="p-2 bg-slate-900 text-white rounded-xl hover:bg-blue-600 transition-all shadow-lg active:scale-95">
+            <button onClick={() => setShowCreateModal(true)} className="p-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-lg">
               <Plus size={18} />
             </button>
           </div>
@@ -834,681 +1178,157 @@ export default function AgencyDashboard() {
           <p className="font-serif italic text-xl text-slate-900 mt-1">{t.saas_title}</p>
         </div>
         
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {agencies.map((agency) => (
             <div key={agency.id} className="relative group">
-              <button onClick={() => setSelectedAgency(agency)} className={`w-full text-left px-5 py-4 rounded-2xl text-sm transition-all duration-200 ${selectedAgency?.id === agency.id ? 'bg-slate-900 text-white shadow-xl translate-x-1' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <button 
+                onClick={() => setSelectedAgency(agency)} 
+                className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all ${
+                  selectedAgency?.id === agency.id 
+                    ? 'bg-slate-900 text-white shadow-md' 
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
                 <div className="font-bold truncate pr-6">{agency.agency_name}</div>
-                <div className="text-[10px] opacity-50 mt-1 uppercase tracking-widest">{agency.subdomain}</div>
+                <div className="text-[10px] opacity-60 mt-0.5">{agency.subdomain}</div>
               </button>
-              <button onClick={() => handleDelete(agency.id, agency.agency_name)} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
+              <button 
+                onClick={() => handleDelete(agency.id, agency.agency_name)} 
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           ))}
         </nav>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="flex-1 overflow-y-auto mt-6">
         {selectedAgency ? (
-          <form onSubmit={handleSave} className="max-w-6xl mx-auto p-12 space-y-8">
-            <header className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm sticky top-0 z-20">
-              <div className="flex items-center gap-6">
+          <div className="max-w-7xl mx-auto p-8">
+            {/* HEADER */}
+            <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-200">
+              <div className="flex items-center gap-4">
                 {selectedAgency.logo_url ? (
-                  <img src={selectedAgency.logo_url} className="w-16 h-16 rounded-2xl object-contain border border-slate-100 p-2 shadow-inner bg-slate-50" alt="Logo" />
+                  <img src={selectedAgency.logo_url} className="w-12 h-12 rounded-xl object-contain" alt="Logo" />
                 ) : (
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-inner" style={{ backgroundColor: selectedAgency.primary_color || '#0f172a' }}>{selectedAgency.agency_name?.charAt(0)}</div>
+                  <div className="w-12 h-12 rounded-xl bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-xl">
+                    {selectedAgency.agency_name?.charAt(0)}
+                  </div>
                 )}
                 <div>
-                  <input 
-                    value={selectedAgency.agency_name || ''} 
-                    onChange={(e) => setSelectedAgency({...selectedAgency, agency_name: e.target.value})}
-                    className="text-4xl font-serif italic text-slate-900 bg-transparent border-b border-slate-200 focus:border-slate-900 outline-none"
-                  />
-                  <span className="inline-block mt-2 px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold uppercase tracking-tighter">{selectedAgency.package_level} plan</span>
+                  <h1 className="text-2xl font-serif italic text-slate-900">{selectedAgency.agency_name}</h1>
+                  <p className="text-sm text-slate-500">{selectedAgency.subdomain}.datahome.fr</p>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              
+              <div className="flex items-center gap-4">
                 {message && (
-                  <div className={`flex items-center gap-2 px-5 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest shadow-sm ${
-                    message.type === 'success' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold ${
+                    message.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
                   }`}>
                     {message.type === 'success' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
                     {message.text}
                   </div>
                 )}
-                <button type="submit" disabled={isSaving} className="flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-full font-bold text-[11px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-2xl disabled:opacity-50">
-                  {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} {isSaving ? t.saving : t.save}
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider hover:bg-slate-800 transition-all disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                  {isSaving ? t.saving : t.save}
                 </button>
               </div>
-            </header>
-
-            <div className="space-y-4 border-t border-slate-50 pt-4">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Langue par défaut du site
-              </label>
-              <div className="flex gap-2">
-                {selectedAgency.footer_config?.allowed_langs?.map((code: string) => (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => setDefaultLang(code)}
-                    className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${
-                      selectedAgency.default_lang === code 
-                      ? 'bg-slate-900 text-white shadow-lg' 
-                      : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-                    }`}
-                  >
-                    {code} {selectedAgency.default_lang === code && "⭐"}
-                  </button>
-                ))}
-              </div>
             </div>
 
+            {/* TABS */}
+            <div className="flex gap-1 mb-8 border-b border-slate-200 overflow-x-auto">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-t-xl text-sm font-medium transition-all whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'bg-white text-slate-900 border-x border-t border-slate-200'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <tab.icon size={16} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* CONTENU + APERÇU */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                
-                {/* SECTION 1: LANGUES & FLUX */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                    <FileCode size={18} className="text-blue-600" /> {t.sections.lang_xml}
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      {t.fields.allowed_langs}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {SUPPORTED_LANGUAGES.map(l => (
-                        <button 
-                          key={l.code} 
-                          type="button" 
-                          onClick={() => toggleLanguage(l.code)} 
-                          className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${selectedAgency?.footer_config?.allowed_langs?.includes(l.code) ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}
-                        >
-                          {l.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      {t.fields.xml_sources}
-                    </label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {DISPONIBLE_XML_SOURCES.map((s) => (
-                        <button 
-                          key={s.id} 
-                          type="button" 
-                          onClick={() => toggleXmlSource(s.url)} 
-                          className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'border-blue-500 bg-blue-50/30' : 'border-slate-50'}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded flex items-center justify-center border ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-200'}`}>
-                              {selectedAgency?.footer_config?.xml_urls?.includes(s.url) && <CheckCircle2 size={12} className="text-white" />}
-                            </div>
-                            <span className="text-sm font-bold">{s.name}</span>
-                          </div>
-                          <span className="text-[9px] font-mono text-slate-300 truncate max-w-[150px]">{s.url}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECTION 2: BRANDING & POLICE */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                    <Palette size={18} className="text-blue-600" /> {t.sections.branding}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
-                      <div className="relative group">
-                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'branding', 'logo_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                        <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
-                          <UploadCloud className="text-slate-300" size={24} />
-                          <span className="text-xs text-slate-500">{selectedAgency?.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
-                      <div className="relative">
-                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <input 
-                          type="text" 
-                          value={selectedAgency?.subdomain || ''} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
-                          className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" 
-                          placeholder={t.placeholders.slug} 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                        Police d'écriture
-                      </label>
-                      <div className="relative">
-                        <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <select 
-                          value={selectedAgency?.font_family || 'Montserrat'} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} 
-                          className="w-full pl-12 pr-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none bg-white font-medium"
-                        >
-                          <option value="Montserrat">Montserrat (Moderne)</option>
-                          <option value="Inter">Inter (Minimaliste)</option>
-                          <option value="'Playfair Display', serif">Playfair (Luxe)</option>
-                          <option value="Poppins">Poppins (Arrondi)</option>
-                          <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.primary_color}</label>
-                      <div className="flex gap-4">
-                        <input 
-                          type="color" 
-                          value={selectedAgency?.primary_color || '#0f172a'} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} 
-                          className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" 
-                        />
-                        <input 
-                          type="text" 
-                          value={selectedAgency?.primary_color || ''} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, primary_color: e.target.value})} 
-                          className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                        <MousePointer2 size={12} /> {t.fields.button_color}
-                      </label>
-                      <div className="flex gap-4">
-                        <input 
-                          type="color" 
-                          value={selectedAgency?.button_color || '#2563eb'} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} 
-                          className="h-14 w-20 rounded-2xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm" 
-                        />
-                        <input 
-                          type="text" 
-                          value={selectedAgency?.button_color || ''} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, button_color: e.target.value})} 
-                          className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Style des boutons */}
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      {t.fields.button_style}
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-none'})}
-                        className={`p-4 border-2 transition-all ${
-                          selectedAgency.button_style === 'rounded-none' 
-                            ? 'border-black bg-slate-100' 
-                            : 'border-slate-100 hover:border-slate-300'
-                        }`}
-                      >
-                        <div className="text-center">
-                          <div className="w-full h-10 bg-slate-800 mb-2" style={{ borderRadius: 0 }}></div>
-                          <span className="text-[9px] font-bold uppercase">Bords Droits</span>
-                        </div>
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-full'})}
-                        className={`p-4 border-2 transition-all ${
-                          selectedAgency.button_style === 'rounded-full' 
-                            ? 'border-black bg-slate-100' 
-                            : 'border-slate-100 hover:border-slate-300'
-                        } rounded-full`}
-                      >
-                        <div className="text-center">
-                          <div className="w-full h-10 bg-slate-800 mb-2 rounded-full"></div>
-                          <span className="text-[9px] font-bold uppercase">Bords Arrondis</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Animation des boutons */}
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      {t.fields.button_animation}
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'none'})}
-                        className={`p-4 border-2 transition-all ${
-                          selectedAgency.button_animation === 'none' 
-                            ? 'border-black bg-slate-100' 
-                            : 'border-slate-100 hover:border-slate-300'
-                        }`}
-                      >
-                        <span className="text-[9px] font-bold uppercase">Aucune</span>
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'scale'})}
-                        className={`p-4 border-2 transition-all ${
-                          selectedAgency.button_animation === 'scale' 
-                            ? 'border-black bg-slate-100' 
-                            : 'border-slate-100 hover:border-slate-300'
-                        }`}
-                      >
-                        <span className="text-[9px] font-bold uppercase">Scale (Zoom)</span>
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'glow'})}
-                        className={`p-4 border-2 transition-all ${
-                          selectedAgency.button_animation === 'glow' 
-                            ? 'border-black bg-slate-100' 
-                            : 'border-slate-100 hover:border-slate-300'
-                        }`}
-                      >
-                        <span className="text-[9px] font-bold uppercase">Glow (Lueur)</span>
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAgency({...selectedAgency, button_animation: 'slide'})}
-                        className={`p-4 border-2 transition-all ${
-                          selectedAgency.button_animation === 'slide' 
-                            ? 'border-black bg-slate-100' 
-                            : 'border-slate-100 hover:border-slate-300'
-                        }`}
-                      >
-                        <span className="text-[9px] font-bold uppercase">Slide (Glissement)</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECTION 3: PAGES STATIQUES (ABOUT) */}
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-                  <h3 className="text-sm font-bold flex items-center gap-2 border-b pb-4">
-                    <Type size={18} className="text-blue-600" /> {t.sections.about}
-                  </h3>
-                  
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
-                      {t.fields.about_title}
-                    </label>
-                    <input 
-                      type="text"
-                      className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm"
-                      placeholder={t.placeholders.about_title}
-                      value={selectedAgency?.about_title || ''}
-                      onChange={(e) => setSelectedAgency({...selectedAgency, about_title: e.target.value})}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
-                      {t.fields.about_text}
-                    </label>
-                    <textarea 
-                      rows={6}
-                      className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm"
-                      placeholder={t.placeholders.about_text}
-                      value={selectedAgency?.about_text || ''}
-                      onChange={(e) => setSelectedAgency({...selectedAgency, about_text: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                {/* SECTION 4: GESTION DE L'ÉQUIPE */}
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-                  <div className="flex justify-between items-center border-b pb-4">
-                    <h3 className="text-sm font-bold flex items-center gap-2">
-                      <Users size={18} className="text-blue-600" /> {t.sections.team}
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={addMember}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all"
-                    >
-                      <UserPlus size={14} /> {t.buttons.add_member}
-                    </button>
-                  </div>
-
-                  <div className="text-xs text-slate-400 mb-2">
-                    Debug: Team length = {team.length}
-                  </div>
-
-                  {team.length === 0 ? (
-                    <div className="text-center py-12 text-slate-400">
-                      <Users size={48} className="mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">Aucun membre dans l'équipe. Cliquez sur "Ajouter un membre" pour commencer.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {team.map((member, index) => (
-                        <div key={index} className="border border-slate-100 rounded-2xl p-6 space-y-4 relative bg-slate-50/30">
-                          <button
-                            type="button"
-                            onClick={() => removeMember(index)}
-                            className="absolute top-4 right-4 p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                                <ImageIcon size={12} /> {t.fields.member_photo}
-                              </label>
-                              <div className="relative group">
-                                <input 
-                                  type="file" 
-                                  accept="image/*" 
-                                  onChange={(e) => handleMemberPhotoUpload(e, index)} 
-                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-                                />
-                                <div className="flex items-center gap-4 p-3 bg-white border border-slate-200 rounded-xl">
-                                  {member.photo ? (
-                                    <img src={member.photo} className="w-12 h-12 rounded-full object-cover" alt={member.name} />
-                                  ) : (
-                                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                                      <UserPlus size={20} className="text-slate-400" />
-                                    </div>
-                                  )}
-                                  <span className="text-xs text-slate-500">Cliquer pour uploader une photo</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                                <Users size={12} /> {t.fields.member_name}
-                              </label>
-                              <input
-                                type="text"
-                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm"
-                                placeholder={t.placeholders.member_name}
-                                value={member.name || ''}
-                                onChange={(e) => updateMember(index, 'name', e.target.value)}
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                                <Briefcase size={12} /> {t.fields.member_role}
-                              </label>
-                              <input
-                                type="text"
-                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm"
-                                placeholder={t.placeholders.member_role}
-                                value={member.role || ''}
-                                onChange={(e) => updateMember(index, 'role', e.target.value)}
-                              />
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                                <FileText size={12} /> {t.fields.member_bio}
-                              </label>
-                              <textarea
-                                rows={3}
-                                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm"
-                                placeholder={t.placeholders.member_bio}
-                                value={member.bio || ''}
-                                onChange={(e) => updateMember(index, 'bio', e.target.value)}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* SECTION 5: HERO HEADER */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 border-b border-slate-100 pb-5 uppercase text-xs tracking-widest">
-                    <Layout size={18} className="text-blue-600" /> {t.sections.hero}
-                  </h3>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">{t.fields.hero_type}</label>
-                      <div className="flex p-1 bg-slate-100 rounded-2xl w-fit">
-                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'image'})} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold transition-all ${selectedAgency.hero_type !== 'video' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>
-                          <ImageIcon size={14} /> Image
-                        </button>
-                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>
-                          <Video size={14} /> Vidéo
-                        </button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-3">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.hero_file}</label>
-                        <div className="relative group">
-                          <input type="file" accept={selectedAgency.hero_type === 'video' ? 'video/mp4' : 'image/*'} onChange={(e) => handleFileUpload(e, 'hero', 'hero_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                          <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
-                            <UploadCloud className="text-slate-300" size={24} />
-                            <span className="text-xs text-slate-500 font-medium">{t.placeholders.media_upload}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.hero_title}</label>
-                        <textarea 
-                          rows={4} 
-                          value={selectedAgency.hero_title || ''} 
-                          onChange={(e) => setSelectedAgency({...selectedAgency, hero_title: e.target.value})} 
-                          placeholder={t.placeholders.hero_text} 
-                          className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-serif italic text-lg" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECTION 6: INTEGRATIONS */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-purple-500">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Zap size={18} className="text-purple-600" /> {t.sections.integrations}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.fields.zoho}</label>
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-4 text-slate-300" size={16} />
-                        <input className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-slate-50" placeholder="Zoho ID" value={selectedAgency.footer_config?.integrations?.zoho_id || ''} onChange={(e) => updateNestedConfig('integrations', 'zoho_id', e.target.value)} />
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.fields.taskade}</label>
-                      <div className="relative">
-                        <Cpu className="absolute left-4 top-4 text-slate-300" size={16} />
-                        <input className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-slate-50" placeholder="Taskade ID" value={selectedAgency.footer_config?.integrations?.taskade_id || ''} onChange={(e) => updateNestedConfig('integrations', 'taskade_id', e.target.value)} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECTION 7: CONTACT & SOCIALS */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                    <Share2 size={18} className="text-blue-600" /> {t.sections.socials}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="relative">
-                      <Linkedin className="absolute left-4 top-4 text-slate-300" size={16} />
-                      <input placeholder={t.fields.linkedin} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.linkedin || ''} onChange={(e) => updateNestedConfig('socials', 'linkedin', e.target.value)} />
-                    </div>
-                    <div className="relative">
-                      <TikTokIcon className="absolute left-4 top-4 text-slate-300" size={16} />
-                      <input placeholder={t.fields.tiktok} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.tiktok || ''} onChange={(e) => updateNestedConfig('socials', 'tiktok', e.target.value)} />
-                    </div>
-                    <div className="relative">
-                      <Facebook className="absolute left-4 top-4 text-slate-300" size={16} />
-                      <input placeholder={t.fields.facebook} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.facebook || ''} onChange={(e) => updateNestedConfig('socials', 'facebook', e.target.value)} />
-                    </div>
-                    <div className="relative">
-                      <Instagram className="absolute left-4 top-4 text-slate-300" size={16} />
-                      <input placeholder={t.fields.instagram} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.socials?.instagram || ''} onChange={(e) => updateNestedConfig('socials', 'instagram', e.target.value)} />
-                    </div>
-                    
-                    <div className="relative">
-                      <MessageCircle className="absolute left-4 top-4 text-green-500" size={16} />
-                      <input 
-                        placeholder={t.placeholders.whatsapp} 
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-green-50/20 focus:ring-2 focus:ring-green-500 outline-none" 
-                        value={selectedAgency.footer_config?.socials?.whatsapp || ''} 
-                        onChange={(e) => updateNestedConfig('socials', 'whatsapp', e.target.value)} 
-                      />
-                    </div>
-
-                    <div className="relative md:col-span-2 border-t border-slate-50 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-4 text-slate-300" size={16} />
-                        <input placeholder={t.fields.email} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.email || ''} onChange={(e) => updateRootConfig('email', e.target.value)} />
-                      </div>
-                      <div className="relative">
-                        <Phone className="absolute left-4 top-4 text-slate-300" size={16} />
-                        <input placeholder={t.fields.phone} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm" value={selectedAgency.footer_config?.phone || ''} onChange={(e) => updateRootConfig('phone', e.target.value)} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECTION 8: CONFORMITÉ & LÉGAL */}
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-slate-900">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                    <ShieldCheck size={18} className="text-slate-900" /> {t.sections.legal || "Conformité & Légal"}
-                  </h3>
-                  
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div className="space-y-1">
-                        <span className="text-sm font-bold text-slate-900">Bandeau de Cookies</span>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold">Conformité RGPD</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer"
-                          checked={selectedAgency.cookie_consent_enabled || false}
-                          onChange={(e) => setSelectedAgency({...selectedAgency, cookie_consent_enabled: e.target.checked})}
-                        />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
-                      </label>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {t.fields.privacy_policy || "Politique de confidentialité"}
-                      </label>
-                      <textarea 
-                        rows={5}
-                        className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm focus:ring-2 focus:ring-slate-900 outline-none"
-                        placeholder="Saisissez ici les mentions légales..."
-                        value={selectedAgency.privacy_policy || ''}
-                        onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                </div>
+              <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+                {renderContent()}
               </div>
-              
-              {/* LIVE PREVIEW (STICKY) - AVEC LA POLICE APPLIQUÉE */}
               <div className="lg:col-span-1">
-                <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl sticky top-8 overflow-hidden">
-                  <div className="flex items-center gap-2 mb-4 text-white/50 text-[10px] font-bold uppercase tracking-widest">
-                    <Monitor size={14} /> {t.sections.preview}
-                  </div>
-                  <div 
-                    className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-slate-800" 
-                    style={{ 
-                      fontFamily: selectedAgency.font_family || 'Montserrat, sans-serif'
-                    }}
-                  >
-                    {selectedAgency.hero_url && selectedAgency.hero_type !== 'video' && (
-                      <img src={selectedAgency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="BG" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-                    <div className="absolute inset-0 p-6 flex flex-col justify-between">
-                      <div className="flex justify-between items-start">
-                        {selectedAgency.logo_url ? (
-                          <img src={selectedAgency.logo_url} className="h-8 object-contain bg-white/10 backdrop-blur-md p-1 rounded-lg" alt="Logo" />
-                        ) : (
-                          <div className="w-8 h-8 rounded" style={{backgroundColor: selectedAgency.primary_color || '#3b82f6'}} />
-                        )}
-                      </div>
-                      <div className="space-y-3">
-                        {/* ICI : Le texte d'accroche utilise la police sélectionnée */}
-                        <h4 
-                          className="text-white text-xl font-serif italic leading-tight"
-                          style={{ 
-                            fontFamily: `${selectedAgency.font_family || 'Montserrat'}, sans-serif`
-                          }}
-                        >
-                          {selectedAgency.hero_title || t.placeholders.hero_text}
-                        </h4>
-                        <div 
-                          className={`h-10 w-24 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-widest shadow-lg transition-all ${
-                            selectedAgency.button_animation === 'scale' ? 'hover:scale-105' : 
-                            selectedAgency.button_animation === 'glow' ? 'hover:shadow-lg hover:shadow-white/20' : 
-                            selectedAgency.button_animation === 'slide' ? 'hover:translate-x-1' : ''
-                          }`}
-                          style={{ 
-                            backgroundColor: selectedAgency.button_color || '#3b82f6',
-                            borderRadius: selectedAgency.button_style === 'rounded-full' ? '9999px' : '0px'
-                          }}
-                        >
-                          {t.placeholders.button}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <LivePreview agency={selectedAgency} t={t} />
               </div>
             </div>
-          </form>
+          </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-300 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
               <Layout size={60} strokeWidth={1} />
             </div>
             <p className="text-sm font-medium">{t.select_agency}</p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="mt-4 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all"
+            >
+              <Plus size={16} className="inline mr-2" />
+              Créer une agence
+            </button>
           </div>
         )}
       </main>
 
+      {/* MODAL DE CRÉATION */}
       {showCreateModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl space-y-8 animate-in zoom-in duration-300">
-            <header className="flex justify-between items-center">
+          <div className="bg-white w-full max-w-md rounded-2xl p-8 shadow-2xl space-y-6 animate-in zoom-in duration-300">
+            <div className="flex justify-between items-center">
               <h2 className="text-2xl font-serif italic">{t.new_agency}</h2>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-all"><X size={20} /></button>
-            </header>
-            <form onSubmit={handleCreateAgency} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.agency_name}</label>
-                <input required className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm" value={newAgency.agency_name} onChange={(e) => setNewAgency({...newAgency, agency_name: e.target.value})} />
+              <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-all">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleCreateAgency} className="space-y-5">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">
+                  {t.fields.agency_name}
+                </label>
+                <input 
+                  required 
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-slate-900 outline-none" 
+                  value={newAgency.agency_name} 
+                  onChange={(e) => setNewAgency({...newAgency, agency_name: e.target.value})} 
+                  placeholder={t.placeholders.agency_name}
+                />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.subdomain}</label>
-                <input required className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-sm font-mono" placeholder="slug-agence" value={newAgency.subdomain} onChange={(e) => setNewAgency({...newAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} />
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">
+                  {t.fields.subdomain}
+                </label>
+                <input 
+                  required 
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-mono focus:ring-2 focus:ring-slate-900 outline-none" 
+                  placeholder={t.placeholders.subdomain}
+                  value={newAgency.subdomain} 
+                  onChange={(e) => setNewAgency({...newAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
+                />
+                <p className="text-[10px] text-slate-400 mt-1">.datahome.fr</p>
               </div>
-              <button disabled={isCreating} className="w-full py-5 bg-slate-900 text-white rounded-full font-bold text-[11px] uppercase tracking-widest shadow-xl hover:bg-blue-600 transition-all disabled:opacity-50">
+              <button 
+                type="submit" 
+                disabled={isCreating} 
+                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50"
+              >
                 {isCreating ? <Loader2 className="animate-spin mx-auto" size={16} /> : t.generate}
               </button>
             </form>

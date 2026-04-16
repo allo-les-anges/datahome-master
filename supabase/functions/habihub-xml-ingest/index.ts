@@ -7,11 +7,15 @@ serve(async (req) => {
   const url = new URL(req.url);
   const agencyIdFromUrl = url.searchParams.get('agency_id');
 
-  // 2. Sécurité : Vérification de la clé API
+  // 2. Sécurité : Vérification de la clé API via variable d'environnement
   const INGEST_API_KEY = Deno.env.get('INGEST_API_KEY');
   const apiKey = req.headers.get('x-api-key');
-  if (apiKey !== 'f7a3e1d9-8b2c-4a5e-9f3d-1c8b7a6e5d4c') {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  
+  // On accepte la clé d'environnement ou la clé de secours (le temps du test)
+  if (!INGEST_API_KEY || apiKey !== INGEST_API_KEY) {
+    if (apiKey !== 'f7a3e1d9-8b2c-4a5e-9f3d-1c8b7a6e5d4c') {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    }
   }
 
   // 3. Sécurité : Vérification que l'ID agence est présent
@@ -40,7 +44,21 @@ serve(async (req) => {
       }), { status: 400 });
     }
 
-    const xmlText = await req.text();
+    // 5. Gestion du format Francisco (JSON avec xmlUrl) pour éviter le timeout 546
+    const body = await req.json();
+    const xmlUrl = body.xmlUrl || body.xml_url;
+
+    if (!xmlUrl) {
+      return new Response(JSON.stringify({ 
+        error: 'Paramètre xmlUrl manquant dans le corps JSON.' 
+      }), { status: 400 });
+    }
+
+    // Téléchargement du XML de serveur à serveur (rapide et robuste)
+    const xmlResponse = await fetch(xmlUrl);
+    if (!xmlResponse.ok) throw new Error(`Impossible de récupérer le XML à l'URL : ${xmlUrl}`);
+    const xmlText = await xmlResponse.text();
+
     const parsedXml = parse(xmlText) as any;
     const rawProps = parsedXml.root?.property || [];
     const properties = Array.isArray(rawProps) ? rawProps : [rawProps];
@@ -84,7 +102,6 @@ serve(async (req) => {
         return plansArray.map((plan: any) => plan.url).filter((url: string) => url);
       })();
 
-      // --- Récupération de l'URL web (priorité à la langue française) ---
       const webUrl = p.url?.fr || p.url?.en || p.url?.es || null;
 
       // --- Gestion des 12 langues ---
@@ -92,7 +109,6 @@ serve(async (req) => {
       const langData: any = {};
       
       for (const lang of langs) {
-        // Extraction sécurisée du titre
         let titreValue = '';
         const titleField = p.title;
         if (titleField && typeof titleField === 'object' && titleField[lang]) {
@@ -102,7 +118,6 @@ serve(async (req) => {
         }
         langData[`titre_${lang}`] = titreValue;
 
-        // Extraction sécurisée de la description
         let descValue = '';
         const descField = p.desc;
         if (descField && typeof descField === 'object' && descField[lang]) {
@@ -115,25 +130,18 @@ serve(async (req) => {
 
       // --- Construction de l'objet final ---
       return {
-        // Identifiants & métadonnées
         id_externe: String(p.id || ''),
         ref: String(p.ref || ''),
-        xml_source: req.url || null,
+        xml_source: xmlUrl, // On stocke l'URL source plutôt que l'URL de la fonction
         updated_at: new Date().toISOString(),
-
-        // Dates
         date_publication: p.date || null,
         key_date: p.key_date || null,
-
-        // Prix & informations financières
         prix: String(p.price || '0'),
         price: String(p.price || '0'),
         price_to: p.price_to || null,
         currency: p.currency || 'EUR',
         commission_percentage: commission.quantity ? String(commission.quantity) : null,
         commission_type: commission.type || null,
-
-        // Localisation
         ville: p.town || '',
         town: p.town || '',
         province: p.province || '',
@@ -141,15 +149,11 @@ serve(async (req) => {
         adresse: location.address || '',
         latitude: location.latitude ? parseFloat(location.latitude) : null,
         longitude: location.longitude ? parseFloat(location.longitude) : null,
-
-        // Caractéristiques principales
         type: p.type || 'property',
         development_name: p.development_name || '',
         promoteur_name: devCompany.name || null,
         status: p.status || null,
         units: p.units ? parseInt(p.units) : 1,
-
-        // Pièces & surfaces
         beds: String(p.beds || '0'),
         baths: String(p.baths || '0'),
         surface_built: String(surfaceArea.built || '0'),
@@ -159,47 +163,31 @@ serve(async (req) => {
         surface_solarium: String(surfaceArea.solarium || '0'),
         living_room: String(surfaceArea.living_room || '0'),
         wc: p.wc ? String(p.wc) : '0',
-
-        // Équipements extérieurs
         pool: p.pool === '1' ? 'Oui' : 'Non',
         terraces: p.terraces ? String(p.terraces) : '0',
         kitchen_type: p.kitchen_type || null,
-
-        // Efficacité énergétique
         energy_consumption: energyRating.consumption || null,
         energy_emissions: energyRating.emissions || null,
-
-        // Distances (en mètres)
         distance_beach: distances.beach ? parseInt(distances.beach) : null,
         distance_airport: distances.airport ? parseInt(distances.airport) : null,
         distance_golf: distances.golf ? parseInt(distances.golf) : null,
         distance_green_areas: distances.green_areas ? parseInt(distances.green_areas) : null,
-
-        // Multimédia & documents
         images: JSON.stringify(imagesArray),
         video_url: p.videos?.video_url || null,
         documents: JSON.stringify(documentsArray),
         plans: JSON.stringify(plansArray),
         url_web: webUrl,
-
-        // Listes et caractéristiques
         features: featuresArray,
         tags: tagsArray,
-
-        // Restrictions de diffusion
         restrict_website: restrictions.website === '1',
         restrict_national: restrictions.national_portals === '1',
         restrict_international: restrictions.international_portals === '1',
-
-        // Clé étrangère - utilisation de l'ID dynamique reçu de l'URL
         agency_id: agencyIdFromUrl,
-
-        // Données multi-langues (12 langues)
         ...langData
       };
     });
 
-    // Upsert des données dans la table 'villas'
+    // 6. Upsert des données dans la table 'villas'
     const { data, error } = await supabase
       .from('villas')
       .upsert(formattedProperties, { 
@@ -213,16 +201,14 @@ serve(async (req) => {
       success: true, 
       count: formattedProperties.length,
       agency_id: agencyIdFromUrl,
-      languages_imported: ['de', 'cs', 'en', 'fr', 'nl', 'pl', 'es', 'ru', 'da', 'no', 'sv', 'hu'],
-      message: `Import réussi de ${formattedProperties.length} propriétés pour l'agence ${agencyIdFromUrl} avec les 12 langues.`,
-      data: data
+      message: `Import réussi de ${formattedProperties.length} propriétés.`
     }), { status: 200 });
 
-  } catch (err) {
-    console.error('Erreur lors de l\'import:', err);
+  } catch (err: any) {
+    console.error('Erreur lors de l\'import:', err.message);
     return new Response(JSON.stringify({ 
-      error: err.message,
-      stack: err.stack 
+      error: err.message 
+      // stack trace supprimé pour la sécurité en production
     }), { status: 500 });
   }
 });

@@ -3774,11 +3774,15 @@ serve(async (req) => {
   const url = new URL(req.url);
   const agencyIdFromUrl = url.searchParams.get('agency_id');
 
-  // 2. Sécurité : Vérification de la clé API
+  // 2. Sécurité : Vérification de la clé API via variable d'environnement
   const INGEST_API_KEY = Deno.env.get('INGEST_API_KEY');
   const apiKey = req.headers.get('x-api-key');
-  if (apiKey !== 'f7a3e1d9-8b2c-4a5e-9f3d-1c8b7a6e5d4c') {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  
+  // On accepte la clé d'environnement ou la clé de secours (le temps du test)
+  if (!INGEST_API_KEY || apiKey !== INGEST_API_KEY) {
+    if (apiKey !== 'f7a3e1d9-8b2c-4a5e-9f3d-1c8b7a6e5d4c') {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    }
   }
 
   // 3. Sécurité : Vérification que l'ID agence est présent
@@ -3807,7 +3811,21 @@ serve(async (req) => {
       }), { status: 400 });
     }
 
-    const xmlText = await req.text();
+    // 5. Gestion du format Francisco (JSON avec xmlUrl) pour éviter le timeout 546
+    const body = await req.json();
+    const xmlUrl = body.xmlUrl || body.xml_url;
+
+    if (!xmlUrl) {
+      return new Response(JSON.stringify({ 
+        error: 'Paramètre xmlUrl manquant dans le corps JSON.' 
+      }), { status: 400 });
+    }
+
+    // Téléchargement du XML de serveur à serveur (rapide et robuste)
+    const xmlResponse = await fetch(xmlUrl);
+    if (!xmlResponse.ok) throw new Error(`Impossible de récupérer le XML à l'URL : ${xmlUrl}`);
+    const xmlText = await xmlResponse.text();
+
     const parsedXml = parse(xmlText) as any;
     const rawProps = parsedXml.root?.property || [];
     const properties = Array.isArray(rawProps) ? rawProps : [rawProps];
@@ -3851,7 +3869,6 @@ serve(async (req) => {
         return plansArray.map((plan: any) => plan.url).filter((url: string) => url);
       })();
 
-      // --- Récupération de l'URL web (priorité à la langue française) ---
       const webUrl = p.url?.fr || p.url?.en || p.url?.es || null;
 
       // --- Gestion des 12 langues ---
@@ -3859,7 +3876,6 @@ serve(async (req) => {
       const langData: any = {};
       
       for (const lang of langs) {
-        // Extraction sécurisée du titre
         let titreValue = '';
         const titleField = p.title;
         if (titleField && typeof titleField === 'object' && titleField[lang]) {
@@ -3869,7 +3885,6 @@ serve(async (req) => {
         }
         langData[`titre_${lang}`] = titreValue;
 
-        // Extraction sécurisée de la description
         let descValue = '';
         const descField = p.desc;
         if (descField && typeof descField === 'object' && descField[lang]) {
@@ -3882,25 +3897,18 @@ serve(async (req) => {
 
       // --- Construction de l'objet final ---
       return {
-        // Identifiants & métadonnées
         id_externe: String(p.id || ''),
         ref: String(p.ref || ''),
-        xml_source: req.url || null,
+        xml_source: xmlUrl, // On stocke l'URL source plutôt que l'URL de la fonction
         updated_at: new Date().toISOString(),
-
-        // Dates
         date_publication: p.date || null,
         key_date: p.key_date || null,
-
-        // Prix & informations financières
         prix: String(p.price || '0'),
         price: String(p.price || '0'),
         price_to: p.price_to || null,
         currency: p.currency || 'EUR',
         commission_percentage: commission.quantity ? String(commission.quantity) : null,
         commission_type: commission.type || null,
-
-        // Localisation
         ville: p.town || '',
         town: p.town || '',
         province: p.province || '',
@@ -3908,15 +3916,11 @@ serve(async (req) => {
         adresse: location.address || '',
         latitude: location.latitude ? parseFloat(location.latitude) : null,
         longitude: location.longitude ? parseFloat(location.longitude) : null,
-
-        // Caractéristiques principales
         type: p.type || 'property',
         development_name: p.development_name || '',
         promoteur_name: devCompany.name || null,
         status: p.status || null,
         units: p.units ? parseInt(p.units) : 1,
-
-        // Pièces & surfaces
         beds: String(p.beds || '0'),
         baths: String(p.baths || '0'),
         surface_built: String(surfaceArea.built || '0'),
@@ -3926,47 +3930,31 @@ serve(async (req) => {
         surface_solarium: String(surfaceArea.solarium || '0'),
         living_room: String(surfaceArea.living_room || '0'),
         wc: p.wc ? String(p.wc) : '0',
-
-        // Équipements extérieurs
         pool: p.pool === '1' ? 'Oui' : 'Non',
         terraces: p.terraces ? String(p.terraces) : '0',
         kitchen_type: p.kitchen_type || null,
-
-        // Efficacité énergétique
         energy_consumption: energyRating.consumption || null,
         energy_emissions: energyRating.emissions || null,
-
-        // Distances (en mètres)
         distance_beach: distances.beach ? parseInt(distances.beach) : null,
         distance_airport: distances.airport ? parseInt(distances.airport) : null,
         distance_golf: distances.golf ? parseInt(distances.golf) : null,
         distance_green_areas: distances.green_areas ? parseInt(distances.green_areas) : null,
-
-        // Multimédia & documents
         images: JSON.stringify(imagesArray),
         video_url: p.videos?.video_url || null,
         documents: JSON.stringify(documentsArray),
         plans: JSON.stringify(plansArray),
         url_web: webUrl,
-
-        // Listes et caractéristiques
         features: featuresArray,
         tags: tagsArray,
-
-        // Restrictions de diffusion
         restrict_website: restrictions.website === '1',
         restrict_national: restrictions.national_portals === '1',
         restrict_international: restrictions.international_portals === '1',
-
-        // Clé étrangère - utilisation de l'ID dynamique reçu de l'URL
         agency_id: agencyIdFromUrl,
-
-        // Données multi-langues (12 langues)
         ...langData
       };
     });
 
-    // Upsert des données dans la table 'villas'
+    // 6. Upsert des données dans la table 'villas'
     const { data, error } = await supabase
       .from('villas')
       .upsert(formattedProperties, { 
@@ -3980,16 +3968,14 @@ serve(async (req) => {
       success: true, 
       count: formattedProperties.length,
       agency_id: agencyIdFromUrl,
-      languages_imported: ['de', 'cs', 'en', 'fr', 'nl', 'pl', 'es', 'ru', 'da', 'no', 'sv', 'hu'],
-      message: `Import réussi de ${formattedProperties.length} propriétés pour l'agence ${agencyIdFromUrl} avec les 12 langues.`,
-      data: data
+      message: `Import réussi de ${formattedProperties.length} propriétés.`
     }), { status: 200 });
 
-  } catch (err) {
-    console.error('Erreur lors de l\'import:', err);
+  } catch (err: any) {
+    console.error('Erreur lors de l\'import:', err.message);
     return new Response(JSON.stringify({ 
-      error: err.message,
-      stack: err.stack 
+      error: err.message 
+      // stack trace supprimé pour la sécurité en production
     }), { status: 500 });
   }
 });
@@ -7762,6 +7748,87 @@ export default async function PrivacyPage({
 }
 </file>
 
+<file path="src/app/[locale]/(agency_site)/[slug]/terms/page.tsx">
+import { supabase } from "@/lib/supabase";
+import { notFound } from "next/navigation";
+import { FileText, ChevronLeft } from "lucide-react";
+import Link from "next/link";
+
+// Importations depuis le bon dossier : src/dictionaries
+import fr from "../../../../../dictionaries/fr.json";
+import en from "../../../../../dictionaries/en.json";
+import es from "../../../../../dictionaries/es.json";
+import nl from "../../../../../dictionaries/nl.json";
+import pl from "../../../../../dictionaries/pl.json";
+import ar from "../../../../../dictionaries/ar.json";
+
+export const revalidate = 0;
+
+export default async function TermsPage({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug, locale } = await params;
+
+  const translations: any = 
+    locale === 'en' ? en : 
+    locale === 'es' ? es : 
+    locale === 'nl' ? nl : 
+    locale === 'pl' ? pl : 
+    locale === 'ar' ? ar : fr;
+
+  const { data: agency } = await supabase
+    .from('agency_settings')
+    .select('*')
+    .eq('subdomain', slug)
+    .single();
+
+  if (!agency) return notFound();
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-100 py-12">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div 
+              className="p-3 rounded-2xl text-white"
+              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
+            >
+              <FileText size={24} />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
+              {translations.footer?.terms || "Terms & Conditions"}
+            </h1>
+          </div>
+          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
+            {agency.agency_name}
+          </p>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-16">
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
+          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
+            {agency.terms_content || translations.legal?.terms_default}
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <Link 
+            href={`/${locale}/${slug}`}
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
+          >
+            <ChevronLeft size={14} />
+            {translations.common?.backToHome || "Back"}
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
 <file path="src/dictionaries/ar.json">
 {
   "common": {
@@ -7774,7 +7841,8 @@ export default async function PrivacyPage({
     "cancel": "إلغاء",
     "save": "حفظ",
     "close": "إغلاق",
-    "showMore": "عرض المزيد من العقارات"
+    "showMore": "عرض المزيد من العقارات",
+    "loadingProperties": "جاري تحميل العقارات..."
   },
   "nav": {
     "home": "الرئيسية",
@@ -7880,7 +7948,8 @@ export default async function PrivacyPage({
     "cancel": "Cancel",
     "save": "Save",
     "close": "Close",
-    "showMore": "Show more properties"
+    "showMore": "Show more properties",
+    "loadingProperties": "Loading properties..."
   },
   "nav": {
     "home": "Home",
@@ -7986,7 +8055,8 @@ export default async function PrivacyPage({
     "cancel": "Cancelar",
     "save": "Guardar",
     "close": "Cerrar",
-    "showMore": "Mostrar más propiedades"
+    "showMore": "Mostrar más propiedades",
+    "loadingProperties": "Cargando propiedades..."
   },
   "nav": {
     "home": "Inicio",
@@ -8092,7 +8162,8 @@ export default async function PrivacyPage({
     "cancel": "Annuler",
     "save": "Enregistrer",
     "close": "Fermer",
-    "showMore": "Afficher plus de biens"
+    "showMore": "Afficher plus de biens",
+    "loadingProperties": "Chargement des propriétés..."
   },
   "nav": {
     "home": "Accueil",
@@ -8198,7 +8269,8 @@ export default async function PrivacyPage({
     "cancel": "Annuleren",
     "save": "Opslaan",
     "close": "Sluiten",
-    "showMore": "Meer eigendommen tonen"
+    "showMore": "Meer eigendommen tonen",
+    "loadingProperties": "Eigendommen laden..."
   },
   "nav": {
     "home": "Home",
@@ -8304,7 +8376,8 @@ export default async function PrivacyPage({
     "cancel": "Anuluj",
     "save": "Zapisz",
     "close": "Zamknij",
-    "showMore": "Pokaż więcej nieruchomości"
+    "showMore": "Pokaż więcej nieruchomości",
+    "loadingProperties": "Ładowanie nieruchomości..."
   },
   "nav": {
     "home": "Strona główna",
@@ -8395,87 +8468,6 @@ export default async function PrivacyPage({
     "privacy_default": "Agencja zobowiązuje się, że gromadzenie i przetwarzanie danych będzie zgodne z RODO. Dane osobowe (imię, email, telefon) zbierane za pośrednictwem formularzy na tej stronie są wykorzystywane wyłącznie w celu kontaktu w ramach poszukiwania nieruchomości lub sprzedaży. Nie są przekazywane stronom trzecim. Masz prawo dostępu, sprostowania i usunięcia swoich danych. Aby skorzystać z tego prawa, skontaktuj się z nami e-mailem: nasza obsługa klienta.",
     "terms_default": "Niniejsze warunki regulują korzystanie z witryny.\n\n1. Wydawca: Agencja nieruchomości.\n2. Hosting: Vercel Inc.\n3. Własność intelektualna: Wszystkie treści (zdjęcia, teksty) są własnością agencji lub jej licencjodawców.\n4. Odpowiedzialność: Informacje o nieruchomościach są podawane z zastrzeżeniem błędów lub pominięć."
   }
-}
-</file>
-
-<file path="src/app/[locale]/(agency_site)/[slug]/terms/page.tsx">
-import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
-import { FileText, ChevronLeft } from "lucide-react";
-import Link from "next/link";
-
-// Importations depuis le bon dossier : src/dictionaries
-import fr from "../../../../../dictionaries/fr.json";
-import en from "../../../../../dictionaries/en.json";
-import es from "../../../../../dictionaries/es.json";
-import nl from "../../../../../dictionaries/nl.json";
-import pl from "../../../../../dictionaries/pl.json";
-import ar from "../../../../../dictionaries/ar.json";
-
-export const revalidate = 0;
-
-export default async function TermsPage({
-  params,
-}: {
-  params: Promise<{ slug: string; locale: string }>;
-}) {
-  const { slug, locale } = await params;
-
-  const translations: any = 
-    locale === 'en' ? en : 
-    locale === 'es' ? es : 
-    locale === 'nl' ? nl : 
-    locale === 'pl' ? pl : 
-    locale === 'ar' ? ar : fr;
-
-  const { data: agency } = await supabase
-    .from('agency_settings')
-    .select('*')
-    .eq('subdomain', slug)
-    .single();
-
-  if (!agency) return notFound();
-
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-100 py-12">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div 
-              className="p-3 rounded-2xl text-white"
-              style={{ backgroundColor: agency.primary_color || '#0f172a' }}
-            >
-              <FileText size={24} />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-serif italic text-slate-900">
-              {translations.footer?.terms || "Terms & Conditions"}
-            </h1>
-          </div>
-          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
-            {agency.agency_name}
-          </p>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-6 py-16">
-        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <div className="prose prose-slate max-w-none text-slate-600 whitespace-pre-wrap">
-            {agency.terms_content || translations.legal?.terms_default}
-          </div>
-        </div>
-
-        <div className="mt-12 text-center">
-          <Link 
-            href={`/${locale}/${slug}`}
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
-          >
-            <ChevronLeft size={14} />
-            {translations.common?.backToHome || "Back"}
-          </Link>
-        </div>
-      </main>
-    </div>
-  );
 }
 </file>
 
@@ -9268,7 +9260,7 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
         <div className="w-16 h-16 border-4 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-4"></div>
         <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">
-          {t('common.loadingProperties') || 'Chargement des propriétés...'}
+          {t('common.loading')}
         </p>
       </div>
     );
@@ -9415,12 +9407,13 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
 </file>
 
 <file path="src/components/PropertyDetailClient.tsx">
+// src/components/PropertyDetailClient.tsx
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
 import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon, Play, X
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useSearchParams } from "next/navigation";
@@ -9435,6 +9428,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const searchParams = useSearchParams();
   const [activeImage, setActiveImage] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const isLight = searchParams.get('pack') === 'light' || agency?.package_level === 'light';
@@ -9447,6 +9441,23 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   }, [agency]);
 
   const fontFamily = agency?.font_family || 'Montserrat';
+
+  // Récupérer la vidéo (peut être une URL ou un objet)
+  const videoUrl = useMemo(() => {
+    if (!property) return null;
+    
+    // Si video_url est une chaîne directe
+    if (typeof property.video_url === 'string' && property.video_url) {
+      return property.video_url;
+    }
+    
+    // Si video_url est un objet avec des URLs par langue
+    if (property.video_url && typeof property.video_url === 'object') {
+      return property.video_url[locale] || property.video_url.fr || property.video_url.en || null;
+    }
+    
+    return null;
+  }, [property, locale]);
 
   useEffect(() => {
     setMounted(true);
@@ -9486,10 +9497,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
         id: property.id,
         titre: property.titre,
         hasDescriptionFr: !!property.description_fr,
-        localeActuelle: locale
+        localeActuelle: locale,
+        videoUrl: videoUrl
       });
     }
-  }, [property, mounted, locale]);
+  }, [property, mounted, locale, videoUrl]);
 
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
@@ -9499,6 +9511,34 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   const cleanDescription = description ? description.replace(/<p class="title">/g, '<p class="title" style="font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem;">') : "";
 
+  // Fonction pour extraire l'ID YouTube ou Vimeo
+  const getEmbedUrl = (url: string) => {
+    if (!url) return null;
+    
+    // YouTube
+    const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+    
+    // Vimeo
+    const vimeoRegex = /vimeo\.com\/(\d+)/;
+    const vimeoMatch = url.match(vimeoRegex);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    // Si c'est déjà une URL d'embed
+    if (url.includes('embed') || url.includes('player')) {
+      return url;
+    }
+    
+    return url;
+  };
+
+  const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : null;
+
   return (
     <main 
       className={`min-h-screen relative z-10 transition-colors duration-500 ${isLight ? 'bg-white' : 'bg-[#0A0A0A]'} pt-24 md:pt-32`}
@@ -9507,34 +9547,96 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
         fontWeight: 400
       }}
     >
+      {/* Modal vidéo */}
+      {isVideoModalOpen && embedUrl && (
+        <div 
+          className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setIsVideoModalOpen(false)}
+        >
+          <button 
+            onClick={() => setIsVideoModalOpen(false)}
+            className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors z-[310]"
+          >
+            <X size={32} />
+          </button>
+          <div 
+            className="relative w-full max-w-5xl aspect-video"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe
+              src={embedUrl}
+              className="w-full h-full rounded-2xl"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="pb-20"> 
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           
-          {/* GALERIE D'IMAGES */}
+          {/* GALERIE D'IMAGES / VIDÉO */}
           <section className="mb-12 md:mb-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[350px] md:h-[600px]">
               <div className="md:col-span-3 relative rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-zinc-900">
-                <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
-                  {images.map((img: string, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
-                      style={{ 
-                        opacity: activeImage === idx ? 1 : 0, 
-                        zIndex: activeImage === idx ? 10 : 0,
-                        pointerEvents: activeImage === idx ? 'auto' : 'none'
-                      }}
+                
+                {/* Affichage de la vidéo en premier si disponible */}
+                {embedUrl && activeImage === -1 ? (
+                  <div className="relative w-full h-full">
+                    <iframe
+                      src={embedUrl}
+                      className="w-full h-full"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                    <button
+                      onClick={() => setIsVideoModalOpen(true)}
+                      className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20 hover:bg-black/80 transition-colors"
                     >
-                      <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                      <Play size={14} /> Plein écran
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div ref={scrollContainerRef} onScroll={handleScroll} className="flex md:block h-full overflow-x-auto md:overflow-x-hidden snap-x snap-mandatory scrollbar-hide">
+                      {images.map((img: string, idx: number) => (
+                        <div 
+                          key={idx} 
+                          className="min-w-full h-full snap-center md:absolute md:inset-0 md:transition-opacity md:duration-700" 
+                          style={{ 
+                            opacity: activeImage === idx ? 1 : 0, 
+                            zIndex: activeImage === idx ? 10 : 0,
+                            pointerEvents: activeImage === idx ? 'auto' : 'none'
+                          }}
+                        >
+                          <img src={img} className="w-full h-full object-cover" alt="" loading="lazy" />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
-                  <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
-                </div>
+                    <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 md:px-4 md:py-2 rounded-full text-[8px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 z-20">
+                      <ImageIcon size={12} className="md:size-14" /> {activeImage + 1} / {images.length}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                {/* Bouton vidéo en premier si disponible */}
+                {embedUrl && (
+                  <button 
+                    onClick={() => setActiveImage(-1)} 
+                    className={`relative flex-shrink-0 w-full h-32 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === -1 ? 'scale-95' : 'opacity-40'}`}
+                    style={{ borderColor: activeImage === -1 ? primaryColor : 'transparent' }}
+                  >
+                    <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+                      <Play size={24} className="text-white" />
+                    </div>
+                    <span className="absolute bottom-2 left-2 text-white text-[8px] bg-black/50 px-2 py-0.5 rounded-full">VIDÉO</span>
+                  </button>
+                )}
+                
+                {/* Images miniatures */}
                 {images.map((img: string, idx: number) => (
                   <button 
                     key={idx} 
@@ -9549,7 +9651,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* GRILLE DE CONTENU */}
+          {/* RESTE DU CODE INCHANGÉ... */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 
