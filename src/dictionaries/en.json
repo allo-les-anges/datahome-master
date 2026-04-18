@@ -10,7 +10,8 @@
     "save": "Save",
     "close": "Close",
     "showMore": "Show more properties",
-    "loadingProperties": "Loading properties..."
+    "loadingProperties": "Loading properties...",
+    "noResults": "No results found"
   },
   "nav": {
     "home": "Home",
@@ -27,7 +28,12 @@
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Find your villa",
     "noMatch": "No matches found",
-    "reset": "Reset filters"
+    "reset": "Reset filters",
+    "region": "Region",
+    "allRegions": "All regions",
+    "city": "City",
+    "allCities": "All cities",
+    "allTypes": "All types"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
@@ -39,7 +45,8 @@
     "pool": "POOL",
     "parking": "PARKING",
     "yes": "YES",
-    "no": "NO"
+    "no": "NO",
+    "type": "Property type"
   },
   "propertyDetail": {
     "back": "Back to selection",
@@ -58,7 +65,12 @@
     "bookVisit": "Book a visit",
     "location": "Location",
     "distanceSea": "Sea at {distance}km",
-    "propertyNotFound": "Property not found"
+    "propertyNotFound": "Property not found",
+    "minPrice": "Minimum Price",
+    "maxPrice": "Maximum Price",
+    "sortByPrice": "Sort by price",
+    "sortAsc": "Ascending",
+    "sortDesc": "Descending"
   },
   "contact": {
     "title": "Contact us",

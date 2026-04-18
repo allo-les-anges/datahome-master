@@ -10,7 +10,8 @@
     "save": "Zapisz",
     "close": "Zamknij",
     "showMore": "Pokaż więcej nieruchomości",
-    "loadingProperties": "Ładowanie nieruchomości..."
+    "loadingProperties": "Ładowanie nieruchomości...",
+    "noResults": "Nie znaleziono wyników"
   },
   "nav": {
     "home": "Strona główna",
@@ -27,7 +28,12 @@
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Znajdź swoją willę",
     "noMatch": "Nie znaleziono wyników",
-    "reset": "Resetuj filtry"
+    "reset": "Resetuj filtry",
+    "region": "Region",
+    "allRegions": "Wszystkie regiony",
+    "city": "Miasto",
+    "allCities": "Wszystkie miasta",
+    "allTypes": "Wszystkie typy"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
@@ -39,7 +45,8 @@
     "pool": "BASEN",
     "parking": "PARKING",
     "yes": "TAK",
-    "no": "NIE"
+    "no": "NIE",
+    "type": "Typ nieruchomości"
   },
   "propertyDetail": {
     "back": "Powrót do wyboru",
@@ -58,7 +65,12 @@
     "bookVisit": "Zarezerwuj wizytę",
     "location": "Lokalizacja",
     "distanceSea": "Morze {distance}km",
-    "propertyNotFound": "Nie znaleziono nieruchomości"
+    "propertyNotFound": "Nie znaleziono nieruchomości",
+    "minPrice": "Cena Minimalna",
+    "maxPrice": "Cena Maksymalna",
+    "sortByPrice": "Sortuj według ceny",
+    "sortAsc": "Rosnąco",
+    "sortDesc": "Malejąco"
   },
   "contact": {
     "title": "Skontaktuj się z nami",

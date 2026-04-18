@@ -10,7 +10,8 @@
     "save": "Opslaan",
     "close": "Sluiten",
     "showMore": "Meer eigendommen tonen",
-    "loadingProperties": "Eigendommen laden..."
+    "loadingProperties": "Eigendommen laden...",
+    "noResults": "Geen resultaten gevonden"
   },
   "nav": {
     "home": "Home",
@@ -27,7 +28,12 @@
     "heroSubtitle": "COSTA BLANCA | COSTA DEL SOL",
     "findVilla": "Vind uw villa",
     "noMatch": "Geen overeenkomsten gevonden",
-    "reset": "Filters resetten"
+    "reset": "Filters resetten",
+    "region": "Regio",
+    "allRegions": "Alle regio's",
+    "city": "Stad",
+    "allCities": "Alle steden",
+    "allTypes": "Alle types"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
@@ -39,7 +45,8 @@
     "pool": "ZWEMBAD",
     "parking": "PARKEREN",
     "yes": "JA",
-    "no": "NEEN"
+    "no": "NEEN",
+    "type": "Type eigendom"
   },
   "propertyDetail": {
     "back": "Terug naar selectie",
@@ -58,7 +65,12 @@
     "bookVisit": "Bezoek boeken",
     "location": "Locatie",
     "distanceSea": "Zee op {distance}km",
-    "propertyNotFound": "Eigendom niet gevonden"
+    "propertyNotFound": "Eigendom niet gevonden",
+    "minPrice": "Minimum Prijs",
+    "maxPrice": "Maximum Prijs",
+    "sortByPrice": "Sorteren op prijs",
+    "sortAsc": "Oplopend",
+    "sortDesc": "Aflopend"
   },
   "contact": {
     "title": "Contacteer ons",

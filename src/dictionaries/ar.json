@@ -10,7 +10,8 @@
     "save": "حفظ",
     "close": "إغلاق",
     "showMore": "عرض المزيد من العقارات",
-    "loadingProperties": "جاري تحميل العقارات..."
+    "loadingProperties": "جاري تحميل العقارات...",
+    "noResults": "لم يتم العثور على نتائج"
   },
   "nav": {
     "home": "الرئيسية",
@@ -27,7 +28,12 @@
     "heroSubtitle": "كوستا بلانكا | كوستا ديل سول",
     "findVilla": "ابحث عن فيلتك",
     "noMatch": "لم يتم العثور على نتائج",
-    "reset": "إعادة تعيين الفلاتر"
+    "reset": "إعادة تعيين الفلاتر",
+    "region": "المنطقة",
+    "allRegions": "جميع المناطق",
+    "city": "المدينة",
+    "allCities": "جميع المدن",
+    "allTypes": "جميع الأنواع"
   },
   "propertyCard": {
     "ref": "المرجع: {ref}",
@@ -39,7 +45,8 @@
     "pool": "مسبح",
     "parking": "موقف سيارات",
     "yes": "نعم",
-    "no": "لا"
+    "no": "لا",
+    "type": "نوع العقار"
   },
   "propertyDetail": {
     "back": "العودة إلى الاختيار",
@@ -58,7 +65,12 @@
     "bookVisit": "احجز زيارة",
     "location": "الموقع",
     "distanceSea": "البحر على بعد {distance}كم",
-    "propertyNotFound": "العقار غير موجود"
+    "propertyNotFound": "العقار غير موجود",
+    "minPrice": "السعر الأدنى",
+    "maxPrice": "السعر الأقصى",
+    "sortByPrice": "ترتيب حسب السعر",
+    "sortAsc": "تصاعدي",
+    "sortDesc": "تنازلي"
   },
   "contact": {
     "title": "اتصل بنا",
