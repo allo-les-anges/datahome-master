@@ -33,7 +33,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { agency: contextAgency, setAgencyBySlug } = useAgency();
   const initialLoadDone = useRef(false);
   
-  const agency = useMemo(() => contextAgency || initialAgency, [contextAgency, initialAgency]);
+  // ✅ CORRECTION 1: Utiliser initialAgency en priorité, éviter le double fetch
+  const agency = useMemo(() => initialAgency || contextAgency, [initialAgency, contextAgency]);
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
@@ -70,7 +71,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // Formatage optimisé des villas - CORRIGÉ pour conserver toutes les descriptions
+  // ✅ CORRECTION 3: Stocker toutes les versions linguistiques, formater uniquement à la réception
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     const uniqueMap = new Map();
     
@@ -87,17 +88,19 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
       uniqueMap.set(key, {
-        // Garder toutes les propriétés originales
+        // Garder toutes les propriétés originales (y compris les traductions)
         ...v,
-        // Puis surcharger/nettoyer les champs importants
         id: v.id || `v-${key}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
         ref: String(v.id_externe || v.ref || v.reference || ""),
-        // ✅ Titre localisé corrigé
-        titre: v[`titre_${locale}`] || v.titre_fr || v.titre || v.development_name || "Propriété",
-        // ✅ Description localisée - CRUCIAL POUR LA PAGE DÉTAIL
-        description: v[`description_${locale}`] || v.description_fr || v.description || "",
-        description_fr: v.description_fr || "",
+        // ✅ Stocker toutes les traductions, ne pas résoudre ici
+        titre_fr: v.titre_fr || v.titre || v.development_name || "Propriété",
+        titre_en: v.titre_en || v.titre || "",
+        titre_es: v.titre_es || v.titre || "",
+        titre_nl: v.titre_nl || v.titre || "",
+        titre_pl: v.titre_pl || v.titre || "",
+        titre_ar: v.titre_ar || v.titre || "",
+        description_fr: v.description_fr || v.description || "",
         description_en: v.description_en || "",
         description_es: v.description_es || "",
         description_nl: v.description_nl || "",
@@ -126,7 +129,16 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       const priceB = b.price || 0;
       return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
     });
-  }, [locale, sortOrder]);
+  }, [sortOrder]);
+
+  // ✅ CORRECTION 3: Fonction utilitaire pour obtenir les valeurs localisées au rendu
+  const getLocalizedProperty = useCallback((property: Villa): Villa => {
+    return {
+      ...property,
+      titre: property[`titre_${locale}` as keyof Villa] as string || property.titre_fr || property.titre || "Propriété",
+      description: property[`description_${locale}` as keyof Villa] as string || property.description_fr || property.description || "",
+    };
+  }, [locale]);
 
   // Sauvegarde dans le cache
   const saveToCache = useCallback((properties: Villa[]) => {
@@ -201,34 +213,61 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return;
     }
 
-    // 3. Fallback : chargement API
+    // ✅ CORRECTION 2: Fallback optimisé - utiliser agency_id et sélectionner uniquement les champs nécessaires
     try {
       setLoadingProperties(true);
       setLoadingProgress(30);
 
-      let allowedXmlUrls: string[] = [];
-      
-      if (currentAgency?.footer_config) {
-        try {
-          const config = typeof currentAgency.footer_config === 'string' 
-            ? JSON.parse(currentAgency.footer_config) 
-            : currentAgency.footer_config;
-          allowedXmlUrls = config?.xml_urls || [];
-        } catch (e) {}
-      }
-
       setLoadingProgress(50);
       
-      let query = supabase
+      // Requête optimisée avec agency_id et sélection des champs spécifiques
+      const { data, error } = await supabase
         .from('villas')
-        .select('*')
-        .eq('is_excluded', false);
-      
-      if (allowedXmlUrls.length > 0) {
-        query = query.in('xml_source', allowedXmlUrls);
-      }
-
-      const { data, error } = await query.limit(500);
+        .select(`
+          id,
+          id_externe,
+          ref,
+          titre_fr,
+          titre_en,
+          titre_es,
+          titre_nl,
+          titre_pl,
+          titre_ar,
+          price,
+          prix,
+          town,
+          ville,
+          region,
+          province,
+          beds,
+          bedrooms,
+          baths,
+          bathroom,
+          surface_built,
+          built,
+          surface_plot,
+          plot,
+          type,
+          pool,
+          is_excluded,
+          agency_id,
+          description_fr,
+          description_en,
+          description_es,
+          description_nl,
+          description_pl,
+          description_ar,
+          images,
+          latitude,
+          longitude,
+          adresse,
+          xml_source,
+          commission_percentage,
+          currency
+        `)
+        .eq('agency_id', currentAgency.id)
+        .eq('is_excluded', false)
+        .limit(500);
 
       setLoadingProgress(80);
 
@@ -253,14 +292,25 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
   }, [initialProperties, formatVillaData, saveToCache, loadFromCache, allProperties.length]);
 
-  // Synchronisation de l'agence
+  // ✅ CORRECTION 1: Synchronisation intelligente de l'agence - éviter le double fetch
   useEffect(() => {
+    // Si on a déjà initialAgency, pas besoin de fetch
+    if (initialAgency) {
+      // Si le contexte n'a pas d'agence, on pourrait le mettre à jour silencieusement
+      if (!contextAgency && setAgencyBySlug) {
+        // Optionnel: mettre à jour le contexte sans bloquer
+        setAgencyBySlug(slug).catch(console.error);
+      }
+      return;
+    }
+    
+    // Sinon, on fetch normalement
     if (slug && !contextAgency) {
       setAgencyBySlug(slug);
     }
-  }, [slug, contextAgency, setAgencyBySlug]);
+  }, [slug, contextAgency, setAgencyBySlug, initialAgency]);
 
-  // Chargement des données
+  // Chargement des données - ne s'exécute que si agency est chargée
   useEffect(() => {
     if (agency?.id) {
       loadData(agency);
@@ -358,6 +408,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     setFilteredProperties(sorted);
   }, [allProperties]);
 
+  // ✅ CORRECTION 3: Préparer les propriétés localisées pour le PropertyGrid
+  const localizedProperties = useMemo(() => {
+    return filteredProperties.map(getLocalizedProperty);
+  }, [filteredProperties, getLocalizedProperty]);
+
   const primaryColor = agency?.primary_color || '#FF8C00'; 
   const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
   const fontFamily = agency?.font_family || 'Montserrat';
@@ -368,7 +423,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
         <div className="w-16 h-16 border-4 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-4"></div>
         <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">
-          {t('common.loading')}
+          {t('common.loading') || 'Chargement...'}
         </p>
       </div>
     );
@@ -391,10 +446,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                   onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
                   className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
                 >
-                  <ArrowLeft size={14} /> {t('nav.back')}
+                  <ArrowLeft size={14} /> {t('nav.back') || 'Retour'}
                 </button>
               </div>
-              <PropertyDetailClient property={selectedProperty} agency={agency} />
+              {/* Passer la propriété localisée ou l'originale avec les traductions */}
+              <PropertyDetailClient 
+                property={getLocalizedProperty(selectedProperty)} 
+                agency={agency} 
+              />
             </motion.div>
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -415,7 +474,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                   style={{ backgroundColor: primaryColor }}
                 >
                   <Search size={20} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search')}</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search') || 'Rechercher'}</span>
                 </button>
               </div>
 
@@ -423,20 +482,22 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                    <h2 className="text-5xl italic mb-8 text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results')}</h2>
+                    <h2 className="text-5xl italic mb-8 text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results') || 'Nos Biens'}</h2>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
                   <AnimatePresence mode="popLayout">
-                    {filteredProperties.length > 0 ? (
+                    {localizedProperties.length > 0 ? (
                       <PropertyGrid 
                         agency={agency}
-                        properties={filteredProperties.slice(0, displayLimit)} 
+                        properties={localizedProperties.slice(0, displayLimit)} 
                         favorites={favorites}
                         onToggleFavorite={toggleFavorite}
                         onPropertyClick={(p: Villa) => { 
                           console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id });
-                          setSelectedProperty(p); 
+                          // Passer la propriété originale (avec toutes les traductions) pour le détail
+                          const originalProperty = allProperties.find(prop => prop.id === p.id);
+                          setSelectedProperty(originalProperty || p); 
                           window.scrollTo({ top: 0 }); 
                         }}
                       />
@@ -457,14 +518,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                     )}
                   </AnimatePresence>
 
-                  {!loadingProperties && filteredProperties.length > displayLimit && (
+                  {!loadingProperties && localizedProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
                       <button 
                         onClick={() => setDisplayLimit(prev => prev + 12)} 
                         className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
                         style={{ backgroundColor: primaryColor }}
                       >
-                        <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore')}</span>
+                        <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore') || 'Afficher plus'}</span>
                       </button>
                     </div>
                   )}
