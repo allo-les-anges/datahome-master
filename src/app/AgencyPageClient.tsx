@@ -33,7 +33,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { agency: contextAgency, setAgencyBySlug } = useAgency();
   const initialLoadDone = useRef(false);
   
-  // ✅ CORRECTION 1: Utiliser initialAgency en priorité, éviter le double fetch
   const agency = useMemo(() => initialAgency || contextAgency, [initialAgency, contextAgency]);
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
@@ -47,14 +46,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const [displayLimit, setDisplayLimit] = useState(12);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Filtres optimisés avec des valeurs par défaut réalistes
   const [filters, setFilters] = useState<Filters>({
     type: "",
     town: "",
     region: "",
     beds: 0,
     minPrice: 0,
-    maxPrice: 5000000, // 5M€ par défaut
+    maxPrice: 5000000,
     reference: "",
   });
 
@@ -71,7 +69,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // ✅ CORRECTION 3: Stocker toutes les versions linguistiques, formater uniquement à la réception
+  // Formatage des villas
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     const uniqueMap = new Map();
     
@@ -88,12 +86,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       if (imageArray.length === 0) imageArray = ['/hero_network.jpg'];
       
       uniqueMap.set(key, {
-        // Garder toutes les propriétés originales (y compris les traductions)
         ...v,
         id: v.id || `v-${key}`,
         id_externe: String(v.id_externe || v.ref || v.external_id || ""),
         ref: String(v.id_externe || v.ref || v.reference || ""),
-        // ✅ Stocker toutes les traductions, ne pas résoudre ici
         titre_fr: v.titre_fr || v.titre || v.development_name || "Propriété",
         titre_en: v.titre_en || v.titre || "",
         titre_es: v.titre_es || v.titre || "",
@@ -123,7 +119,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       });
     }
     
-    // Tri par prix selon l'ordre actuel
     return Array.from(uniqueMap.values()).sort((a, b) => {
       const priceA = a.price || 0;
       const priceB = b.price || 0;
@@ -131,7 +126,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
   }, [sortOrder]);
 
-  // ✅ CORRECTION 3: Fonction utilitaire pour obtenir les valeurs localisées au rendu
   const getLocalizedProperty = useCallback((property: Villa): Villa => {
     return {
       ...property,
@@ -140,7 +134,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     };
   }, [locale]);
 
-  // Sauvegarde dans le cache
   const saveToCache = useCallback((properties: Villa[]) => {
     if (typeof window === 'undefined') return;
     try {
@@ -154,7 +147,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
   }, [slug]);
 
-  // Chargement depuis le cache
   const loadFromCache = useCallback((): Villa[] | null => {
     if (typeof window === 'undefined') return null;
     try {
@@ -175,16 +167,16 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
   }, [slug]);
 
-  // Chargement des données - OPTIMISÉ
+  // Chargement des données - Version qui fonctionne avec la structure actuelle
   const loadData = useCallback(async (currentAgency: any) => {
     if (!currentAgency?.id) return;
     
-    // Éviter les doubles chargements
     if (initialLoadDone.current && allProperties.length > 0) return;
     
-    // 1. Vérifier le cache d'abord
+    // 1. Vérifier le cache
     const cached = loadFromCache();
     if (cached && cached.length > 0) {
+      console.log("📦 [Cache] Chargé depuis le cache:", cached.length, "biens");
       setAllProperties(cached);
       setFilteredProperties(cached);
       setLoadingProperties(false);
@@ -192,19 +184,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return;
     }
 
-    // 2. Utiliser les propriétés initiales du SSR si disponibles
+    // 2. Utiliser les propriétés initiales du SSR
     if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.log("📦 [AgencyPageClient] initialProperties reçues du SSR:", initialProperties.length);
-      console.log("📦 [AgencyPageClient] Première propriété brute - a description_fr:", !!initialProperties[0]?.description_fr);
-      console.log("📦 [AgencyPageClient] Première propriété brute - description_fr:", initialProperties[0]?.description_fr?.substring(0, 100));
-      
+      console.log("📦 [SSR] Utilisation des propriétés initiales:", initialProperties.length, "biens");
       const formatted = formatVillaData(initialProperties);
-      
-      console.log("📦 [AgencyPageClient] Après formatage - a description_fr:", !!formatted[0]?.description_fr);
-      console.log("📦 [AgencyPageClient] Après formatage - description_fr:", formatted[0]?.description_fr?.substring(0, 100));
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      
       setAllProperties(formatted);
       setFilteredProperties(formatted);
       saveToCache(formatted);
@@ -213,15 +196,26 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return;
     }
 
-    // ✅ CORRECTION 2: Fallback optimisé - utiliser agency_id et sélectionner uniquement les champs nécessaires
+    // 3. Fallback - Récupérer les XML URLs depuis la config de l'agence
     try {
       setLoadingProperties(true);
-      setLoadingProgress(30);
-
-      setLoadingProgress(50);
       
-      // Requête optimisée avec agency_id et sélection des champs spécifiques
-      const { data, error } = await supabase
+      // Récupérer les URLs XML autorisées pour cette agence
+      let allowedXmlUrls: string[] = [];
+      
+      if (currentAgency?.footer_config) {
+        try {
+          const config = typeof currentAgency.footer_config === 'string' 
+            ? JSON.parse(currentAgency.footer_config) 
+            : currentAgency.footer_config;
+          allowedXmlUrls = config?.xml_urls || [];
+          console.log("📦 [Fallback] XML URLs autorisées:", allowedXmlUrls);
+        } catch (e) {
+          console.warn("Erreur parsing footer_config:", e);
+        }
+      }
+      
+      let query = supabase
         .from('villas')
         .select(`
           id,
@@ -265,52 +259,72 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           commission_percentage,
           currency
         `)
-        .eq('agency_id', currentAgency.id)
-        .eq('is_excluded', false)
-        .limit(500);
-
-      setLoadingProgress(80);
-
+        .eq('is_excluded', false);
+      
+      // Filtrer par xml_source si disponible, sinon pas de filtre
+      if (allowedXmlUrls.length > 0) {
+        query = query.in('xml_source', allowedXmlUrls);
+        console.log("📦 [Fallback] Filtrage par xml_source");
+      } else {
+        console.log("📦 [Fallback] Pas de filtre xml_source, chargement de toutes les villas non exclues");
+      }
+      
+      const { data, error, count } = await query.limit(500);
+      
+      console.log("📦 [Fallback] Résultat Supabase - data length:", data?.length, "error:", error?.message);
+      
       if (error) throw error;
-
+      
+      if (data && data.length > 0) {
+        console.log("📦 [Fallback] Première villa trouvée:", {
+          id: data[0].id,
+          town: data[0].town,
+          price: data[0].price,
+          hasDescriptionFr: !!data[0].description_fr
+        });
+      } else {
+        console.warn("📦 [Fallback] Aucune villa trouvée dans Supabase !");
+      }
+      
       const formatted = formatVillaData(data || []);
+      console.log("📦 [Fallback] Après formatage:", formatted.length, "biens");
+      
       setAllProperties(formatted);
       setFilteredProperties(formatted);
       saveToCache(formatted);
-
+      
+      if (formatted.length === 0) {
+        console.warn("⚠️ Aucun bien trouvé pour cette agence. Vérifiez que les villas ont le bon xml_source ou agency_id.");
+      }
+      
     } catch (err) {
-      console.error("Erreur chargement propriétés:", err);
+      console.error("❌ Erreur chargement propriétés:", err);
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
         setFilteredProperties(formatted);
       }
     } finally {
-      setLoadingProgress(100);
       setLoadingProperties(false);
       initialLoadDone.current = true;
     }
   }, [initialProperties, formatVillaData, saveToCache, loadFromCache, allProperties.length]);
 
-  // ✅ CORRECTION 1: Synchronisation intelligente de l'agence - éviter le double fetch
+  // Synchronisation de l'agence
   useEffect(() => {
-    // Si on a déjà initialAgency, pas besoin de fetch
     if (initialAgency) {
-      // Si le contexte n'a pas d'agence, on pourrait le mettre à jour silencieusement
       if (!contextAgency && setAgencyBySlug) {
-        // Optionnel: mettre à jour le contexte sans bloquer
         setAgencyBySlug(slug).catch(console.error);
       }
       return;
     }
     
-    // Sinon, on fetch normalement
     if (slug && !contextAgency) {
       setAgencyBySlug(slug);
     }
   }, [slug, contextAgency, setAgencyBySlug, initialAgency]);
 
-  // Chargement des données - ne s'exécute que si agency est chargée
+  // Chargement des données
   useEffect(() => {
     if (agency?.id) {
       loadData(agency);
@@ -333,11 +347,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
   };
 
-  // Filtrage optimisé avec gestion du tri
+  // Filtrage
   const handleSearch = useCallback((newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {
     const { sortOrder: newSortOrder, ...filterValues } = newFilters;
     
-    // Mettre à jour l'ordre de tri si fourni
     if (newSortOrder) {
       setSortOrder(newSortOrder);
     }
@@ -368,7 +381,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
-    // Application du tri par prix
     const currentSortOrder = newSortOrder || sortOrder;
     results = [...results].sort((a, b) => {
       const priceA = Number(a.price) || 0;
@@ -386,7 +398,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }, 150);
   }, [allProperties, sortOrder]);
 
-  // Réinitialisation des filtres
   const resetFilters = useCallback(() => {
     const defaultFilters = {
       type: "",
@@ -399,7 +410,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     };
     setFilters(defaultFilters);
     setSortOrder('asc');
-    // Re-trier les propriétés après réinitialisation
     const sorted = [...allProperties].sort((a, b) => {
       const priceA = Number(a.price) || 0;
       const priceB = Number(b.price) || 0;
@@ -408,7 +418,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     setFilteredProperties(sorted);
   }, [allProperties]);
 
-  // ✅ CORRECTION 3: Préparer les propriétés localisées pour le PropertyGrid
   const localizedProperties = useMemo(() => {
     return filteredProperties.map(getLocalizedProperty);
   }, [filteredProperties, getLocalizedProperty]);
@@ -417,7 +426,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
   const fontFamily = agency?.font_family || 'Montserrat';
 
-  // Afficher un loader si pas de données
+  // Loader
   if (loadingProperties && allProperties.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
@@ -449,7 +458,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                   <ArrowLeft size={14} /> {t('nav.back') || 'Retour'}
                 </button>
               </div>
-              {/* Passer la propriété localisée ou l'originale avec les traductions */}
               <PropertyDetailClient 
                 property={getLocalizedProperty(selectedProperty)} 
                 agency={agency} 
@@ -495,7 +503,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         onToggleFavorite={toggleFavorite}
                         onPropertyClick={(p: Villa) => { 
                           console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id });
-                          // Passer la propriété originale (avec toutes les traductions) pour le détail
                           const originalProperty = allProperties.find(prop => prop.id === p.id);
                           setSelectedProperty(originalProperty || p); 
                           window.scrollTo({ top: 0 }); 
