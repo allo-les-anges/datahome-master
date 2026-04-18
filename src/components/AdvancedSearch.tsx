@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Map, Home, Hash, Bed, RotateCcw } from "lucide-react";
+import { Search, Map, Home, Hash, Bed, RotateCcw, ArrowUpDown } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
 
 interface AdvancedSearchProps {
   onSearch: (filters: any) => void;
@@ -9,24 +10,31 @@ interface AdvancedSearchProps {
   activeFilters?: any;
   onClose?: () => void;
   isLight?: boolean;
-  agency?: any; // Ajout de la prop agency pour le branding dynamique
+  agency?: any;
 }
 
 export default function AdvancedSearch({
   onSearch,
   properties = [],
-  activeFilters = {}, 
+  activeFilters = {},
   onClose,
   isLight = true,
-  agency, // Récupération de l'agence
+  agency,
 }: AdvancedSearchProps) {
+  const { t, locale } = useTranslation() as any;
   
-  // On définit la couleur de marque (Dashboard) ou une couleur par défaut
-  const brandColor = agency?.primary_color || '#0f172a';
+  // Récupération des styles dynamiques de l'agence
+  const brandColor = agency?.primary_color || '#D4AF37';
+  const fontFamily = agency?.font_family || 'Montserrat';
+  const buttonStyle = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
+  const buttonAnimation = agency?.button_animation || 'scale';
 
   const MIN_VAL = 0;
   const MAX_VAL = 20000000;
   const STEP = 10000;
+
+  // État pour l'ordre de tri
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const initialFilters = {
     region: "",
@@ -43,7 +51,7 @@ export default function AdvancedSearch({
     ...activeFilters
   });
 
-  // Synchronisation avec les filtres actifs venant du parent
+  // Synchronisation avec les filtres actifs
   useEffect(() => {
     if (activeFilters && Object.keys(activeFilters).length > 0) {
       setLocalFilters((prev: any) => ({ ...prev, ...activeFilters }));
@@ -59,7 +67,7 @@ export default function AdvancedSearch({
       .sort();
   }, [properties]);
   
-  // Extraction dynamique des Types UNIQUES avec traduction
+  // Extraction dynamique des Types UNIQUES
   const uniqueTypes = useMemo(() => {
     const translation: { [key: string]: string } = {
       villa: "Villa", 
@@ -80,14 +88,30 @@ export default function AdvancedSearch({
     }));
   }, [properties]);
 
+  // Extraction dynamique des Villes UNIQUES (basé sur la région sélectionnée)
+  const uniqueTowns = useMemo(() => {
+    const safeProps = Array.isArray(properties) ? properties : [];
+    let filtered = safeProps;
+    
+    if (localFilters.region) {
+      filtered = safeProps.filter(p => p.region === localFilters.region);
+    }
+    
+    const rawTowns = filtered.map((p) => p.town || p.ville);
+    return [...new Set(rawTowns)]
+      .filter((t) => t && typeof t === 'string' && t.trim() !== "")
+      .sort();
+  }, [properties, localFilters.region]);
+
   const handleSearchClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    onSearch(localFilters);
+    onSearch({ ...localFilters, sortOrder });
     if (onClose) onClose();
-  }, [onSearch, localFilters, onClose]);
+  }, [onSearch, localFilters, sortOrder, onClose]);
 
   const handleReset = () => {
     setLocalFilters(initialFilters);
+    setSortOrder('asc');
     onSearch(initialFilters);
   };
 
@@ -100,16 +124,33 @@ export default function AdvancedSearch({
     return `linear-gradient(to right, ${brandColor} ${percentage}%, #e2e8f0 ${percentage}%)`;
   };
 
+  // Animation du bouton
+  const getButtonAnimationClass = () => {
+    switch (buttonAnimation) {
+      case 'scale': return 'hover:scale-105 active:scale-95';
+      case 'glow': return 'hover:shadow-xl hover:shadow-primary/50';
+      case 'slide': return 'hover:translate-x-1';
+      default: return '';
+    }
+  };
+
+  // Texte du bouton traduit
+  const buttonText = t('common.search') || "Voir les résultats";
+
   return (
-    <div className="w-full relative">
-      {/* INJECTION DYNAMIQUE DE LA COULEUR DANS LES VARIABLES CSS */}
+    <div 
+      className="w-full relative"
+      style={{ fontFamily: `${fontFamily}, sans-serif` }}
+    >
+      {/* INJECTION DYNAMIQUE DES STYLES */}
       <style jsx global>{`
         :root {
           --brand-primary: ${brandColor};
         }
         .text-primary { color: ${brandColor} !important; }
         .bg-primary { background-color: ${brandColor} !important; }
-        .focus-ring-primary:focus { --tw-ring-color: ${brandColor}20; }
+        .border-primary { border-color: ${brandColor} !important; }
+        .ring-primary\/20 { --tw-ring-color: ${brandColor}20 !important; }
         
         .sexy-slider {
           -webkit-appearance: none;
@@ -137,50 +178,98 @@ export default function AdvancedSearch({
         }
       `}</style>
       
-      <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
-        <h3 className="text-2xl md:text-3xl font-serif italic text-slate-900">Recherche</h3>
+      <div className="flex justify-between items-center mb-8 pb-4" style={{ borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
+        <h3 
+          className="text-2xl md:text-3xl font-serif italic"
+          style={{ color: isLight ? '#0f172a' : '#ffffff' }}
+        >
+          {t('common.search') || "Recherche"}
+        </h3>
         <button 
           onClick={handleReset}
-          className="group flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors"
+          className="group flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors"
+          style={{ color: isLight ? '#94a3b8' : '#64748b' }}
         >
-          <RotateCcw size={14} className="group-hover:rotate-[-90deg] transition-transform" /> Réinitialiser
+          <RotateCcw size={14} className="group-hover:rotate-[-90deg] transition-transform" /> 
+          {t('home.reset') || "Réinitialiser"}
         </button>
       </div>
 
       <form className="space-y-8 md:space-y-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
           
-          {/* CHAMP RÉFÉRENCE */}
-          <div className="md:col-span-2 space-y-3 bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.2em] text-slate-500">
-              <Hash size={14} className="text-primary" /> Référence Propriété
+          {/* CHAMP RÉFÉRENCE (corrigé) */}
+          <div className="md:col-span-2 space-y-3 p-5 rounded-2xl" style={{ 
+            backgroundColor: isLight ? '#f8fafc' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}`
+          }}>
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.2em]" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+              <Hash size={14} className="text-primary" /> {t('propertyCard.ref')?.replace('{ref}', '') || "Référence"}
             </label>
             <input 
               type="text"
-              placeholder="Ex: REF-1234..."
+              placeholder="REF-1234"
               value={localFilters.reference}
               onChange={(e) => setLocalFilters({ ...localFilters, reference: e.target.value })}
-              className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-medium outline-none text-slate-900 placeholder:text-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-inner"
+              className="w-full rounded-xl p-3 text-sm font-medium outline-none transition-all shadow-inner"
+              style={{
+                backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                color: isLight ? '#0f172a' : '#ffffff',
+              }}
             />
           </div>
 
           {/* RÉGION */}
           <div className="space-y-3">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black text-slate-500">
-              <Map size={14} className="text-primary" /> Région
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+              <Map size={14} className="text-primary" /> {t('home.region') || "Région"}
             </label>
             <div className="relative">
               <select 
                 value={localFilters.region}
-                onChange={(e) => setLocalFilters({ ...localFilters, region: e.target.value })}
-                className="w-full bg-white border border-slate-200 p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none uppercase text-slate-900 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                onChange={(e) => setLocalFilters({ ...localFilters, region: e.target.value, town: "" })}
+                className="w-full p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
+                style={{
+                  backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                  color: isLight ? '#0f172a' : '#ffffff',
+                }}
               >
-                <option value="">Espagne (Toutes)</option>
+                <option value="">{t('home.allRegions') || "Toutes les régions"}</option>
                 {uniqueRegions.map(r => (
                   <option key={`reg-${r}`} value={r}>{r}</option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: isLight ? '#cbd5e1' : '#475569' }}>
+                <Map size={14} />
+              </div>
+            </div>
+          </div>
+
+          {/* VILLE (NOUVEAU - dynamique basé sur la région) */}
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+              <Map size={14} className="text-primary" /> {t('home.city') || "Ville"}
+            </label>
+            <div className="relative">
+              <select 
+                value={localFilters.town}
+                onChange={(e) => setLocalFilters({ ...localFilters, town: e.target.value })}
+                className="w-full p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
+                style={{
+                  backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                  color: isLight ? '#0f172a' : '#ffffff',
+                }}
+                disabled={!localFilters.region}
+              >
+                <option value="">{t('home.allCities') || "Toutes les villes"}</option>
+                {uniqueTowns.map(t => (
+                  <option key={`town-${t}`} value={t}>{t}</option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: isLight ? '#cbd5e1' : '#475569' }}>
                 <Map size={14} />
               </div>
             </div>
@@ -188,21 +277,26 @@ export default function AdvancedSearch({
 
           {/* TYPE */}
           <div className="space-y-3">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black text-slate-500">
-              <Home size={14} className="text-primary" /> Type de Bien
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+              <Home size={14} className="text-primary" /> {t('propertyCard.type') || "Type"}
             </label>
             <div className="relative">
               <select 
                 value={localFilters.type}
                 onChange={(e) => setLocalFilters({ ...localFilters, type: e.target.value })}
-                className="w-full bg-white border border-slate-200 p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none uppercase text-slate-900 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                className="w-full p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
+                style={{
+                  backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
+                  color: isLight ? '#0f172a' : '#ffffff',
+                }}
               >
-                <option value="">Indifférent</option>
+                <option value="">{t('home.allTypes') || "Tous types"}</option>
                 {uniqueTypes.map(t => (
                   <option key={`type-${t.id}`} value={t.id}>{t.label}</option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: isLight ? '#cbd5e1' : '#475569' }}>
                 <Home size={14} />
               </div>
             </div>
@@ -210,30 +304,45 @@ export default function AdvancedSearch({
 
           {/* CHAMBRES */}
           <div className="space-y-3 md:col-span-2 lg:col-span-2">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black text-slate-500">
-              <Bed size={14} className="text-primary" /> Chambres Minimum
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+              <Bed size={14} className="text-primary" /> {t('propertyCard.beds') || "Chambres min."}
             </label>
-            <div className="flex bg-white border border-slate-200 p-1 rounded-full shadow-sm">
-              {[2, 3, 4, 5].map((n) => (
+            <div className="flex p-1 rounded-full shadow-sm" style={{ 
+              backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`
+            }}>
+              {[0, 2, 3, 4, 5].map((n) => (
                 <button
                   key={`beds-${n}`}
                   type="button"
                   onClick={() => setLocalFilters({ ...localFilters, beds: n.toString() })}
-                  className={`flex-1 h-10 rounded-full text-[12px] font-extrabold transition-all duration-300 ${localFilters.beds === n.toString() ? "bg-primary text-white shadow-md scale-105" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
+                  className={`flex-1 h-10 rounded-full text-[12px] font-extrabold transition-all duration-300 ${
+                    (localFilters.beds === n.toString() || (n === 0 && !localFilters.beds)) 
+                      ? "bg-primary text-white shadow-md scale-105" 
+                      : "hover:bg-slate-100 dark:hover:bg-white/10"
+                  }`}
+                  style={{ color: (localFilters.beds === n.toString() || (n === 0 && !localFilters.beds)) ? '#000000' : (isLight ? '#64748b' : '#94a3b8') }}
                 >
-                  {n}+
+                  {n === 0 ? "Tous" : `${n}+`}
                 </button>
               ))}
             </div>
           </div>
 
           {/* SECTION PRIX */}
-          <div className="md:col-span-2 lg:col-span-4 space-y-8 bg-slate-50/50 p-6 md:p-8 rounded-3xl border border-slate-100">
+          <div className="md:col-span-2 lg:col-span-4 space-y-8 p-6 md:p-8 rounded-3xl" style={{ 
+            backgroundColor: isLight ? '#f8fafc' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}`
+          }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-4">
-                  <label className="text-[9px] uppercase font-black tracking-wider text-slate-500">Prix Minimum</label>
-                  <span className="text-xl font-serif italic text-slate-950 whitespace-nowrap">{formatPrice(Number(localFilters.minPrice))}</span>
+                  <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+                    {t('propertyDetail.minPrice') || "Prix Minimum"}
+                  </label>
+                  <span className="text-xl font-serif italic" style={{ color: isLight ? '#0f172a' : '#ffffff' }}>
+                    {formatPrice(Number(localFilters.minPrice))}
+                  </span>
                 </div>
                 <input 
                   type="range" 
@@ -249,8 +358,10 @@ export default function AdvancedSearch({
 
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-4">
-                  <label className="text-[9px] uppercase font-black tracking-wider text-slate-500">Prix Maximum</label>
-                  <span className="text-xl font-serif italic text-slate-950 whitespace-nowrap">
+                  <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+                    {t('propertyDetail.maxPrice') || "Prix Maximum"}
+                  </label>
+                  <span className="text-xl font-serif italic" style={{ color: isLight ? '#0f172a' : '#ffffff' }}>
                     {Number(localFilters.maxPrice) >= MAX_VAL - STEP ? "Illimité" : formatPrice(Number(localFilters.maxPrice))}
                   </span>
                 </div>
@@ -269,14 +380,57 @@ export default function AdvancedSearch({
           </div>
         </div>
 
+        {/* SECTION TRI PAR PRIX */}
+        <div className="flex justify-between items-center pt-4">
+          <div className="flex items-center gap-4">
+            <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+              {t('propertyDetail.sortByPrice') || "Trier par prix :"}
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSortOrder('asc')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${
+                  sortOrder === 'asc' 
+                    ? 'bg-primary text-black shadow-md' 
+                    : 'bg-transparent hover:bg-white/10'
+                }`}
+                style={{ 
+                  backgroundColor: sortOrder === 'asc' ? brandColor : 'transparent',
+                  color: sortOrder === 'asc' ? '#000000' : (isLight ? '#64748b' : '#94a3b8'),
+                  border: `1px solid ${sortOrder === 'asc' ? 'transparent' : (isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)')}`
+                }}
+              >
+                <ArrowUpDown size={12} /> Croissant
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortOrder('desc')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${
+                  sortOrder === 'desc' 
+                    ? 'bg-primary text-black shadow-md' 
+                    : 'bg-transparent hover:bg-white/10'
+                }`}
+                style={{ 
+                  backgroundColor: sortOrder === 'desc' ? brandColor : 'transparent',
+                  color: sortOrder === 'desc' ? '#000000' : (isLight ? '#64748b' : '#94a3b8'),
+                  border: `1px solid ${sortOrder === 'desc' ? 'transparent' : (isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)')}`
+                }}
+              >
+                <ArrowUpDown size={12} className="rotate-180" /> Décroissant
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-center pt-4 pb-6 md:pb-0">
           <button 
             type="button"
             onClick={handleSearchClick}
-            className="group flex items-center justify-center gap-5 w-full md:w-auto md:px-16 py-5 bg-primary text-white rounded-xl md:rounded-full hover:scale-105 active:scale-95 transition-all duration-300 shadow-xl shadow-primary/30"
+            className={`group flex items-center justify-center gap-5 w-full md:w-auto md:px-16 py-5 bg-primary text-black rounded-xl transition-all duration-300 shadow-xl shadow-primary/30 ${getButtonAnimationClass()} ${buttonStyle}`}
           >
             <Search size={20} strokeWidth={3} className="group-hover:rotate-6 transition-transform" />
-            <span className="text-[11px] font-black uppercase tracking-[0.4em]">Voir les résultats</span>
+            <span className="text-[11px] font-black uppercase tracking-[0.4em]">{buttonText}</span>
           </button>
         </div>
       </form>

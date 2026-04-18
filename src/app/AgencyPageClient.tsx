@@ -44,6 +44,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [displayLimit, setDisplayLimit] = useState(12);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Filtres optimisés avec des valeurs par défaut réalistes
   const [filters, setFilters] = useState<Filters>({
@@ -52,7 +53,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     region: "",
     beds: 0,
     minPrice: 0,
-    maxPrice: 5000000, // 5M€ par défaut, pas 50M
+    maxPrice: 5000000, // 5M€ par défaut
     reference: "",
   });
 
@@ -119,9 +120,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       });
     }
     
-    // Tri par prix croissant une seule fois
-    return Array.from(uniqueMap.values()).sort((a, b) => a.price - b.price);
-  }, [locale]);
+    // Tri par prix selon l'ordre actuel
+    return Array.from(uniqueMap.values()).sort((a, b) => {
+      const priceA = a.price || 0;
+      const priceB = b.price || 0;
+      return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+    });
+  }, [locale, sortOrder]);
 
   // Sauvegarde dans le cache
   const saveToCache = useCallback((properties: Villa[]) => {
@@ -176,25 +181,25 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
 
     // 2. Utiliser les propriétés initiales du SSR si disponibles
-if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("📦 [AgencyPageClient] initialProperties reçues du SSR:", initialProperties.length);
-  console.log("📦 [AgencyPageClient] Première propriété brute - a description_fr:", !!initialProperties[0]?.description_fr);
-  console.log("📦 [AgencyPageClient] Première propriété brute - description_fr:", initialProperties[0]?.description_fr?.substring(0, 100));
-  
-  const formatted = formatVillaData(initialProperties);
-  
-  console.log("📦 [AgencyPageClient] Après formatage - a description_fr:", !!formatted[0]?.description_fr);
-  console.log("📦 [AgencyPageClient] Après formatage - description_fr:", formatted[0]?.description_fr?.substring(0, 100));
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  
-  setAllProperties(formatted);
-  setFilteredProperties(formatted);
-  saveToCache(formatted);
-  setLoadingProperties(false);
-  initialLoadDone.current = true;
-  return;
-}
+    if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log("📦 [AgencyPageClient] initialProperties reçues du SSR:", initialProperties.length);
+      console.log("📦 [AgencyPageClient] Première propriété brute - a description_fr:", !!initialProperties[0]?.description_fr);
+      console.log("📦 [AgencyPageClient] Première propriété brute - description_fr:", initialProperties[0]?.description_fr?.substring(0, 100));
+      
+      const formatted = formatVillaData(initialProperties);
+      
+      console.log("📦 [AgencyPageClient] Après formatage - a description_fr:", !!formatted[0]?.description_fr);
+      console.log("📦 [AgencyPageClient] Après formatage - description_fr:", formatted[0]?.description_fr?.substring(0, 100));
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      
+      setAllProperties(formatted);
+      setFilteredProperties(formatted);
+      saveToCache(formatted);
+      setLoadingProperties(false);
+      initialLoadDone.current = true;
+      return;
+    }
 
     // 3. Fallback : chargement API
     try {
@@ -223,10 +228,7 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
         query = query.in('xml_source', allowedXmlUrls);
       }
 
-      // Tri par prix croissant (du moins cher au plus cher)
-      const { data, error } = await query
-        .order('price', { ascending: true })
-        .limit(500);
+      const { data, error } = await query.limit(500);
 
       setLoadingProgress(80);
 
@@ -281,23 +283,30 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
     });
   };
 
-  // Filtrage optimisé avec useMemo
-  const handleSearch = useCallback((newFilters: Filters) => {
-    setFilters(newFilters);
+  // Filtrage optimisé avec gestion du tri
+  const handleSearch = useCallback((newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {
+    const { sortOrder: newSortOrder, ...filterValues } = newFilters;
     
-    const min = Number(newFilters.minPrice) || 0;
-    const max = Number(newFilters.maxPrice) || 5000000;
-    const requiredBeds = Number(newFilters.beds) || 0;
-    const searchLocation = (newFilters.town || newFilters.region || "").toLowerCase().trim();
-    const searchRef = (newFilters.reference || "").toLowerCase().trim();
-    const searchType = (newFilters.type || "").toLowerCase().trim();
+    // Mettre à jour l'ordre de tri si fourni
+    if (newSortOrder) {
+      setSortOrder(newSortOrder);
+    }
+    
+    setFilters(filterValues);
+    
+    const min = Number(filterValues.minPrice) || 0;
+    const max = Number(filterValues.maxPrice) || 5000000;
+    const requiredBeds = Number(filterValues.beds) || 0;
+    const searchLocation = (filterValues.town || filterValues.region || "").toLowerCase().trim();
+    const searchRef = (filterValues.reference || "").toLowerCase().trim();
+    const searchType = (filterValues.type || "").toLowerCase().trim();
 
-    const results = allProperties.filter((p) => {
+    let results = allProperties.filter((p) => {
       const pPrice = Number(p.price) || 0;
       
       const matchPrice = pPrice >= min && pPrice <= max;
       const matchType = !searchType || searchType === "all" || 
-        p.type.toLowerCase().includes(searchType);
+        (p.type && p.type.toLowerCase().includes(searchType));
       const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
       const matchLocation = !searchLocation || 
         (p.town && p.town.toLowerCase().includes(searchLocation)) || 
@@ -309,6 +318,14 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
       return matchPrice && matchType && matchBeds && matchLocation && matchRef;
     });
 
+    // Application du tri par prix
+    const currentSortOrder = newSortOrder || sortOrder;
+    results = [...results].sort((a, b) => {
+      const priceA = Number(a.price) || 0;
+      const priceB = Number(b.price) || 0;
+      return currentSortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+    });
+
     setFilteredProperties(results);
     setDisplayLimit(12);
     setIsSearchOpen(false);
@@ -317,7 +334,7 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
       const element = document.getElementById('results-section');
       if (element) element.scrollIntoView({ behavior: 'smooth' });
     }, 150);
-  }, [allProperties]);
+  }, [allProperties, sortOrder]);
 
   // Réinitialisation des filtres
   const resetFilters = useCallback(() => {
@@ -331,11 +348,19 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
       reference: "",
     };
     setFilters(defaultFilters);
-    setFilteredProperties(allProperties);
+    setSortOrder('asc');
+    // Re-trier les propriétés après réinitialisation
+    const sorted = [...allProperties].sort((a, b) => {
+      const priceA = Number(a.price) || 0;
+      const priceB = Number(b.price) || 0;
+      return priceA - priceB;
+    });
+    setFilteredProperties(sorted);
   }, [allProperties]);
 
   const primaryColor = agency?.primary_color || '#FF8C00'; 
   const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
+  const fontFamily = agency?.font_family || 'Montserrat';
 
   // Afficher un loader si pas de données
   if (loadingProperties && allProperties.length === 0) {
@@ -410,10 +435,10 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
                         favorites={favorites}
                         onToggleFavorite={toggleFavorite}
                         onPropertyClick={(p: Villa) => { 
-                        console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id });
-                        setSelectedProperty(p); 
-                        window.scrollTo({ top: 0 }); 
-                      }}
+                          console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id });
+                          setSelectedProperty(p); 
+                          window.scrollTo({ top: 0 }); 
+                        }}
                       />
                     ) : (
                       <motion.div 
@@ -457,13 +482,15 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
             className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 bg-slate-900/95 backdrop-blur-xl"
+            style={{ fontFamily: fontFamily }}
           >
             <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.9, y: 20 }} 
-              className="relative w-full max-w-5xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+              className="relative w-full max-w-5xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+              style={{ backgroundColor: '#ffffff' }}
             >
               <button 
                 onClick={() => setIsSearchOpen(false)} 
@@ -476,7 +503,7 @@ if (initialProperties && initialProperties.length > 0 && !initialLoadDone.curren
                   agency={agency} 
                   onSearch={handleSearch} 
                   properties={allProperties} 
-                  activeFilters={filters} 
+                  activeFilters={{ ...filters, sortOrder }} 
                   onClose={() => setIsSearchOpen(false)} 
                 />
               </div>
