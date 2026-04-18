@@ -38,7 +38,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
@@ -69,7 +68,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
 
-  // Formatage des villas
+  // Formatage des villas - version adaptée à la structure réelle
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
     const uniqueMap = new Map();
     
@@ -87,9 +86,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       
       uniqueMap.set(key, {
         ...v,
-        id: v.id || `v-${key}`,
-        id_externe: String(v.id_externe || v.ref || v.external_id || ""),
-        ref: String(v.id_externe || v.ref || v.reference || ""),
+        id: v.id,
+        id_externe: String(v.id_externe || ""),
+        ref: String(v.ref || v.id_externe || ""),
         titre_fr: v.titre_fr || v.titre || v.development_name || "Propriété",
         titre_en: v.titre_en || v.titre || "",
         titre_es: v.titre_es || v.titre || "",
@@ -103,19 +102,28 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         description_pl: v.description_pl || "",
         description_ar: v.description_ar || "",
         price: Number(v.price || v.prix || 0),
-        town: String(v.town || v.ville || v.city || "").trim(),
-        region: String(v.region || v.province || v.state || "").trim(),
-        beds: parseInt(v.beds || v.bedrooms) || 0,
-        baths: parseInt(v.baths || v.bathrooms) || 0,
-        surface: Number(v.surface || v.m2 || v.built || 0),
-        surface_built: v.surface_built || v.built || "0",
-        surface_plot: v.surface_plot || v.plot || "0",
+        town: String(v.town || v.ville || "").trim(),
+        region: String(v.region || v.province || "").trim(),
+        beds: parseInt(v.beds) || 0,
+        baths: parseInt(v.baths) || 0,
+        surface_built: v.surface_built || "0",
+        surface_plot: v.surface_plot || "0",
         type: String(v.type || "Villa").trim(),
         images: imageArray,
         pool: v.pool === "Oui" || v.pool === true ? "Oui" : "Non",
         latitude: v.latitude || null,
         longitude: v.longitude || null,
         adresse: v.adresse || "",
+        development_name: v.development_name,
+        promoteur_name: v.promoteur_name,
+        xml_source: v.xml_source,
+        agency_id: v.agency_id,
+        commission_percentage: v.commission_percentage,
+        currency: v.currency || "EUR",
+        distance_beach: v.distance_beach,
+        distance_golf: v.distance_golf,
+        distance_town: v.distance_town,
+        province: v.province,
       });
     }
     
@@ -167,7 +175,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
   }, [slug]);
 
-  // Chargement des données - Version qui fonctionne avec la structure actuelle
+  // Chargement des données - Version avec les bonnes colonnes
   const loadData = useCallback(async (currentAgency: any) => {
     if (!currentAgency?.id) return;
     
@@ -196,11 +204,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return;
     }
 
-    // 3. Fallback - Récupérer les XML URLs depuis la config de l'agence
+    // 3. Fallback - Requête avec les colonnes EXACTES qui existent
     try {
       setLoadingProperties(true);
       
-      // Récupérer les URLs XML autorisées pour cette agence
+      // Récupérer les URLs XML autorisées
       let allowedXmlUrls: string[] = [];
       
       if (currentAgency?.footer_config) {
@@ -215,12 +223,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         }
       }
       
+      // Requête avec UNIQUEMENT les colonnes qui existent dans votre table
       let query = supabase
         .from('villas')
         .select(`
           id,
           id_externe,
           ref,
+          titre,
           titre_fr,
           titre_en,
           titre_es,
@@ -234,17 +244,15 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           region,
           province,
           beds,
-          bedrooms,
           baths,
-          bathroom,
           surface_built,
-          built,
           surface_plot,
-          plot,
+          surface_useful,
           type,
           pool,
           is_excluded,
           agency_id,
+          description,
           description_fr,
           description_en,
           description_es,
@@ -257,29 +265,36 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           adresse,
           xml_source,
           commission_percentage,
-          currency
+          currency,
+          development_name,
+          promoteur_name,
+          distance_beach,
+          distance_golf,
+          distance_town
         `)
         .eq('is_excluded', false);
       
-      // Filtrer par xml_source si disponible, sinon pas de filtre
+      // Filtrer par xml_source si disponible
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
         console.log("📦 [Fallback] Filtrage par xml_source");
-      } else {
-        console.log("📦 [Fallback] Pas de filtre xml_source, chargement de toutes les villas non exclues");
       }
       
-      const { data, error, count } = await query.limit(500);
+      const { data, error } = await query.limit(500);
       
-      console.log("📦 [Fallback] Résultat Supabase - data length:", data?.length, "error:", error?.message);
+      console.log("📦 [Fallback] Résultat Supabase - data length:", data?.length);
       
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Erreur Supabase:", error);
+        throw error;
+      }
       
       if (data && data.length > 0) {
         console.log("📦 [Fallback] Première villa trouvée:", {
           id: data[0].id,
           town: data[0].town,
           price: data[0].price,
+          beds: data[0].beds,
           hasDescriptionFr: !!data[0].description_fr
         });
       } else {
@@ -292,10 +307,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setAllProperties(formatted);
       setFilteredProperties(formatted);
       saveToCache(formatted);
-      
-      if (formatted.length === 0) {
-        console.warn("⚠️ Aucun bien trouvé pour cette agence. Vérifiez que les villas ont le bon xml_source ou agency_id.");
-      }
       
     } catch (err) {
       console.error("❌ Erreur chargement propriétés:", err);
