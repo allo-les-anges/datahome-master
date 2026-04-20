@@ -190,7 +190,9 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
     try {
       const history = newMessages.map(m => ({ role: m.role, content: m.content }));
       const systemPrompt = buildSystemPrompt(agencyName);
+      console.log('[Chatbot] Sending message, history length:', history.length);
       const rawResponse = await callChatAPI(history, systemPrompt);
+      console.log('[Chatbot] Response received, length:', rawResponse.length);
 
       // Extraction lead data si présente
       const lead = extractLeadData(rawResponse);
@@ -209,7 +211,8 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
         setIsQualified(true);
         await sendToCRM(lead, config);
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('[Chatbot] handleSend catch:', err?.message, err);
       setMessages(prev => [
         ...prev,
         {
