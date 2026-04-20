@@ -40,6 +40,8 @@ function buildBaseQuery(xmlUrls: string[]) {
   return q;
 }
 
+const BUDGET_DELTA = 200000;
+
 async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: string) {
   const { data: agency } = await supabase
     .from('agency_settings')
@@ -48,26 +50,27 @@ async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: 
     .single();
 
   const xmlUrls: string[] = agency?.footer_config?.xml_urls || [];
-  const budgetMax = parseBudgetMax(criteria.budget_max);
+  const budgetTarget = parseBudgetMax(criteria.budget_max);
 
-  console.log('[Chatbot] Villa query params:', { agencyId, xmlUrlsCount: xmlUrls.length, budgetMax, town: criteria.town || null, beds: criteria.beds || null });
+  console.log('[Chatbot] Villa query params:', { agencyId, xmlUrlsCount: xmlUrls.length, budgetTarget, town: criteria.town || null, beds: criteria.beds || null });
 
-  // Tentative 1 : tous les critères
+  // Tentative 1 : tous les critères avec delta ±200k sur le budget
   let q = buildBaseQuery(xmlUrls);
-  if (budgetMax) q = q.lte('price', budgetMax);
+  if (budgetTarget) {
+    q = q.gte('price', budgetTarget - BUDGET_DELTA).lte('price', budgetTarget + BUDGET_DELTA);
+  }
   if (criteria.town) q = q.ilike('town', `%${criteria.town}%`);
   if (criteria.beds) q = q.filter('beds', 'gte', criteria.beds);
 
   let { data: villas, error } = await q;
-  console.log('[Chatbot] Attempt 1 (all filters):', villas?.length ?? 0, 'results');
+  console.log('[Chatbot] Attempt 1 (budget ±200k + filters):', villas?.length ?? 0, 'results');
 
-  // Tentative 2 : sans filtre budget
-  if (!error && (!villas || villas.length === 0) && budgetMax) {
+  // Tentative 2 : budget ±200k sans autres filtres
+  if (!error && (!villas || villas.length === 0) && budgetTarget) {
     let q2 = buildBaseQuery(xmlUrls);
-    if (criteria.town) q2 = q2.ilike('town', `%${criteria.town}%`);
-    if (criteria.beds) q2 = q2.filter('beds', 'gte', criteria.beds);
+    q2 = q2.gte('price', budgetTarget - BUDGET_DELTA).lte('price', budgetTarget + BUDGET_DELTA);
     ({ data: villas, error } = await q2);
-    console.log('[Chatbot] Attempt 2 (no budget):', villas?.length ?? 0, 'results');
+    console.log('[Chatbot] Attempt 2 (budget ±200k only):', villas?.length ?? 0, 'results');
   }
 
   // Tentative 3 : uniquement par ville
