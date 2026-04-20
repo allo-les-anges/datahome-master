@@ -60,7 +60,7 @@ export default async function AgencyLayout({
       {/* Widgets flottants */}
       <FloatingWhatsApp 
         phone={footerConfig?.phone || agency.whatsapp_number} 
-        color={agency.primary_color || '#e5992e'} 
+        color="#25D366"
       />
       
       <CookieBanner 
