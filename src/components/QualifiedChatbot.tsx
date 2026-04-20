@@ -46,6 +46,22 @@ const LOCALE_LANGUAGES: Record<string, string> = {
   it: 'Italian', ru: 'Russian', zh: 'Chinese', ja: 'Japanese', ko: 'Korean',
 };
 
+const BUTTON_LABELS: Record<string, string> = {
+  fr: 'Un projet immobilier ?',
+  en: 'A real estate project?',
+  es: '¿Un proyecto inmobiliario?',
+  nl: 'Een vastgoedproject?',
+  pl: 'Projekt nieruchomości?',
+  ar: 'مشروع عقاري؟',
+  de: 'Ein Immobilienprojekt?',
+  pt: 'Um projeto imobiliário?',
+  it: 'Un progetto immobiliare?',
+  ru: 'Проект недвижимости?',
+  zh: '房地产项目？',
+  ja: '不動産プロジェクト？',
+  ko: '부동산 프로젝트?',
+};
+
 const WELCOME_MESSAGES: Record<string, string> = {
   fr: "Bonjour ! 👋 Je suis l'assistant de **{agency}**. Quel est votre projet immobilier ? (achat, location, investissement...)",
   en: "Hello! 👋 I'm the assistant of **{agency}**. What is your real estate project? (purchase, rental, investment...)",
@@ -285,7 +301,7 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
             <MessageCircle size={22} />
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />
           </div>
-          <span className="hidden sm:block">Un projet immobilier ?</span>
+          <span className="hidden sm:block">{BUTTON_LABELS[locale] || BUTTON_LABELS['fr']}</span>
         </button>
       )}
 
