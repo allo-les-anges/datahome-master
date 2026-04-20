@@ -77,7 +77,11 @@ async function callChatAPI(
     body: JSON.stringify({ messages, systemPrompt }),
   });
 
-  if (!res.ok) throw new Error('API error');
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    console.error('[Chatbot] API error:', res.status, errBody);
+    throw new Error(`API error ${res.status}: ${errBody.detail || errBody.error || 'unknown'}`);
+  }
   const data = await res.json();
   return data.content || '';
 }
