@@ -8,6 +8,7 @@ import PropertyGrid from '@/components/PropertyGrid';
 import Hero from '@/components/Hero';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
+import QualifiedChatbot from '@/components/QualifiedChatbot';
 import { Search, X, ArrowLeft, Loader2 } from 'lucide-react';
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
@@ -553,6 +554,17 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           )}
         </AnimatePresence>
       </main>
+
+      <QualifiedChatbot
+        enabled={agency?.footer_config?.integrations?.chatbot_enabled === true}
+        config={{
+          primaryColor: agency?.primary_color || '#0f172a',
+          agencyName: agency?.agency_name,
+          logoUrl: agency?.logo_url,
+          agencyId: agency?.id,
+          crmType: 'none',
+        }}
+      />
 
       <AnimatePresence>
         {isSearchOpen && (

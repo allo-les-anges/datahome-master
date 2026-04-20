@@ -159,21 +159,27 @@ export async function POST(req: Request) {
     const BATCH_SIZE = 50;
     let synced = 0;
     
-    for (let i = 0; i < villasToUpsert.length; i += BATCH_SIZE) {
-      const batch = villasToUpsert.slice(i, i + BATCH_SIZE);
-      const { error, data } = await supabaseAdmin
-        .from("villas")
-        .upsert(batch, { 
-          onConflict: 'id_externe',
-          ignoreDuplicates: false
-        });
-      
-      if (error) {
-        console.error(`❌ Erreur batch ${i}:`, error.message);
-      } else {
-        synced += batch.length;
-      }
-    }
+    for (const villa of villasToUpsert) {
+  delete villa.titre_ar;
+  delete villa.description_ar;
+}
+
+// Upsert par batches
+for (let i = 0; i < villasToUpsert.length; i += BATCH_SIZE) {
+  const batch = villasToUpsert.slice(i, i + BATCH_SIZE);
+  const { error, data } = await supabaseAdmin
+    .from("villas")
+    .upsert(batch, { 
+      onConflict: 'id_externe',
+      ignoreDuplicates: false
+    });
+  
+  if (error) {
+    console.error(`❌ Erreur batch ${i}:`, error.message);
+  } else {
+    synced += batch.length;
+  }
+}
     
     console.log(`✅ Synchronisation terminée: ${synced} propriétés traitées`);
     

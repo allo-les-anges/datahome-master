@@ -1325,6 +1325,29 @@ export default function AgencyDashboard() {
                 {/* SECTION 6: INTEGRATIONS */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 border-l-4 border-l-purple-500">
                   <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4"><Zap size={18} className="text-purple-600" /> {t.sections.integrations}</h3>
+
+                  {/* Toggle Chatbot IA */}
+                  <div className="flex items-center justify-between p-4 bg-purple-50/40 rounded-2xl border border-purple-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
+                        <MessageCircle size={18} className="text-purple-600" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-sm font-bold text-slate-900">Chatbot IA de Qualification</span>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold">Qualification automatique des leads</p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={selectedAgency.footer_config?.integrations?.chatbot_enabled || false}
+                        onChange={(e) => updateNestedConfig('integrations', 'chatbot_enabled', e.target.checked)}
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.fields.zoho}</label>
