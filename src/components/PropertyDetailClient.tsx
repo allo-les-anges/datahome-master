@@ -98,9 +98,8 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
   const numericPrice = Number(property?.price || property?.prix || 0);
   const EUR_TO_AED = 3.97;
   const isArabic = locale === 'ar';
-  const displayPrice = isArabic
-    ? `${new Intl.NumberFormat('ar-AE').format(Math.round(numericPrice * EUR_TO_AED))} د.إ`
-    : `${numericPrice.toLocaleString('fr-FR')} €`;
+  const eurFormatted = `${numericPrice.toLocaleString('fr-FR')} €`;
+  const aedFormatted = `${new Intl.NumberFormat('ar-AE').format(Math.round(numericPrice * EUR_TO_AED))} د.إ`;
   const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
 
   if (!mounted || !property) return null;
@@ -379,7 +378,10 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       fontWeight: 400
                     }}
                   >
-                    {displayPrice}
+                    {isArabic ? aedFormatted : eurFormatted}
+                    {isArabic && (
+                      <span className="block text-sm font-normal text-slate-400 mt-1">{eurFormatted}</span>
+                    )}
                   </p>
                 </div>
                 

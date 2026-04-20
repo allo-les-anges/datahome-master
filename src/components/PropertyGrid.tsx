@@ -23,9 +23,8 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
   const price = Number(property.price || 0);
   const EUR_TO_AED = 3.97;
   const isArabic = locale === 'ar';
-  const priceFormatted = isArabic
-    ? `${new Intl.NumberFormat('ar-AE').format(Math.round(price * EUR_TO_AED))} د.إ`
-    : `${price.toLocaleString()} €`;
+  const eurFormatted = `${price.toLocaleString()} €`;
+  const aedFormatted = `${new Intl.NumberFormat('ar-AE').format(Math.round(price * EUR_TO_AED))} د.إ`;
   const brandColor = agency?.primary_color || "#10b981";
   const fontFamily = agency?.font_family || 'Montserrat';
   const showDark = !isLight;
@@ -63,7 +62,8 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
               fontWeight: 400
             }}
           >
-            {priceFormatted}
+            {isArabic ? aedFormatted : eurFormatted}
+            {isArabic && <span className="block text-xs font-normal text-slate-400 mt-0.5">{eurFormatted}</span>}
           </div>
         </div>
         <h3 

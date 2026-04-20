@@ -19,10 +19,8 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
   const EUR_TO_AED = 3.97;
   const isArabic = locale === 'ar';
   const rawPrice = property.price || 0;
-  const priceFormatted = isArabic
-    ? new Intl.NumberFormat('ar-AE').format(Math.round(rawPrice * EUR_TO_AED))
-    : new Intl.NumberFormat('de-DE').format(rawPrice);
-  const currencySymbol = isArabic ? 'د.إ' : '€';
+  const eurFormatted = `${new Intl.NumberFormat('de-DE').format(rawPrice)} €`;
+  const aedFormatted = `${new Intl.NumberFormat('ar-AE').format(Math.round(rawPrice * EUR_TO_AED))} د.إ`;
 
   // --- EXTRACTION DE LA COULEUR DYNAMIQUE ---
   const primaryColor = useMemo(() => {
@@ -117,8 +115,9 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
           >
             {property.titre}
           </h3>
-          <span className="text-xl font-bold pt-1" style={{ color: isLight ? 'black' : primaryColor }}>
-            {priceFormatted} {currencySymbol}
+          <span className="text-right pt-1" style={{ color: isLight ? 'black' : primaryColor }}>
+            <span className="text-xl font-bold block">{isArabic ? aedFormatted : eurFormatted}</span>
+            {isArabic && <span className="text-xs font-normal text-slate-400 block">{eurFormatted}</span>}
           </span>
         </div>
         <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-bold" style={{ color: showDark ? '#e2e8f0' : '#475569' }}>
