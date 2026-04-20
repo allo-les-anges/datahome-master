@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, Montserrat } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/contexts/I18nContext";
 import { AgencyProvider } from "@/contexts/AgencyContext"; // <--- Importation
+import Providers from "@/components/Providers";
 import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: 'swap' });
@@ -29,16 +30,17 @@ export default async function RootLayout({
   return (
     <html lang={finalLocale} suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} ${montserrat.variable} font-sans antialiased`}>
-        {/* On entoure tout avec l'AgencyProvider */}
-        <AgencyProvider> 
-          <I18nProvider initialLocale={finalLocale}>
-            <div className="min-h-screen flex flex-col">
-              <main className="relative flex-grow">
-                {children}
-              </main>
-            </div>
-          </I18nProvider>
-        </AgencyProvider>
+        <Providers>
+          <AgencyProvider>
+            <I18nProvider initialLocale={finalLocale}>
+              <div className="min-h-screen flex flex-col">
+                <main className="relative flex-grow">
+                  {children}
+                </main>
+              </div>
+            </I18nProvider>
+          </AgencyProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, X } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext";
 import { motion, AnimatePresence } from "framer-motion"; // <-- CET IMPORT EST CRUCIAL
@@ -120,6 +121,8 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
               </Link>
             ))}
 
+            <ThemeToggle iconColor={isScrolled ? brandColor : "#ffffff"} />
+
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsLangOpen(!isLangOpen)}
@@ -184,6 +187,8 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
                   {link.name}
                 </Link>
               ))}
+
+              <ThemeToggle iconColor={brandColor} className="mt-4" />
 
               <div className="mt-12 flex flex-col items-center gap-6 border-t border-white/10 pt-10 w-64">
                 <div className="flex items-center gap-3 text-slate-500">
