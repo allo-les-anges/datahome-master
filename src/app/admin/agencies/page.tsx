@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import AgencyDashboard from "@/components/admin/AgencyDashboard";
 
 export default function AgenciesPage() {
@@ -53,6 +54,15 @@ export default function AgenciesPage() {
 
   return (
     <main className="p-4">
+      <div className="flex justify-end mb-2 px-4">
+        <Link
+          href="/admin/leads"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Leads
+        </Link>
+      </div>
       <AgencyDashboard />
     </main>
   );
