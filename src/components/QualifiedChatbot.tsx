@@ -6,10 +6,21 @@ import { MessageCircle, X, Send, Bot, User, Loader2, CheckCircle2, Home, MapPin,
 // ─────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────
+interface PropertyResult {
+  id: string;
+  title: string;
+  price: number;
+  town: string;
+  beds: number;
+  pool: boolean;
+  image: string;
+}
+
 interface Message {
   role: 'assistant' | 'user';
   content: string;
   timestamp: Date;
+  properties?: PropertyResult[];
 }
 
 interface LeadData {
@@ -112,6 +123,10 @@ Rules:
 - No more than 2-3 sentences per response
 - ${langRule}
 
+Search criteria (output as soon as you know at least one of budget/location/beds, invisible to user):
+<search_criteria>{"budget_max": 500000, "town": "Marbella", "beds": 2}</search_criteria>
+Only include fields you know. Omit unknown fields. Output this from the 2nd exchange onward.
+
 Final JSON format (invisible to user, between tags):
 <lead_data>{"name":"...","email":"...","phone":"...","budget":"...","location":"...","delay":"...","projectType":"..."}</lead_data>`;
 };
@@ -121,13 +136,14 @@ Final JSON format (invisible to user, between tags):
 // ─────────────────────────────────────────────
 async function callChatAPI(
   messages: { role: string; content: string }[],
-  systemPrompt: string
-): Promise<string> {
-  // On passe par notre propre API route pour ne pas exposer la clé OpenAI côté client
+  systemPrompt: string,
+  agencyId?: string,
+  locale?: string,
+): Promise<{ rawContent: string; properties: PropertyResult[] }> {
   const res = await fetch('/api/chatbot', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, systemPrompt }),
+    body: JSON.stringify({ messages, systemPrompt, agencyId, locale }),
   });
 
   if (!res.ok) {
@@ -136,7 +152,7 @@ async function callChatAPI(
     throw new Error(`API error ${res.status}: ${errBody.detail || errBody.error || 'unknown'}`);
   }
   const data = await res.json();
-  return data.content || '';
+  return { rawContent: data.content || '', properties: data.properties || [] };
 }
 
 // ─────────────────────────────────────────────
@@ -153,7 +169,10 @@ function extractLeadData(text: string): LeadData | null {
 }
 
 function cleanMessage(text: string): string {
-  return text.replace(/<lead_data>[\s\S]*?<\/lead_data>/g, '').trim();
+  return text
+    .replace(/<lead_data>[\s\S]*?<\/lead_data>/g, '')
+    .replace(/<search_criteria>[\s\S]*?<\/search_criteria>/g, '')
+    .trim();
 }
 
 // ─────────────────────────────────────────────
@@ -265,17 +284,17 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
       const history = newMessages.map(m => ({ role: m.role, content: m.content }));
       const systemPrompt = buildSystemPrompt(agencyName, locale);
       console.log('[Chatbot] Sending message, history length:', history.length);
-      const rawResponse = await callChatAPI(history, systemPrompt);
-      console.log('[Chatbot] Response received, length:', rawResponse.length);
+      const { rawContent, properties } = await callChatAPI(history, systemPrompt, config.agencyId, locale);
+      console.log('[Chatbot] Response received, properties:', properties.length);
 
-      // Extraction lead data si présente
-      const lead = extractLeadData(rawResponse);
-      const cleanedResponse = cleanMessage(rawResponse);
+      const lead = extractLeadData(rawContent);
+      const cleanedResponse = cleanMessage(rawContent);
 
       const assistantMessage: Message = {
         role: 'assistant',
         content: cleanedResponse,
         timestamp: new Date(),
+        properties: properties.length > 0 ? properties : undefined,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -384,6 +403,36 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
                     </p>
                   ))}
                 </div>
+
+                {/* Cartes propriétés */}
+                {msg.properties && msg.properties.length > 0 && (
+                  <div className="mt-3 space-y-2 w-full max-w-[320px]">
+                    {msg.properties.map(p => (
+                      <div key={p.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        {p.image && (
+                          <img
+                            src={p.image}
+                            alt={p.title}
+                            className="w-full h-28 object-cover"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        )}
+                        <div className="p-3">
+                          <p className="text-xs font-bold text-slate-900 line-clamp-1">{p.title}</p>
+                          <p className="text-sm font-black mt-0.5" style={{ color: primaryColor }}>
+                            {p.price.toLocaleString('fr-FR')} €
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                            <span>{p.town}</span>
+                            <span>·</span>
+                            <span>{p.beds} ch.</span>
+                            {p.pool && <><span>·</span><span>🏊</span></>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
 
