@@ -19,7 +19,7 @@ export default function FloatingWhatsApp({ phone, color = "#25D366" }: FloatingW
       href={`https://wa.me/${cleanPhone}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-[99] p-4 rounded-full shadow-2xl transition-transform hover:scale-110 active:scale-95 flex items-center justify-center text-white"
+      className="fixed bottom-24 right-6 z-[99] p-4 rounded-full shadow-2xl transition-transform hover:scale-110 active:scale-95 flex items-center justify-center text-white"
       style={{ backgroundColor: color }}
       aria-label="Contactez-nous sur WhatsApp"
     >
