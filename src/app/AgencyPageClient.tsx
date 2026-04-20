@@ -434,9 +434,24 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     return filteredProperties.map(getLocalizedProperty);
   }, [filteredProperties, getLocalizedProperty]);
 
-  const primaryColor = agency?.primary_color || '#FF8C00'; 
+  const primaryColor = agency?.primary_color || '#FF8C00';
   const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
   const fontFamily = agency?.font_family || 'Montserrat';
+
+  const parsedFooterConfig = useMemo(() => {
+    if (!agency?.footer_config) return null;
+    if (typeof agency.footer_config === 'string') {
+      try { return JSON.parse(agency.footer_config); } catch { return null; }
+    }
+    return agency.footer_config;
+  }, [agency?.footer_config]);
+
+  const chatbotEnabled = parsedFooterConfig?.integrations?.chatbot_enabled === true;
+
+  console.log('[Chatbot debug] agency.id:', agency?.id);
+  console.log('[Chatbot debug] footer_config raw:', agency?.footer_config);
+  console.log('[Chatbot debug] parsedFooterConfig:', parsedFooterConfig);
+  console.log('[Chatbot debug] chatbotEnabled:', chatbotEnabled);
 
   // Loader
   if (loadingProperties && allProperties.length === 0) {
@@ -556,7 +571,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       </main>
 
       <QualifiedChatbot
-        enabled={agency?.footer_config?.integrations?.chatbot_enabled === true}
+        enabled={chatbotEnabled}
         config={{
           primaryColor: agency?.primary_color || '#0f172a',
           agencyName: agency?.agency_name,
