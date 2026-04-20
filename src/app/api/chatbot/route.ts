@@ -50,9 +50,20 @@ async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: 
   const budgetMax = parseBudgetMax(criteria.budget_max);
   if (budgetMax) query = query.lte('price', budgetMax);
   if (criteria.town) query = query.ilike('town', `%${criteria.town}%`);
-  if (criteria.beds) query = query.gte('beds', String(criteria.beds));
+  if (criteria.beds) query = query.filter('beds', 'gte', criteria.beds);
+
+  console.log('[Chatbot] Villa query params:', {
+    agencyId,
+    xmlUrls,
+    budgetMax,
+    town: criteria.town || null,
+    beds: criteria.beds || null,
+  });
 
   const { data: villas, error } = await query;
+
+  console.log('[Chatbot] Villa query result:', { count: villas?.length ?? 0, error: error?.message });
+
   if (error) {
     console.error('[Chatbot] Villa search error:', error.message);
     return [];
