@@ -96,6 +96,11 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
+  const EUR_TO_AED = 3.97;
+  const isArabic = locale === 'ar';
+  const displayPrice = isArabic
+    ? `${new Intl.NumberFormat('ar-AE').format(Math.round(numericPrice * EUR_TO_AED))} د.إ`
+    : `${numericPrice.toLocaleString('fr-FR')} €`;
   const whatsappNumber = (property?.phone || agency?.whatsapp_number || agency?.phone || "34627768233").replace(/\D/g, '');
 
   if (!mounted || !property) return null;
@@ -374,7 +379,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                       fontWeight: 400
                     }}
                   >
-                    {numericPrice.toLocaleString("fr-FR")} €
+                    {displayPrice}
                   </p>
                 </div>
                 

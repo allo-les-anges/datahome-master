@@ -14,9 +14,15 @@ interface PropertyCardProps {
 
 export default function PropertyCard({ property, agency, isLight = false }: PropertyCardProps) {
   const { resolvedTheme } = useTheme();
-  const { t } = useTranslation() as any;
+  const { t, locale } = useTranslation() as any;
   const [mounted, setMounted] = useState(false);
-  const priceFormatted = new Intl.NumberFormat('de-DE').format(property.price || 0);
+  const EUR_TO_AED = 3.97;
+  const isArabic = locale === 'ar';
+  const rawPrice = property.price || 0;
+  const priceFormatted = isArabic
+    ? new Intl.NumberFormat('ar-AE').format(Math.round(rawPrice * EUR_TO_AED))
+    : new Intl.NumberFormat('de-DE').format(rawPrice);
+  const currencySymbol = isArabic ? 'د.إ' : '€';
 
   // --- EXTRACTION DE LA COULEUR DYNAMIQUE ---
   const primaryColor = useMemo(() => {
@@ -112,7 +118,7 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
             {property.titre}
           </h3>
           <span className="text-xl font-bold pt-1" style={{ color: isLight ? 'black' : primaryColor }}>
-            {priceFormatted} €
+            {priceFormatted} {currencySymbol}
           </span>
         </div>
         <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-bold" style={{ color: showDark ? '#e2e8f0' : '#475569' }}>
