@@ -19,8 +19,13 @@ interface PropertyGridProps {
 
 // Composant memoizé pour éviter les re-rendus inutiles
 const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
-  const { t } = useTranslation() as any;
+  const { t, locale } = useTranslation() as any;
   const price = Number(property.price || 0);
+  const EUR_TO_AED = 3.97;
+  const isArabic = locale === 'ar';
+  const priceFormatted = isArabic
+    ? `${new Intl.NumberFormat('ar-AE').format(Math.round(price * EUR_TO_AED))} د.إ`
+    : `${price.toLocaleString()} €`;
   const brandColor = agency?.primary_color || "#10b981";
   const fontFamily = agency?.font_family || 'Montserrat';
   const showDark = !isLight;
@@ -58,7 +63,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
               fontWeight: 400
             }}
           >
-            {price.toLocaleString()} €
+            {priceFormatted}
           </div>
         </div>
         <h3 
