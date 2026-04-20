@@ -29,6 +29,17 @@ function parseBudgetMax(raw?: number | string): number | null {
   return num < 10000 ? num * 1000 : num;
 }
 
+async function buildBaseQuery(xmlUrls: string[]) {
+  let q = supabase
+    .from('villas')
+    .select('id, titre, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, price, town, beds, pool, images')
+    .eq('is_excluded', false)
+    .order('price', { ascending: true })
+    .limit(3);
+  if (xmlUrls.length > 0) q = q.in('xml_source', xmlUrls);
+  return q;
+}
+
 async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: string) {
   const { data: agency } = await supabase
     .from('agency_settings')
@@ -37,32 +48,35 @@ async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: 
     .single();
 
   const xmlUrls: string[] = agency?.footer_config?.xml_urls || [];
-
-  let query = supabase
-    .from('villas')
-    .select('id, titre, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, price, town, beds, pool, images')
-    .eq('is_excluded', false)
-    .order('price', { ascending: true })
-    .limit(3);
-
-  if (xmlUrls.length > 0) query = query.in('xml_source', xmlUrls);
-
   const budgetMax = parseBudgetMax(criteria.budget_max);
-  if (budgetMax) query = query.lte('price', budgetMax);
-  if (criteria.town) query = query.ilike('town', `%${criteria.town}%`);
-  if (criteria.beds) query = query.filter('beds', 'gte', criteria.beds);
 
-  console.log('[Chatbot] Villa query params:', {
-    agencyId,
-    xmlUrls,
-    budgetMax,
-    town: criteria.town || null,
-    beds: criteria.beds || null,
-  });
+  console.log('[Chatbot] Villa query params:', { agencyId, xmlUrlsCount: xmlUrls.length, budgetMax, town: criteria.town || null, beds: criteria.beds || null });
 
-  const { data: villas, error } = await query;
+  // Tentative 1 : tous les critères
+  let q = await buildBaseQuery(xmlUrls);
+  if (budgetMax) q = q.lte('price', budgetMax);
+  if (criteria.town) q = q.ilike('town', `%${criteria.town}%`);
+  if (criteria.beds) q = q.filter('beds', 'gte', criteria.beds);
 
-  console.log('[Chatbot] Villa query result:', { count: villas?.length ?? 0, error: error?.message });
+  let { data: villas, error } = await q;
+  console.log('[Chatbot] Attempt 1 (all filters):', villas?.length ?? 0, 'results');
+
+  // Tentative 2 : sans filtre budget
+  if (!error && (!villas || villas.length === 0) && budgetMax) {
+    let q2 = await buildBaseQuery(xmlUrls);
+    if (criteria.town) q2 = q2.ilike('town', `%${criteria.town}%`);
+    if (criteria.beds) q2 = q2.filter('beds', 'gte', criteria.beds);
+    ({ data: villas, error } = await q2);
+    console.log('[Chatbot] Attempt 2 (no budget):', villas?.length ?? 0, 'results');
+  }
+
+  // Tentative 3 : uniquement par ville
+  if (!error && (!villas || villas.length === 0) && criteria.town) {
+    let q3 = await buildBaseQuery(xmlUrls);
+    q3 = q3.ilike('town', `%${criteria.town}%`);
+    ({ data: villas, error } = await q3);
+    console.log('[Chatbot] Attempt 3 (town only):', villas?.length ?? 0, 'results');
+  }
 
   if (error) {
     console.error('[Chatbot] Villa search error:', error.message);
