@@ -29,7 +29,7 @@ function parseBudgetMax(raw?: number | string): number | null {
   return num < 10000 ? num * 1000 : num;
 }
 
-async function buildBaseQuery(xmlUrls: string[]) {
+function buildBaseQuery(xmlUrls: string[]) {
   let q = supabase
     .from('villas')
     .select('id, titre, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, price, town, beds, pool, images')
@@ -53,7 +53,7 @@ async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: 
   console.log('[Chatbot] Villa query params:', { agencyId, xmlUrlsCount: xmlUrls.length, budgetMax, town: criteria.town || null, beds: criteria.beds || null });
 
   // Tentative 1 : tous les critères
-  let q = await buildBaseQuery(xmlUrls);
+  let q = buildBaseQuery(xmlUrls);
   if (budgetMax) q = q.lte('price', budgetMax);
   if (criteria.town) q = q.ilike('town', `%${criteria.town}%`);
   if (criteria.beds) q = q.filter('beds', 'gte', criteria.beds);
@@ -63,7 +63,7 @@ async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: 
 
   // Tentative 2 : sans filtre budget
   if (!error && (!villas || villas.length === 0) && budgetMax) {
-    let q2 = await buildBaseQuery(xmlUrls);
+    let q2 = buildBaseQuery(xmlUrls);
     if (criteria.town) q2 = q2.ilike('town', `%${criteria.town}%`);
     if (criteria.beds) q2 = q2.filter('beds', 'gte', criteria.beds);
     ({ data: villas, error } = await q2);
@@ -72,7 +72,7 @@ async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: 
 
   // Tentative 3 : uniquement par ville
   if (!error && (!villas || villas.length === 0) && criteria.town) {
-    let q3 = await buildBaseQuery(xmlUrls);
+    let q3 = buildBaseQuery(xmlUrls);
     q3 = q3.ilike('town', `%${criteria.town}%`);
     ({ data: villas, error } = await q3);
     console.log('[Chatbot] Attempt 3 (town only):', villas?.length ?? 0, 'results');
