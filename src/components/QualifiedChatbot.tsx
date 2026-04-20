@@ -161,22 +161,38 @@ function cleanMessage(text: string): string {
 // ─────────────────────────────────────────────
 async function sendToCRM(lead: LeadData, config: ChatbotConfig) {
   if (!config.webhookUrl || config.crmType === 'none') return;
-
-  const payload = {
-    ...lead,
-    source: 'chatbot',
-    agency_id: config.agencyId,
-    created_at: new Date().toISOString(),
-  };
-
   try {
     await fetch(config.webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...lead, source: 'chatbot', agency_id: config.agencyId, created_at: new Date().toISOString() }),
     });
   } catch (e) {
     console.error('CRM webhook error:', e);
+  }
+}
+
+async function saveLeadToSupabase(lead: LeadData, config: ChatbotConfig, sessionId: string) {
+  try {
+    const res = await fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agency_id: config.agencyId || null,
+        session_id: sessionId,
+        full_name: lead.name || null,
+        email: lead.email || null,
+        phone: lead.phone || null,
+        budget: lead.budget || null,
+        location: lead.location || null,
+        delay: lead.delay || null,
+        project_type: lead.projectType || null,
+        source: 'chatbot',
+      }),
+    });
+    if (!res.ok) console.error('[Leads] Save failed:', await res.text());
+  } catch (e) {
+    console.error('[Leads] Save error:', e);
   }
 }
 
@@ -195,6 +211,9 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
   const [isQualified, setIsQualified] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState<LeadData | null>(null);
   const [hasOpened, setHasOpened] = useState(false);
+  const sessionId = React.useRef<string>(
+    typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -264,7 +283,10 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
       if (lead && lead.email) {
         setLeadCaptured(lead);
         setIsQualified(true);
-        await sendToCRM(lead, config);
+        await Promise.all([
+          sendToCRM(lead, config),
+          saveLeadToSupabase(lead, config, sessionId.current),
+        ]);
       }
     } catch (err: any) {
       console.error('[Chatbot] handleSend catch:', err?.message, err);
