@@ -385,35 +385,38 @@ export default function QualifiedChatbot({ config = {}, enabled = true, onProper
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/50">
             {messages.map((msg, i) => (
-              <div key={i} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div
-                  className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
-                    msg.role === 'assistant' ? 'text-white' : 'bg-slate-200 text-slate-600'
-                  }`}
-                  style={msg.role === 'assistant' ? { backgroundColor: primaryColor } : {}}
-                >
-                  {msg.role === 'assistant' ? <Bot size={14} /> : <User size={14} />}
-                </div>
-                <div
-                  className={`max-w-[78%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                    msg.role === 'user'
-                      ? 'text-white rounded-tr-sm'
-                      : 'bg-white text-slate-800 rounded-tl-sm border border-slate-100'
-                  }`}
-                  style={msg.role === 'user' ? { backgroundColor: primaryColor } : {}}
-                >
-                  {msg.content.split('\n').map((line, j) => (
-                    <p key={j} className={j > 0 ? 'mt-1' : ''}>
-                      {line.split(/\*\*(.*?)\*\*/g).map((part, k) =>
-                        k % 2 === 1 ? <strong key={k}>{part}</strong> : part
-                      )}
-                    </p>
-                  ))}
+              <div key={i} className="space-y-2">
+                {/* Avatar + bulle */}
+                <div className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div
+                    className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
+                      msg.role === 'assistant' ? 'text-white' : 'bg-slate-200 text-slate-600'
+                    }`}
+                    style={msg.role === 'assistant' ? { backgroundColor: primaryColor } : {}}
+                  >
+                    {msg.role === 'assistant' ? <Bot size={14} /> : <User size={14} />}
+                  </div>
+                  <div
+                    className={`max-w-[78%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                      msg.role === 'user'
+                        ? 'text-white rounded-tr-sm'
+                        : 'bg-white text-slate-800 rounded-tl-sm border border-slate-100'
+                    }`}
+                    style={msg.role === 'user' ? { backgroundColor: primaryColor } : {}}
+                  >
+                    {msg.content.split('\n').map((line, j) => (
+                      <p key={j} className={j > 0 ? 'mt-1' : ''}>
+                        {line.split(/\*\*(.*?)\*\*/g).map((part, k) =>
+                          k % 2 === 1 ? <strong key={k}>{part}</strong> : part
+                        )}
+                      </p>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Cartes propriétés */}
+                {/* Cartes propriétés — hors du flex row pour rester visibles */}
                 {msg.properties && msg.properties.length > 0 && (
-                  <div className="mt-3 space-y-2 w-full max-w-[320px]">
+                  <div className="ml-9 space-y-2">
                     {msg.properties.map(p => (
                       <div
                         key={p.id}
