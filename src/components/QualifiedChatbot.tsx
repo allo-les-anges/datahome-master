@@ -46,6 +46,7 @@ interface ChatbotConfig {
 interface QualifiedChatbotProps {
   config?: ChatbotConfig;
   enabled?: boolean;
+  onPropertyClick?: (propertyId: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -224,7 +225,7 @@ async function saveLeadToSupabase(lead: LeadData, config: ChatbotConfig, session
 // ─────────────────────────────────────────────
 // COMPOSANT PRINCIPAL
 // ─────────────────────────────────────────────
-export default function QualifiedChatbot({ config = {}, enabled = true }: QualifiedChatbotProps) {
+export default function QualifiedChatbot({ config = {}, enabled = true, onPropertyClick }: QualifiedChatbotProps) {
   const agencyName = config.agencyName || 'Notre Agence';
   const primaryColor = config.primaryColor || '#0f172a';
   const locale = detectLocale();
@@ -414,7 +415,17 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
                 {msg.properties && msg.properties.length > 0 && (
                   <div className="mt-3 space-y-2 w-full max-w-[320px]">
                     {msg.properties.map(p => (
-                      <div key={p.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          if (onPropertyClick) {
+                            onPropertyClick(p.id);
+                            setIsOpen(false);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }
+                        }}
+                        className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all ${onPropertyClick ? 'cursor-pointer hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5' : ''}`}
+                      >
                         {p.image && (
                           <img
                             src={p.image}
@@ -424,7 +435,10 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
                           />
                         )}
                         <div className="p-3">
-                          <p className="text-xs font-bold text-slate-900 line-clamp-1">{p.title}</p>
+                          <div className="flex items-start justify-between gap-1">
+                            <p className="text-xs font-bold text-slate-900 line-clamp-1">{p.title}</p>
+                            {onPropertyClick && <span className="text-slate-300 text-xs flex-shrink-0">→</span>}
+                          </div>
                           <p className="text-sm font-black mt-0.5" style={{ color: primaryColor }}>
                             {p.price.toLocaleString('fr-FR')} €
                           </p>

@@ -579,6 +579,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           agencyId: agency?.id,
           crmType: 'none',
         }}
+        onPropertyClick={(id) => {
+          const property = allProperties.find(p => p.id === id);
+          if (property) {
+            setSelectedProperty(property);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
       />
 
       <AnimatePresence>
