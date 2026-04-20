@@ -46,6 +46,7 @@ interface ChatbotConfig {
 interface QualifiedChatbotProps {
   config?: ChatbotConfig;
   enabled?: boolean;
+  locale?: string;
   onPropertyClick?: (propertyId: string) => void;
 }
 
@@ -53,9 +54,19 @@ interface QualifiedChatbotProps {
 // DÉTECTION DE LOCALE
 // ─────────────────────────────────────────────
 const LOCALE_LANGUAGES: Record<string, string> = {
-  fr: 'French', en: 'English', es: 'Spanish', nl: 'Dutch',
-  pl: 'Polish', ar: 'Arabic', de: 'German', pt: 'Portuguese',
-  it: 'Italian', ru: 'Russian', zh: 'Chinese', ja: 'Japanese', ko: 'Korean',
+  fr: 'French',
+  en: 'English',
+  es: 'Spanish',
+  nl: 'Dutch',
+  pl: 'Polish',
+  ar: 'Arabic',
+  de: 'German',
+  pt: 'Portuguese',
+  it: 'Italian',
+  ru: 'Russian',
+  zh: 'Simplified Chinese',
+  ja: 'Japanese',
+  tr: 'Turkish',
 };
 
 const BUTTON_LABELS: Record<string, string> = {
@@ -71,7 +82,7 @@ const BUTTON_LABELS: Record<string, string> = {
   ru: 'Проект недвижимости?',
   zh: '房地产项目？',
   ja: '不動産プロジェクト？',
-  ko: '부동산 프로젝트?',
+  tr: 'Bir emlak projeniz mi var?',
 };
 
 const WELCOME_MESSAGES: Record<string, string> = {
@@ -87,7 +98,7 @@ const WELCOME_MESSAGES: Record<string, string> = {
   ru: "Здравствуйте! 👋 Я ассистент **{agency}**. Каков ваш проект в сфере недвижимости? (покупка, аренда, инвестиции...)",
   zh: "你好！👋 我是 **{agency}** 的助手。您的房地产项目是什么？（购买、租赁、投资...）",
   ja: "こんにちは！👋 **{agency}** のアシスタントです。不動産プロジェクトは何ですか？（購入、賃貸、投資...）",
-  ko: "안녕하세요! 👋 **{agency}** 의 어시스턴트입니다. 부동산 프로젝트가 무엇인가요? (구매, 임대, 투자...)",
+  tr: "Merhaba! 👋 **{agency}** asistanıyım. Gayrimenkul projeniz nedir? (satın alma, kiralama, yatırım...)",
 };
 
 function detectLocale(): string {
@@ -97,16 +108,30 @@ function detectLocale(): string {
   return LOCALE_LANGUAGES[code] ? code : '';
 }
 
+function getLangRule(locale: string): string {
+  const specific: Record<string, string> = {
+    ar: 'CRITICAL: You MUST respond exclusively in Arabic (العربية). Use RTL text direction. Never switch to any other language.',
+    zh: 'CRITICAL: You MUST respond exclusively in Simplified Chinese (简体中文). Use simplified characters only. Never switch to any other language.',
+    ja: 'CRITICAL: You MUST respond exclusively in Japanese (日本語). Use a natural mix of hiragana, katakana and kanji. Never switch to any other language.',
+    tr: 'CRITICAL: You MUST respond exclusively in Turkish (Türkçe). Never switch to any other language.',
+  };
+  if (specific[locale]) return specific[locale];
+  const langName = LOCALE_LANGUAGES[locale];
+  if (langName) return `CRITICAL: You MUST respond exclusively in ${langName}. Never switch to another language regardless of what the user writes.`;
+  return 'Detect the user\'s language from their first message and respond consistently in that language throughout the conversation.';
+}
+
 // ─────────────────────────────────────────────
 // SYSTEM PROMPT DE QUALIFICATION
 // ─────────────────────────────────────────────
 const buildSystemPrompt = (agencyName: string, locale: string) => {
-  const langName = LOCALE_LANGUAGES[locale];
-  const langRule = langName
-    ? `CRITICAL: You MUST respond exclusively in ${langName}. Never switch to another language regardless of what the user writes.`
-    : `Detect the user's language from their first message and respond consistently in that language throughout the conversation.`;
+  const langRule = getLangRule(locale);
 
   return `You are the virtual assistant of "${agencyName}", a real estate agency. You are warm, professional and concise.
+
+## LANGUAGE RULE — HIGHEST PRIORITY:
+${langRule}
+This rule overrides everything. Even if the user writes in a different language, you MUST respond in the language specified above.
 
 ## CONVERSATION FLOW (strictly follow this order):
 
@@ -127,7 +152,6 @@ PHASE 3 — COLLECT CONTACT INFO:
 ## RULES:
 - Maximum 2-3 sentences per response.
 - Stay natural, not like a form.
-- ${langRule}
 
 ## MANDATORY OUTPUT — search criteria tag (invisible to user, stripped before display):
 IMPORTANT: Output this tag in THE SAME response where the user first mentions location, budget OR bedrooms. Do not wait.
@@ -225,10 +249,11 @@ async function saveLeadToSupabase(lead: LeadData, config: ChatbotConfig, session
 // ─────────────────────────────────────────────
 // COMPOSANT PRINCIPAL
 // ─────────────────────────────────────────────
-export default function QualifiedChatbot({ config = {}, enabled = true, onPropertyClick }: QualifiedChatbotProps) {
+export default function QualifiedChatbot({ config = {}, enabled = true, locale: localeProp, onPropertyClick }: QualifiedChatbotProps) {
   const agencyName = config.agencyName || 'Notre Agence';
   const primaryColor = config.primaryColor || '#0f172a';
-  const locale = detectLocale();
+  // Priorité : prop locale (URL via I18nContext) > détection window.location
+  const locale = localeProp || detectLocale() || 'fr';
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);

@@ -572,6 +572,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       <QualifiedChatbot
         enabled={chatbotEnabled}
+        locale={locale}
         config={{
           primaryColor: agency?.primary_color || '#0f172a',
           agencyName: agency?.agency_name,
