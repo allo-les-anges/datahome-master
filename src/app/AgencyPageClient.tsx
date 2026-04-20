@@ -579,8 +579,21 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           agencyId: agency?.id,
           crmType: 'none',
         }}
-        onPropertyClick={(id) => {
-          const property = allProperties.find(p => p.id === id);
+        onPropertyClick={async (id) => {
+          // Try local cache first (with loose string comparison for safety)
+          let property = allProperties.find(p => String(p.id) === String(id));
+          if (!property) {
+            // Fallback: fetch directly from Supabase
+            try {
+              const { data } = await supabase.from('villas').select('*').eq('id', id).single();
+              if (data) {
+                const [formatted] = formatVillaData([data]);
+                property = formatted;
+              }
+            } catch (e) {
+              console.error('[Chatbot] Property fetch failed:', e);
+            }
+          }
           if (property) {
             setSelectedProperty(property);
             window.scrollTo({ top: 0, behavior: 'smooth' });
