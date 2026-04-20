@@ -38,30 +38,67 @@ interface QualifiedChatbotProps {
 }
 
 // ─────────────────────────────────────────────
+// DÉTECTION DE LOCALE
+// ─────────────────────────────────────────────
+const LOCALE_LANGUAGES: Record<string, string> = {
+  fr: 'French', en: 'English', es: 'Spanish', nl: 'Dutch',
+  pl: 'Polish', ar: 'Arabic', de: 'German', pt: 'Portuguese',
+  it: 'Italian', ru: 'Russian', zh: 'Chinese', ja: 'Japanese', ko: 'Korean',
+};
+
+const WELCOME_MESSAGES: Record<string, string> = {
+  fr: "Bonjour ! 👋 Je suis l'assistant de **{agency}**. Quel est votre projet immobilier ? (achat, location, investissement...)",
+  en: "Hello! 👋 I'm the assistant of **{agency}**. What is your real estate project? (purchase, rental, investment...)",
+  es: "¡Hola! 👋 Soy el asistente de **{agency}**. ¿Cuál es su proyecto inmobiliario? (compra, alquiler, inversión...)",
+  nl: "Hallo! 👋 Ik ben de assistent van **{agency}**. Wat is uw vastgoedproject? (aankoop, huur, investering...)",
+  pl: "Cześć! 👋 Jestem asystentem **{agency}**. Jaki jest Twój projekt nieruchomości? (zakup, wynajem, inwestycja...)",
+  ar: "مرحباً! 👋 أنا مساعد **{agency}**. ما هو مشروعك العقاري؟ (شراء، إيجار، استثمار...)",
+  de: "Hallo! 👋 Ich bin der Assistent von **{agency}**. Was ist Ihr Immobilienprojekt? (Kauf, Miete, Investition...)",
+  pt: "Olá! 👋 Sou o assistente de **{agency}**. Qual é o seu projeto imobiliário? (compra, aluguel, investimento...)",
+  it: "Ciao! 👋 Sono l'assistente di **{agency}**. Qual è il suo progetto immobiliare? (acquisto, affitto, investimento...)",
+  ru: "Здравствуйте! 👋 Я ассистент **{agency}**. Каков ваш проект в сфере недвижимости? (покупка, аренда, инвестиции...)",
+  zh: "你好！👋 我是 **{agency}** 的助手。您的房地产项目是什么？（购买、租赁、投资...）",
+  ja: "こんにちは！👋 **{agency}** のアシスタントです。不動産プロジェクトは何ですか？（購入、賃貸、投資...）",
+  ko: "안녕하세요! 👋 **{agency}** 의 어시스턴트입니다. 부동산 프로젝트가 무엇인가요? (구매, 임대, 투자...)",
+};
+
+function detectLocale(): string {
+  if (typeof window === 'undefined') return '';
+  const match = window.location.pathname.match(/^\/([a-z]{2})\//);
+  const code = match?.[1] ?? '';
+  return LOCALE_LANGUAGES[code] ? code : '';
+}
+
+// ─────────────────────────────────────────────
 // SYSTEM PROMPT DE QUALIFICATION
 // ─────────────────────────────────────────────
-const buildSystemPrompt = (agencyName: string) => `
-Tu es l'assistant virtuel de "${agencyName}", une agence immobilière. Tu es chaleureux, professionnel et concis.
+const buildSystemPrompt = (agencyName: string, locale: string) => {
+  const langName = LOCALE_LANGUAGES[locale];
+  const langRule = langName
+    ? `CRITICAL: You MUST respond exclusively in ${langName}. Never switch to another language regardless of what the user writes.`
+    : `Detect the user's language from their first message and respond consistently in that language throughout the conversation.`;
 
-Ton objectif est de qualifier les visiteurs en 4 étapes naturelles dans la conversation :
-1. Accueillir et demander leur prénom + type de projet (achat, location, investissement)
-2. Demander leur localisation souhaitée (région, ville)
-3. Demander leur budget approximatif
-4. Demander leur délai de concrétisation (urgent < 3 mois / moyen 3-6 mois / long terme > 6 mois)
-5. Demander email ET téléphone pour programmer un rappel ou une visite
-6. Confirmer qu'un conseiller va les contacter sous 24h et remercier
+  return `You are the virtual assistant of "${agencyName}", a real estate agency. You are warm, professional and concise.
 
-Règles :
-- Pose UNE seule question à la fois
-- Reste naturel, ne ressemble pas à un formulaire
-- Si l'utilisateur donne plusieurs infos en une fois, prends-les toutes et passe à la suite
-- Quand tu as le nom, email, téléphone, budget, localisation et délai → termine par le JSON de synthèse entre balises <lead_data>
-- Ne dépasse pas 2-3 phrases par réponse
-- Réponds toujours dans la langue de l'utilisateur
+Your goal is to qualify visitors through 4 natural conversation steps:
+1. Welcome them and ask for their first name + project type (purchase, rental, investment)
+2. Ask for their desired location (region, city)
+3. Ask for their approximate budget
+4. Ask for their timeline (urgent < 3 months / medium 3-6 months / long-term > 6 months)
+5. Ask for email AND phone to schedule a callback or visit
+6. Confirm that an advisor will contact them within 24h and thank them
 
-Format JSON final (invisible pour l'utilisateur, entre balises) :
-<lead_data>{"name":"...","email":"...","phone":"...","budget":"...","location":"...","delay":"...","projectType":"..."}</lead_data>
-`;
+Rules:
+- Ask ONE question at a time
+- Stay natural, don't feel like a form
+- If the user gives multiple pieces of info at once, take them all and move on
+- When you have name, email, phone, budget, location and timeline → end with the summary JSON between tags <lead_data>
+- No more than 2-3 sentences per response
+- ${langRule}
+
+Final JSON format (invisible to user, between tags):
+<lead_data>{"name":"...","email":"...","phone":"...","budget":"...","location":"...","delay":"...","projectType":"..."}</lead_data>`;
+};
 
 // ─────────────────────────────────────────────
 // HOOK: appel à l'API OpenAI via notre route Next.js
@@ -133,6 +170,7 @@ async function sendToCRM(lead: LeadData, config: ChatbotConfig) {
 export default function QualifiedChatbot({ config = {}, enabled = true }: QualifiedChatbotProps) {
   const agencyName = config.agencyName || 'Notre Agence';
   const primaryColor = config.primaryColor || '#0f172a';
+  const locale = detectLocale();
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -149,14 +187,15 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
   useEffect(() => {
     if (isOpen && !hasOpened) {
       setHasOpened(true);
+      const template = WELCOME_MESSAGES[locale] || WELCOME_MESSAGES['fr'];
       const welcome: Message = {
         role: 'assistant',
-        content: `Bonjour ! 👋 Je suis l'assistant de **${agencyName}**. Je suis là pour vous aider à trouver le bien immobilier idéal.\n\nPour commencer, puis-je avoir votre prénom et me dire quel est votre projet ? (achat, location, investissement...)`,
+        content: template.replace('{agency}', agencyName),
         timestamp: new Date(),
       };
       setMessages([welcome]);
     }
-  }, [isOpen, hasOpened, agencyName]);
+  }, [isOpen, hasOpened, agencyName, locale]);
 
   // Scroll auto vers le bas
   useEffect(() => {
@@ -189,7 +228,7 @@ export default function QualifiedChatbot({ config = {}, enabled = true }: Qualif
 
     try {
       const history = newMessages.map(m => ({ role: m.role, content: m.content }));
-      const systemPrompt = buildSystemPrompt(agencyName);
+      const systemPrompt = buildSystemPrompt(agencyName, locale);
       console.log('[Chatbot] Sending message, history length:', history.length);
       const rawResponse = await callChatAPI(history, systemPrompt);
       console.log('[Chatbot] Response received, length:', rawResponse.length);
