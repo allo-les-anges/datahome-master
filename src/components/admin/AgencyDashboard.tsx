@@ -684,6 +684,7 @@ export default function AgencyDashboard() {
           about_text: selectedAgency.about_text,
           whatsapp_number: selectedAgency.whatsapp_number,
           footer_config: selectedAgency.footer_config,
+          property_manager_enabled: !!selectedAgency?.footer_config?.integrations?.property_manager_enabled,
           team_data: teamDataToSave,
           updated_at: new Date().toISOString(),
         })
@@ -1129,17 +1130,11 @@ export default function AgencyDashboard() {
                               color="peer-checked:bg-green-600"
                               onChange={(v) => {
                                 updateNestedConfig('integrations', 'property_manager_enabled', v);
-                                setIntOpen(prev => ({ ...prev, propertyManager: v }));
                               }}
                             />
-                            {enabled && (
-                              <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, propertyManager: !prev.propertyManager }))} className="p-1 hover:bg-slate-100 rounded-lg transition-all">
-                                <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${intOpen.propertyManager ? 'rotate-180' : ''}`} />
-                              </button>
-                            )}
                           </div>
                         </div>
-                        {enabled && slug && intOpen.propertyManager && (
+                        {enabled && slug && (
                           <div className="px-5 py-4 border-t border-green-100 bg-green-50/30 flex items-center justify-between gap-3">
                             <p className="text-[10px] text-green-700 font-bold uppercase tracking-wide">
                               L'agence peut gérer ses biens manuellement depuis son espace dédié
