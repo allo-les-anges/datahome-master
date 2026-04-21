@@ -520,9 +520,9 @@ export default function AgencyDashboard() {
       const ints = selectedAgency?.footer_config?.integrations || {};
       setIntOpen({
         propertyManager: !!ints.property_manager_enabled,
-        whatsapp: !!ints.whatsapp_enabled,
-        crm: !!ints.crm_enabled,
-        chatbot: !!ints.chatbot_enabled,
+        whatsapp: false,
+        crm: false,
+        chatbot: false,
       });
     }
   }, [selectedAgency?.id]);
@@ -1194,7 +1194,7 @@ export default function AgencyDashboard() {
                             )}
                           </div>
                         </div>
-                        {enabled && (
+                        {intOpen.whatsapp && enabled && (
                           <div className="p-5 border-t border-slate-100 bg-white space-y-3">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Numéro WhatsApp</label>
                             <div className="relative">
@@ -1253,7 +1253,7 @@ export default function AgencyDashboard() {
                             )}
                           </div>
                         </div>
-                        {enabled && (
+                        {intOpen.chatbot && enabled && (
                           <div className="p-5 border-t border-slate-100 bg-white space-y-4">
                             <div className="flex items-center gap-2 px-4 py-3 bg-purple-50 rounded-xl border border-purple-100">
                               <Cpu size={13} className="text-purple-400 shrink-0" />
@@ -1329,7 +1329,7 @@ export default function AgencyDashboard() {
                             />
                           </div>
                         </div>
-                        {enabled && slug && (
+                        {intOpen.crm && enabled && slug && (
                           <div className="px-5 py-3 bg-blue-50/50 border-t border-blue-100 flex items-center justify-between gap-3">
                             <p className="text-[10px] text-blue-700 font-bold uppercase tracking-wide">
                               Les identifiants CRM sont configurés par l'agence depuis sa page de paramétrage
