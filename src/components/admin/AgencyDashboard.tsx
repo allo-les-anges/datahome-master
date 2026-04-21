@@ -460,13 +460,19 @@ const SUPPORTED_LANGUAGES = [
 // ============================================================
 function ToggleSwitch({ checked, onChange, checkedColor = '#0f172a' }: { checked: boolean; onChange: (v: boolean) => void; checkedColor?: string }) {
   return (
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input type="checkbox" className="sr-only peer" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <div
-        className="w-11 h-6 rounded-full transition-colors duration-200 peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"
-        style={{ backgroundColor: checked ? checkedColor : '#e2e8f0' }}
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+      style={{ backgroundColor: checked ? checkedColor : '#cbd5e1' }}
+    >
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition duration-200 ease-in-out ${checked ? 'translate-x-5' : 'translate-x-0'}`}
       />
-    </label>
+    </button>
   );
 }
 
