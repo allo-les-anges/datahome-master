@@ -251,10 +251,14 @@ export default function MonEspacePage() {
     if (!slug) return;
     supabase
       .from('agency_settings')
-      .select('id, agency_name, primary_color, font_family, logo_url, property_manager_enabled, property_manager_password')
+      .select('*')
       .eq('subdomain', slug)
       .maybeSingle()
-      .then(({ data }) => { setAgency(data); setLoading(false); });
+      .then(({ data, error }) => {
+        if (error) console.error('[mon-espace] agency fetch error:', error.message);
+        setAgency(data);
+        setLoading(false);
+      });
   }, [slug]);
 
   // Vérifie la session
