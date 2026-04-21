@@ -694,6 +694,7 @@ export default function AgencyDashboard() {
           whatsapp_number: selectedAgency.whatsapp_number,
           footer_config: selectedAgency.footer_config,
           property_manager_enabled: !!selectedAgency?.footer_config?.integrations?.property_manager_enabled,
+          habihub_agent_id: selectedAgency.habihub_agent_id || null,
           team_data: teamDataToSave,
           updated_at: new Date().toISOString(),
         })
@@ -985,6 +986,24 @@ export default function AgencyDashboard() {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* HabiHub Agent ID */}
+                  <div className="space-y-2 pt-2 border-t border-slate-50">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <FileCode size={12} /> HabiHub Agent ID
+                      <span className="text-slate-300 font-normal normal-case tracking-normal">(fourni par HabiHub)</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-2xl border border-slate-100 bg-slate-50 text-sm font-mono focus:ring-2 focus:ring-blue-400 outline-none"
+                      placeholder="ex: 6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2"
+                      value={selectedAgency?.habihub_agent_id || ''}
+                      onChange={(e) => setSelectedAgency({ ...selectedAgency, habihub_agent_id: e.target.value })}
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      Permet à Francisco d&apos;envoyer des flux XML sans connaître votre UUID interne.
+                    </p>
                   </div>
                 </div>
 

@@ -2,9 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 serve(async (req) => {
-  // 1. Récupération de l'ID de l'agence depuis l'URL (?agency_id=...)
+  // 1. Récupération des paramètres depuis l'URL
   const url = new URL(req.url);
   const agencyIdFromUrl = url.searchParams.get('agency_id');
+  const habihubAgentId = url.searchParams.get('habihub_agent_id');
 
   // 2. Sécurité : Vérification de la clé API
   const INGEST_API_KEY = Deno.env.get('INGEST_API_KEY');
@@ -16,10 +17,10 @@ serve(async (req) => {
     }
   }
 
-  // 3. Vérification que l'ID agence est présent
-  if (!agencyIdFromUrl) {
-    return new Response(JSON.stringify({ 
-      error: 'ID Agence manquant dans l\'URL (paramètre ?agency_id=)' 
+  // 3. Vérification qu'au moins un identifiant agence est présent
+  if (!agencyIdFromUrl && !habihubAgentId) {
+    return new Response(JSON.stringify({
+      error: 'Paramètre manquant : fournir ?agency_id= ou ?habihub_agent_id='
     }), { status: 400 });
   }
 
@@ -29,8 +30,8 @@ serve(async (req) => {
     const xmlUrl = body.xmlUrl || body.xml_url;
 
     if (!xmlUrl) {
-      return new Response(JSON.stringify({ 
-        error: 'Paramètre xmlUrl manquant dans le corps JSON.' 
+      return new Response(JSON.stringify({
+        error: 'Paramètre xmlUrl manquant dans le corps JSON.'
       }), { status: 400 });
     }
 
@@ -39,20 +40,26 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 5. Vérification que l'agence existe
-    const { data: agencyExists, error: agencyError } = await supabase
-      .from('agency_settings')
-      .select('id, agency_name')
-      .eq('id', agencyIdFromUrl)
-      .single();
+    // 5. Résolution de l'agence selon le paramètre fourni
+    let agencyQuery = supabase.from('agency_settings').select('id, agency_name');
+    if (habihubAgentId) {
+      agencyQuery = agencyQuery.eq('habihub_agent_id', habihubAgentId);
+    } else {
+      agencyQuery = agencyQuery.eq('id', agencyIdFromUrl);
+    }
+    const { data: agencyExists, error: agencyError } = await agencyQuery.single();
 
     if (agencyError || !agencyExists) {
-      return new Response(JSON.stringify({ 
-        error: `L'agence avec l'ID ${agencyIdFromUrl} n'existe pas.` 
+      const identifier = habihubAgentId
+        ? `habihub_agent_id=${habihubAgentId}`
+        : `agency_id=${agencyIdFromUrl}`;
+      return new Response(JSON.stringify({
+        error: `Agence introuvable (${identifier}).`
       }), { status: 400 });
     }
 
-    console.log(`✅ Agence trouvée: ${agencyExists.agency_name}`);
+    const resolvedAgencyId = agencyExists.id;
+    console.log(`✅ Agence trouvée: ${agencyExists.agency_name} (id=${resolvedAgencyId})`);
     console.log(`📡 URL XML: ${xmlUrl}`);
 
     // 6. Déléguer le traitement lourd à sync-villas (évite le timeout)
@@ -64,19 +71,19 @@ serve(async (req) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        agencyId: agencyIdFromUrl,
+        agencyId: resolvedAgencyId,
         xmlUrl: xmlUrl,
         agentId: body.agent_id
       }),
     }).catch(err => console.error('Erreur lancement synchro:', err));
 
     // 7. Réponse immédiate à Francisco
-    return new Response(JSON.stringify({ 
-      success: true, 
+    return new Response(JSON.stringify({
+      success: true,
       message: 'Synchronisation lancée',
       agency: agencyExists.agency_name,
-      agency_id: agencyIdFromUrl
-    }), { 
+      agency_id: resolvedAgencyId
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
