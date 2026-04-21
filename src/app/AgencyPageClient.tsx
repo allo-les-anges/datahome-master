@@ -229,9 +229,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     
     if (initialLoadDone.current && allProperties.length > 0) return;
     
-    // 1. Vérifier le cache
+    // 1. Vérifier le cache — ignoré si le SSR a retourné plus de biens (données plus fraîches)
     const cached = loadFromCache();
-    if (cached && cached.length > 0) {
+    const ssrCount = initialProperties?.length || 0;
+    if (cached && cached.length > 0 && cached.length >= ssrCount) {
       setAllProperties(cached);
       setFilteredProperties(cached);
       setLoadingProperties(false);
@@ -239,7 +240,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return;
     }
 
-    // 2. Utiliser les propriétés initiales du SSR
+    // 2. Utiliser les propriétés initiales du SSR (priorité si plus complètes que le cache)
     if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
       const formatted = formatVillaData(initialProperties);
       setAllProperties(formatted);
