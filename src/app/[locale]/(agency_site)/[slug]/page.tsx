@@ -39,52 +39,69 @@ export default async function DynamicAgencyPage({
     );
   }
 
-  // Descriptions exclues du listing (chargées à la demande dans la fiche détail)
-  const { data: villas } = await supabase
+  // Récupération des flux XML autorisés depuis la config de l'agence
+  let xmlUrls: string[] = [];
+  try {
+    const config = typeof agency.footer_config === 'string'
+      ? JSON.parse(agency.footer_config)
+      : agency.footer_config;
+    xmlUrls = config?.xml_urls || [];
+  } catch (e) { /* ignore */ }
+
+  const selectColumns = `
+    id,
+    id_externe,
+    ref,
+    titre,
+    titre_fr,
+    titre_en,
+    titre_es,
+    titre_nl,
+    titre_pl,
+    titre_ar,
+    prix,
+    price,
+    town,
+    ville,
+    region,
+    province,
+    images,
+    beds,
+    baths,
+    surface_built,
+    built,
+    surface_plot,
+    plot,
+    type,
+    pool,
+    is_excluded,
+    agency_id,
+    development_name,
+    promoteur_name,
+    latitude,
+    longitude,
+    adresse,
+    distance_beach,
+    distance_golf,
+    distance_town,
+    currency,
+    commission_percentage,
+    xml_source
+  `;
+
+  // Si des flux XML sont configurés → filtrer par xml_source (biens importés sans agency_id propre)
+  // Sinon → fallback sur agency_id
+  let villaQuery = supabase
     .from('villas')
-    .select(`
-      id,
-      id_externe,
-      ref,
-      titre,
-      titre_fr,
-      titre_en,
-      titre_es,
-      titre_nl,
-      titre_pl,
-      titre_ar,
-      prix,
-      price,
-      town,
-      ville,
-      region,
-      province,
-      images,
-      beds,
-      baths,
-      surface_built,
-      built,
-      surface_plot,
-      plot,
-      type,
-      pool,
-      is_excluded,
-      agency_id,
-      development_name,
-      promoteur_name,
-      latitude,
-      longitude,
-      adresse,
-      distance_beach,
-      distance_golf,
-      distance_town,
-      currency,
-      commission_percentage,
-      xml_source
-    `)
-    .eq('agency_id', agency.id)
+    .select(selectColumns)
     .or('is_excluded.eq.false,is_excluded.is.null')
     .limit(10000);
+
+  villaQuery = xmlUrls.length > 0
+    ? villaQuery.in('xml_source', xmlUrls)
+    : villaQuery.eq('agency_id', agency.id);
+
+  const { data: villas } = await villaQuery;
 
   return (
     <AgencyPageClient

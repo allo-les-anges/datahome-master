@@ -199,6 +199,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       if (allowedXmlUrls.length > 0) {
         typesQuery = typesQuery.in('xml_source', allowedXmlUrls);
+      } else if (currentAgency?.id) {
+        typesQuery = typesQuery.eq('agency_id', currentAgency.id);
       }
 
       // Pagination pour couvrir tous les biens quel que soit leur nombre
@@ -307,8 +309,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         `)
         .or('is_excluded.eq.false,is_excluded.is.null');
 
+      // Même logique que le SSR : xml_source si flux configurés, sinon agency_id
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
+      } else if (currentAgency?.id) {
+        query = query.eq('agency_id', currentAgency.id);
       }
 
       // Pagination pour charger l'intégralité du catalogue sans limite arbitraire
