@@ -192,33 +192,32 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         } catch (e) { /* ignore */ }
       }
 
-      let typesQuery = supabase
-        .from('villas')
-        .select('type')
-        .or('is_excluded.eq.false,is_excluded.is.null');
+      const fetchTypePages = async (baseQuery: any): Promise<string[]> => {
+        const PAGE_SIZE = 1000;
+        const types: string[] = [];
+        let page = 0;
+        while (true) {
+          const { data: pageData } = await baseQuery.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+          if (!pageData || pageData.length === 0) break;
+          types.push(...pageData.map((r: any) => r.type?.trim()).filter(Boolean));
+          if (pageData.length < PAGE_SIZE) break;
+          page++;
+        }
+        return types;
+      };
 
-      if (allowedXmlUrls.length > 0) {
-        typesQuery = typesQuery.in('xml_source', allowedXmlUrls);
-      } else if (currentAgency?.id) {
-        typesQuery = typesQuery.eq('agency_id', currentAgency.id);
-      }
+      const [byAgencyTypes, byXmlTypes] = await Promise.all([
+        fetchTypePages(
+          supabase.from('villas').select('type').eq('agency_id', currentAgency.id).or('is_excluded.eq.false,is_excluded.is.null')
+        ),
+        allowedXmlUrls.length > 0
+          ? fetchTypePages(
+              supabase.from('villas').select('type').in('xml_source', allowedXmlUrls).or('is_excluded.eq.false,is_excluded.is.null')
+            )
+          : Promise.resolve([] as string[]),
+      ]);
 
-      // Pagination pour couvrir tous les biens quel que soit leur nombre
-      const PAGE_SIZE = 1000;
-      let allTypes: string[] = [];
-      let page = 0;
-      while (true) {
-        const { data: pageData } = await typesQuery.range(
-          page * PAGE_SIZE,
-          (page + 1) * PAGE_SIZE - 1
-        );
-        if (!pageData || pageData.length === 0) break;
-        allTypes = allTypes.concat(pageData.map((r: any) => r.type?.trim()).filter(Boolean));
-        if (pageData.length < PAGE_SIZE) break;
-        page++;
-      }
-
-      const distinct = [...new Set(allTypes)] as string[];
+      const distinct = [...new Set([...byAgencyTypes, ...byXmlTypes])] as string[];
       if (distinct.length > 0) setAvailableTypes(distinct);
     } catch (e) { /* silently ignore */ }
   }, []);
@@ -267,71 +266,63 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         }
       }
 
-      let query = supabase
+      const COLS = `
+        id, id_externe, ref, titre, titre_fr, titre_en, titre_es, titre_nl,
+        titre_pl, titre_ar, price, prix, town, ville, region, province, beds,
+        baths, surface_built, surface_plot, surface_useful, type, pool,
+        is_excluded, agency_id, images, latitude, longitude, adresse,
+        xml_source, commission_percentage, currency, development_name,
+        promoteur_name, distance_beach, distance_golf, distance_town
+      `;
+
+      // Fonction de pagination générique
+      const fetchAllPages = async (baseQuery: any): Promise<any[]> => {
+        const PAGE_SIZE = 1000;
+        const results: any[] = [];
+        let page = 0;
+        while (true) {
+          const { data: pageData, error } = await baseQuery.range(
+            page * PAGE_SIZE,
+            (page + 1) * PAGE_SIZE - 1
+          );
+          if (error) throw error;
+          if (!pageData || pageData.length === 0) break;
+          results.push(...pageData);
+          if (pageData.length < PAGE_SIZE) break;
+          page++;
+        }
+        return results;
+      };
+
+      // Deux requêtes parallèles : agency_id ET xml_source (union = tous les biens de l'agence)
+      const byAgencyQuery = supabase
         .from('villas')
-        .select(`
-          id,
-          id_externe,
-          ref,
-          titre,
-          titre_fr,
-          titre_en,
-          titre_es,
-          titre_nl,
-          titre_pl,
-          titre_ar,
-          price,
-          prix,
-          town,
-          ville,
-          region,
-          province,
-          beds,
-          baths,
-          surface_built,
-          surface_plot,
-          surface_useful,
-          type,
-          pool,
-          is_excluded,
-          agency_id,
-          images,
-          latitude,
-          longitude,
-          adresse,
-          xml_source,
-          commission_percentage,
-          currency,
-          development_name,
-          promoteur_name,
-          distance_beach,
-          distance_golf,
-          distance_town
-        `)
+        .select(COLS)
+        .eq('agency_id', currentAgency.id)
         .or('is_excluded.eq.false,is_excluded.is.null');
 
-      // Même logique que le SSR : xml_source si flux configurés, sinon agency_id
-      if (allowedXmlUrls.length > 0) {
-        query = query.in('xml_source', allowedXmlUrls);
-      } else if (currentAgency?.id) {
-        query = query.eq('agency_id', currentAgency.id);
-      }
+      const byXmlPromise = allowedXmlUrls.length > 0
+        ? fetchAllPages(
+            supabase
+              .from('villas')
+              .select(COLS)
+              .in('xml_source', allowedXmlUrls)
+              .or('is_excluded.eq.false,is_excluded.is.null')
+          )
+        : Promise.resolve([] as any[]);
 
-      // Pagination pour charger l'intégralité du catalogue sans limite arbitraire
-      const PAGE_SIZE = 1000;
-      let allData: any[] = [];
-      let page = 0;
-      while (true) {
-        const { data: pageData, error } = await query.range(
-          page * PAGE_SIZE,
-          (page + 1) * PAGE_SIZE - 1
-        );
-        if (error) throw error;
-        if (!pageData || pageData.length === 0) break;
-        allData = allData.concat(pageData);
-        if (pageData.length < PAGE_SIZE) break;
-        page++;
-      }
+      const [byAgency, byXml] = await Promise.all([
+        fetchAllPages(byAgencyQuery),
+        byXmlPromise,
+      ]);
+
+      // Fusion et déduplication par id
+      const seen = new Set<number>();
+      const allData = [...byAgency, ...byXml].filter(v => {
+        if (seen.has(v.id)) return false;
+        seen.add(v.id);
+        return true;
+      });
 
       const formatted = formatVillaData(allData);
       setAllProperties(formatted);

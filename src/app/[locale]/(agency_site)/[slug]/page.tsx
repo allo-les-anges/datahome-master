@@ -89,19 +89,33 @@ export default async function DynamicAgencyPage({
     xml_source
   `;
 
-  // Si des flux XML sont configurés → filtrer par xml_source (biens importés sans agency_id propre)
-  // Sinon → fallback sur agency_id
-  let villaQuery = supabase
+  // Deux requêtes parallèles : par agency_id ET par xml_source (union)
+  // Couvre tous les cas : biens assignés directement + biens importés via flux XML
+  const byAgencyQuery = supabase
     .from('villas')
     .select(selectColumns)
+    .eq('agency_id', agency.id)
     .or('is_excluded.eq.false,is_excluded.is.null')
     .limit(10000);
 
-  villaQuery = xmlUrls.length > 0
-    ? villaQuery.in('xml_source', xmlUrls)
-    : villaQuery.eq('agency_id', agency.id);
+  const byXmlQuery = xmlUrls.length > 0
+    ? supabase
+        .from('villas')
+        .select(selectColumns)
+        .in('xml_source', xmlUrls)
+        .or('is_excluded.eq.false,is_excluded.is.null')
+        .limit(10000)
+    : Promise.resolve({ data: [] as any[] });
 
-  const { data: villas } = await villaQuery;
+  const [{ data: byAgency }, { data: byXml }] = await Promise.all([byAgencyQuery, byXmlQuery]);
+
+  // Fusion et déduplication par id
+  const seen = new Set<number>();
+  const villas = [...(byAgency || []), ...(byXml || [])].filter(v => {
+    if (seen.has(v.id)) return false;
+    seen.add(v.id);
+    return true;
+  });
 
   return (
     <AgencyPageClient
