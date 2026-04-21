@@ -1194,7 +1194,7 @@ export default function AgencyDashboard() {
                             )}
                           </div>
                         </div>
-                        {intOpen.whatsapp && enabled && (
+                        {enabled && (
                           <div className="p-5 border-t border-slate-100 bg-white space-y-3">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Numéro WhatsApp</label>
                             <div className="relative">
@@ -1253,7 +1253,7 @@ export default function AgencyDashboard() {
                             )}
                           </div>
                         </div>
-                        {intOpen.chatbot && enabled && (
+                        {enabled && (
                           <div className="p-5 border-t border-slate-100 bg-white space-y-4">
                             <div className="flex items-center gap-2 px-4 py-3 bg-purple-50 rounded-xl border border-purple-100">
                               <Cpu size={13} className="text-purple-400 shrink-0" />
