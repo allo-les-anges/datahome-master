@@ -84,7 +84,7 @@ export default async function DynamicAgencyPage({
     `)
     .eq('agency_id', agency.id)
     .or('is_excluded.eq.false,is_excluded.is.null')
-    .order('prix', { ascending: false });
+    .limit(10000);
 
   return (
     <AgencyPageClient

@@ -7,6 +7,7 @@ import { useTranslation } from "@/contexts/I18nContext";
 interface AdvancedSearchProps {
   onSearch: (filters: any) => void;
   properties?: any[];
+  availableTypes?: string[];
   activeFilters?: any;
   onClose?: () => void;
   isLight?: boolean;
@@ -16,6 +17,7 @@ interface AdvancedSearchProps {
 export default function AdvancedSearch({
   onSearch,
   properties = [],
+  availableTypes,
   activeFilters = {},
   onClose,
   isLight = true,
@@ -70,23 +72,40 @@ export default function AdvancedSearch({
   // Extraction dynamique des Types UNIQUES
   const uniqueTypes = useMemo(() => {
     const translation: { [key: string]: string } = {
-      villa: "Villa", 
-      apartment: "Appartement", 
-      penthouse: "Penthouse", 
-      bungalow: "Bungalow", 
-      townhouse: "Maison de ville"
+      villa: "Villa",
+      apartment: "Appartement",
+      penthouse: "Penthouse",
+      bungalow: "Bungalow",
+      townhouse: "Maison de ville",
+      house: "Maison",
+      maison: "Maison",
+      terrain: "Terrain",
+      land: "Terrain",
+      commercial: "Commercial",
+      plot: "Terrain",
+      studio: "Studio",
+      duplex: "Duplex",
+      chalet: "Chalet",
+      farmhouse: "Ferme",
+      property: "Propriété",
     };
-    const safeProps = Array.isArray(properties) ? properties : [];
-    const rawTypes = safeProps.map((p) => p.type);
-    
-    const distinctTypes = [...new Set(rawTypes.map(t => t?.toLowerCase().trim()))]
-      .filter((t) => t && t !== "property");
 
-    return distinctTypes.map((t) => ({ 
-      id: t, 
-      label: translation[t] || t.charAt(0).toUpperCase() + t.slice(1) 
-    }));
-  }, [properties]);
+    // Priorité à availableTypes (requête dédiée sans limite de pagination)
+    // Sinon on dérive depuis les biens déjà chargés en mémoire
+    const source: string[] = availableTypes && availableTypes.length > 0
+      ? availableTypes
+      : (Array.isArray(properties) ? properties : []).map((p) => p.type);
+
+    const distinctTypes = [...new Set(source.map((t: any) => t?.toLowerCase().trim()))]
+      .filter((t): t is string => !!t);
+
+    return distinctTypes
+      .map((t) => ({
+        id: t,
+        label: translation[t] || t.charAt(0).toUpperCase() + t.slice(1),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [properties, availableTypes]);
 
   // Extraction dynamique des Villes UNIQUES (basé sur la région sélectionnée)
   const uniqueTowns = useMemo(() => {

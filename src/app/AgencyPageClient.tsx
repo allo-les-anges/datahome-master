@@ -40,6 +40,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
+  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
@@ -177,6 +178,49 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     }
   }, [slug]);
 
+  // Requête légère pour récupérer tous les types distincts sans limite de pagination
+  const loadAvailableTypes = useCallback(async (currentAgency: any) => {
+    if (!currentAgency?.id) return;
+    try {
+      let allowedXmlUrls: string[] = [];
+      if (currentAgency?.footer_config) {
+        try {
+          const config = typeof currentAgency.footer_config === 'string'
+            ? JSON.parse(currentAgency.footer_config)
+            : currentAgency.footer_config;
+          allowedXmlUrls = config?.xml_urls || [];
+        } catch (e) { /* ignore */ }
+      }
+
+      let typesQuery = supabase
+        .from('villas')
+        .select('type')
+        .or('is_excluded.eq.false,is_excluded.is.null');
+
+      if (allowedXmlUrls.length > 0) {
+        typesQuery = typesQuery.in('xml_source', allowedXmlUrls);
+      }
+
+      // Pagination pour couvrir tous les biens quel que soit leur nombre
+      const PAGE_SIZE = 1000;
+      let allTypes: string[] = [];
+      let page = 0;
+      while (true) {
+        const { data: pageData } = await typesQuery.range(
+          page * PAGE_SIZE,
+          (page + 1) * PAGE_SIZE - 1
+        );
+        if (!pageData || pageData.length === 0) break;
+        allTypes = allTypes.concat(pageData.map((r: any) => r.type?.trim()).filter(Boolean));
+        if (pageData.length < PAGE_SIZE) break;
+        page++;
+      }
+
+      const distinct = [...new Set(allTypes)] as string[];
+      if (distinct.length > 0) setAvailableTypes(distinct);
+    } catch (e) { /* silently ignore */ }
+  }, []);
+
   // Chargement des données - Version avec les bonnes colonnes
   const loadData = useCallback(async (currentAgency: any) => {
     if (!currentAgency?.id) return;
@@ -267,11 +311,23 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
         query = query.in('xml_source', allowedXmlUrls);
       }
 
-      const { data, error } = await query.limit(500);
+      // Pagination pour charger l'intégralité du catalogue sans limite arbitraire
+      const PAGE_SIZE = 1000;
+      let allData: any[] = [];
+      let page = 0;
+      while (true) {
+        const { data: pageData, error } = await query.range(
+          page * PAGE_SIZE,
+          (page + 1) * PAGE_SIZE - 1
+        );
+        if (error) throw error;
+        if (!pageData || pageData.length === 0) break;
+        allData = allData.concat(pageData);
+        if (pageData.length < PAGE_SIZE) break;
+        page++;
+      }
 
-      if (error) throw error;
-
-      const formatted = formatVillaData(data || []);
+      const formatted = formatVillaData(allData);
       setAllProperties(formatted);
       setFilteredProperties(formatted);
       saveToCache(formatted);
@@ -306,8 +362,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   useEffect(() => {
     if (agency?.id) {
       loadData(agency);
+      loadAvailableTypes(agency);
     }
-  }, [agency?.id, loadData]);
+  }, [agency?.id, loadData, loadAvailableTypes]);
 
   // Favoris
   useEffect(() => {
@@ -604,12 +661,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                 <X size={20} />
               </button>
               <div className="flex-grow overflow-y-auto p-6 md:p-12">
-                <AdvancedSearch 
-                  agency={agency} 
-                  onSearch={handleSearch} 
-                  properties={allProperties} 
-                  activeFilters={{ ...filters, sortOrder }} 
-                  onClose={() => setIsSearchOpen(false)} 
+                <AdvancedSearch
+                  agency={agency}
+                  onSearch={handleSearch}
+                  properties={allProperties}
+                  availableTypes={availableTypes}
+                  activeFilters={{ ...filters, sortOrder }}
+                  onClose={() => setIsSearchOpen(false)}
                 />
               </div>
             </motion.div>
