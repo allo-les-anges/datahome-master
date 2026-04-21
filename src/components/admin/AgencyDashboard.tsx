@@ -8,7 +8,7 @@ import {
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram,
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
   MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, Briefcase, FileText,
-  ChevronDown, Lock, Bot
+  ChevronDown, Lock, Bot, Home as HomeIcon
 } from 'lucide-react';
 
 // ============================================================
@@ -481,7 +481,7 @@ export default function AgencyDashboard() {
   const [team, setTeam] = useState<any[]>([]);
 
   // Integration panel expand state
-  const [intOpen, setIntOpen] = useState({ whatsapp: false, crm: false, chatbot: false });
+  const [intOpen, setIntOpen] = useState({ propertyManager: false, whatsapp: false, crm: false, chatbot: false });
 
   // Force light mode on the admin page
   useEffect(() => {
@@ -519,6 +519,7 @@ export default function AgencyDashboard() {
       setTeam(selectedAgency.team_data || []);
       const ints = selectedAgency?.footer_config?.integrations || {};
       setIntOpen({
+        propertyManager: !!ints.property_manager_enabled,
         whatsapp: !!ints.whatsapp_enabled,
         crm: !!ints.crm_enabled,
         chatbot: !!ints.chatbot_enabled,
@@ -1092,6 +1093,65 @@ export default function AgencyDashboard() {
                           <div className="px-5 py-3 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
                             <AlertCircle size={13} className="text-amber-500 shrink-0" />
                             <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wide">Le site est inaccessible aux visiteurs tant que ce module est désactivé.</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* MODULE: Property Manager */}
+                  {(() => {
+                    const enabled = !!getInt('property_manager_enabled');
+                    const slug = selectedAgency?.subdomain;
+                    return (
+                      <div className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${enabled ? 'border-green-200' : 'border-slate-200'}`}>
+                        <div className={`flex items-center justify-between p-4 ${enabled ? 'bg-green-50/40' : 'bg-slate-50/20'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${enabled ? 'bg-green-100' : 'bg-slate-100'}`}>
+                              <HomeIcon size={20} className={enabled ? 'text-green-600' : 'text-slate-400'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">Property Manager</span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-green-100 text-green-700">
+                                  <Lock size={8} /> Module
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold mt-0.5">Gestion manuelle des biens</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${enabled ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {enabled ? 'ACTIF' : 'INACTIF'}
+                            </span>
+                            <ToggleSwitch
+                              checked={enabled}
+                              color="peer-checked:bg-green-600"
+                              onChange={(v) => {
+                                updateNestedConfig('integrations', 'property_manager_enabled', v);
+                                setIntOpen(prev => ({ ...prev, propertyManager: v }));
+                              }}
+                            />
+                            {enabled && (
+                              <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, propertyManager: !prev.propertyManager }))} className="p-1 hover:bg-slate-100 rounded-lg transition-all">
+                                <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${intOpen.propertyManager ? 'rotate-180' : ''}`} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {enabled && slug && intOpen.propertyManager && (
+                          <div className="px-5 py-4 border-t border-green-100 bg-green-50/30 flex items-center justify-between gap-3">
+                            <p className="text-[10px] text-green-700 font-bold uppercase tracking-wide">
+                              L'agence peut gérer ses biens manuellement depuis son espace dédié
+                            </p>
+                            <a
+                              href={`/fr/${slug}/mon-espace`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-green-700 transition-all"
+                            >
+                              <Globe size={10} /> Ouvrir l'espace agence →
+                            </a>
                           </div>
                         )}
                       </div>
