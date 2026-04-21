@@ -101,6 +101,33 @@ const WELCOME_MESSAGES: Record<string, string> = {
   tr: "Merhaba! 👋 **{agency}** asistanıyım. Gayrimenkul projeniz nedir? (satın alma, kiralama, yatırım...)",
 };
 
+const INVITATION_MESSAGES: Record<string, { click: string; comeback: string }> = {
+  fr: {
+    click: "✨ **Petit conseil :** Cliquez sur les villas qui vous plaisent pour voir toutes les photos, les détails et les plans !",
+    comeback: "💬 **Et n'oubliez pas :** Revenez me parler ici quand vous aurez trouvé votre bonheur ! Je prendrai vos coordonnées pour que l'agence vous contacte. Sinon, on risque de vous perdre... 😊"
+  },
+  en: {
+    click: "✨ **Quick tip:** Click on the villas you like to see all photos, details and floor plans!",
+    comeback: "💬 **And don't forget:** Come back and talk to me here when you've found your favorite! I'll take your contact details so the agency can reach out. Otherwise, we might lose you... 😊"
+  },
+  es: {
+    click: "✨ **Consejo rápido:** ¡Haz clic en las villas que te gusten para ver todas las fotos, detalles y planos!",
+    comeback: "💬 **Y no olvides:** ¡Vuelve a hablarme aquí cuando hayas encontrado tu favorita! Tomaré tus datos para que la agencia te contacte. ¡Si no, podríamos perderte... 😊"
+  },
+  nl: {
+    click: "✨ **Snelle tip:** Klik op de villa's die je mooi vindt om alle foto's, details en plattegronden te zien!",
+    comeback: "💬 **En vergeet niet:** Kom hier terug met me praten wanneer je je favoriet hebt gevonden! Ik zal je contactgegevens opnemen zodat het agentschap contact met je kan opnemen. Anders verliezen we je misschien... 😊"
+  },
+  pl: {
+    click: "✨ **Szybka wskazówka:** Kliknij na wille, które Ci się podobają, aby zobaczyć wszystkie zdjęcia, szczegóły i plany!",
+    comeback: "💬 **I nie zapomnij:** Wróć do mnie tutaj, gdy znajdziesz swój ulubiony! Wezmę Twoje dane kontaktowe, aby agencja mogła się z Tobą skontaktować. W przeciwnym razie możemy Cię stracić... 😊"
+  },
+  ar: {
+    click: "✨ **نصيحة سريعة:** انقر على الفيلات التي تعجبك لمشاهدة جميع الصور والتفاصيل والخطط!",
+    comeback: "💬 **ولا تنسى:** عد وتحدث معي هنا عندما تجد ما تبحث عنه! سآخذ معلومات الاتصال الخاصة بك لتتمكن الوكالة من التواصل معك. وإلا فقد نفقدك... 😊"
+  }
+};
+
 function detectLocale(): string {
   if (typeof window === 'undefined') return '';
   const match = window.location.pathname.match(/^\/([a-z]{2})\//);
@@ -252,8 +279,8 @@ async function saveLeadToSupabase(lead: LeadData, config: ChatbotConfig, session
 export default function QualifiedChatbot({ config = {}, enabled = true, locale: localeProp, onPropertyClick }: QualifiedChatbotProps) {
   const agencyName = config.agencyName || 'Notre Agence';
   const primaryColor = config.primaryColor || '#0f172a';
-  // Priorité : prop locale (URL via I18nContext) > détection window.location
   const locale = localeProp || detectLocale() || 'fr';
+  const invitationTexts = INVITATION_MESSAGES[locale] || INVITATION_MESSAGES['fr'];
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -262,6 +289,7 @@ export default function QualifiedChatbot({ config = {}, enabled = true, locale: 
   const [isQualified, setIsQualified] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState<LeadData | null>(null);
   const [hasOpened, setHasOpened] = useState(false);
+  const [invitationSent, setInvitationSent] = useState(false);
   const sessionId = React.useRef<string>(
     typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
   );
@@ -293,6 +321,38 @@ export default function QualifiedChatbot({ config = {}, enabled = true, locale: 
     if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
   }, [isOpen]);
 
+  // Fonction pour envoyer les invitations après l'affichage des villas
+  const sendPropertyInvitations = (lastPropertiesLength: number) => {
+    if (invitationSent || lastPropertiesLength === 0) return;
+    
+    setTimeout(() => {
+      const clickInvite: Message = {
+        role: 'assistant',
+        content: invitationTexts.click,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, clickInvite]);
+      
+      setTimeout(() => {
+        const comebackInvite: Message = {
+          role: 'assistant',
+          content: invitationTexts.comeback,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, comebackInvite]);
+        setInvitationSent(true);
+      }, 2000);
+    }, 1000);
+  };
+
+  // Surveiller l'arrivée de nouvelles propriétés dans les messages
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role === 'assistant' && lastMessage.properties && lastMessage.properties.length > 0 && !invitationSent) {
+      sendPropertyInvitations(lastMessage.properties.length);
+    }
+  }, [messages]);
+
   if (!enabled) return null;
 
   const handleOpen = () => setIsOpen(true);
@@ -315,9 +375,7 @@ export default function QualifiedChatbot({ config = {}, enabled = true, locale: 
     try {
       const history = newMessages.map(m => ({ role: m.role, content: m.content }));
       const systemPrompt = buildSystemPrompt(agencyName, locale);
-      console.log('[Chatbot] Sending message, history length:', history.length);
       const { rawContent, properties } = await callChatAPI(history, systemPrompt, config.agencyId, locale);
-      console.log('[Chatbot] Response received, properties:', properties.length);
 
       const lead = extractLeadData(rawContent);
       const cleanedResponse = cleanMessage(rawContent);
@@ -439,7 +497,7 @@ export default function QualifiedChatbot({ config = {}, enabled = true, locale: 
                   </div>
                 </div>
 
-                {/* Cartes propriétés — hors du flex row pour rester visibles */}
+                {/* Cartes propriétés */}
                 {msg.properties && msg.properties.length > 0 && (
                   <div className="ml-9 space-y-2">
                     {msg.properties.map(p => (
