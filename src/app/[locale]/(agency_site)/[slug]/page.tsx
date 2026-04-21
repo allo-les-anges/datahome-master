@@ -2,19 +2,16 @@ import { supabase } from '@/lib/supabase';
 import AgencyPageClient from "@/app/AgencyPageClient";
 import { notFound } from 'next/navigation';
 
-// Forcer le mode dynamique pour bypasser le cache et garantir les données fraîches
-export const dynamic = 'force-dynamic';
+// ISR : régénère la page au plus toutes les 60s, sert depuis le cache entre-temps
+export const revalidate = 60;
 
-export default async function DynamicAgencyPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string, locale: string }> 
+export default async function DynamicAgencyPage({
+  params
+}: {
+  params: Promise<{ slug: string, locale: string }>
 }) {
   const { slug } = await params;
 
-  console.log("🔍 [SSR] Début - slug:", slug);
-
-  // 1. Récupération de l'agence (Table: agency_settings)
   const { data: agencies, error: agencyError } = await supabase
     .from('agency_settings')
     .select('*')
@@ -23,19 +20,30 @@ export default async function DynamicAgencyPage({
   const agency = agencies && agencies.length > 0 ? agencies[0] : null;
 
   if (agencyError || !agency) {
-    console.error("[SSR] ❌ Agence non trouvée:", agencyError);
     return notFound();
   }
 
-  console.log("🔍 [SSR] ✅ Agence trouvée:", agency.agency_name, "ID:", agency.id);
+  // Site désactivé depuis le dashboard admin
+  const subscription = agency.footer_config?.subscription;
+  if (subscription?.website_active === false) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-white font-bold text-2xl shadow-inner"
+          style={{ backgroundColor: agency.primary_color || '#0f172a' }}>
+          {agency.agency_name?.charAt(0)}
+        </div>
+        <h1 className="text-2xl font-serif italic text-slate-900 mb-2">{agency.agency_name}</h1>
+        <p className="text-[11px] uppercase tracking-widest font-bold text-slate-400 mb-8">Site en cours d'activation</p>
+        <div className="w-24 h-[1px] bg-slate-200" />
+      </div>
+    );
+  }
 
-  // 2. Récupération des villas avec TOUS les champs de description
-  console.log("🔍 [SSR] Chargement des propriétés pour agency_id:", agency.id);
-  
-  const { data: villas, error: villasError } = await supabase
+  // Descriptions exclues du listing (chargées à la demande dans la fiche détail)
+  const { data: villas } = await supabase
     .from('villas')
     .select(`
-      id, 
+      id,
       id_externe,
       ref,
       titre,
@@ -62,13 +70,6 @@ export default async function DynamicAgencyPage({
       pool,
       is_excluded,
       agency_id,
-      description,
-      description_fr,
-      description_en,
-      description_es,
-      description_nl,
-      description_pl,
-      description_ar,
       development_name,
       promoteur_name,
       latitude,
@@ -82,35 +83,14 @@ export default async function DynamicAgencyPage({
       xml_source
     `)
     .eq('agency_id', agency.id)
-    .eq('is_excluded', false)
+    .or('is_excluded.eq.false,is_excluded.is.null')
     .order('prix', { ascending: false });
 
-  if (villasError) {
-    console.error("[SSR] ❌ Erreur chargement villas:", villasError);
-  }
-
-  console.log(`📦 [SSR] ${villas?.length || 0} propriétés chargées`);
-  
-  if (villas && villas.length > 0) {
-    const firstVilla = villas[0];
-    console.log("📦 [SSR] Première propriété - ID:", firstVilla.id);
-    console.log("📦 [SSR] Première propriété - titre:", firstVilla.titre);
-    console.log("📦 [SSR] Première propriété - a description_fr:", !!firstVilla.description_fr);
-    console.log("📦 [SSR] Première propriété - description_fr (100 premiers chars):", firstVilla.description_fr?.substring(0, 100));
-    console.log("📦 [SSR] Première propriété - a description_es:", !!firstVilla.description_es);
-    console.log("📦 [SSR] Première propriété - clés disponibles:", Object.keys(firstVilla).filter(k => k.includes('description')));
-  } else {
-    console.log("📦 [SSR] ⚠️ Aucune propriété trouvée");
-  }
-
-  // 3. Rendu du composant Client
-  console.log("🔍 [SSR] Rendu du AgencyPageClient");
-  
   return (
-    <AgencyPageClient 
-      slug={slug} 
-      initialAgency={agency} 
-      initialProperties={villas || []} 
+    <AgencyPageClient
+      slug={slug}
+      initialAgency={agency}
+      initialProperties={villas || []}
     />
   );
 }

@@ -22,11 +22,7 @@ export default async function AgencyLayout({
     .eq('subdomain', slug) 
     .maybeSingle();
 
-  // Si l'agence n'existe pas, on renvoie une 404
-  if (!agency) {
-    console.error(`[LAYOUT CHECK] Agence introuvable dans agency_settings pour : ${slug}`);
-    return notFound();
-  }
+  if (!agency) return notFound();
 
   // 2. Définition des variables CSS dynamiques
   const dynamicStyles = {
@@ -57,11 +53,13 @@ export default async function AgencyLayout({
       {/* FOOTER : Présent partout */}
       <Footer agency={agency} />
 
-      {/* Widgets flottants */}
-      <FloatingWhatsApp 
-        phone={footerConfig?.phone || agency.whatsapp_number} 
-        color="#25D366"
-      />
+      {/* Widget WhatsApp — affiché uniquement si le module est activé */}
+      {footerConfig?.integrations?.whatsapp_enabled && (
+        <FloatingWhatsApp
+          phone={footerConfig.integrations.whatsapp_number || footerConfig?.phone || agency.whatsapp_number}
+          color="#25D366"
+        />
+      )}
       
       <CookieBanner 
         enabled={agency.cookie_consent_enabled} 

@@ -12,6 +12,17 @@ interface SearchCriteria {
   beds?: number;
 }
 
+interface PropertyResult {
+  id: string;
+  title: string;
+  price: number;
+  town: string;
+  beds: number;
+  pool: boolean;
+  image: string;
+  over_budget?: boolean;
+}
+
 function extractSearchCriteria(text: string): SearchCriteria | null {
   const match = text.match(/<search_criteria>([\s\S]*?)<\/search_criteria>/);
   if (!match) return null;
@@ -33,16 +44,35 @@ function buildBaseQuery(xmlUrls: string[]) {
   let q = supabase
     .from('villas')
     .select('id, titre, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, price, town, beds, pool, images')
-    .eq('is_excluded', false)
+    .or('is_excluded.eq.false,is_excluded.is.null')
     .order('price', { ascending: true })
     .limit(3);
   if (xmlUrls.length > 0) q = q.in('xml_source', xmlUrls);
   return q;
 }
 
-const BUDGET_DELTA = 200000;
+function formatResult(v: any, locale: string, budgetMax: number | null): PropertyResult {
+  const titleKey = `titre_${locale}` as keyof typeof v;
+  const title = (v[titleKey] as string) || v.titre_fr || v.titre || 'Propriété';
+  let images: string[] = [];
+  try {
+    images = Array.isArray(v.images) ? v.images : JSON.parse(v.images || '[]');
+  } catch { images = []; }
 
-async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: string) {
+  const price = Number(v.price) || 0;
+  return {
+    id: v.id,
+    title,
+    price,
+    town: v.town || '',
+    beds: parseInt(String(v.beds)) || 0,
+    pool: v.pool === 'Oui' || v.pool === true,
+    image: images[0] || '/hero_network.jpg',
+    ...(budgetMax && price > budgetMax ? { over_budget: true } : {}),
+  };
+}
+
+async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: string): Promise<PropertyResult[]> {
   const { data: agency } = await supabase
     .from('agency_settings')
     .select('footer_config')
@@ -50,60 +80,35 @@ async function searchVillas(criteria: SearchCriteria, agencyId: string, locale: 
     .single();
 
   const xmlUrls: string[] = agency?.footer_config?.xml_urls || [];
-  const budgetTarget = parseBudgetMax(criteria.budget_max);
+  const budgetMax = parseBudgetMax(criteria.budget_max);
 
-  console.log('[Chatbot] Villa query params:', { agencyId, xmlUrlsCount: xmlUrls.length, budgetTarget, town: criteria.town || null, beds: criteria.beds || null });
-
-  // Tentative 1 : tous les critères avec delta ±200k sur le budget
-  let q = buildBaseQuery(xmlUrls);
-  if (budgetTarget) {
-    q = q.gte('price', budgetTarget - BUDGET_DELTA).lte('price', budgetTarget + BUDGET_DELTA);
-  }
-  if (criteria.town) q = q.ilike('town', `%${criteria.town}%`);
-  if (criteria.beds) q = q.filter('beds', 'gte', criteria.beds);
-
-  let { data: villas, error } = await q;
-  console.log('[Chatbot] Attempt 1 (budget ±200k + filters):', villas?.length ?? 0, 'results');
-
-  // Tentative 2 : budget ±200k sans autres filtres
-  if (!error && (!villas || villas.length === 0) && budgetTarget) {
-    let q2 = buildBaseQuery(xmlUrls);
-    q2 = q2.gte('price', budgetTarget - BUDGET_DELTA).lte('price', budgetTarget + BUDGET_DELTA);
-    ({ data: villas, error } = await q2);
-    console.log('[Chatbot] Attempt 2 (budget ±200k only):', villas?.length ?? 0, 'results');
+  // Tentative 1 : price <= budget +20%, + town et beds
+  if (budgetMax) {
+    const ceiling1 = Math.round(budgetMax * 1.2);
+    let q1 = buildBaseQuery(xmlUrls).lte('price', ceiling1);
+    if (criteria.town) q1 = q1.ilike('town', `%${criteria.town}%`);
+    if (criteria.beds) q1 = q1.filter('beds', 'gte', criteria.beds);
+    const { data: v1 } = await q1;
+    if (v1 && v1.length > 0) return v1.map(v => formatResult(v, locale, budgetMax));
   }
 
-  // Tentative 3 : uniquement par ville
-  if (!error && (!villas || villas.length === 0) && criteria.town) {
+  // Tentative 2 : price <= budget +50%, sans town/beds
+  if (budgetMax) {
+    const ceiling2 = Math.round(budgetMax * 1.5);
+    const { data: v2 } = await buildBaseQuery(xmlUrls).lte('price', ceiling2);
+    if (v2 && v2.length > 0) return v2.map(v => formatResult(v, locale, budgetMax));
+  }
+
+  // Tentative 3 : aucun filtre budget — town ou beds seul, les 3 moins chers
+  if (criteria.town || criteria.beds) {
     let q3 = buildBaseQuery(xmlUrls);
-    q3 = q3.ilike('town', `%${criteria.town}%`);
-    ({ data: villas, error } = await q3);
-    console.log('[Chatbot] Attempt 3 (town only):', villas?.length ?? 0, 'results');
+    if (criteria.town) q3 = q3.ilike('town', `%${criteria.town}%`);
+    if (criteria.beds) q3 = q3.filter('beds', 'gte', criteria.beds);
+    const { data: v3 } = await q3;
+    if (v3 && v3.length > 0) return v3.map(v => formatResult(v, locale, budgetMax));
   }
 
-  if (error) {
-    console.error('[Chatbot] Villa search error:', error.message);
-    return [];
-  }
-
-  return (villas || []).map(v => {
-    const titleKey = `titre_${locale}` as keyof typeof v;
-    const title = (v[titleKey] as string) || v.titre_fr || v.titre || 'Propriété';
-    let images: string[] = [];
-    try {
-      images = Array.isArray(v.images) ? v.images : JSON.parse(v.images || '[]');
-    } catch { images = []; }
-
-    return {
-      id: v.id,
-      title,
-      price: Number(v.price) || 0,
-      town: v.town || '',
-      beds: parseInt(String(v.beds)) || 0,
-      pool: v.pool === 'Oui' || v.pool === true,
-      image: images[0] || '/hero_network.jpg',
-    };
-  });
+  return [];
 }
 
 export async function POST(req: NextRequest) {
@@ -128,27 +133,22 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const err = await response.text();
-      console.error('[Chatbot] OpenAI error:', err);
       return NextResponse.json({ error: 'OpenAI API error', detail: err }, { status: 500 });
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
 
-    // Recherche de biens si critères disponibles
-    let properties: any[] = [];
+    let properties: PropertyResult[] = [];
     if (agencyId) {
       const criteria = extractSearchCriteria(content);
       if (criteria && (criteria.budget_max || criteria.town || criteria.beds)) {
-        console.log('[Chatbot] Search criteria found:', criteria);
         properties = await searchVillas(criteria, agencyId, locale || 'fr');
-        console.log('[Chatbot] Properties found:', properties.length);
       }
     }
 
     return NextResponse.json({ content, properties });
   } catch (err: any) {
-    console.error('[Chatbot] Unexpected error:', err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

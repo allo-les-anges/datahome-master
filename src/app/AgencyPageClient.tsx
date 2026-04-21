@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PropertyGrid from '@/components/PropertyGrid';
 import Hero from '@/components/Hero';
 import AdvancedSearch from '@/components/AdvancedSearch';
-import PropertyDetailClient from '@/components/PropertyDetailClient';
-import QualifiedChatbot from '@/components/QualifiedChatbot';
+import dynamic from 'next/dynamic';
+const PropertyDetailClient = dynamic(() => import('@/components/PropertyDetailClient'), { ssr: false });
+const QualifiedChatbot = dynamic(() => import('@/components/QualifiedChatbot'), { ssr: false });
 import { Search, X, ArrowLeft, Loader2 } from 'lucide-react';
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
@@ -52,7 +53,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     region: "",
     beds: 0,
     minPrice: 0,
-    maxPrice: 5000000,
+    maxPrice: 20000000,
     reference: "",
   });
 
@@ -185,7 +186,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     // 1. Vérifier le cache
     const cached = loadFromCache();
     if (cached && cached.length > 0) {
-      console.log("📦 [Cache] Chargé depuis le cache:", cached.length, "biens");
       setAllProperties(cached);
       setFilteredProperties(cached);
       setLoadingProperties(false);
@@ -195,7 +195,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
     // 2. Utiliser les propriétés initiales du SSR
     if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
-      console.log("📦 [SSR] Utilisation des propriétés initiales:", initialProperties.length, "biens");
       const formatted = formatVillaData(initialProperties);
       setAllProperties(formatted);
       setFilteredProperties(formatted);
@@ -205,26 +204,22 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       return;
     }
 
-    // 3. Fallback - Requête avec les colonnes EXACTES qui existent
+    // 3. Fallback client
     try {
       setLoadingProperties(true);
-      
-      // Récupérer les URLs XML autorisées
+
       let allowedXmlUrls: string[] = [];
-      
       if (currentAgency?.footer_config) {
         try {
-          const config = typeof currentAgency.footer_config === 'string' 
-            ? JSON.parse(currentAgency.footer_config) 
+          const config = typeof currentAgency.footer_config === 'string'
+            ? JSON.parse(currentAgency.footer_config)
             : currentAgency.footer_config;
           allowedXmlUrls = config?.xml_urls || [];
-          console.log("📦 [Fallback] XML URLs autorisées:", allowedXmlUrls);
         } catch (e) {
-          console.warn("Erreur parsing footer_config:", e);
+          // ignore
         }
       }
-      
-      // Requête avec UNIQUEMENT les colonnes qui existent dans votre table
+
       let query = supabase
         .from('villas')
         .select(`
@@ -253,13 +248,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           pool,
           is_excluded,
           agency_id,
-          description,
-          description_fr,
-          description_en,
-          description_es,
-          description_nl,
-          description_pl,
-          description_ar,
           images,
           latitude,
           longitude,
@@ -273,44 +261,22 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           distance_golf,
           distance_town
         `)
-        .eq('is_excluded', false);
-      
-      // Filtrer par xml_source si disponible
+        .or('is_excluded.eq.false,is_excluded.is.null');
+
       if (allowedXmlUrls.length > 0) {
         query = query.in('xml_source', allowedXmlUrls);
-        console.log("📦 [Fallback] Filtrage par xml_source");
       }
-      
+
       const { data, error } = await query.limit(500);
-      
-      console.log("📦 [Fallback] Résultat Supabase - data length:", data?.length);
-      
-      if (error) {
-        console.error("❌ Erreur Supabase:", error);
-        throw error;
-      }
-      
-      if (data && data.length > 0) {
-        console.log("📦 [Fallback] Première villa trouvée:", {
-          id: data[0].id,
-          town: data[0].town,
-          price: data[0].price,
-          beds: data[0].beds,
-          hasDescriptionFr: !!data[0].description_fr
-        });
-      } else {
-        console.warn("📦 [Fallback] Aucune villa trouvée dans Supabase !");
-      }
-      
+
+      if (error) throw error;
+
       const formatted = formatVillaData(data || []);
-      console.log("📦 [Fallback] Après formatage:", formatted.length, "biens");
-      
       setAllProperties(formatted);
       setFilteredProperties(formatted);
       saveToCache(formatted);
-      
+
     } catch (err) {
-      console.error("❌ Erreur chargement propriétés:", err);
       if (initialProperties && initialProperties.length > 0) {
         const formatted = formatVillaData(initialProperties);
         setAllProperties(formatted);
@@ -359,6 +325,26 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
   };
 
+  // Ouvre une fiche détail en enrichissant les descriptions à la demande
+  const openPropertyDetail = useCallback(async (property: Villa) => {
+    if (property.description_fr || property.description) {
+      setSelectedProperty(property);
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    try {
+      const { data } = await supabase
+        .from('villas')
+        .select('description,description_fr,description_en,description_es,description_nl,description_pl,description_ar')
+        .eq('id', property.id)
+        .single();
+      setSelectedProperty(data ? { ...property, ...data } : property);
+    } catch {
+      setSelectedProperty(property);
+    }
+    window.scrollTo({ top: 0 });
+  }, []);
+
   // Filtrage
   const handleSearch = useCallback((newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {
     const { sortOrder: newSortOrder, ...filterValues } = newFilters;
@@ -369,8 +355,11 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     
     setFilters(filterValues);
     
-    const min = Number(filterValues.minPrice) || 0;
-    const max = Number(filterValues.maxPrice) || 5000000;
+    const MIN_UNLIMITED = 0;
+    const MAX_UNLIMITED = 20000000;
+    const min = Number(filterValues.minPrice) || MIN_UNLIMITED;
+    const max = Number(filterValues.maxPrice);
+    const isUnlimited = !max || max >= MAX_UNLIMITED;
     const requiredBeds = Number(filterValues.beds) || 0;
     const searchLocation = (filterValues.town || filterValues.region || "").toLowerCase().trim();
     const searchRef = (filterValues.reference || "").toLowerCase().trim();
@@ -378,8 +367,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
     let results = allProperties.filter((p) => {
       const pPrice = Number(p.price) || 0;
-      
-      const matchPrice = pPrice >= min && pPrice <= max;
+
+      const matchPrice = pPrice >= min && (isUnlimited || pPrice <= max);
       const matchType = !searchType || searchType === "all" || 
         (p.type && p.type.toLowerCase().includes(searchType));
       const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
@@ -417,7 +406,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       region: "",
       beds: 0,
       minPrice: 0,
-      maxPrice: 5000000,
+      maxPrice: 20000000,
       reference: "",
     };
     setFilters(defaultFilters);
@@ -447,11 +436,6 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [agency?.footer_config]);
 
   const chatbotEnabled = parsedFooterConfig?.integrations?.chatbot_enabled === true;
-
-  console.log('[Chatbot debug] agency.id:', agency?.id);
-  console.log('[Chatbot debug] footer_config raw:', agency?.footer_config);
-  console.log('[Chatbot debug] parsedFooterConfig:', parsedFooterConfig);
-  console.log('[Chatbot debug] chatbotEnabled:', chatbotEnabled);
 
   // Loader
   if (loadingProperties && allProperties.length === 0) {
@@ -528,11 +512,9 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                         properties={localizedProperties.slice(0, displayLimit)} 
                         favorites={favorites}
                         onToggleFavorite={toggleFavorite}
-                        onPropertyClick={(p: Villa) => { 
-                          console.log("🖱️ [AgencyPageClient] Clic sur propriété:", { id: p.id });
+                        onPropertyClick={(p: Villa) => {
                           const originalProperty = allProperties.find(prop => prop.id === p.id);
-                          setSelectedProperty(originalProperty || p); 
-                          window.scrollTo({ top: 0 }); 
+                          openPropertyDetail(originalProperty || p);
                         }}
                       />
                     ) : (
@@ -581,19 +563,15 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           crmType: 'none',
         }}
         onPropertyClick={async (id) => {
-          // Try local cache first (with loose string comparison for safety)
           let property = allProperties.find(p => String(p.id) === String(id));
           if (!property) {
-            // Fallback: fetch directly from Supabase
             try {
               const { data } = await supabase.from('villas').select('*').eq('id', id).single();
               if (data) {
                 const [formatted] = formatVillaData([data]);
                 property = formatted;
               }
-            } catch (e) {
-              console.error('[Chatbot] Property fetch failed:', e);
-            }
+            } catch { /* ignore */ }
           }
           if (property) {
             setSelectedProperty(property);

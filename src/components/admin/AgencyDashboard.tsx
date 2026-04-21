@@ -8,7 +8,7 @@ import {
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram,
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
   MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, Briefcase, FileText,
-  ChevronDown
+  ChevronDown, Lock, Bot
 } from 'lucide-react';
 
 // ============================================================
@@ -529,6 +529,7 @@ export default function AgencyDashboard() {
   // ---- Helpers ----
 
   const getInt = (field: string) => selectedAgency?.footer_config?.integrations?.[field];
+  const getSub = (field: string) => selectedAgency?.footer_config?.subscription?.[field];
 
   const updateNestedConfig = (section: string, field: string, value: any) => {
     if (!selectedAgency) return;
@@ -1047,201 +1048,250 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
 
-                {/* ⑥ INTÉGRATIONS */}
+                {/* ⑥ MODULES & ABONNEMENT */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 border-l-4 border-l-purple-500 shadow-sm space-y-4">
-                  <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest border-b border-slate-50 pb-4">
-                    <Zap size={18} className="text-purple-600" /> {t.sections.integrations}
-                  </h3>
-
-                  {/* TOGGLE 1 — WhatsApp Business */}
-                  <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                    <div className="flex items-center justify-between p-4 bg-green-50/40">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center">
-                          <MessageCircle size={18} className="text-green-600" />
-                        </div>
-                        <div>
-                          <span className="text-sm font-bold text-slate-900">WhatsApp Business</span>
-                          <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold">Bouton de contact rapide</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <ToggleSwitch
-                          checked={!!getInt('whatsapp_enabled')}
-                          color="peer-checked:bg-green-500"
-                          onChange={(v) => {
-                            updateNestedConfig('integrations', 'whatsapp_enabled', v);
-                            setIntOpen(prev => ({ ...prev, whatsapp: v }));
-                          }}
-                        />
-                        {!!getInt('whatsapp_enabled') && (
-                          <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, whatsapp: !prev.whatsapp }))} className="p-1 hover:bg-slate-100 rounded-lg transition-all">
-                            <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${intOpen.whatsapp ? 'rotate-180' : ''}`} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    {intOpen.whatsapp && !!getInt('whatsapp_enabled') && (
-                      <div className="p-5 border-t border-slate-100 bg-white space-y-3">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Numéro WhatsApp</label>
-                        <div className="relative">
-                          <MessageCircle className="absolute left-4 top-4 text-green-400" size={16} />
-                          <input
-                            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-green-400 outline-none"
-                            placeholder="Ex: 33600000000 (sans +)"
-                            value={getInt('whatsapp_number') || ''}
-                            onChange={(e) => updateNestedConfig('integrations', 'whatsapp_number', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex items-start justify-between border-b border-slate-50 pb-4">
+                    <h3 className="flex items-center gap-3 font-bold text-slate-900 uppercase text-xs tracking-widest">
+                      <Zap size={18} className="text-purple-600" /> Modules & Abonnement
+                    </h3>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-widest text-right leading-relaxed max-w-[200px]">
+                      L'activation sera conditionnée au paiement lors du lancement commercial
+                    </span>
                   </div>
 
-                  {/* TOGGLE 2 — CRM */}
-                  <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                    <div className="flex items-center justify-between p-4 bg-blue-50/30">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
-                          <Zap size={18} className="text-blue-600" />
+                  {/* MODULE: Site Web Public */}
+                  {(() => {
+                    const siteActive = getSub('website_active') !== false;
+                    return (
+                      <div className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${siteActive ? 'border-emerald-200' : 'border-slate-200'}`}>
+                        <div className={`flex items-center justify-between p-4 ${siteActive ? 'bg-emerald-50/40' : 'bg-slate-50/30'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${siteActive ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+                              <Globe size={20} className={siteActive ? 'text-emerald-600' : 'text-slate-400'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">Site Web Public</span>
+                                <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-emerald-100 text-emerald-700">Inclus</span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold mt-0.5">Visibilité publique du site agence</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${siteActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {siteActive ? 'ACTIF' : 'INACTIF'}
+                            </span>
+                            <ToggleSwitch
+                              checked={siteActive}
+                              color="peer-checked:bg-emerald-500"
+                              onChange={(v) => updateNestedConfig('subscription', 'website_active', v)}
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-sm font-bold text-slate-900">CRM (Zoho / HubSpot)</span>
-                          <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold">Synchronisation des leads</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <ToggleSwitch
-                          checked={!!getInt('crm_enabled')}
-                          color="peer-checked:bg-blue-600"
-                          onChange={(v) => {
-                            updateNestedConfig('integrations', 'crm_enabled', v);
-                            setIntOpen(prev => ({ ...prev, crm: v }));
-                          }}
-                        />
-                        {!!getInt('crm_enabled') && (
-                          <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, crm: !prev.crm }))} className="p-1 hover:bg-slate-100 rounded-lg transition-all">
-                            <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${intOpen.crm ? 'rotate-180' : ''}`} />
-                          </button>
+                        {!siteActive && (
+                          <div className="px-5 py-3 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
+                            <AlertCircle size={13} className="text-amber-500 shrink-0" />
+                            <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wide">Le site est inaccessible aux visiteurs tant que ce module est désactivé.</p>
+                          </div>
                         )}
                       </div>
-                    </div>
-                    {intOpen.crm && !!getInt('crm_enabled') && (
-                      <div className="p-5 border-t border-slate-100 bg-white space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Type de CRM</label>
-                          <select
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                            value={getInt('crm_type') || 'zoho'}
-                            onChange={(e) => updateNestedConfig('integrations', 'crm_type', e.target.value)}
-                          >
-                            <option value="zoho">Zoho CRM</option>
-                            <option value="hubspot">HubSpot</option>
-                            <option value="other">Autre</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID / Token API</label>
-                          <div className="relative">
-                            <Zap className="absolute left-4 top-4 text-slate-300" size={16} />
-                            <input
-                              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                              placeholder="Token ou ID CRM"
-                              value={getInt('crm_token') || ''}
-                              onChange={(e) => updateNestedConfig('integrations', 'crm_token', e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Webhook URL</label>
-                          <div className="relative">
-                            <Globe className="absolute left-4 top-4 text-slate-300" size={16} />
-                            <input
-                              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
-                              placeholder="https://crm.example.com/webhook"
-                              value={getInt('crm_webhook') || ''}
-                              onChange={(e) => updateNestedConfig('integrations', 'crm_webhook', e.target.value)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    );
+                  })()}
 
-                  {/* TOGGLE 3 — Chatbot IA */}
-                  <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                    <div className="flex items-center justify-between p-4 bg-purple-50/40">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
-                          <MessageCircle size={18} className="text-purple-600" />
+                  {/* MODULE: WhatsApp Business */}
+                  {(() => {
+                    const enabled = !!getInt('whatsapp_enabled');
+                    return (
+                      <div className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${enabled ? 'border-green-200' : 'border-slate-200'}`}>
+                        <div className={`flex items-center justify-between p-4 ${enabled ? 'bg-green-50/40' : 'bg-slate-50/20'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${enabled ? 'bg-green-100' : 'bg-slate-100'}`}>
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className={enabled ? 'text-green-600' : 'text-slate-400'}>
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">WhatsApp Business</span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-purple-100 text-purple-700">
+                                  <Lock size={8} /> Module
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold mt-0.5">Bouton de contact rapide</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${enabled ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {enabled ? 'ACTIF' : 'INACTIF'}
+                            </span>
+                            <ToggleSwitch
+                              checked={enabled}
+                              color="peer-checked:bg-green-500"
+                              onChange={(v) => {
+                                updateNestedConfig('integrations', 'whatsapp_enabled', v);
+                                setIntOpen(prev => ({ ...prev, whatsapp: v }));
+                              }}
+                            />
+                            {enabled && (
+                              <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, whatsapp: !prev.whatsapp }))} className="p-1 hover:bg-slate-100 rounded-lg transition-all">
+                                <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${intOpen.whatsapp ? 'rotate-180' : ''}`} />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-sm font-bold text-slate-900">Chatbot IA de Qualification</span>
-                          <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold">Qualification automatique des leads</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <ToggleSwitch
-                          checked={!!getInt('chatbot_enabled')}
-                          color="peer-checked:bg-purple-600"
-                          onChange={(v) => {
-                            updateNestedConfig('integrations', 'chatbot_enabled', v);
-                            setIntOpen(prev => ({ ...prev, chatbot: v }));
-                          }}
-                        />
-                        {!!getInt('chatbot_enabled') && (
-                          <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, chatbot: !prev.chatbot }))} className="p-1 hover:bg-slate-100 rounded-lg transition-all">
-                            <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${intOpen.chatbot ? 'rotate-180' : ''}`} />
-                          </button>
+                        {intOpen.whatsapp && enabled && (
+                          <div className="p-5 border-t border-slate-100 bg-white space-y-3">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Numéro WhatsApp</label>
+                            <div className="relative">
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" className="absolute left-4 top-4 text-green-400">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                              </svg>
+                              <input
+                                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-green-400 outline-none"
+                                placeholder="Ex: 33600000000 (sans +)"
+                                value={getInt('whatsapp_number') || ''}
+                                onChange={(e) => updateNestedConfig('integrations', 'whatsapp_number', e.target.value)}
+                              />
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </div>
-                    {intOpen.chatbot && !!getInt('chatbot_enabled') && (
-                      <div className="p-5 border-t border-slate-100 bg-white space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clé API OpenAI</label>
-                          <div className="relative">
-                            <Cpu className="absolute left-4 top-4 text-slate-300" size={16} />
-                            <input
-                              type="password"
-                              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-purple-500 outline-none"
-                              placeholder="sk-..."
-                              value={getInt('openai_key') || ''}
-                              onChange={(e) => updateNestedConfig('integrations', 'openai_key', e.target.value)}
+                    );
+                  })()}
+
+                  {/* MODULE: Chatbot IA */}
+                  {(() => {
+                    const enabled = !!getInt('chatbot_enabled');
+                    return (
+                      <div className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${enabled ? 'border-purple-200' : 'border-slate-200'}`}>
+                        <div className={`flex items-center justify-between p-4 ${enabled ? 'bg-purple-50/40' : 'bg-slate-50/20'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${enabled ? 'bg-purple-100' : 'bg-slate-100'}`}>
+                              <Bot size={20} className={enabled ? 'text-purple-600' : 'text-slate-400'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">Chatbot IA</span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-purple-100 text-purple-700">
+                                  <Lock size={8} /> Module
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold mt-0.5">Qualification automatique des leads</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${enabled ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {enabled ? 'ACTIF' : 'INACTIF'}
+                            </span>
+                            <ToggleSwitch
+                              checked={enabled}
+                              color="peer-checked:bg-purple-600"
+                              onChange={(v) => {
+                                updateNestedConfig('integrations', 'chatbot_enabled', v);
+                                setIntOpen(prev => ({ ...prev, chatbot: v }));
+                              }}
                             />
+                            {enabled && (
+                              <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, chatbot: !prev.chatbot }))} className="p-1 hover:bg-slate-100 rounded-lg transition-all">
+                                <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${intOpen.chatbot ? 'rotate-180' : ''}`} />
+                              </button>
+                            )}
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Destination des leads</label>
-                          <select
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-purple-500 outline-none"
-                            value={getInt('leads_destination') || 'local'}
-                            onChange={(e) => updateNestedConfig('integrations', 'leads_destination', e.target.value)}
-                          >
-                            <option value="local">Table locale (Supabase)</option>
-                            <option value="zoho">Zoho CRM</option>
-                            <option value="hubspot">HubSpot</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Couleur du chatbot</label>
-                          <div className="flex gap-4">
-                            <input
-                              type="color"
-                              value={getInt('chatbot_color') || '#7c3aed'}
-                              onChange={(e) => updateNestedConfig('integrations', 'chatbot_color', e.target.value)}
-                              className="h-12 w-16 rounded-xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm"
-                            />
-                            <input
-                              type="text"
-                              value={getInt('chatbot_color') || '#7c3aed'}
-                              onChange={(e) => updateNestedConfig('integrations', 'chatbot_color', e.target.value)}
-                              className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase focus:ring-2 focus:ring-purple-500 outline-none"
-                            />
+                        {intOpen.chatbot && enabled && (
+                          <div className="p-5 border-t border-slate-100 bg-white space-y-4">
+                            <div className="flex items-center gap-2 px-4 py-3 bg-purple-50 rounded-xl border border-purple-100">
+                              <Cpu size={13} className="text-purple-400 shrink-0" />
+                              <p className="text-[10px] text-purple-700 font-bold uppercase tracking-wide">IA propulsée par la plateforme — inclus dans l'abonnement</p>
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Destination des leads</label>
+                              <select
+                                className="w-full px-4 py-3 rounded-2xl border border-slate-100 text-sm bg-slate-50 focus:ring-2 focus:ring-purple-500 outline-none"
+                                value={getInt('leads_destination') || 'local'}
+                                onChange={(e) => updateNestedConfig('integrations', 'leads_destination', e.target.value)}
+                              >
+                                <option value="local">Table locale (Supabase)</option>
+                                <option value="zoho">Zoho CRM</option>
+                                <option value="hubspot">HubSpot</option>
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Couleur du chatbot</label>
+                              <div className="flex gap-4">
+                                <input
+                                  type="color"
+                                  value={getInt('chatbot_color') || '#7c3aed'}
+                                  onChange={(e) => updateNestedConfig('integrations', 'chatbot_color', e.target.value)}
+                                  className="h-12 w-16 rounded-xl cursor-pointer bg-white border border-slate-200 p-1 shadow-sm"
+                                />
+                                <input
+                                  type="text"
+                                  value={getInt('chatbot_color') || '#7c3aed'}
+                                  onChange={(e) => updateNestedConfig('integrations', 'chatbot_color', e.target.value)}
+                                  className="flex-1 px-5 border border-slate-200 rounded-2xl text-sm font-mono uppercase focus:ring-2 focus:ring-purple-500 outline-none"
+                                />
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
+
+                  {/* MODULE: CRM — activation admin uniquement, credentials configurés par le client */}
+                  {(() => {
+                    const enabled = !!getInt('crm_enabled');
+                    const slug = selectedAgency?.subdomain;
+                    return (
+                      <div className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${enabled ? 'border-blue-200' : 'border-slate-200'}`}>
+                        <div className={`flex items-center justify-between p-4 ${enabled ? 'bg-blue-50/30' : 'bg-slate-50/20'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${enabled ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                              <Zap size={20} className={enabled ? 'text-blue-600' : 'text-slate-400'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">CRM (Zoho / HubSpot)</span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-purple-100 text-purple-700">
+                                  <Lock size={8} /> Module
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold mt-0.5">Synchronisation des leads</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${enabled ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {enabled ? 'ACTIF' : 'INACTIF'}
+                            </span>
+                            <ToggleSwitch
+                              checked={enabled}
+                              color="peer-checked:bg-blue-600"
+                              onChange={(v) => {
+                                updateNestedConfig('integrations', 'crm_enabled', v);
+                                setIntOpen(prev => ({ ...prev, crm: v }));
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {enabled && slug && (
+                          <div className="px-5 py-3 bg-blue-50/50 border-t border-blue-100 flex items-center justify-between gap-3">
+                            <p className="text-[10px] text-blue-700 font-bold uppercase tracking-wide">
+                              Les identifiants CRM sont configurés par l'agence depuis sa page de paramétrage
+                            </p>
+                            <a
+                              href={`/fr/${slug}/parametres/crm`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-blue-700 transition-all"
+                            >
+                              <Globe size={10} /> Ouvrir
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* ⑦ PAGES STATIQUES (ABOUT) */}
