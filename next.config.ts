@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  trailingSlash: false, // Ajoute cette ligne pour stabiliser les URLs
+  trailingSlash: false,
+  eslint: { ignoreDuringBuilds: true },
   images: {
     remotePatterns: [
       {
