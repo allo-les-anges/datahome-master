@@ -458,11 +458,14 @@ const SUPPORTED_LANGUAGES = [
 // ============================================================
 // TOGGLE SWITCH COMPONENT
 // ============================================================
-function ToggleSwitch({ checked, onChange, color = 'bg-slate-900' }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
+function ToggleSwitch({ checked, onChange, checkedColor = '#0f172a' }: { checked: boolean; onChange: (v: boolean) => void; checkedColor?: string }) {
   return (
     <label className="relative inline-flex items-center cursor-pointer">
       <input type="checkbox" className="sr-only peer" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <div className={`w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${color}`}></div>
+      <div
+        className="w-11 h-6 rounded-full transition-colors duration-200 peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"
+        style={{ backgroundColor: checked ? checkedColor : '#e2e8f0' }}
+      />
     </label>
   );
 }
@@ -1085,7 +1088,7 @@ export default function AgencyDashboard() {
                             </span>
                             <ToggleSwitch
                               checked={siteActive}
-                              color="peer-checked:bg-emerald-500"
+                              checkedColor="#10b981"
                               onChange={(v) => updateNestedConfig('subscription', 'website_active', v)}
                             />
                           </div>
@@ -1127,7 +1130,7 @@ export default function AgencyDashboard() {
                             </span>
                             <ToggleSwitch
                               checked={enabled}
-                              color="peer-checked:bg-green-600"
+                              checkedColor="#16a34a"
                               onChange={(v) => {
                                 updateNestedConfig('integrations', 'property_manager_enabled', v);
                               }}
@@ -1181,7 +1184,7 @@ export default function AgencyDashboard() {
                             </span>
                             <ToggleSwitch
                               checked={enabled}
-                              color="peer-checked:bg-green-500"
+                              checkedColor="#22c55e"
                               onChange={(v) => {
                                 updateNestedConfig('integrations', 'whatsapp_enabled', v);
                                 setIntOpen(prev => ({ ...prev, whatsapp: v }));
@@ -1240,7 +1243,7 @@ export default function AgencyDashboard() {
                             </span>
                             <ToggleSwitch
                               checked={enabled}
-                              color="peer-checked:bg-purple-600"
+                              checkedColor="#9333ea"
                               onChange={(v) => {
                                 updateNestedConfig('integrations', 'chatbot_enabled', v);
                                 setIntOpen(prev => ({ ...prev, chatbot: v }));
@@ -1321,7 +1324,7 @@ export default function AgencyDashboard() {
                             </span>
                             <ToggleSwitch
                               checked={enabled}
-                              color="peer-checked:bg-blue-600"
+                              checkedColor="#2563eb"
                               onChange={(v) => {
                                 updateNestedConfig('integrations', 'crm_enabled', v);
                                 setIntOpen(prev => ({ ...prev, crm: v }));
@@ -1377,7 +1380,7 @@ export default function AgencyDashboard() {
                       </div>
                       <ToggleSwitch
                         checked={selectedAgency.cookie_consent_enabled || false}
-                        color="peer-checked:bg-slate-900"
+                        checkedColor="#0f172a"
                         onChange={(v) => setSelectedAgency({...selectedAgency, cookie_consent_enabled: v})}
                       />
                     </div>
