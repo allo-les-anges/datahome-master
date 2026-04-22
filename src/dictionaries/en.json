@@ -20,7 +20,9 @@
     "contact": "Contact",
     "back": "Back to list",
     "search": "Search property",
-    "clientAccess": "Project Tracking"
+    "clientAccess": "Project Tracking",
+    "mySpace": "My space",
+    "myLeads": "My leads"
   },
   "home": {
     "heroTitleLine1": "Luxury Villas &",

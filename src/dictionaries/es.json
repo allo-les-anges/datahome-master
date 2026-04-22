@@ -20,7 +20,9 @@
     "contact": "Contacto",
     "back": "Volver a la lista",
     "search": "Buscar propiedad",
-    "clientAccess": "Seguimiento de Obra"
+    "clientAccess": "Seguimiento de Obra",
+    "mySpace": "Mi espacio",
+    "myLeads": "Mis leads"
   },
   "home": {
     "heroTitleLine1": "Villas de Lujo &",

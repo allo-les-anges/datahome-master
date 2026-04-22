@@ -143,7 +143,7 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
                 href={`/${locale}/${slug}/mon-espace`}
                 className={`${mutedText} text-[9px] uppercase tracking-widest font-bold opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1.5 border border-current rounded-full px-3 py-1`}
               >
-                <HomeIcon size={10} /> Mon espace
+                <HomeIcon size={10} /> {t('nav.mySpace')}
               </Link>
             )}
             {footerData?.integrations?.leads_enabled && slug && (
@@ -151,7 +151,7 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
                 href={`/${locale}/${slug}/mes-leads`}
                 className={`${mutedText} text-[9px] uppercase tracking-widest font-bold opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1.5 border border-current rounded-full px-3 py-1`}
               >
-                <TrendingUp size={10} /> Mes leads
+                <TrendingUp size={10} /> {t('nav.myLeads')}
               </Link>
             )}
             <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50 hover:opacity-100 transition-opacity`}>

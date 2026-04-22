@@ -20,7 +20,9 @@
     "contact": "Contact",
     "back": "Retour à la liste",
     "search": "Rechercher un bien",
-    "clientAccess": "Suivi de Chantier"
+    "clientAccess": "Suivi de Chantier",
+    "mySpace": "Mon espace",
+    "myLeads": "Mes leads"
   },
   "home": {
     "heroTitleLine1": "Villas de Luxe &",

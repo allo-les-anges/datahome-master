@@ -20,7 +20,9 @@
     "contact": "Contact",
     "back": "Terug naar lijst",
     "search": "Eigendom zoeken",
-    "clientAccess": "Projectopvolging"
+    "clientAccess": "Projectopvolging",
+    "mySpace": "Mijn ruimte",
+    "myLeads": "Mijn leads"
   },
   "home": {
     "heroTitleLine1": "Luxe Villa's &",
