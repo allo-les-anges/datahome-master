@@ -12,7 +12,8 @@ import {
   Linkedin,
   ShieldCheck,
   Scale,
-  TrendingUp
+  TrendingUp,
+  Home as HomeIcon
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
@@ -136,13 +137,21 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
             © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
           </p>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            {agency?.property_manager_enabled && slug && (
+              <Link
+                href={`/${locale}/${slug}/mon-espace`}
+                className={`${mutedText} text-[9px] uppercase tracking-widest font-bold opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1.5 border border-current rounded-full px-3 py-1`}
+              >
+                <HomeIcon size={10} /> Mon espace
+              </Link>
+            )}
             {footerData?.integrations?.leads_enabled && slug && (
               <Link
                 href={`/${locale}/${slug}/mes-leads`}
-                className={`${mutedText} text-[9px] uppercase tracking-widest font-bold opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5 border border-current rounded-full px-3 py-1`}
+                className={`${mutedText} text-[9px] uppercase tracking-widest font-bold opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1.5 border border-current rounded-full px-3 py-1`}
               >
-                <TrendingUp size={10} /> Espace agence
+                <TrendingUp size={10} /> Mes leads
               </Link>
             )}
             <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50 hover:opacity-100 transition-opacity`}>
