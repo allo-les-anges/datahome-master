@@ -7,7 +7,8 @@ import {
   Home, LogOut, Plus, Pencil, Trash2, X, Eye, EyeOff,
   Loader2, CheckCircle2, AlertCircle, Upload, Key, Save,
   BedDouble, Bath, Maximize2, MapPin, Image as ImageIcon,
-  ArrowLeft, Building2
+  ArrowLeft, Building2, Euro, Waves, LayoutGrid, AlignLeft,
+  Camera, Info, ChevronDown
 } from 'lucide-react';
 
 import fr from '@/dictionaries/fr.json';
@@ -51,6 +52,30 @@ const emptyForm = {
 };
 
 // ─── Form ──────────────────────────────────────────────────────────────────────
+function SectionHeader({ icon, label, color }: { icon: React.ReactNode; label: string; color: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-5">
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
+        <span style={{ color }}>{icon}</span>
+      </div>
+      <p className="text-xs font-black uppercase tracking-widest text-slate-500">{label}</p>
+      <div className="flex-1 h-px bg-slate-100" />
+    </div>
+  );
+}
+
+function FieldInput({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+        {icon && <span className="opacity-50">{icon}</span>}
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
 function PropertyForm({
   initial, agencyId, slug, brandColor, dict, onSaved, onCancel,
 }: {
@@ -114,113 +139,170 @@ function PropertyForm({
     onSaved();
   };
 
-  const field = (label: string, key: string, type = 'text', placeholder = '') => (
-    <div className="space-y-1.5">
-      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={(form as any)[key] || ''}
-        onChange={e => set(key, e.target.value)}
-        className="w-full px-4 py-3 rounded-2xl border border-slate-100 bg-white text-sm focus:outline-none focus:ring-2 transition-all shadow-sm"
-        style={{ '--tw-ring-color': brandColor } as any}
-      />
-    </div>
-  );
+  const inputCls = "w-full px-4 py-3 rounded-2xl border border-slate-100 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-slate-200 transition-all";
 
   return (
-    <div className="space-y-8">
-      {/* Infos principales */}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-4">Informations</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {field(dict.titleFr, 'titre_fr', 'text', 'Belle villa avec vue mer...')}
-          {field(dict.titleEn, 'titre_en', 'text', 'Stunning sea view villa...')}
-          {field(dict.price, 'price', 'number', '350000')}
-          {field(dict.city, 'town', 'text', 'Marbella')}
-          {field(dict.region, 'region', 'text', 'Andalousie')}
-          {field(dict.beds, 'beds', 'number', '3')}
-          {field(dict.baths, 'baths', 'number', '2')}
-          {field(dict.surface, 'surface_built', 'number', '180')}
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{dict.type}</label>
-            <select value={form.type} onChange={e => set('type', e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-slate-100 bg-white text-sm focus:outline-none shadow-sm">
-              {PROPERTY_TYPES.map(t => <option key={t}>{t}</option>)}
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{dict.pool}</label>
-            <div className="flex gap-3">
-              {[dict.yes, dict.no].map((v, i) => (
-                <button key={v} type="button"
-                  onClick={() => set('pool', i === 0 ? 'Oui' : 'Non')}
-                  className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all shadow-sm ${(i === 0 ? form.pool === 'Oui' : form.pool === 'Non') ? 'text-white shadow-md' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}
-                  style={{ backgroundColor: (i === 0 ? form.pool === 'Oui' : form.pool === 'Non') ? brandColor : undefined }}>
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-10 pb-4">
 
-      {/* Descriptions */}
+      {/* ── Section 1 : Titre & Prix ── */}
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-4">Description</p>
+        <SectionHeader icon={<Info size={15} />} label="Informations" color={brandColor} />
         <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{dict.descFr}</label>
-            <textarea rows={4} value={form.description_fr} onChange={e => set('description_fr', e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-slate-100 bg-white text-sm focus:outline-none resize-none shadow-sm" />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{dict.descEn}</label>
-            <textarea rows={4} value={form.description_en} onChange={e => set('description_en', e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-slate-100 bg-white text-sm focus:outline-none resize-none shadow-sm" />
+          <FieldInput label={dict.titleFr}>
+            <input type="text" placeholder="Belle villa avec vue mer..." value={form.titre_fr}
+              onChange={e => set('titre_fr', e.target.value)} className={inputCls} />
+          </FieldInput>
+          <FieldInput label={dict.titleEn}>
+            <input type="text" placeholder="Stunning sea view villa..." value={form.titre_en}
+              onChange={e => set('titre_en', e.target.value)} className={inputCls} />
+          </FieldInput>
+          <div className="grid grid-cols-2 gap-4">
+            <FieldInput label={dict.price} icon={<Euro size={11} />}>
+              <div className="relative">
+                <input type="number" placeholder="350 000" value={form.price}
+                  onChange={e => set('price', e.target.value)}
+                  className={`${inputCls} pr-8`} />
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-300 font-bold">€</span>
+              </div>
+            </FieldInput>
+            <FieldInput label={dict.type}>
+              <div className="relative">
+                <select value={form.type} onChange={e => set('type', e.target.value)}
+                  className={`${inputCls} appearance-none pr-9 cursor-pointer`}>
+                  {PROPERTY_TYPES.map(t => <option key={t}>{t}</option>)}
+                </select>
+                <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
+              </div>
+            </FieldInput>
           </div>
         </div>
       </div>
 
-      {/* Photos */}
+      {/* ── Section 2 : Localisation ── */}
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-4">{dict.photos}</p>
-        <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-          className="w-full py-5 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center gap-2 text-sm text-slate-400 hover:border-slate-300 hover:bg-slate-50 transition-all">
-          {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-          {uploading ? dict.uploading : dict.addPhotos}
-        </button>
-        <input ref={fileRef} type="file" multiple accept="image/*" className="hidden"
-          onChange={e => e.target.files && handleUpload(e.target.files)} />
+        <SectionHeader icon={<MapPin size={15} />} label="Localisation" color={brandColor} />
+        <div className="grid grid-cols-2 gap-4">
+          <FieldInput label={dict.city}>
+            <input type="text" placeholder="Marbella" value={form.town}
+              onChange={e => set('town', e.target.value)} className={inputCls} />
+          </FieldInput>
+          <FieldInput label={dict.region}>
+            <input type="text" placeholder="Andalousie" value={form.region}
+              onChange={e => set('region', e.target.value)} className={inputCls} />
+          </FieldInput>
+        </div>
+      </div>
+
+      {/* ── Section 3 : Caractéristiques ── */}
+      <div>
+        <SectionHeader icon={<LayoutGrid size={15} />} label="Caractéristiques" color={brandColor} />
+        <div className="grid grid-cols-3 gap-4 mb-5">
+          <FieldInput label={dict.beds} icon={<BedDouble size={11} />}>
+            <input type="number" placeholder="3" value={form.beds}
+              onChange={e => set('beds', e.target.value)} className={inputCls} />
+          </FieldInput>
+          <FieldInput label={dict.baths} icon={<Bath size={11} />}>
+            <input type="number" placeholder="2" value={form.baths}
+              onChange={e => set('baths', e.target.value)} className={inputCls} />
+          </FieldInput>
+          <FieldInput label={dict.surface} icon={<Maximize2 size={11} />}>
+            <div className="relative">
+              <input type="number" placeholder="180" value={form.surface_built}
+                onChange={e => set('surface_built', e.target.value)}
+                className={`${inputCls} pr-9`} />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-bold">m²</span>
+            </div>
+          </FieldInput>
+        </div>
+
+        {/* Piscine toggle */}
+        <FieldInput label={dict.pool} icon={<Waves size={11} />}>
+          <div className="flex gap-3 mt-1">
+            {[
+              { label: dict.yes, val: 'Oui' },
+              { label: dict.no, val: 'Non' },
+            ].map(({ label, val }) => {
+              const active = form.pool === val;
+              return (
+                <button key={val} type="button" onClick={() => set('pool', val)}
+                  className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all border ${active ? 'text-white border-transparent shadow-md' : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'}`}
+                  style={active ? { backgroundColor: brandColor } : {}}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </FieldInput>
+      </div>
+
+      {/* ── Section 4 : Description ── */}
+      <div>
+        <SectionHeader icon={<AlignLeft size={15} />} label="Description" color={brandColor} />
+        <div className="space-y-4">
+          <FieldInput label={dict.descFr}>
+            <textarea rows={4} value={form.description_fr}
+              onChange={e => set('description_fr', e.target.value)}
+              className={`${inputCls} resize-none leading-relaxed`} />
+          </FieldInput>
+          <FieldInput label={dict.descEn}>
+            <textarea rows={4} value={form.description_en}
+              onChange={e => set('description_en', e.target.value)}
+              className={`${inputCls} resize-none leading-relaxed`} />
+          </FieldInput>
+        </div>
+      </div>
+
+      {/* ── Section 5 : Photos ── */}
+      <div>
+        <SectionHeader icon={<Camera size={15} />} label={dict.photos} color={brandColor} />
+
         {images.length > 0 && (
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-3">
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mb-3">
             {images.map((url, i) => (
-              <div key={i} className="relative group aspect-square rounded-xl overflow-hidden bg-slate-100 shadow-sm">
-                <img src={url} className="w-full h-full object-cover" alt="" />
+              <div key={i} className={`relative group rounded-2xl overflow-hidden bg-slate-100 shadow-sm ${i === 0 ? 'col-span-2 row-span-2 aspect-[4/3]' : 'aspect-square'}`}>
+                <img src={url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
+                {i === 0 && (
+                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-black/50 text-white">Cover</span>
+                )}
                 <button type="button" onClick={() => setImages(imgs => imgs.filter((_, j) => j !== i))}
-                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                  <X size={16} className="text-white" />
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                  <X size={11} className="text-white" />
                 </button>
               </div>
             ))}
           </div>
         )}
+
+        <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+          className="w-full py-7 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-slate-300 hover:bg-slate-50 transition-all group">
+          {uploading
+            ? <Loader2 size={20} className="animate-spin" />
+            : <div className="w-10 h-10 rounded-2xl bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition-all">
+                <Upload size={18} className="text-slate-400" />
+              </div>
+          }
+          <span className="text-sm font-semibold">{uploading ? dict.uploading : dict.addPhotos}</span>
+          {!uploading && <span className="text-xs text-slate-300">JPG, PNG, WEBP</span>}
+        </button>
+        <input ref={fileRef} type="file" multiple accept="image/*" className="hidden"
+          onChange={e => e.target.files && handleUpload(e.target.files)} />
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
+        <div className="flex items-center gap-2 p-3.5 bg-red-50 rounded-2xl border border-red-100">
           <AlertCircle size={14} className="text-red-500 shrink-0" />
-          <p className="text-xs text-red-600 font-medium">{error}</p>
+          <p className="text-xs text-red-600 font-semibold">{error}</p>
         </div>
       )}
 
-      <div className="flex gap-3 pt-2">
+      {/* ── Actions ── */}
+      <div className="sticky bottom-0 -mx-8 px-8 py-5 bg-white/95 backdrop-blur-sm border-t border-slate-100 flex gap-3 rounded-b-[2.5rem]">
         <button type="button" onClick={onCancel}
-          className="flex-1 py-3.5 rounded-2xl border border-slate-200 text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all">
+          className="px-6 py-3.5 rounded-2xl border border-slate-200 text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all whitespace-nowrap">
           {dict.cancel}
         </button>
         <button type="button" onClick={handleSave} disabled={saving}
-          className="flex-1 py-3.5 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-lg"
+          className="flex-1 py-3.5 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-lg active:scale-[0.98]"
           style={{ backgroundColor: brandColor }}>
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           {initial?.id ? dict.save : dict.addProperty}
