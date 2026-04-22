@@ -139,7 +139,7 @@ function PropertyForm({
     onSaved();
   };
 
-  const inputCls = "w-full px-4 py-3 rounded-2xl border border-slate-100 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:bg-white focus:border-slate-200 transition-all";
+  const inputCls = "w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-slate-300 focus:ring-0 transition-all shadow-sm";
 
   return (
     <div className="space-y-10 pb-4">
@@ -225,7 +225,7 @@ function PropertyForm({
               const active = form.pool === val;
               return (
                 <button key={val} type="button" onClick={() => set('pool', val)}
-                  className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all border ${active ? 'text-white border-transparent shadow-md' : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'}`}
+                  className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all border ${active ? 'text-white border-transparent shadow-md' : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50 shadow-sm'}`}
                   style={active ? { backgroundColor: brandColor } : {}}>
                   {label}
                 </button>
@@ -296,7 +296,7 @@ function PropertyForm({
       )}
 
       {/* ── Actions ── */}
-      <div className="sticky bottom-0 -mx-8 px-8 py-5 bg-white/95 backdrop-blur-sm border-t border-slate-100 flex gap-3 rounded-b-[2.5rem]">
+      <div className="sticky bottom-0 -mx-8 px-8 py-5 bg-white border-t border-slate-150 flex gap-3 rounded-b-[2.5rem]">
         <button type="button" onClick={onCancel}
           className="px-6 py-3.5 rounded-2xl border border-slate-200 text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all whitespace-nowrap">
           {dict.cancel}
@@ -519,7 +519,7 @@ export default function MonEspacePage() {
 
   // ── Dashboard ──
   return (
-    <div className="min-h-screen bg-slate-50" dir={isRtl ? 'rtl' : 'ltr'} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+    <div className="min-h-screen bg-slate-100/60" dir={isRtl ? 'rtl' : 'ltr'} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
 
       {/* Header */}
       <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
@@ -647,7 +647,7 @@ export default function MonEspacePage() {
               <h2 className="text-2xl font-bold text-slate-900">{editing?.id ? dict.editProperty : dict.newProperty}</h2>
               <p className="text-sm text-slate-400 mt-1">{dict.fillInfo}</p>
             </div>
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-md p-8">
               <PropertyForm
                 initial={editing}
                 agencyId={session.agencyId}
