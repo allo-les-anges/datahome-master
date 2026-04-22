@@ -9,6 +9,15 @@ import {
   Mail, Phone, MapPin, Clock, User
 } from 'lucide-react';
 
+import fr from '@/dictionaries/fr.json';
+import en from '@/dictionaries/en.json';
+import es from '@/dictionaries/es.json';
+import nl from '@/dictionaries/nl.json';
+import pl from '@/dictionaries/pl.json';
+import ar from '@/dictionaries/ar.json';
+
+const dicts: Record<string, any> = { fr, en, es, nl, pl, ar };
+
 const SESSION_KEY = 'leads_crm_session';
 const SESSION_DURATION = 8 * 60 * 60 * 1000;
 
@@ -25,19 +34,12 @@ type Lead = {
   project_type: string;
   status: string;
   created_at: string;
-  source: string;
 };
 
 const STATUS_CYCLE: Record<string, string> = {
   new: 'contacted',
   contacted: 'converted',
   converted: 'new',
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  new: 'Nouveau',
-  contacted: 'Contacté',
-  converted: 'Converti',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -49,6 +51,9 @@ const STATUS_COLORS: Record<string, string> = {
 export default function MesLeadsPage() {
   const params = useParams();
   const slug = params?.slug as string;
+  const locale = (params?.locale as string) || 'fr';
+  const dict = (dicts[locale] || dicts.fr).leadsCrm;
+  const isRtl = locale === 'ar';
 
   const [agency, setAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -74,6 +79,8 @@ export default function MesLeadsPage() {
 
   const brandColor = agency?.primary_color || '#ea580c';
   const fontFamily = agency?.font_family || 'Montserrat';
+
+  const dateLocale = locale === 'ar' ? 'ar-MA' : locale === 'nl' ? 'nl-NL' : locale === 'pl' ? 'pl-PL' : locale === 'es' ? 'es-ES' : locale === 'en' ? 'en-GB' : 'fr-FR';
 
   useEffect(() => {
     if (!slug) return;
@@ -125,8 +132,8 @@ export default function MesLeadsPage() {
   const handleAuth = async () => {
     setAuthError('');
     if (mode === 'create') {
-      if (password.length < 8) { setAuthError('Minimum 8 caractères.'); return; }
-      if (password !== confirm) { setAuthError('Les mots de passe ne correspondent pas.'); return; }
+      if (password.length < 8) { setAuthError('Min. 8 ' + (isRtl ? 'أحرف' : 'characters')); return; }
+      if (password !== confirm) { setAuthError(isRtl ? 'كلمات المرور غير متطابقة' : 'Passwords do not match'); return; }
     }
     setAuthLoading(true);
     const res = await fetch('/api/leads-crm/auth', {
@@ -150,8 +157,8 @@ export default function MesLeadsPage() {
 
   const handleChangePw = async () => {
     setCpMsg(null);
-    if (cpNew.length < 8) { setCpMsg({ type: 'err', text: 'Minimum 8 caractères.' }); return; }
-    if (cpNew !== cpConfirm) { setCpMsg({ type: 'err', text: 'Les mots de passe ne correspondent pas.' }); return; }
+    if (cpNew.length < 8) { setCpMsg({ type: 'err', text: 'Min. 8 chars' }); return; }
+    if (cpNew !== cpConfirm) { setCpMsg({ type: 'err', text: isRtl ? 'كلمات المرور غير متطابقة' : 'Passwords do not match' }); return; }
     setCpLoading(true);
     const res = await fetch('/api/leads-crm/auth', {
       method: 'POST',
@@ -161,7 +168,7 @@ export default function MesLeadsPage() {
     const data = await res.json();
     setCpLoading(false);
     if (!data.success) { setCpMsg({ type: 'err', text: data.error || 'Erreur' }); return; }
-    setCpMsg({ type: 'ok', text: 'Mot de passe mis à jour !' });
+    setCpMsg({ type: 'ok', text: dict.pwUpdated });
     setCpCurrent(''); setCpNew(''); setCpConfirm('');
   };
 
@@ -182,7 +189,7 @@ export default function MesLeadsPage() {
 
   const formatDate = (iso: string) => {
     if (!iso) return '—';
-    return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(iso).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   if (loading) {
@@ -196,7 +203,7 @@ export default function MesLeadsPage() {
   if (!agency) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-slate-400 font-medium">Agence introuvable.</p>
+        <p className="text-slate-400 font-medium">Agency not found.</p>
       </div>
     );
   }
@@ -205,15 +212,14 @@ export default function MesLeadsPage() {
 
   if (!leadsEnabled) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6" style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6" dir={isRtl ? 'rtl' : 'ltr'} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
         <div className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white"
-            style={{ backgroundColor: brandColor }}>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white" style={{ backgroundColor: brandColor }}>
             <TrendingUp size={28} />
           </div>
           <h1 className="text-xl font-bold text-slate-900 mb-2">{agency.agency_name}</h1>
-          <p className="text-sm text-slate-500">Module Mini CRM non activé.</p>
-          <p className="text-xs text-slate-400 mt-1">Contactez votre administrateur pour l'activer.</p>
+          <p className="text-sm text-slate-500">{dict.moduleOff}</p>
+          <p className="text-xs text-slate-400 mt-1">{dict.moduleOffContact}</p>
         </div>
       </div>
     );
@@ -221,7 +227,7 @@ export default function MesLeadsPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6" style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6" dir={isRtl ? 'rtl' : 'ltr'} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
             {agency.logo_url
@@ -231,7 +237,7 @@ export default function MesLeadsPage() {
                 </div>
             }
             <h1 className="text-2xl font-bold text-slate-900">
-              {mode === 'create' ? 'Créez votre mot de passe CRM' : 'Mini CRM Leads'}
+              {mode === 'create' ? dict.createTitle : dict.title}
             </h1>
             <p className="text-sm text-slate-400 mt-1">{agency.agency_name}</p>
           </div>
@@ -239,7 +245,7 @@ export default function MesLeadsPage() {
           <div className="bg-white rounded-[2.5rem] shadow-xl p-8 space-y-5">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                {mode === 'create' ? 'Créer un mot de passe (min. 8 caractères)' : 'Mot de passe'}
+                {mode === 'create' ? dict.createPwLabel : dict.pwLabel}
               </label>
               <div className="relative">
                 <input
@@ -258,7 +264,7 @@ export default function MesLeadsPage() {
 
             {mode === 'create' && (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Confirmer le mot de passe</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{dict.confirmLabel}</label>
                 <input
                   type="password"
                   value={confirm}
@@ -277,11 +283,11 @@ export default function MesLeadsPage() {
               </div>
             )}
 
-            <button onClick={handleAuth} disabled={authLoading}
+            <button type="button" onClick={handleAuth} disabled={authLoading}
               className="w-full py-4 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:opacity-90"
               style={{ backgroundColor: brandColor }}>
               {authLoading ? <Loader2 size={16} className="animate-spin" /> : <Key size={16} />}
-              {mode === 'create' ? 'Créer mon accès CRM' : 'Se connecter'}
+              {mode === 'create' ? dict.createBtn : dict.loginBtn}
             </button>
           </div>
         </div>
@@ -290,7 +296,7 @@ export default function MesLeadsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50" style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+    <div className="min-h-screen bg-slate-50" dir={isRtl ? 'rtl' : 'ltr'} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
 
       {/* Header */}
       <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
@@ -303,17 +309,17 @@ export default function MesLeadsPage() {
           }
           <div>
             <p className="text-sm font-bold text-slate-900">{agency.agency_name}</p>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Mini CRM</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{dict.badge}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setShowChangePw(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all">
-            <Key size={13} /> Mot de passe
+            <Key size={13} /> {dict.changePwBtn}
           </button>
           <button type="button" onClick={handleLogout}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all">
-            <LogOut size={13} /> Déconnexion
+            <LogOut size={13} /> {dict.logout}
           </button>
         </div>
       </div>
@@ -323,10 +329,10 @@ export default function MesLeadsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total leads', value: stats.total, color: 'slate' },
-            { label: 'Nouveaux', value: stats.new, color: 'blue' },
-            { label: 'Contactés', value: stats.contacted, color: 'amber' },
-            { label: 'Convertis', value: stats.converted, color: 'green' },
+            { label: dict.totalLeads, value: stats.total, color: 'slate' },
+            { label: dict.new,        value: stats.new,       color: 'blue' },
+            { label: dict.contacted,  value: stats.contacted, color: 'amber' },
+            { label: dict.converted,  value: stats.converted, color: 'green' },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
@@ -338,21 +344,21 @@ export default function MesLeadsPage() {
         {/* Filtres */}
         <div className="flex items-center gap-3 flex-wrap">
           {[
-            { key: 'all', label: 'Tous' },
-            { key: 'new', label: 'Nouveaux' },
-            { key: 'contacted', label: 'Contactés' },
-            { key: 'converted', label: 'Convertis' },
+            { key: 'all',       label: dict.all },
+            { key: 'new',       label: dict.new },
+            { key: 'contacted', label: dict.contacted },
+            { key: 'converted', label: dict.converted },
           ].map(({ key, label }) => (
-            <button key={key}
+            <button type="button" key={key}
               onClick={() => setFilter(key)}
               className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${filter === key ? 'text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
               style={filter === key ? { backgroundColor: brandColor } : {}}>
               {label}
             </button>
           ))}
-          <button onClick={() => loadLeads(session.agencyId)} disabled={leadsLoading}
+          <button type="button" onClick={() => loadLeads(session.agencyId)} disabled={leadsLoading}
             className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all">
-            <RefreshCw size={13} className={leadsLoading ? 'animate-spin' : ''} /> Actualiser
+            <RefreshCw size={13} className={leadsLoading ? 'animate-spin' : ''} /> {dict.refresh}
           </button>
         </div>
 
@@ -364,8 +370,8 @@ export default function MesLeadsPage() {
             <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <TrendingUp size={28} className="text-slate-300" />
             </div>
-            <p className="text-slate-400 font-medium">Aucun lead{filter !== 'all' ? ' pour ce filtre' : ''}</p>
-            <p className="text-xs text-slate-300 mt-1">Les leads apparaissent ici dès qu'un visiteur remplit le formulaire chatbot.</p>
+            <p className="text-slate-400 font-medium">{dict.noLeads}{filter !== 'all' ? ` ${dict.noLeadsFilter}` : ''}</p>
+            <p className="text-xs text-slate-300 mt-1">{dict.noLeadsHint}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -379,11 +385,9 @@ export default function MesLeadsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-bold text-slate-900 text-sm">
-                          {lead.full_name || '(Sans nom)'}
-                        </p>
+                        <p className="font-bold text-slate-900 text-sm">{lead.full_name || '—'}</p>
                         <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                          Chatbot IA
+                          {dict.source}
                         </span>
                       </div>
                       <div className="flex items-center gap-4 mt-1.5 flex-wrap">
@@ -400,7 +404,7 @@ export default function MesLeadsPage() {
                       </div>
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         {lead.budget && (
-                          <span className="text-[10px] text-slate-400 font-medium">Budget : <strong className="text-slate-700">{lead.budget}</strong></span>
+                          <span className="text-[10px] text-slate-400 font-medium">{dict.budget} : <strong className="text-slate-700">{lead.budget}</strong></span>
                         )}
                         {lead.location && (
                           <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
@@ -419,10 +423,10 @@ export default function MesLeadsPage() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    <button
+                    <button type="button"
                       onClick={() => cycleStatus(lead)}
                       className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:opacity-80 cursor-pointer ${STATUS_COLORS[lead.status] || 'bg-slate-100 text-slate-500'}`}>
-                      {STATUS_LABEL[lead.status] || lead.status}
+                      {(dict as any)[lead.status] || lead.status}
                     </button>
                     <p className="text-[10px] text-slate-300 font-medium">{formatDate(lead.created_at)}</p>
                   </div>
@@ -438,13 +442,17 @@ export default function MesLeadsPage() {
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-6">
           <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold text-slate-900">Changer le mot de passe</h3>
-              <button onClick={() => { setShowChangePw(false); setCpMsg(null); }} className="p-1 hover:bg-slate-100 rounded-lg">
+              <h3 className="font-bold text-slate-900">{dict.changePwTitle}</h3>
+              <button type="button" onClick={() => { setShowChangePw(false); setCpMsg(null); }} className="p-1 hover:bg-slate-100 rounded-lg">
                 <X size={16} className="text-slate-400" />
               </button>
             </div>
             <div className="space-y-4">
-              {([['Mot de passe actuel', cpCurrent, setCpCurrent], ['Nouveau mot de passe', cpNew, setCpNew], ['Confirmer le nouveau', cpConfirm, setCpConfirm]] as [string, string, (v: string) => void][]).map(([label, val, setter]) => (
+              {([
+                [dict.currentPw, cpCurrent, setCpCurrent],
+                [dict.newPw,     cpNew,     setCpNew],
+                [dict.confirmNewPw, cpConfirm, setCpConfirm],
+              ] as [string, string, (v: string) => void][]).map(([label, val, setter]) => (
                 <div key={label} className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</label>
                   <input type="password" value={val} onChange={e => setter(e.target.value)}
@@ -457,11 +465,11 @@ export default function MesLeadsPage() {
                   <p className={`text-xs font-medium ${cpMsg.type === 'ok' ? 'text-green-700' : 'text-red-600'}`}>{cpMsg.text}</p>
                 </div>
               )}
-              <button onClick={handleChangePw} disabled={cpLoading}
+              <button type="button" onClick={handleChangePw} disabled={cpLoading}
                 className="w-full py-3.5 rounded-2xl text-sm font-black text-white flex items-center justify-center gap-2 mt-2"
                 style={{ backgroundColor: brandColor }}>
                 {cpLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                Mettre à jour
+                {dict.updateBtn}
               </button>
             </div>
           </div>
