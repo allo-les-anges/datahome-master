@@ -307,11 +307,11 @@ export default function MesLeadsPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowChangePw(true)}
+          <button type="button" onClick={() => setShowChangePw(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all">
             <Key size={13} /> Mot de passe
           </button>
-          <button onClick={handleLogout}
+          <button type="button" onClick={handleLogout}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all">
             <LogOut size={13} /> Déconnexion
           </button>
