@@ -78,9 +78,11 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
     router.push(newPath);
   };
 
+  if (pathname?.endsWith('/mes-leads') || pathname?.endsWith('/mon-espace')) return null;
+
   return (
     <>
-      <nav 
+      <nav
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 flex items-center ${
           isScrolled ? 'h-24 border-b border-black/5 shadow-lg bg-white/90' : 'h-32 border-none bg-transparent'
         }`}
