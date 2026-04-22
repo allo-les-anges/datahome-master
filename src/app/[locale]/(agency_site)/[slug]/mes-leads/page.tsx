@@ -16,8 +16,7 @@ type CrmSession = { agencyId: string; slug: string; exp: number };
 
 type Lead = {
   id: number;
-  first_name: string;
-  last_name: string;
+  full_name: string;
   email: string;
   phone: string;
   budget: string;
@@ -376,12 +375,12 @@ export default function MesLeadsPage() {
                   <div className="flex items-start gap-4 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-sm"
                       style={{ backgroundColor: brandColor }}>
-                      {lead.first_name?.charAt(0) || <User size={16} />}
+                      {lead.full_name?.charAt(0) || <User size={16} />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-bold text-slate-900 text-sm">
-                          {[lead.first_name, lead.last_name].filter(Boolean).join(' ') || '(Sans nom)'}
+                          {lead.full_name || '(Sans nom)'}
                         </p>
                         <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
                           Chatbot IA
