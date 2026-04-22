@@ -1,10 +1,7 @@
 /**
  * translate-arabic.mjs
  * Traduit description_ar depuis description_fr via OpenAI gpt-4o-mini
- * Version corrigée : traduit TOUTES les villas (ignore le contenu actuel de description_ar)
- *
- * Prérequis :
- *   npm install @supabase/supabase-js openai
+ * Version reprise : ignore les villas déjà traduites (description_ar non nulle)
  *
  * Usage :
  *   SUPABASE_URL=... SUPABASE_KEY=... OPENAI_API_KEY=... node translate-arabic.mjs
@@ -13,21 +10,19 @@
  *   DRY_RUN=true   → affiche ce qui serait fait sans écrire en base
  *   BATCH_SIZE=5   → nombre de traductions en parallèle (défaut: 5)
  *   LIMIT=10       → limiter à N villas pour tester (défaut: toutes)
+ *   FORCE=true     → retraduit TOUTES les villas même déjà traduites
  */
 
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
-// ─── Configuration ────────────────────────────────────────────────────────────
-
-const SUPABASE_URL     = process.env.SUPABASE_URL;
-const SUPABASE_KEY     = process.env.SUPABASE_KEY;     // service role key
-const OPENAI_API_KEY   = process.env.OPENAI_API_KEY;
-const DRY_RUN          = process.env.DRY_RUN === 'true';
-const BATCH_SIZE       = parseInt(process.env.BATCH_SIZE || '5');
-const LIMIT            = process.env.LIMIT ? parseInt(process.env.LIMIT) : null;
-
-// ─── Validation ───────────────────────────────────────────────────────────────
+const SUPABASE_URL   = process.env.SUPABASE_URL;
+const SUPABASE_KEY   = process.env.SUPABASE_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const DRY_RUN        = process.env.DRY_RUN === 'true';
+const FORCE          = process.env.FORCE === 'true';
+const BATCH_SIZE     = parseInt(process.env.BATCH_SIZE || '5');
+const LIMIT          = process.env.LIMIT ? parseInt(process.env.LIMIT) : null;
 
 if (!SUPABASE_URL || !SUPABASE_KEY || !OPENAI_API_KEY) {
   console.error(`
@@ -43,16 +38,13 @@ Options supplémentaires :
   DRY_RUN=true      → test sans écriture
   LIMIT=10          → traiter seulement 10 villas
   BATCH_SIZE=5      → parallélisme (défaut: 5)
+  FORCE=true        → retraduit TOUTES les villas même déjà traduites
 `);
   process.exit(1);
 }
 
-// ─── Clients ──────────────────────────────────────────────────────────────────
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const openai   = new OpenAI({ apiKey: OPENAI_API_KEY });
-
-// ─── Traduction ───────────────────────────────────────────────────────────────
 
 async function translateToArabic(frenchText, ref) {
   const response = await openai.chat.completions.create({
@@ -80,27 +72,29 @@ Règles strictes :
   return response.choices[0].message.content.trim();
 }
 
-// ─── Logique principale ───────────────────────────────────────────────────────
-
 async function main() {
   console.log(`
 ╔══════════════════════════════════════════════╗
 ║     Traduction arabe — Villas Supabase       ║
-║     Version complète (traduction forcée)     ║
+║     Version reprise (skip déjà traduites)    ║
 ╚══════════════════════════════════════════════╝
   Mode   : ${DRY_RUN ? '🔍 DRY RUN (aucune écriture)' : '✍️  ÉCRITURE en base'}
+  Filtre : ${FORCE ? '⚠️  FORCE — retraduit tout' : '✅ Skip villas déjà traduites'}
   Batch  : ${BATCH_SIZE} traductions en parallèle
-  ${LIMIT ? `Limite  : ${LIMIT} villas` : 'Limite  : TOUTES les villas (ignore le contenu actuel de description_ar)'}
+  ${LIMIT ? `Limite  : ${LIMIT} villas` : 'Limite  : toutes les villas restantes'}
 `);
 
-  // 1. Récupérer TOUTES les villas avec description_fr non-nulle
-  //    (ignore complètement le contenu actuel de description_ar)
   let query = supabase
     .from('villas')
     .select('id, ref, description_fr')
     .not('description_fr', 'is', null)
     .neq('description_fr', '')
     .order('ref', { ascending: true });
+
+  // ✅ NOUVEAU : skip les villas déjà traduites (sauf si FORCE=true)
+  if (!FORCE) {
+    query = query.or('description_ar.is.null,description_ar.eq.');
+  }
 
   if (LIMIT) {
     query = query.limit(LIMIT);
@@ -114,13 +108,12 @@ async function main() {
   }
 
   if (!villas || villas.length === 0) {
-    console.log('✅ Aucune villa avec description_fr trouvée. Rien à faire.');
+    console.log('✅ Toutes les villas sont déjà traduites. Rien à faire.');
     process.exit(0);
   }
 
   console.log(`📋 ${villas.length} villa(s) à traduire\n`);
 
-  // 2. Traitement par batches
   let success = 0;
   let failed  = 0;
   const errors = [];
@@ -134,7 +127,6 @@ async function main() {
       `⏳ Batch ${batchNum}/${totalBatches} (villas ${i + 1}–${Math.min(i + BATCH_SIZE, villas.length)})... `
     );
 
-    // Traiter le batch en parallèle
     const results = await Promise.allSettled(
       batch.map(async (villa) => {
         const arabic = await translateToArabic(villa.description_fr, villa.ref);
@@ -156,14 +148,13 @@ async function main() {
       })
     );
 
-    // Comptabiliser les résultats
     let batchSuccess = 0;
     let batchFailed  = 0;
 
     for (let j = 0; j < results.length; j++) {
       const result = results[j];
       const villa = batch[j];
-      
+
       if (result.status === 'fulfilled') {
         batchSuccess++;
         success++;
@@ -175,23 +166,18 @@ async function main() {
       } else {
         batchFailed++;
         failed++;
-        errors.push({ 
-          ref: villa.ref, 
-          error: result.reason?.message || 'Erreur inconnue' 
-        });
+        errors.push({ ref: villa.ref, error: result.reason?.message || 'Erreur inconnue' });
         console.log(`\n   [${villa.ref}] ❌ Erreur: ${result.reason?.message || 'Erreur inconnue'}`);
       }
     }
 
     console.log(` ✅ ${batchSuccess} ok${batchFailed > 0 ? ` | ❌ ${batchFailed} erreurs` : ''}`);
 
-    // Pause entre les batches pour éviter le rate limit OpenAI
     if (i + BATCH_SIZE < villas.length) {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
-  // 3. Rapport final
   console.log(`
 ╔══════════════════════════════════════════════╗
 ║                   Résultat                   ║
