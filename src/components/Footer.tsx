@@ -24,8 +24,8 @@ interface FooterProps {
 export default function Footer({ isLight = true, agency }: FooterProps) {
   const { t } = useTranslation();
   const params = useParams();
-  const slug = params?.slug || "";
-  const locale = params?.locale || "en";
+  const slug = (params?.slug as string) || agency?.subdomain || "";
+  const locale = (params?.locale as string) || "fr";
   
   const bgColor = isLight ? "bg-slate-50 border-t border-slate-200" : "bg-[#020617] border-t border-white/5";
   const textColor = isLight ? "text-slate-900" : "text-white";
@@ -140,9 +140,9 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
             {footerData?.integrations?.leads_enabled && slug && (
               <Link
                 href={`/${locale}/${slug}/mes-leads`}
-                className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5`}
+                className={`${mutedText} text-[9px] uppercase tracking-widest font-bold opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1.5 border border-current rounded-full px-3 py-1`}
               >
-                <TrendingUp size={10} /> CRM
+                <TrendingUp size={10} /> Espace agence
               </Link>
             )}
             <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50 hover:opacity-100 transition-opacity`}>
