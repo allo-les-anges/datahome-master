@@ -73,7 +73,6 @@ serve(async (req) => {
       body: JSON.stringify({
         agencyId: resolvedAgencyId,
         xmlUrl: xmlUrl,
-        agentId: body.agent_id
       }),
     }).catch(err => console.error('Erreur lancement synchro:', err));
 
