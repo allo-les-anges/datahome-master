@@ -3,15 +3,16 @@
 import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { 
-  Mail, 
-  Phone, 
-  Instagram, 
-  Facebook, 
-  MapPin, 
-  Linkedin, 
-  ShieldCheck, 
-  Scale 
+import {
+  Mail,
+  Phone,
+  Instagram,
+  Facebook,
+  MapPin,
+  Linkedin,
+  ShieldCheck,
+  Scale,
+  TrendingUp
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
@@ -134,18 +135,28 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
           <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
             © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
           </p>
-          
-          <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50 hover:opacity-100 transition-opacity`}>
-            Powered by{" "}
-            <a 
-              href="https://datahome.fr" 
-              className="hover:text-primary transition-colors underline decoration-dotted underline-offset-4"
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              Datahome
-            </a>
-          </p>
+
+          <div className="flex items-center gap-6">
+            {footerData?.integrations?.leads_enabled && slug && (
+              <Link
+                href={`/${locale}/${slug}/mes-leads`}
+                className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5`}
+              >
+                <TrendingUp size={10} /> CRM
+              </Link>
+            )}
+            <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em] opacity-50 hover:opacity-100 transition-opacity`}>
+              Powered by{" "}
+              <a
+                href="https://datahome.fr"
+                className="hover:text-primary transition-colors underline decoration-dotted underline-offset-4"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Datahome
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
