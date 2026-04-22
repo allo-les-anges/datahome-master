@@ -8,7 +8,7 @@ import {
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram,
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
   MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, Briefcase, FileText,
-  ChevronDown, Lock, Bot, Home as HomeIcon
+  ChevronDown, Lock, Bot, Home as HomeIcon, TrendingUp
 } from 'lucide-react';
 
 // ============================================================
@@ -490,7 +490,7 @@ export default function AgencyDashboard() {
   const [team, setTeam] = useState<any[]>([]);
 
   // Integration panel expand state
-  const [intOpen, setIntOpen] = useState({ propertyManager: false, whatsapp: false, crm: false, chatbot: false });
+  const [intOpen, setIntOpen] = useState({ propertyManager: false, whatsapp: false, crm: false, chatbot: false, leadsCrm: false });
 
   // Force light mode on the admin page
   useEffect(() => {
@@ -532,6 +532,7 @@ export default function AgencyDashboard() {
         whatsapp: false,
         crm: false,
         chatbot: false,
+        leadsCrm: false,
       });
     }
   }, [selectedAgency?.id]);
@@ -1369,6 +1370,60 @@ export default function AgencyDashboard() {
                               className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-blue-700 transition-all"
                             >
                               <Globe size={10} /> Ouvrir
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* MODULE: Mini CRM Leads */}
+                  {(() => {
+                    const enabled = !!getInt('leads_enabled');
+                    const slug = selectedAgency?.subdomain;
+                    return (
+                      <div className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${enabled ? 'border-orange-200' : 'border-slate-200'}`}>
+                        <div className={`flex items-center justify-between p-4 ${enabled ? 'bg-orange-50/40' : 'bg-slate-50/20'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${enabled ? 'bg-orange-100' : 'bg-slate-100'}`}>
+                              <TrendingUp size={20} className={enabled ? 'text-orange-600' : 'text-slate-400'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">Mini CRM Leads</span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-orange-100 text-orange-600">
+                                  <Lock size={8} /> Module
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold mt-0.5">Accès leads depuis le site agence</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${enabled ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {enabled ? 'ACTIF' : 'INACTIF'}
+                            </span>
+                            <ToggleSwitch
+                              checked={enabled}
+                              checkedColor="#ea580c"
+                              onChange={(v) => {
+                                updateNestedConfig('integrations', 'leads_enabled', v);
+                                setIntOpen(prev => ({ ...prev, leadsCrm: v }));
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {enabled && slug && (
+                          <div className="px-5 py-3 bg-orange-50/50 border-t border-orange-100 flex items-center justify-between gap-3">
+                            <p className="text-[10px] text-orange-700 font-bold uppercase tracking-wide">
+                              Accès protégé par mot de passe — défini par l'agence à la première connexion
+                            </p>
+                            <a
+                              href={`/fr/${slug}/mes-leads`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-orange-700 transition-all"
+                            >
+                              <TrendingUp size={10} /> Ouvrir le CRM
                             </a>
                           </div>
                         )}
