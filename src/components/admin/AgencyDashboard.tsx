@@ -920,22 +920,20 @@ export default function AgencyDashboard() {
                       <div className="space-y-3">
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.hero_file}</label>
                         <div className="relative group">
-                          <input 
-                            type="file" 
-                            accept={selectedAgency.hero_type === 'video' ? 'video/mp4' : 'image/*'} 
-                            onChange={handleHeroUpload} 
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                          <input
+                            type="file"
+                            accept="image/*,video/*,.mp4,.mov,.webm,.avi"
+                            onChange={handleHeroUpload}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           />
                           <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
                             <UploadCloud className="text-slate-300" size={24} />
                             <span className="text-xs text-slate-500 font-medium">
-                              {selectedAgency?.hero_url 
-                                ? (selectedAgency.hero_type === 'video' ? "Changer la vidéo" : "Changer l'image") 
+                              {selectedAgency?.hero_url
+                                ? (selectedAgency.hero_type === 'video' ? "Changer la vidéo" : "Changer l'image")
                                 : t.placeholders.media_upload}
                             </span>
-                            {selectedAgency.hero_type === 'video' && (
-                              <span className="text-[9px] text-slate-400">MP4 uniquement, max 50 Mo</span>
-                            )}
+                            <span className="text-[9px] text-slate-400">Image ou vidéo MP4 · max 50 Mo</span>
                           </div>
                         </div>
                         
