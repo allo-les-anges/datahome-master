@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,26 +15,15 @@
 }
 body { font-family:'Montserrat',sans-serif; background:var(--s900); color:#fff; height:100vh; overflow:hidden; user-select:none; }
 
-/* ── Deck & Slides ── */
 .deck { width:100vw; height:100vh; position:relative; }
-.slide {
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  padding:44px 60px; opacity:0; pointer-events:none;
-  transition:opacity .45s ease,transform .45s ease; transform:translateX(50px);
-}
+.slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:44px 60px; opacity:0; pointer-events:none; transition:opacity .45s ease,transform .45s ease; transform:translateX(50px); }
 .slide.active { opacity:1; pointer-events:all; transform:none; }
 .slide.out    { opacity:0; transform:translateX(-50px); }
+[dir=rtl] .slide.out { transform:translateX(50px); }
 
-/* ── Progress ── */
 .prog { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--gold),#F0D970); transition:width .4s; z-index:200; }
 
-/* ── Nav ── */
-.nav {
-  position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
-  display:flex; align-items:center; gap:12px; z-index:100;
-  background:rgba(15,23,42,.92); backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.08); border-radius:999px; padding:9px 18px;
-}
+.nav { position:fixed; bottom:26px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:12px; z-index:100; background:rgba(15,23,42,.92); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.08); border-radius:999px; padding:9px 18px; }
 .nav button { background:none; border:none; cursor:pointer; color:rgba(255,255,255,.4); font-size:18px; padding:4px 10px; border-radius:999px; transition:all .2s; }
 .nav button:hover { color:#fff; background:rgba(255,255,255,.1); }
 .dots { display:flex; gap:6px; }
@@ -42,79 +31,62 @@ body { font-family:'Montserrat',sans-serif; background:var(--s900); color:#fff; 
 .dot.active { width:22px; background:var(--gold); }
 .sc { color:rgba(255,255,255,.3); font-size:10px; font-weight:700; letter-spacing:.1em; min-width:52px; text-align:center; }
 
-/* ── Keyboard hint ── */
+/* Language switcher */
+.lang-sw { position:fixed; top:16px; left:22px; display:flex; gap:4px; z-index:100; flex-wrap:wrap; max-width:200px; }
+[dir=rtl] .lang-sw { left:auto; right:22px; }
+.lang-btn { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:6px; padding:4px 9px; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:800; color:rgba(255,255,255,.4); cursor:pointer; transition:all .2s; letter-spacing:.06em; }
+.lang-btn:hover { color:#fff; background:rgba(255,255,255,.12); }
+.lang-btn.active { background:rgba(212,175,55,.2); border-color:rgba(212,175,55,.4); color:var(--gold); }
+
 .kb { position:fixed; top:18px; right:22px; font-size:10px; color:rgba(255,255,255,.2); font-weight:700; z-index:100; }
+[dir=rtl] .kb { right:auto; left:22px; }
 kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:4px; padding:2px 6px; }
 
-/* ── Layout ── */
+/* Layout */
 .two-col { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; max-width:1100px; width:100%; }
 .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:1100px; width:100%; }
 .center-col { display:flex; flex-direction:column; align-items:center; text-align:center; max-width:820px; width:100%; }
 
-/* ── Tags ── */
 .tag { display:inline-flex; align-items:center; gap:6px; font-size:9px; font-weight:900; letter-spacing:.2em; text-transform:uppercase; padding:5px 14px; border-radius:999px; margin-bottom:14px; }
-.tg  { background:var(--gold-dim);           color:var(--gold); border:1px solid var(--gold-b); }
-.tb  { background:rgba(37,99,235,.12);        color:#60a5fa;     border:1px solid rgba(37,99,235,.3); }
-.to  { background:rgba(234,88,12,.12);        color:#fb923c;     border:1px solid rgba(234,88,12,.3); }
+.tg  { background:var(--gold-dim); color:var(--gold); border:1px solid var(--gold-b); }
+.tb  { background:rgba(37,99,235,.12); color:#60a5fa; border:1px solid rgba(37,99,235,.3); }
+.to  { background:rgba(234,88,12,.12); color:#fb923c; border:1px solid rgba(234,88,12,.3); }
 
-/* ── Typography ── */
 .h1 { font-size:clamp(38px,5vw,66px); font-weight:900; line-height:1.05; }
 .h2 { font-size:clamp(26px,3.2vw,44px); font-weight:900; line-height:1.1; }
 .sub { font-size:13px; color:rgba(255,255,255,.48); font-weight:500; line-height:1.65; margin-top:10px; }
 .gold { color:var(--gold); }
 
-/* ── Step list ── */
 .steps { list-style:none; display:flex; flex-direction:column; gap:11px; margin-top:20px; }
 .step { display:flex; align-items:flex-start; gap:12px; }
 .sn { width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:#fff; flex-shrink:0; margin-top:1px; }
 .st { font-size:13px; color:rgba(255,255,255,.6); font-weight:500; line-height:1.5; }
 .st strong { color:#fff; font-weight:800; }
 
-/* ── Note ── */
 .note { display:flex; align-items:flex-start; gap:10px; background:var(--gold-dim); border:1px solid var(--gold-b); border-radius:14px; padding:12px 16px; margin-top:18px; }
 .nt { font-size:12px; color:rgba(255,255,255,.6); font-weight:500; line-height:1.5; }
 .nt strong { color:#fff; }
 
-/* ────────────────────────────────────────────────────────
-   SLIDE 0 — HERO
-──────────────────────────────────────────────────────── */
-.hero-bg {
-  position:absolute; inset:0;
-  background:radial-gradient(ellipse at 18% 55%,rgba(212,175,55,.08) 0%,transparent 48%),
-             radial-gradient(ellipse at 82% 30%,rgba(37,99,235,.06) 0%,transparent 48%),
-             linear-gradient(135deg,#090f1e 0%,#0f172a 55%,#070d1a 100%);
-}
+/* Hero */
+.hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse at 18% 55%,rgba(212,175,55,.08) 0%,transparent 48%),radial-gradient(ellipse at 82% 30%,rgba(37,99,235,.06) 0%,transparent 48%),linear-gradient(135deg,#090f1e 0%,#0f172a 55%,#070d1a 100%); }
 .hero-inner { position:relative; z-index:1; text-align:center; max-width:760px; }
-.hero-badge {
-  display:inline-flex; align-items:center; gap:8px;
-  background:rgba(212,175,55,.1); border:1px solid rgba(212,175,55,.22);
-  border-radius:999px; padding:7px 18px; margin-bottom:30px;
-  color:var(--gold); font-size:10px; font-weight:800; letter-spacing:.18em;
-  animation:fadeUp .6s .1s both;
-}
-.hero-title { animation:fadeUp .7s .25s both; }
-.hero-sub   { animation:fadeUp .7s .4s  both; max-width:500px; margin:0 auto; }
+.hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(212,175,55,.1); border:1px solid rgba(212,175,55,.22); border-radius:999px; padding:7px 18px; margin-bottom:30px; color:var(--gold); font-size:10px; font-weight:800; letter-spacing:.18em; animation:fadeUp .6s .1s both; }
+.hero-title-wrap { animation:fadeUp .7s .25s both; }
+.hero-sub-el { animation:fadeUp .7s .4s both; max-width:500px; margin:0 auto; }
 .hero-chips { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:32px; animation:fadeUp .7s .55s both; }
 .chip { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:12px; padding:9px 16px; color:rgba(255,255,255,.6); font-size:11px; font-weight:700; }
 .hero-cta { margin-top:40px; animation:fadeUp .7s .7s both; }
 .btn-gold { display:inline-flex; align-items:center; gap:8px; background:var(--gold); color:#000; border:none; border-radius:14px; padding:13px 26px; font-family:'Montserrat',sans-serif; font-size:13px; font-weight:900; letter-spacing:.06em; cursor:pointer; transition:transform .2s,box-shadow .2s; }
 .btn-gold:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(212,175,55,.3); }
 
-/* ────────────────────────────────────────────────────────
-   SLIDE 1 — CHATBOT (phone frame)
-──────────────────────────────────────────────────────── */
-.phone {
-  width:320px; border-radius:40px; background:#111827;
-  border:7px solid #1a2436; box-shadow:0 28px 80px rgba(0,0,0,.65);
-  overflow:hidden; flex-shrink:0; margin:0 auto;
-}
+/* Phone / Chat */
+.phone { width:320px; border-radius:40px; background:#111827; border:7px solid #1a2436; box-shadow:0 28px 80px rgba(0,0,0,.65); overflow:hidden; flex-shrink:0; margin:0 auto; }
 .phone-notch { height:26px; background:#111827; display:flex; align-items:center; justify-content:center; }
 .notch-pill { width:72px; height:5px; background:#1f2937; border-radius:999px; }
 .ch-header { background:#0a1628; padding:11px 14px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,.05); }
 .ch-av { width:32px; height:32px; border-radius:10px; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
 .ch-name { font-size:12px; font-weight:800; color:#fff; }
 .ch-status { font-size:8px; color:rgba(255,255,255,.38); }
-
 .ch-body { padding:12px; display:flex; flex-direction:column; gap:9px; min-height:310px; max-height:310px; overflow:hidden; }
 .msg { display:flex; gap:6px; align-items:flex-end; }
 .msg.u { flex-direction:row-reverse; }
@@ -124,40 +96,28 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
 .mav { width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0; }
 .mav.b { background:rgba(255,255,255,.1); }
 .mav.u { background:var(--gold); }
-
 .ch-inp-bar { display:flex; align-items:center; gap:7px; padding:9px 11px; background:#0a1628; border-top:1px solid rgba(255,255,255,.05); }
 .ch-field { flex:1; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:6px 12px; font-size:10px; color:rgba(255,255,255,.4); font-family:'Montserrat',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .ch-send { width:28px; height:28px; border-radius:50%; background:var(--gold); border:none; font-size:11px; cursor:pointer; flex-shrink:0; }
-
-/* Typing dots */
 .td-wrap { display:flex; align-items:center; gap:3px; padding:10px 12px; }
 .td { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.45); }
 .td:nth-child(1){animation:bounce 1.2s .0s infinite;}
 .td:nth-child(2){animation:bounce 1.2s .2s infinite;}
 .td:nth-child(3){animation:bounce 1.2s .4s infinite;}
 
-/* Lead card under phone */
-.lead-box {
-  width:306px; margin:10px auto 0;
-  background:rgba(22,163,74,.1); border:1px solid rgba(22,163,74,.25);
-  border-radius:14px; padding:12px 14px;
-  animation:slideUp .4s both;
-}
+.lead-box { width:306px; margin:10px auto 0; background:rgba(22,163,74,.1); border:1px solid rgba(22,163,74,.25); border-radius:14px; padding:12px 14px; animation:slideUp .4s both; }
 .lr { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
 .lk { font-size:8px; font-weight:900; letter-spacing:.12em; color:rgba(255,255,255,.38); text-transform:uppercase; }
 .lv { font-size:10px; font-weight:700; color:#fff; }
 .lsaved { display:flex; align-items:center; gap:5px; font-size:9px; font-weight:800; color:#4ade80; margin-top:7px; }
 
-/* Feature items */
 .feats { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
 .fi { display:flex; align-items:flex-start; gap:11px; padding:13px 15px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:13px; }
 .fi-icon { font-size:20px; flex-shrink:0; }
 .fi-title { font-size:12px; font-weight:800; color:#fff; }
 .fi-desc { font-size:11px; color:rgba(255,255,255,.45); margin-top:2px; }
 
-/* ────────────────────────────────────────────────────────
-   SLIDE 2 — SEARCH (light card)
-──────────────────────────────────────────────────────── */
+/* Search */
 .search-demo { background:#fff; border-radius:22px; padding:18px; color:var(--s800); }
 .sbar { display:flex; align-items:center; gap:9px; background:var(--s50); border:1.5px solid var(--s200); border-radius:999px; padding:9px 16px; margin-bottom:16px; }
 .sbar input { flex:1; border:none; outline:none; font-family:'Montserrat',sans-serif; font-size:12px; color:var(--s500); background:transparent; }
@@ -183,9 +143,7 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
 .pspecs { display:flex; gap:7px; margin-top:3px; }
 .pspec { font-size:8px; color:var(--s400); font-weight:700; }
 
-/* ────────────────────────────────────────────────────────
-   SLIDE 3 — MON ESPACE
-──────────────────────────────────────────────────────── */
+/* Mon Espace */
 .me-box { background:#fff; border-radius:22px; overflow:hidden; color:var(--s800); }
 .me-hdr { padding:11px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--s100); }
 .me-logo { display:flex; align-items:center; gap:8px; }
@@ -207,8 +165,7 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
 .mcl { font-size:7px; color:var(--s400); }
 .mcp { font-size:11px; font-weight:900; }
 .mca { display:flex; gap:3px; margin-top:4px; padding-top:4px; border-top:1px solid var(--s50); }
-.mcb2 { flex:1; display:flex; align-items:center; justify-content:center; gap:2px; padding:3px; border-radius:7px; font-size:7px; font-weight:800; border:none; cursor:pointer; }
-/* Auth wall */
+.mcb2 { flex:1; display:flex; align-items:center; justify-content:center; padding:3px; border-radius:7px; font-size:7px; font-weight:800; border:none; cursor:pointer; }
 .aw { display:flex; flex-direction:column; align-items:center; text-align:center; padding:22px 18px; }
 .aw-icon { width:44px; height:44px; border-radius:13px; background:rgba(212,175,55,.1); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:11px; }
 .aw-title { font-size:16px; font-weight:900; color:var(--s900); margin-bottom:4px; }
@@ -216,9 +173,7 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
 .aw-inp   { width:100%; border:1px solid var(--s200); border-radius:11px; background:var(--s50); padding:9px 13px; font-size:11px; font-family:'Montserrat',sans-serif; outline:none; letter-spacing:.2em; margin-bottom:9px; }
 .aw-btn   { width:100%; border:none; border-radius:11px; padding:10px; font-family:'Montserrat',sans-serif; font-size:11px; font-weight:900; color:#fff; background:var(--gold); cursor:pointer; }
 
-/* ────────────────────────────────────────────────────────
-   SLIDE 4 — MINI CRM
-──────────────────────────────────────────────────────── */
+/* Mini CRM */
 .crm-box { background:#fff; border-radius:22px; padding:16px; color:var(--s800); }
 .ls { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:11px; }
 .ls-card { background:var(--s50); border:1px solid var(--s100); border-radius:12px; padding:9px 11px; }
@@ -239,22 +194,16 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
 .b-cont { background:#fef3c7; color:#92400e; }
 .b-conv { background:#dcfce7; color:#15803d; }
 
-/* ────────────────────────────────────────────────────────
-   SLIDE 5 — RECAP
-──────────────────────────────────────────────────────── */
+/* Recap */
 .rc { padding:20px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); text-align:left; }
 .rc-icon { font-size:26px; margin-bottom:9px; }
 .rc-title { font-size:13px; font-weight:900; color:#fff; margin-bottom:5px; }
 .rc-desc  { font-size:10px; color:rgba(255,255,255,.42); line-height:1.65; }
 
-/* ────────────────────────────────────────────────────────
-   Animations
-──────────────────────────────────────────────────────── */
 @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
 @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
 @keyframes msgIn   { from{opacity:0;transform:translateY(8px)}  to{opacity:1;transform:none} }
 @keyframes bounce  { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
-@keyframes blink   { 0%,100%{opacity:1} 50%{opacity:0} }
 
 .hidden { display:none !important; }
 </style>
@@ -262,183 +211,126 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
 <body>
 
 <div class="prog" id="prog"></div>
+
+<div class="lang-sw">
+  <button class="lang-btn" data-l="fr" onclick="applyLang('fr')">FR</button>
+  <button class="lang-btn" data-l="en" onclick="applyLang('en')">EN</button>
+  <button class="lang-btn" data-l="es" onclick="applyLang('es')">ES</button>
+  <button class="lang-btn" data-l="nl" onclick="applyLang('nl')">NL</button>
+  <button class="lang-btn" data-l="pl" onclick="applyLang('pl')">PL</button>
+  <button class="lang-btn" data-l="ar" onclick="applyLang('ar')">AR</button>
+</div>
+
 <div class="kb"><kbd>←</kbd> <kbd>→</kbd></div>
 
 <div class="deck" id="deck">
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 0 — HERO
-══════════════════════════════════════════════════════ -->
+<!-- SLIDE 0 — HERO -->
 <div class="slide active" data-idx="0">
   <div class="hero-bg"></div>
   <div class="hero-inner">
-    <div class="hero-badge">⬡ HABIHUB LIGHT TEMPLATE &nbsp;·&nbsp; PRODUCT DEMO</div>
-    <h1 class="h1 hero-title">Votre site agence<br /><span class="gold">immobilière intelligent</span></h1>
-    <p class="sub hero-sub">Chatbot IA qualifiant · Recherche avancée · Property Manager · Mini CRM<br />Prêt en 24h sur votre domaine.</p>
-    <div class="hero-chips">
-      <div class="chip">🤖 Chatbot GPT-4o</div>
-      <div class="chip">🔍 Recherche avancée</div>
-      <div class="chip">🏠 Mon Espace</div>
-      <div class="chip">📊 Mini CRM</div>
-      <div class="chip">🌍 13 langues</div>
+    <div class="hero-badge" id="heroBadge"></div>
+    <div class="hero-title-wrap">
+      <h1 class="h1"><span id="heroTitle1"></span><br/><span class="gold" id="heroTitle2"></span></h1>
     </div>
-    <div class="hero-cta">
-      <button class="btn-gold" onclick="go(1)">Découvrir la démo &nbsp;→</button>
-    </div>
+    <p class="sub hero-sub-el" id="heroSub"></p>
+    <div class="hero-chips" id="heroChips"></div>
+    <div class="hero-cta"><button class="btn-gold" id="heroCta" onclick="go(1)"></button></div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 1 — CHATBOT IA (phone frame + auto-animation)
-══════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — CHATBOT -->
 <div class="slide" data-idx="1" id="s1">
   <div class="two-col">
-    <!-- Left: features -->
     <div>
-      <div class="tag tb">🤖 Module 1 — Chatbot IA</div>
-      <h2 class="h2">Qualifie vos leads<br /><span class="gold">24h/24, en direct</span></h2>
-      <p class="sub">L'IA engage, questionne et enregistre chaque prospect — même pendant que vous dormez.</p>
-      <div class="feats">
-        <div class="fi">
-          <div class="fi-icon">🌍</div>
-          <div><div class="fi-title">13 langues — détection automatique</div><div class="fi-desc">Français, anglais, espagnol, arabe, polonais, néerlandais…</div></div>
-        </div>
-        <div class="fi">
-          <div class="fi-icon">🎯</div>
-          <div><div class="fi-title">Qualification complète</div><div class="fi-desc">Budget · Localisation · Type de bien · Délai · Coordonnées</div></div>
-        </div>
-        <div class="fi">
-          <div class="fi-icon">⚡</div>
-          <div><div class="fi-title">Enregistrement instantané</div><div class="fi-desc">Le lead apparaît dans votre Mini CRM en temps réel</div></div>
-        </div>
-      </div>
+      <div class="tag tb" id="s1tag"></div>
+      <h2 class="h2"><span id="s1title1"></span><br/><span class="gold" id="s1title2"></span></h2>
+      <p class="sub" id="s1sub"></p>
+      <div class="feats" id="s1feats"></div>
     </div>
-    <!-- Right: phone -->
     <div style="display:flex;flex-direction:column;align-items:center;">
       <div class="phone">
         <div class="phone-notch"><div class="notch-pill"></div></div>
         <div class="ch-header">
           <div class="ch-av">🤖</div>
-          <div>
-            <div class="ch-name">Assistant IA Immo</div>
-            <div class="ch-status">● EN LIGNE · GPT-4o</div>
-          </div>
+          <div><div class="ch-name" id="s1chatName"></div><div class="ch-status" id="s1chatStatus"></div></div>
         </div>
         <div class="ch-body" id="chatBody"></div>
         <div class="ch-inp-bar">
-          <div class="ch-field" id="chatInput">Votre message...</div>
+          <div class="ch-field" id="chatInput"></div>
           <button class="ch-send">➤</button>
         </div>
       </div>
-      <!-- Lead card (hidden until end of chat) -->
       <div id="leadCard" class="lead-box hidden">
         <div class="lr">
-          <span class="lk">✅ Lead qualifié</span>
-          <span style="font-size:8px;font-weight:900;color:#4ade80;letter-spacing:.08em">ENREGISTRÉ</span>
+          <span class="lk" id="s1leadTitle"></span>
+          <span style="font-size:8px;font-weight:900;color:#4ade80;letter-spacing:.08em" id="s1leadSavedBadge"></span>
         </div>
-        <div class="lr"><span class="lk">Budget</span><span class="lv">1,5M – 2M AED</span></div>
-        <div class="lr"><span class="lk">Localisation</span><span class="lv">Palm Jumeirah, Dubaï</span></div>
-        <div class="lr"><span class="lk">Type</span><span class="lv">Villa 3ch+ · piscine</span></div>
-        <div class="lsaved">✅ Visible Mini CRM · Notif WhatsApp envoyée</div>
+        <div class="lr"><span class="lk" id="s1leadBudget"></span><span class="lv">1,5M – 2M AED</span></div>
+        <div class="lr"><span class="lk" id="s1leadLoc"></span><span class="lv">Palm Jumeirah, Dubaï</span></div>
+        <div class="lr"><span class="lk" id="s1leadType"></span><span class="lv" id="s1leadTypeVal"></span></div>
+        <div class="lsaved" id="s1leadSavedText"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 2 — RECHERCHE AVANCÉE
-══════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — SEARCH -->
 <div class="slide" data-idx="2">
   <div class="two-col">
     <div>
-      <div class="tag tg">🔍 Module 2 — Recherche</div>
-      <h2 class="h2">Recherche<br /><span class="gold">avancée & temps réel</span></h2>
-      <p class="sub">Filtres dynamiques générés depuis votre catalogue Supabase — résultats instantanés.</p>
-      <ul class="steps">
-        <li class="step"><div class="sn" style="background:var(--gold)">1</div><div class="st"><strong>Accédez</strong> depuis la navbar ou la page d'accueil.</div></li>
-        <li class="step"><div class="sn" style="background:var(--gold)">2</div><div class="st"><strong>Filtrez</strong> par région, ville, type, chambres et fourchette de prix.</div></li>
-        <li class="step"><div class="sn" style="background:var(--gold)">3</div><div class="st"><strong>Résultats en temps réel</strong> — les options s'adaptent à votre catalogue.</div></li>
-        <li class="step"><div class="sn" style="background:var(--gold)">4</div><div class="st"><strong>Cliquez</strong> pour la fiche complète : photos, carte, formulaire de contact.</div></li>
-      </ul>
-      <div class="note"><div style="font-size:15px">💡</div><div class="nt"><strong>Filtres dynamiques :</strong> régions et villes générées automatiquement depuis Supabase.</div></div>
+      <div class="tag tg" id="s2tag"></div>
+      <h2 class="h2"><span id="s2title1"></span><br/><span class="gold" id="s2title2"></span></h2>
+      <p class="sub" id="s2sub"></p>
+      <ul class="steps" id="s2steps"></ul>
+      <div class="note"><div style="font-size:15px">💡</div><div class="nt" id="s2note"></div></div>
     </div>
     <div>
       <div class="search-demo">
-        <div class="sbar">
-          <span style="color:var(--s300);font-size:13px">🔍</span>
-          <input value="Marbella, villa avec piscine..." readonly />
-          <button class="sbtn">Rechercher</button>
-        </div>
-        <div class="fg">
-          <div class="fi2 on"><div class="fl">📍 Région</div><div class="fv">Andalousie</div></div>
-          <div class="fi2 on"><div class="fl">🏙️ Ville</div><div class="fv">Marbella</div></div>
-          <div class="fi2 on"><div class="fl">🏠 Type</div><div class="fv">Villa</div></div>
-          <div class="fi2 on"><div class="fl">🛏️ Min. chambres</div><div class="fv">3+</div></div>
-        </div>
+        <div class="sbar"><span style="color:var(--s300);font-size:13px">🔍</span><input id="s2searchInput" readonly /><button class="sbtn" id="s2searchBtn"></button></div>
+        <div class="fg" id="s2filters"></div>
         <div style="margin-bottom:14px;">
-          <div class="fl">💶 Fourchette de prix</div>
-          <div class="price-tr">
-            <div class="price-fl"></div>
-            <div class="price-th" style="left:calc(15% - 6px)"></div>
-            <div class="price-th" style="right:calc(35% - 6px)"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:800;color:var(--gold)">
-            <span>300 000 €</span><span>1 300 000 €</span>
-          </div>
+          <div class="fl" id="s2priceLabel"></div>
+          <div class="price-tr"><div class="price-fl"></div><div class="price-th" style="left:calc(15% - 6px)"></div><div class="price-th" style="right:calc(35% - 6px)"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:800;color:var(--gold)"><span>300 000 €</span><span>1 300 000 €</span></div>
         </div>
         <div class="prop-g">
-          <div class="pc">
-            <div class="pimg" style="background:linear-gradient(135deg,#c9a96e,#8B6914)"><div class="pov"></div><div class="pbadge">Villa</div></div>
-            <div class="pbody"><div class="pname">Villa Nueva Andalucia</div><div class="ploc">📍 Marbella</div><div class="pprice">895 000 €</div><div class="pspecs"><span class="pspec">🛏 4</span><span class="pspec">🚿 3</span><span class="pspec">📐 320m²</span></div></div>
-          </div>
-          <div class="pc">
-            <div class="pimg" style="background:linear-gradient(135deg,#6ea8c9,#1a5f7a)"><div class="pov"></div><div class="pbadge">Villa</div></div>
-            <div class="pbody"><div class="pname">Villa Vista Mar</div><div class="ploc">📍 Estepona</div><div class="pprice">1 150 000 €</div><div class="pspecs"><span class="pspec">🛏 5</span><span class="pspec">🚿 4</span><span class="pspec">📐 480m²</span></div></div>
-          </div>
+          <div class="pc"><div class="pimg" style="background:linear-gradient(135deg,#c9a96e,#8B6914)"><div class="pov"></div><div class="pbadge" id="s2badge1"></div></div><div class="pbody"><div class="pname">Villa Nueva Andalucia</div><div class="ploc">📍 Marbella</div><div class="pprice">895 000 €</div><div class="pspecs"><span class="pspec">🛏 4</span><span class="pspec">🚿 3</span><span class="pspec">📐 320m²</span></div></div></div>
+          <div class="pc"><div class="pimg" style="background:linear-gradient(135deg,#6ea8c9,#1a5f7a)"><div class="pov"></div><div class="pbadge" id="s2badge2"></div></div><div class="pbody"><div class="pname">Villa Vista Mar</div><div class="ploc">📍 Estepona</div><div class="pprice">1 150 000 €</div><div class="pspecs"><span class="pspec">🛏 5</span><span class="pspec">🚿 4</span><span class="pspec">📐 480m²</span></div></div></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 3 — MON ESPACE
-══════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — MON ESPACE -->
 <div class="slide" data-idx="3">
   <div class="two-col">
     <div>
-      <div class="tag tg">🏠 Module 3 — Mon Espace</div>
-      <h2 class="h2">Gérez votre catalogue<br /><span class="gold">sans développeur</span></h2>
-      <p class="sub">Un backoffice léger, protégé par mot de passe, pour publier vos biens en 2 minutes.</p>
-      <ul class="steps">
-        <li class="step"><div class="sn" style="background:var(--gold)">1</div><div class="st"><strong>Activez</strong> depuis le dashboard — le lien "Mon espace" apparaît dans le footer.</div></li>
-        <li class="step"><div class="sn" style="background:var(--gold)">2</div><div class="st"><strong>Créez votre mot de passe</strong> à la première connexion (stocké en hash bcrypt).</div></li>
-        <li class="step"><div class="sn" style="background:var(--gold)">3</div><div class="st"><strong>Ajoutez, modifiez, supprimez</strong> vos biens — photos, prix, description, caractéristiques.</div></li>
-        <li class="step"><div class="sn" style="background:var(--gold)">4</div><div class="st"><strong>Publication immédiate</strong> sur le site public après enregistrement.</div></li>
-      </ul>
-      <div class="note"><div style="font-size:15px">🔐</div><div class="nt"><strong>Sécurité :</strong> session 8h en sessionStorage, bcrypt, API protégée côté serveur.</div></div>
+      <div class="tag tg" id="s3tag"></div>
+      <h2 class="h2"><span id="s3title1"></span><br/><span class="gold" id="s3title2"></span></h2>
+      <p class="sub" id="s3sub"></p>
+      <ul class="steps" id="s3steps"></ul>
+      <div class="note"><div style="font-size:15px">🔐</div><div class="nt" id="s3note"></div></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="me-box">
         <div class="aw">
           <div class="aw-icon">🏠</div>
-          <div class="aw-title">Espace Agence</div>
-          <div class="aw-sub">Saisissez votre mot de passe pour gérer votre catalogue</div>
+          <div class="aw-title" id="s3authTitle"></div>
+          <div class="aw-sub" id="s3authSub"></div>
           <input class="aw-inp" type="password" value="••••••••" readonly />
-          <button class="aw-btn">🔑 Accéder à mon espace</button>
+          <button class="aw-btn" id="s3authBtn"></button>
         </div>
       </div>
-      <div style="text-align:center;font-size:9px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.1em">↓ APRÈS CONNEXION</div>
+      <div style="text-align:center;font-size:9px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.1em" id="s3afterLabel"></div>
       <div class="me-box">
         <div class="me-hdr">
           <div class="me-logo"><div class="me-ic">🏠</div><div><div class="me-nm">Luxury Marbella</div><div class="me-bd">Property Manager</div></div></div>
-          <div class="me-acts"><div class="me-act">🔑 MDP</div><div class="me-act" style="color:#ef4444">⬅ Déco</div></div>
+          <div class="me-acts"><div class="me-act">🔑 MDP</div><div class="me-act" style="color:#ef4444" id="s3logout"></div></div>
         </div>
         <div class="me-body">
-          <div class="me-top">
-            <div><div class="me-ttl">Mes biens</div><div class="me-cnt">3 publiés</div></div>
-            <button class="me-add">+ Ajouter</button>
-          </div>
+          <div class="me-top"><div><div class="me-ttl" id="s3meTitle"></div><div class="me-cnt" id="s3meCount"></div></div><button class="me-add" id="s3meAdd"></button></div>
           <div class="me-grid">
             <div class="mc"><div class="mci" style="background:linear-gradient(135deg,#c9a96e,#8B6914)"></div><div class="mcb"><div class="mcn">Villa Andalucia</div><div class="mcl">📍 Marbella</div><div class="mcp" style="color:var(--gold)">895k €</div><div class="mca"><button class="mcb2" style="background:var(--s50);color:var(--s600)">✏️</button><button class="mcb2" style="background:#fff0f0;color:#ef4444;flex:0;padding:3px 6px">🗑</button></div></div></div>
             <div class="mc"><div class="mci" style="background:linear-gradient(135deg,#6ea8c9,#1a5f7a)"></div><div class="mcb"><div class="mcn">Villa Vista Mar</div><div class="mcl">📍 Estepona</div><div class="mcp" style="color:var(--gold)">1,15M €</div><div class="mca"><button class="mcb2" style="background:var(--s50);color:var(--s600)">✏️</button><button class="mcb2" style="background:#fff0f0;color:#ef4444;flex:0;padding:3px 6px">🗑</button></div></div></div>
@@ -450,67 +342,36 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 4 — MINI CRM
-══════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — MINI CRM -->
 <div class="slide" data-idx="4">
   <div class="two-col">
     <div>
-      <div class="tag to">📊 Module 4 — Mini CRM</div>
-      <h2 class="h2">Tous vos leads<br /><span class="gold">en un seul endroit</span></h2>
-      <p class="sub">Dashboard protégé, filtrable, mis à jour en temps réel à chaque conversation chatbot.</p>
-      <ul class="steps">
-        <li class="step"><div class="sn" style="background:var(--orange)">1</div><div class="st"><strong>Activez</strong> depuis le dashboard — lien "Mes leads" dans le footer.</div></li>
-        <li class="step"><div class="sn" style="background:var(--orange)">2</div><div class="st"><strong>Visualisez</strong> nom, email, tél, budget, zone et délai de chaque prospect.</div></li>
-        <li class="step"><div class="sn" style="background:var(--orange)">3</div><div class="st"><strong>Changez le statut</strong> d'un clic : <span style="color:#60a5fa;font-weight:800">Nouveau</span> → <span style="color:#fbbf24;font-weight:800">Contacté</span> → <span style="color:#4ade80;font-weight:800">Converti</span>.</div></li>
-      </ul>
-      <div class="note" style="background:rgba(234,88,12,.08);border-color:rgba(234,88,12,.2)">
-        <div style="font-size:15px">⚡</div>
-        <div class="nt"><strong>Temps réel :</strong> dès qu'un lead est qualifié par le chatbot, il apparaît immédiatement dans le CRM.</div>
-      </div>
-      <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:14px;font-weight:600">👆 Cliquez sur un badge de statut pour le faire évoluer</p>
+      <div class="tag to" id="s4tag"></div>
+      <h2 class="h2"><span id="s4title1"></span><br/><span class="gold" id="s4title2"></span></h2>
+      <p class="sub" id="s4sub"></p>
+      <ul class="steps" id="s4steps"></ul>
+      <div class="note" style="background:rgba(234,88,12,.08);border-color:rgba(234,88,12,.2)"><div style="font-size:15px">⚡</div><div class="nt" id="s4note"></div></div>
+      <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:14px;font-weight:600" id="s4hint"></p>
     </div>
     <div>
       <div class="crm-box">
-        <div class="ls">
-          <div class="ls-card"><div class="ls-label">Total</div><div class="ls-val" style="color:var(--s700)">12</div></div>
-          <div class="ls-card"><div class="ls-label">Nouveaux</div><div class="ls-val" style="color:#1d4ed8">5</div></div>
-          <div class="ls-card"><div class="ls-label">Contactés</div><div class="ls-val" style="color:#92400e">4</div></div>
-          <div class="ls-card"><div class="ls-label">Convertis</div><div class="ls-val" style="color:var(--green)">3</div></div>
-        </div>
-        <div class="lf">
-          <div class="lf-pill on" style="background:var(--orange)">Tous</div>
-          <div class="lf-pill">Nouveaux</div>
-          <div class="lf-pill">Contactés</div>
-          <div class="lf-pill">Convertis</div>
-        </div>
+        <div class="ls" id="s4stats"></div>
+        <div class="lf" id="s4pills"></div>
         <div class="ll">
           <div class="li">
             <div class="lav" style="background:var(--orange)">S</div>
-            <div style="flex:1;min-width:0">
-              <div class="lnm">Sana Al-Rashid</div>
-              <div class="lct">✉ sana@email.ae · 📞 +971 50 123 4567</div>
-              <div class="lmeta"><span class="ltag">💶 1,5M–2M AED</span><span class="ltag">📍 Palm Jumeirah</span></div>
-            </div>
-            <div><span class="lbadge b-new" id="sanaStatus" onclick="cycleSana()">NOUVEAU</span></div>
+            <div style="flex:1;min-width:0"><div class="lnm">Sana Al-Rashid</div><div class="lct">✉ sana@email.ae · 📞 +971 50 123 4567</div><div class="lmeta"><span class="ltag">💶 1,5M–2M AED</span><span class="ltag">📍 Palm Jumeirah</span></div></div>
+            <div><span class="lbadge b-new" id="sanaStatus" onclick="cycleSana()"></span></div>
           </div>
           <div class="li">
             <div class="lav" style="background:#1d4ed8">J</div>
-            <div style="flex:1;min-width:0">
-              <div class="lnm">James Wilson</div>
-              <div class="lct">✉ james@email.co.uk · 📞 +44 7700 900123</div>
-              <div class="lmeta"><span class="ltag">💶 500k–1M €</span><span class="ltag">📍 Costa Blanca</span></div>
-            </div>
-            <div><span class="lbadge b-cont">CONTACTÉ</span></div>
+            <div style="flex:1;min-width:0"><div class="lnm">James Wilson</div><div class="lct">✉ james@email.co.uk · 📞 +44 7700 900123</div><div class="lmeta"><span class="ltag">💶 500k–1M €</span><span class="ltag">📍 Costa Blanca</span></div></div>
+            <div><span class="lbadge b-cont" id="jamesBadge"></span></div>
           </div>
           <div class="li">
             <div class="lav" style="background:var(--green)">A</div>
-            <div style="flex:1;min-width:0">
-              <div class="lnm">Anna Kowalski</div>
-              <div class="lct">✉ anna@email.pl · 📞 +48 600 123 456</div>
-              <div class="lmeta"><span class="ltag">💶 300k–500k €</span><span class="ltag">📍 Torrevieja</span></div>
-            </div>
-            <div><span class="lbadge b-conv">CONVERTI</span></div>
+            <div style="flex:1;min-width:0"><div class="lnm">Anna Kowalski</div><div class="lct">✉ anna@email.pl · 📞 +48 600 123 456</div><div class="lmeta"><span class="ltag">💶 300k–500k €</span><span class="ltag">📍 Torrevieja</span></div></div>
+            <div><span class="lbadge b-conv" id="annaBadge"></span></div>
           </div>
         </div>
       </div>
@@ -518,22 +379,13 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 5 — RECAP
-══════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — RECAP -->
 <div class="slide" data-idx="5">
   <div class="center-col">
-    <div class="tag tg">✦ RÉCAPITULATIF</div>
-    <h2 class="h2" style="margin-bottom:10px">Tout en un seul template</h2>
-    <p class="sub" style="max-width:560px;margin-bottom:38px">Architecture Next.js + Supabase, déployable en 24h sur votre domaine, entièrement personnalisable sans code.</p>
-    <div class="three-col">
-      <div class="rc"><div class="rc-icon">🤖</div><div class="rc-title">Chatbot IA</div><div class="rc-desc">GPT-4o · 13 langues · détection auto · qualification + capture lead</div></div>
-      <div class="rc"><div class="rc-icon">🔍</div><div class="rc-title">Recherche avancée</div><div class="rc-desc">Filtres dynamiques · résultats Supabase en temps réel</div></div>
-      <div class="rc"><div class="rc-icon">🏠</div><div class="rc-title">Mon Espace</div><div class="rc-desc">CRUD catalogue · upload photos · auth bcrypt · session 8h</div></div>
-      <div class="rc"><div class="rc-icon">📊</div><div class="rc-title">Mini CRM</div><div class="rc-desc">Dashboard leads · statuts en 1 clic · filtres · temps réel</div></div>
-      <div class="rc"><div class="rc-icon">🌍</div><div class="rc-title">i18n 6 langues</div><div class="rc-desc">FR · EN · ES · NL · PL · AR avec support RTL arabe</div></div>
-      <div class="rc"><div class="rc-icon">⚙️</div><div class="rc-title">Dashboard Admin</div><div class="rc-desc">Couleur · font · logo · hero · modules — sans toucher au code</div></div>
-    </div>
+    <div class="tag tg" id="s5tag"></div>
+    <h2 class="h2" style="margin-bottom:10px" id="s5title"></h2>
+    <p class="sub" style="max-width:560px;margin-bottom:38px" id="s5sub"></p>
+    <div class="three-col" id="s5cards"></div>
   </div>
 </div>
 
@@ -543,17 +395,558 @@ kbd { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); b
   <button onclick="go(-1)">‹</button>
   <div class="dots" id="dots"></div>
   <button onclick="go(1)">›</button>
-  <span class="sc" id="sc">Intro  1 / 6</span>
+  <span class="sc" id="sc"></span>
 </nav>
 
 <script>
-/* ── Slide system ────────────────────────────────── */
-const LABELS = ['Intro','Chatbot IA','Recherche','Mon Espace','Mini CRM','Récap'];
+/* ═══════════════════════════════════════════════════
+   TRANSLATIONS
+═══════════════════════════════════════════════════ */
+const T = {
+fr: {
+  dir:'ltr',
+  navLabels:['Intro','Chatbot IA','Recherche','Mon Espace','Mini CRM','Récap'],
+  heroBadge:'⬡ HABIHUB LIGHT TEMPLATE · PRODUCT DEMO',
+  heroTitle1:'Votre site agence',
+  heroTitle2:'immobilière intelligent',
+  heroSub:'Chatbot IA qualifiant · Recherche avancée · Property Manager · Mini CRM<br/>Prêt en 24h sur votre domaine.',
+  heroChips:['🤖 Chatbot GPT-4o','🔍 Recherche avancée','🏠 Mon Espace','📊 Mini CRM','🌍 13 langues'],
+  heroCta:'Découvrir la démo →',
+  s1tag:'🤖 Module 1 — Chatbot IA',
+  s1title1:'Qualifie vos leads',
+  s1title2:'24h/24, en direct',
+  s1sub:"L'IA engage, questionne et enregistre chaque prospect — même pendant que vous dormez.",
+  s1feats:[
+    {icon:'🌍',title:'13 langues — détection automatique',desc:'Français, anglais, espagnol, arabe, polonais, néerlandais…'},
+    {icon:'🎯',title:'Qualification complète',desc:'Budget · Localisation · Type de bien · Délai · Coordonnées'},
+    {icon:'⚡',title:'Enregistrement instantané',desc:'Le lead apparaît dans votre Mini CRM en temps réel'},
+  ],
+  s1chatName:'Assistant IA Immo',
+  s1chatStatus:'● EN LIGNE · GPT-4o',
+  s1chatPlaceholder:'Votre message...',
+  s1chatSeq:[
+    {from:'bot', text:'Bonjour ! 👋 Vous avez un projet immobilier à Dubaï ? Je suis votre assistant IA.', wait:1200},
+    {from:'user',text:'Oui, je cherche une villa avec piscine, 3 chambres minimum.',input:1800},
+    {from:'bot', text:'Parfait ! 🏡 Quel est votre budget approximatif ?', wait:1300},
+    {from:'user',text:'Environ 1,5 à 2 millions de dirhams.',input:1600},
+    {from:'bot', text:'Excellent ! Dans quel quartier — Palm Jumeirah, Marina ou Downtown ?', wait:1500},
+    {from:'user',text:'Palm Jumeirah de préférence.',input:1200},
+    {from:'bot', text:"Super choix ! Pour vous envoyer les biens correspondants, puis-je avoir votre email ?", wait:1500},
+    {from:'user',text:'sana.rashid@email.ae',input:1400},
+    {from:'bot', text:'✅ Parfait Sana ! Votre projet est enregistré. Notre agent vous contacte sous 24h via WhatsApp.', wait:1800},
+  ],
+  s1leadTitle:'✅ Lead qualifié',
+  s1leadSaved:'ENREGISTRÉ',
+  s1leadBudget:'Budget',
+  s1leadLoc:'Localisation',
+  s1leadType:'Type',
+  s1leadTypeVal:'Villa 3ch+ · piscine',
+  s1leadSavedText:'✅ Visible Mini CRM · Notif WhatsApp envoyée',
+  s2tag:'🔍 Module 2 — Recherche',
+  s2title1:'Recherche',
+  s2title2:'avancée & temps réel',
+  s2sub:'Filtres dynamiques générés depuis votre catalogue Supabase — résultats instantanés.',
+  s2steps:["**Accédez** depuis la navbar ou la page d'accueil.",'**Filtrez** par région, ville, type, chambres et fourchette de prix.',"**Résultats en temps réel** — les options s'adaptent à votre catalogue.",'**Cliquez** pour la fiche complète : photos, carte, formulaire de contact.'],
+  s2note:'<strong>Filtres dynamiques :</strong> régions et villes générées automatiquement depuis Supabase.',
+  s2searchPlaceholder:'Marbella, villa avec piscine...',
+  s2searchBtn:'Rechercher',
+  s2priceLabel:'💶 Fourchette de prix',
+  s2filterLabels:['📍 Région','🏙️ Ville','🏠 Type','🛏️ Min. chambres'],
+  s2filterValues:['Andalousie','Marbella','Villa','3+'],
+  s2propType:'Villa',
+  s3tag:'🏠 Module 3 — Mon Espace',
+  s3title1:'Gérez votre catalogue',
+  s3title2:'sans développeur',
+  s3sub:'Un backoffice léger, protégé par mot de passe, pour publier vos biens en 2 minutes.',
+  s3steps:['**Activez** depuis le dashboard — le lien "Mon espace" apparaît dans le footer.',"**Créez votre mot de passe** à la première connexion (stocké en hash bcrypt).",'**Ajoutez, modifiez, supprimez** vos biens — photos, prix, description, caractéristiques.',"**Publication immédiate** sur le site public après enregistrement."],
+  s3note:'<strong>Sécurité :</strong> session 8h en sessionStorage, bcrypt, API protégée côté serveur.',
+  s3authTitle:'Espace Agence',
+  s3authSub:'Saisissez votre mot de passe pour gérer votre catalogue',
+  s3authBtn:'🔑 Accéder à mon espace',
+  s3afterLabel:'↓ APRÈS CONNEXION',
+  s3logout:'⬅ Déco',
+  s3meTitle:'Mes biens',
+  s3meCount:'3 publiés',
+  s3meAdd:'+ Ajouter',
+  s4tag:'📊 Module 4 — Mini CRM',
+  s4title1:'Tous vos leads',
+  s4title2:'en un seul endroit',
+  s4sub:'Dashboard protégé, filtrable, mis à jour en temps réel à chaque conversation chatbot.',
+  s4statLabels:['Total','Nouveaux','Contactés','Convertis'],
+  s4steps:['**Activez** depuis le dashboard — lien "Mes leads" dans le footer.','**Visualisez** nom, email, tél, budget, zone et délai de chaque prospect.','**Changez le statut** d\'un clic : {new} → {cont} → {conv}'],
+  s4note:'<strong>Temps réel :</strong> dès qu\'un lead est qualifié par le chatbot, il apparaît immédiatement dans le CRM.',
+  s4hint:'👆 Cliquez sur un badge de statut pour le faire évoluer',
+  s4pills:['Tous','Nouveaux','Contactés','Convertis'],
+  s4statuses:['NOUVEAU','CONTACTÉ','CONVERTI'],
+  s4statusClasses:['b-new','b-cont','b-conv'],
+  s5tag:'✦ RÉCAPITULATIF',
+  s5title:'Tout en un seul template',
+  s5sub:'Architecture Next.js + Supabase, déployable en 24h sur votre domaine, entièrement personnalisable sans code.',
+  s5cards:[
+    {icon:'🤖',title:'Chatbot IA',desc:'GPT-4o · 13 langues · détection auto · qualification + capture lead'},
+    {icon:'🔍',title:'Recherche avancée',desc:'Filtres dynamiques · résultats Supabase en temps réel'},
+    {icon:'🏠',title:'Mon Espace',desc:'CRUD catalogue · upload photos · auth bcrypt · session 8h'},
+    {icon:'📊',title:'Mini CRM',desc:'Dashboard leads · statuts en 1 clic · filtres · temps réel'},
+    {icon:'🌍',title:'i18n 6 langues',desc:'FR · EN · ES · NL · PL · AR avec support RTL arabe'},
+    {icon:'⚙️',title:'Dashboard Admin',desc:'Couleur · font · logo · hero · modules — sans toucher au code'},
+  ],
+},
+
+en: {
+  dir:'ltr',
+  navLabels:['Intro','AI Chatbot','Search','My Space','Mini CRM','Recap'],
+  heroBadge:'⬡ HABIHUB LIGHT TEMPLATE · PRODUCT DEMO',
+  heroTitle1:'Your real estate agency',
+  heroTitle2:'website, reimagined',
+  heroSub:'Qualifying AI Chatbot · Advanced Search · Property Manager · Mini CRM<br/>Ready in 24h on your domain.',
+  heroChips:['🤖 Chatbot GPT-4o','🔍 Advanced search','🏠 My Space','📊 Mini CRM','🌍 13 languages'],
+  heroCta:'Discover the demo →',
+  s1tag:'🤖 Module 1 — AI Chatbot',
+  s1title1:'Qualifies your leads',
+  s1title2:'24/7, in real time',
+  s1sub:'AI engages, qualifies and records every prospect — even while you sleep.',
+  s1feats:[
+    {icon:'🌍',title:'13 languages — auto-detection',desc:'French, English, Spanish, Arabic, Polish, Dutch…'},
+    {icon:'🎯',title:'Complete qualification',desc:'Budget · Location · Property type · Timeline · Contact'},
+    {icon:'⚡',title:'Instant recording',desc:'The lead appears in your Mini CRM in real time'},
+  ],
+  s1chatName:'AI Real Estate Assistant',
+  s1chatStatus:'● ONLINE · GPT-4o',
+  s1chatPlaceholder:'Your message...',
+  s1chatSeq:[
+    {from:'bot', text:'Hello ! 👋 Are you looking for a property in Dubai? I am your AI assistant.', wait:1200},
+    {from:'user',text:'Yes, I am looking for a villa with a pool, at least 3 bedrooms.',input:1800},
+    {from:'bot', text:'Perfect ! 🏡 What is your approximate budget?', wait:1300},
+    {from:'user',text:'Around 1.5 to 2 million dirhams.',input:1600},
+    {from:'bot', text:'Excellent ! Which area — Palm Jumeirah, Marina or Downtown?', wait:1500},
+    {from:'user',text:'Palm Jumeirah preferred.',input:1200},
+    {from:'bot', text:'Great choice ! To send you matching properties, may I have your email?', wait:1500},
+    {from:'user',text:'sana.rashid@email.ae',input:1400},
+    {from:'bot', text:'✅ Perfect Sana! Your project is registered. Our agent will contact you within 24h via WhatsApp.', wait:1800},
+  ],
+  s1leadTitle:'✅ Qualified lead',
+  s1leadSaved:'RECORDED',
+  s1leadBudget:'Budget',
+  s1leadLoc:'Location',
+  s1leadType:'Type',
+  s1leadTypeVal:'Villa 3bd+ · pool',
+  s1leadSavedText:'✅ Visible in Mini CRM · WhatsApp notification sent',
+  s2tag:'🔍 Module 2 — Search',
+  s2title1:'Advanced',
+  s2title2:'search & real time',
+  s2sub:'Dynamic filters generated from your Supabase catalog — instant results.',
+  s2steps:['**Access** from the navbar or homepage.','**Filter** by region, city, type, bedrooms and price range.','**Real-time results** — options adapt to your catalog.','**Click** for the full listing: photos, map, contact form.'],
+  s2note:'<strong>Dynamic filters:</strong> regions and cities automatically generated from Supabase.',
+  s2searchPlaceholder:'Marbella, villa with pool...',
+  s2searchBtn:'Search',
+  s2priceLabel:'💶 Price range',
+  s2filterLabels:['📍 Region','🏙️ City','🏠 Type','🛏️ Min. bedrooms'],
+  s2filterValues:['Andalusia','Marbella','Villa','3+'],
+  s2propType:'Villa',
+  s3tag:'🏠 Module 3 — My Space',
+  s3title1:'Manage your catalog',
+  s3title2:'without a developer',
+  s3sub:'A lightweight back office, password-protected, to publish your properties in 2 minutes.',
+  s3steps:['**Activate** from the dashboard — the "My space" link appears in the footer.','**Create your password** on first login (stored as bcrypt hash).','**Add, edit, delete** your properties — photos, price, description, features.','**Immediate publication** on the public site after saving.'],
+  s3note:'<strong>Security:</strong> 8h session in sessionStorage, bcrypt, server-side protected API.',
+  s3authTitle:'Agency Space',
+  s3authSub:'Enter your password to manage your catalog',
+  s3authBtn:'🔑 Access my space',
+  s3afterLabel:'↓ AFTER LOGIN',
+  s3logout:'⬅ Logout',
+  s3meTitle:'My properties',
+  s3meCount:'3 published',
+  s3meAdd:'+ Add',
+  s4tag:'📊 Module 4 — Mini CRM',
+  s4title1:'All your leads',
+  s4title2:'in one place',
+  s4sub:'Protected, filterable dashboard, updated in real time with each chatbot conversation.',
+  s4statLabels:['Total','New','Contacted','Converted'],
+  s4steps:['**Activate** from the dashboard — "My leads" link in the footer.','**View** name, email, phone, budget, area and timeline of each prospect.','**Change the status** in one click: {new} → {cont} → {conv}'],
+  s4note:'<strong>Real time:</strong> as soon as a lead is qualified by the chatbot, it immediately appears in the CRM.',
+  s4hint:'👆 Click a status badge to change it',
+  s4pills:['All','New','Contacted','Converted'],
+  s4statuses:['NEW','CONTACTED','CONVERTED'],
+  s4statusClasses:['b-new','b-cont','b-conv'],
+  s5tag:'✦ SUMMARY',
+  s5title:'Everything in one template',
+  s5sub:'Next.js + Supabase architecture, deployable in 24h on your domain, fully customizable without code.',
+  s5cards:[
+    {icon:'🤖',title:'AI Chatbot',desc:'GPT-4o · 13 languages · auto-detection · qualification + lead capture'},
+    {icon:'🔍',title:'Advanced search',desc:'Dynamic filters · real-time Supabase results'},
+    {icon:'🏠',title:'My Space',desc:'Catalog CRUD · photo upload · bcrypt auth · 8h session'},
+    {icon:'📊',title:'Mini CRM',desc:'Lead dashboard · 1-click status · filters · real time'},
+    {icon:'🌍',title:'i18n 6 languages',desc:'FR · EN · ES · NL · PL · AR with Arabic RTL support'},
+    {icon:'⚙️',title:'Admin Dashboard',desc:'Color · font · logo · hero · modules — without touching the code'},
+  ],
+},
+
+es: {
+  dir:'ltr',
+  navLabels:['Intro','Chatbot IA','Búsqueda','Mi Espacio','Mini CRM','Resumen'],
+  heroBadge:'⬡ HABIHUB LIGHT TEMPLATE · DEMO DEL PRODUCTO',
+  heroTitle1:'Su agencia inmobiliaria',
+  heroTitle2:'inteligente y lista',
+  heroSub:'Chatbot IA calificador · Búsqueda avanzada · Property Manager · Mini CRM<br/>Listo en 24h en su dominio.',
+  heroChips:['🤖 Chatbot GPT-4o','🔍 Búsqueda avanzada','🏠 Mi Espacio','📊 Mini CRM','🌍 13 idiomas'],
+  heroCta:'Descubrir la demo →',
+  s1tag:'🤖 Módulo 1 — Chatbot IA',
+  s1title1:'Califica sus leads',
+  s1title2:'24/7, en tiempo real',
+  s1sub:'La IA involucra, califica y registra cada prospecto — incluso mientras duerme.',
+  s1feats:[
+    {icon:'🌍',title:'13 idiomas — detección automática',desc:'Francés, inglés, español, árabe, polaco, neerlandés…'},
+    {icon:'🎯',title:'Calificación completa',desc:'Presupuesto · Localización · Tipo · Plazo · Datos de contacto'},
+    {icon:'⚡',title:'Registro instantáneo',desc:'El lead aparece en su Mini CRM en tiempo real'},
+  ],
+  s1chatName:'Asistente IA Inmobiliaria',
+  s1chatStatus:'● EN LÍNEA · GPT-4o',
+  s1chatPlaceholder:'Su mensaje...',
+  s1chatSeq:[
+    {from:'bot', text:'¡Hola ! 👋 ¿Tiene un proyecto inmobiliario en Dubái? Soy su asistente IA.', wait:1200},
+    {from:'user',text:'Sí, busco una villa con piscina, mínimo 3 habitaciones.',input:1800},
+    {from:'bot', text:'¡Perfecto ! 🏡 ¿Cuál es su presupuesto aproximado?', wait:1300},
+    {from:'user',text:'Entre 1,5 y 2 millones de dírhams.',input:1600},
+    {from:'bot', text:'¡Excelente ! ¿En qué zona — Palm Jumeirah, Marina o Downtown?', wait:1500},
+    {from:'user',text:'Palm Jumeirah preferiblemente.',input:1200},
+    {from:'bot', text:'¡Gran elección ! Para enviarle las propiedades, ¿puede darme su email?', wait:1500},
+    {from:'user',text:'sana.rashid@email.ae',input:1400},
+    {from:'bot', text:'✅ ¡Perfecto Sana! Su proyecto está registrado. Nuestro agente le contactará en 24h por WhatsApp.', wait:1800},
+  ],
+  s1leadTitle:'✅ Lead calificado',
+  s1leadSaved:'REGISTRADO',
+  s1leadBudget:'Presupuesto',
+  s1leadLoc:'Localización',
+  s1leadType:'Tipo',
+  s1leadTypeVal:'Villa 3hab+ · piscina',
+  s1leadSavedText:'✅ Visible en Mini CRM · Notificación WhatsApp enviada',
+  s2tag:'🔍 Módulo 2 — Búsqueda',
+  s2title1:'Búsqueda',
+  s2title2:'avanzada & tiempo real',
+  s2sub:'Filtros dinámicos generados desde su catálogo Supabase — resultados instantáneos.',
+  s2steps:['**Acceda** desde la barra de navegación o la página principal.','**Filtre** por región, ciudad, tipo, habitaciones y rango de precio.','**Resultados en tiempo real** — las opciones se adaptan a su catálogo.','**Haga clic** para la ficha completa: fotos, mapa, formulario de contacto.'],
+  s2note:'<strong>Filtros dinámicos:</strong> regiones y ciudades generadas automáticamente desde Supabase.',
+  s2searchPlaceholder:'Marbella, villa con piscina...',
+  s2searchBtn:'Buscar',
+  s2priceLabel:'💶 Rango de precio',
+  s2filterLabels:['📍 Región','🏙️ Ciudad','🏠 Tipo','🛏️ Min. habitaciones'],
+  s2filterValues:['Andalucía','Marbella','Villa','3+'],
+  s2propType:'Villa',
+  s3tag:'🏠 Módulo 3 — Mi Espacio',
+  s3title1:'Gestione su catálogo',
+  s3title2:'sin desarrollador',
+  s3sub:'Un backoffice ligero, protegido por contraseña, para publicar propiedades en 2 minutos.',
+  s3steps:['**Active** desde el dashboard — el enlace "Mi espacio" aparece en el pie de página.','**Cree su contraseña** en el primer acceso (almacenada en hash bcrypt).','**Añada, modifique, elimine** sus propiedades — fotos, precio, descripción, características.','**Publicación inmediata** en el sitio público tras guardar.'],
+  s3note:'<strong>Seguridad:</strong> sesión de 8h en sessionStorage, bcrypt, API protegida en el servidor.',
+  s3authTitle:'Espacio Agencia',
+  s3authSub:'Introduzca su contraseña para gestionar su catálogo',
+  s3authBtn:'🔑 Acceder a mi espacio',
+  s3afterLabel:'↓ DESPUÉS DE ACCEDER',
+  s3logout:'⬅ Salir',
+  s3meTitle:'Mis propiedades',
+  s3meCount:'3 publicadas',
+  s3meAdd:'+ Añadir',
+  s4tag:'📊 Módulo 4 — Mini CRM',
+  s4title1:'Todos sus leads',
+  s4title2:'en un solo lugar',
+  s4sub:'Dashboard protegido, filtrable, actualizado en tiempo real con cada conversación chatbot.',
+  s4statLabels:['Total','Nuevos','Contactados','Convertidos'],
+  s4steps:['**Active** desde el dashboard — enlace "Mis leads" en el pie de página.','**Visualice** nombre, email, tel, presupuesto, zona y plazo de cada prospecto.','**Cambie el estado** con un clic: {new} → {cont} → {conv}'],
+  s4note:'<strong>Tiempo real:</strong> en cuanto el chatbot califica un lead, aparece inmediatamente en el CRM.',
+  s4hint:'👆 Haga clic en un badge de estado para cambiarlo',
+  s4pills:['Todos','Nuevos','Contactados','Convertidos'],
+  s4statuses:['NUEVO','CONTACTADO','CONVERTIDO'],
+  s4statusClasses:['b-new','b-cont','b-conv'],
+  s5tag:'✦ RESUMEN',
+  s5title:'Todo en una sola plantilla',
+  s5sub:'Arquitectura Next.js + Supabase, desplegable en 24h en su dominio, totalmente personalizable sin código.',
+  s5cards:[
+    {icon:'🤖',title:'Chatbot IA',desc:'GPT-4o · 13 idiomas · detección auto · calificación + captura de lead'},
+    {icon:'🔍',title:'Búsqueda avanzada',desc:'Filtros dinámicos · resultados Supabase en tiempo real'},
+    {icon:'🏠',title:'Mi Espacio',desc:'CRUD catálogo · subir fotos · auth bcrypt · sesión 8h'},
+    {icon:'📊',title:'Mini CRM',desc:'Dashboard leads · estados en 1 clic · filtros · tiempo real'},
+    {icon:'🌍',title:'i18n 6 idiomas',desc:'FR · EN · ES · NL · PL · AR con soporte RTL árabe'},
+    {icon:'⚙️',title:'Dashboard Admin',desc:'Color · fuente · logo · hero · módulos — sin tocar el código'},
+  ],
+},
+
+nl: {
+  dir:'ltr',
+  navLabels:['Intro','AI-chatbot','Zoeken','Mijn Ruimte','Mini CRM','Samenvatting'],
+  heroBadge:'⬡ HABIHUB LIGHT TEMPLATE · PRODUCTDEMO',
+  heroTitle1:'Uw makelaarskantoor',
+  heroTitle2:'website, slim en klaar',
+  heroSub:'Kwalificerende AI-chatbot · Geavanceerd zoeken · Property Manager · Mini CRM<br/>Klaar in 24u op uw domein.',
+  heroChips:['🤖 Chatbot GPT-4o','🔍 Geavanceerd zoeken','🏠 Mijn Ruimte','📊 Mini CRM','🌍 13 talen'],
+  heroCta:'Bekijk de demo →',
+  s1tag:'🤖 Module 1 — AI-chatbot',
+  s1title1:'Kwalificeert uw leads',
+  s1title2:'24/7, in real time',
+  s1sub:'De AI engageert, kwalificeert en registreert elke prospect — zelfs terwijl u slaapt.',
+  s1feats:[
+    {icon:'🌍',title:'13 talen — automatische detectie',desc:'Frans, Engels, Spaans, Arabisch, Pools, Nederlands…'},
+    {icon:'🎯',title:'Volledige kwalificatie',desc:'Budget · Locatie · Type · Tijdlijn · Contactgegevens'},
+    {icon:'⚡',title:'Directe registratie',desc:'De lead verschijnt in real time in uw Mini CRM'},
+  ],
+  s1chatName:'AI Vastgoedassistent',
+  s1chatStatus:'● ONLINE · GPT-4o',
+  s1chatPlaceholder:'Uw bericht...',
+  s1chatSeq:[
+    {from:'bot', text:'Hallo ! 👋 Heeft u een vastgoedproject in Dubai? Ik ben uw AI-assistent.', wait:1200},
+    {from:'user',text:'Ja, ik zoek een villa met zwembad, minimaal 3 slaapkamers.',input:1800},
+    {from:'bot', text:'Perfect ! 🏡 Wat is uw geschatte budget?', wait:1300},
+    {from:'user',text:'Ongeveer 1,5 tot 2 miljoen dirham.',input:1600},
+    {from:'bot', text:'Uitstekend ! In welke wijk — Palm Jumeirah, Marina of Downtown?', wait:1500},
+    {from:'user',text:'Palm Jumeirah bij voorkeur.',input:1200},
+    {from:'bot', text:'Uitstekende keuze ! Om u passende woningen te sturen, mag ik uw e-mail?', wait:1500},
+    {from:'user',text:'sana.rashid@email.ae',input:1400},
+    {from:'bot', text:'✅ Perfect Sana! Uw project is geregistreerd. Onze agent neemt binnen 24u contact op via WhatsApp.', wait:1800},
+  ],
+  s1leadTitle:'✅ Gekwalificeerde lead',
+  s1leadSaved:'OPGESLAGEN',
+  s1leadBudget:'Budget',
+  s1leadLoc:'Locatie',
+  s1leadType:'Type',
+  s1leadTypeVal:'Villa 3sk+ · zwembad',
+  s1leadSavedText:'✅ Zichtbaar in Mini CRM · WhatsApp notificatie verzonden',
+  s2tag:'🔍 Module 2 — Zoeken',
+  s2title1:'Geavanceerd',
+  s2title2:'zoeken & real time',
+  s2sub:'Dynamische filters gegenereerd vanuit uw Supabase-catalogus — directe resultaten.',
+  s2steps:['**Toegang** via de navigatiebalk of startpagina.','**Filter** op regio, stad, type, slaapkamers en prijsbereik.','**Realtime resultaten** — opties passen zich aan uw catalogus aan.','**Klik** voor de volledige listing: foto\'s, kaart, contactformulier.'],
+  s2note:'<strong>Dynamische filters:</strong> regio\'s en steden automatisch gegenereerd vanuit Supabase.',
+  s2searchPlaceholder:'Marbella, villa met zwembad...',
+  s2searchBtn:'Zoeken',
+  s2priceLabel:'💶 Prijsbereik',
+  s2filterLabels:['📍 Regio','🏙️ Stad','🏠 Type','🛏️ Min. slaapkamers'],
+  s2filterValues:['Andalusië','Marbella','Villa','3+'],
+  s2propType:'Villa',
+  s3tag:'🏠 Module 3 — Mijn Ruimte',
+  s3title1:'Beheer uw catalogus',
+  s3title2:'zonder ontwikkelaar',
+  s3sub:'Een lichte backoffice, met wachtwoord beveiligd, om uw panden in 2 minuten te publiceren.',
+  s3steps:['**Activeer** via het dashboard — de link "Mijn ruimte" verschijnt in de footer.','**Maak uw wachtwoord** aan bij de eerste login (opgeslagen als bcrypt-hash).','**Voeg toe, bewerk, verwijder** uw panden — foto\'s, prijs, beschrijving, kenmerken.','**Directe publicatie** op de publieke website na opslaan.'],
+  s3note:'<strong>Beveiliging:</strong> 8u sessie in sessionStorage, bcrypt, server-side beveiligd API.',
+  s3authTitle:'Agentschapsruimte',
+  s3authSub:'Voer uw wachtwoord in om uw catalogus te beheren',
+  s3authBtn:'🔑 Toegang tot mijn ruimte',
+  s3afterLabel:'↓ NA INLOGGEN',
+  s3logout:'⬅ Uitloggen',
+  s3meTitle:'Mijn panden',
+  s3meCount:'3 gepubliceerd',
+  s3meAdd:'+ Toevoegen',
+  s4tag:'📊 Module 4 — Mini CRM',
+  s4title1:'Al uw leads',
+  s4title2:'op één plek',
+  s4sub:'Beveiligd, filterbaar dashboard, in realtime bijgewerkt bij elk chatbotgesprek.',
+  s4statLabels:['Totaal','Nieuw','Gecontacteerd','Geconverteerd'],
+  s4steps:['**Activeer** via het dashboard — link "Mijn leads" in de footer.','**Bekijk** naam, e-mail, tel, budget, gebied en tijdlijn van elke prospect.','**Wijzig de status** met één klik: {new} → {cont} → {conv}'],
+  s4note:'<strong>Realtime:</strong> zodra een lead door de chatbot is gekwalificeerd, verschijnt het direct in het CRM.',
+  s4hint:'👆 Klik op een statusbadge om het te wijzigen',
+  s4pills:['Alle','Nieuw','Gecontacteerd','Geconverteerd'],
+  s4statuses:['NIEUW','GECONTACTEERD','GECONVERTEERD'],
+  s4statusClasses:['b-new','b-cont','b-conv'],
+  s5tag:'✦ SAMENVATTING',
+  s5title:'Alles in één template',
+  s5sub:'Next.js + Supabase architectuur, in 24u inzetbaar op uw domein, volledig aanpasbaar zonder code.',
+  s5cards:[
+    {icon:'🤖',title:'AI-chatbot',desc:'GPT-4o · 13 talen · auto-detectie · kwalificatie + lead capture'},
+    {icon:'🔍',title:'Geavanceerd zoeken',desc:'Dynamische filters · real-time Supabase resultaten'},
+    {icon:'🏠',title:'Mijn Ruimte',desc:'Catalogus CRUD · foto upload · bcrypt auth · 8u sessie'},
+    {icon:'📊',title:'Mini CRM',desc:'Lead dashboard · 1-klik status · filters · real time'},
+    {icon:'🌍',title:'i18n 6 talen',desc:'FR · EN · ES · NL · PL · AR met Arabische RTL-ondersteuning'},
+    {icon:'⚙️',title:'Admin Dashboard',desc:'Kleur · lettertype · logo · hero · modules — zonder code te wijzigen'},
+  ],
+},
+
+pl: {
+  dir:'ltr',
+  navLabels:['Intro','Chatbot AI','Wyszukiwanie','Moja Przestrzeń','Mini CRM','Podsumowanie'],
+  heroBadge:'⬡ HABIHUB LIGHT TEMPLATE · DEMO PRODUKTU',
+  heroTitle1:'Strona Twojej agencji',
+  heroTitle2:'nieruchomości, inteligentna',
+  heroSub:'Kwalifikujący chatbot AI · Zaawansowane wyszukiwanie · Property Manager · Mini CRM<br/>Gotowy w 24h na Twojej domenie.',
+  heroChips:['🤖 Chatbot GPT-4o','🔍 Zaawansowane wyszukiwanie','🏠 Moja Przestrzeń','📊 Mini CRM','🌍 13 języków'],
+  heroCta:'Zobacz demo →',
+  s1tag:'🤖 Moduł 1 — Chatbot AI',
+  s1title1:'Kwalifikuje Twoje leady',
+  s1title2:'24/7, w czasie rzeczywistym',
+  s1sub:'AI angażuje, kwalifikuje i zapisuje każdego prospekta — nawet gdy śpisz.',
+  s1feats:[
+    {icon:'🌍',title:'13 języków — automatyczne wykrywanie',desc:'Francuski, angielski, hiszpański, arabski, polski, niderlandzki…'},
+    {icon:'🎯',title:'Pełna kwalifikacja',desc:'Budżet · Lokalizacja · Typ nieruchomości · Termin · Dane kontaktowe'},
+    {icon:'⚡',title:'Natychmiastowy zapis',desc:'Lead pojawia się w Twoim Mini CRM w czasie rzeczywistym'},
+  ],
+  s1chatName:'Asystent AI Nieruchomości',
+  s1chatStatus:'● ONLINE · GPT-4o',
+  s1chatPlaceholder:'Twoja wiadomość...',
+  s1chatSeq:[
+    {from:'bot', text:'Witaj ! 👋 Czy masz projekt nieruchomościowy w Dubaju? Jestem Twoim asystentem AI.', wait:1200},
+    {from:'user',text:'Tak, szukam willi z basenem, minimum 3 sypialnie.',input:1800},
+    {from:'bot', text:'Świetnie ! 🏡 Jaki jest Twój przybliżony budżet?', wait:1300},
+    {from:'user',text:'Około 1,5 do 2 milionów dirhamów.',input:1600},
+    {from:'bot', text:'Doskonale ! W której dzielnicy — Palm Jumeirah, Marina czy Downtown?', wait:1500},
+    {from:'user',text:'Palm Jumeirah preferuję.',input:1200},
+    {from:'bot', text:'Świetny wybór ! Aby wysłać Ci nieruchomości, czy mogę prosić o Twój email?', wait:1500},
+    {from:'user',text:'sana.rashid@email.ae',input:1400},
+    {from:'bot', text:'✅ Idealnie Sana! Twój projekt jest zarejestrowany. Nasz agent skontaktuje się w ciągu 24h przez WhatsApp.', wait:1800},
+  ],
+  s1leadTitle:'✅ Kwalifikowany lead',
+  s1leadSaved:'ZAPISANO',
+  s1leadBudget:'Budżet',
+  s1leadLoc:'Lokalizacja',
+  s1leadType:'Typ',
+  s1leadTypeVal:'Willa 3sypialnie+ · basen',
+  s1leadSavedText:'✅ Widoczny w Mini CRM · Powiadomienie WhatsApp wysłane',
+  s2tag:'🔍 Moduł 2 — Wyszukiwanie',
+  s2title1:'Zaawansowane',
+  s2title2:'wyszukiwanie & czas rzeczywisty',
+  s2sub:'Dynamiczne filtry generowane z katalogu Supabase — natychmiastowe wyniki.',
+  s2steps:['**Dostęp** z paska nawigacji lub strony głównej.','**Filtruj** według regionu, miasta, typu, sypialni i przedziału cenowego.','**Wyniki w czasie rzeczywistym** — opcje dostosowują się do Twojego katalogu.','**Kliknij** dla pełnej oferty: zdjęcia, mapa, formularz kontaktowy.'],
+  s2note:'<strong>Filtry dynamiczne:</strong> regiony i miasta generowane automatycznie z Supabase.',
+  s2searchPlaceholder:'Marbella, willa z basenem...',
+  s2searchBtn:'Szukaj',
+  s2priceLabel:'💶 Przedział cenowy',
+  s2filterLabels:['📍 Region','🏙️ Miasto','🏠 Typ','🛏️ Min. sypialnie'],
+  s2filterValues:['Andaluzja','Marbella','Willa','3+'],
+  s2propType:'Willa',
+  s3tag:'🏠 Moduł 3 — Moja Przestrzeń',
+  s3title1:'Zarządzaj swoim katalogiem',
+  s3title2:'bez programisty',
+  s3sub:'Lekki backoffice, chroniony hasłem, do publikowania nieruchomości w 2 minuty.',
+  s3steps:['**Aktywuj** z panelu — link "Moja przestrzeń" pojawia się w stopce.','**Utwórz hasło** przy pierwszym logowaniu (przechowywane jako hash bcrypt).','**Dodawaj, edytuj, usuwaj** nieruchomości — zdjęcia, cena, opis, cechy.','**Natychmiastowa publikacja** na publicznej stronie po zapisaniu.'],
+  s3note:'<strong>Bezpieczeństwo:</strong> sesja 8h w sessionStorage, bcrypt, API chronione po stronie serwera.',
+  s3authTitle:'Przestrzeń Agencji',
+  s3authSub:'Wprowadź hasło, aby zarządzać swoim katalogiem',
+  s3authBtn:'🔑 Wejdź do mojej przestrzeni',
+  s3afterLabel:'↓ PO ZALOGOWANIU',
+  s3logout:'⬅ Wyloguj',
+  s3meTitle:'Moje nieruchomości',
+  s3meCount:'3 opublikowane',
+  s3meAdd:'+ Dodaj',
+  s4tag:'📊 Moduł 4 — Mini CRM',
+  s4title1:'Wszystkie Twoje leady',
+  s4title2:'w jednym miejscu',
+  s4sub:'Chroniony, filtrowalny dashboard, aktualizowany w czasie rzeczywistym przy każdej rozmowie chatbota.',
+  s4statLabels:['Łącznie','Nowe','Skontaktowane','Skonwertowane'],
+  s4steps:['**Aktywuj** z panelu — link "Moje leady" w stopce.','**Przeglądaj** imię, email, tel, budżet, obszar i termin każdego prospekta.','**Zmień status** jednym kliknięciem: {new} → {cont} → {conv}'],
+  s4note:'<strong>Czas rzeczywisty:</strong> gdy tylko chatbot zakwalifikuje lead, pojawia się natychmiast w CRM.',
+  s4hint:'👆 Kliknij badge statusu, aby go zmienić',
+  s4pills:['Wszystkie','Nowe','Skontaktowane','Skonwertowane'],
+  s4statuses:['NOWY','SKONTAKTOWANY','SKONWERTOWANY'],
+  s4statusClasses:['b-new','b-cont','b-conv'],
+  s5tag:'✦ PODSUMOWANIE',
+  s5title:'Wszystko w jednym szablonie',
+  s5sub:'Architektura Next.js + Supabase, wdrażalna w 24h na Twojej domenie, w pełni konfigurowalna bez kodu.',
+  s5cards:[
+    {icon:'🤖',title:'Chatbot AI',desc:'GPT-4o · 13 języków · auto-wykrywanie · kwalifikacja + zapis leadu'},
+    {icon:'🔍',title:'Zaawansowane wyszukiwanie',desc:'Filtry dynamiczne · wyniki Supabase w czasie rzeczywistym'},
+    {icon:'🏠',title:'Moja Przestrzeń',desc:'CRUD katalogu · upload zdjęć · bcrypt auth · sesja 8h'},
+    {icon:'📊',title:'Mini CRM',desc:'Dashboard leadów · status 1 kliknięciem · filtry · czas rzeczywisty'},
+    {icon:'🌍',title:'i18n 6 języków',desc:'FR · EN · ES · NL · PL · AR z obsługą RTL dla arabskiego'},
+    {icon:'⚙️',title:'Panel Admina',desc:'Kolor · czcionka · logo · hero · moduły — bez dotykania kodu'},
+  ],
+},
+
+ar: {
+  dir:'rtl',
+  navLabels:['مقدمة','روبوت المحادثة','البحث','مساحتي','Mini CRM','ملخص'],
+  heroBadge:'⬡ HABIHUB LIGHT TEMPLATE · عرض المنتج',
+  heroTitle1:'موقع وكالتك العقارية',
+  heroTitle2:'الذكي والجاهز',
+  heroSub:'روبوت محادثة ذكي مؤهِّل · بحث متقدم · مدير العقارات · Mini CRM<br/>جاهز في 24 ساعة على نطاقك.',
+  heroChips:['🤖 Chatbot GPT-4o','🔍 بحث متقدم','🏠 مساحتي','📊 Mini CRM','🌍 13 لغة'],
+  heroCta:'اكتشف العرض التجريبي ←',
+  s1tag:'🤖 الوحدة 1 — روبوت المحادثة الذكي',
+  s1title1:'يؤهّل عملاءك المحتملين',
+  s1title2:'على مدار الساعة، في الوقت الفعلي',
+  s1sub:'يتفاعل الذكاء الاصطناعي ويؤهّل ويسجّل كل عميل محتمل — حتى أثناء نومك.',
+  s1feats:[
+    {icon:'🌍',title:'13 لغة — كشف تلقائي',desc:'الفرنسية، الإنجليزية، الإسبانية، العربية، البولندية، الهولندية…'},
+    {icon:'🎯',title:'تأهيل شامل',desc:'الميزانية · الموقع · نوع العقار · الجدول الزمني · بيانات الاتصال'},
+    {icon:'⚡',title:'تسجيل فوري',desc:'يظهر العميل المحتمل في Mini CRM الخاص بك في الوقت الفعلي'},
+  ],
+  s1chatName:'مساعد الذكاء الاصطناعي العقاري',
+  s1chatStatus:'● متصل · GPT-4o',
+  s1chatPlaceholder:'رسالتك...',
+  s1chatSeq:[
+    {from:'bot', text:'مرحباً ! 👋 هل لديك مشروع عقاري في دبي؟ أنا مساعدك الذكي.', wait:1200},
+    {from:'user',text:'نعم، أبحث عن فيلا مع مسبح، 3 غرف نوم على الأقل.',input:1800},
+    {from:'bot', text:'رائع ! 🏡 ما هي ميزانيتك التقريبية؟', wait:1300},
+    {from:'user',text:'حوالي 1.5 إلى 2 مليون درهم.',input:1600},
+    {from:'bot', text:'ممتاز ! في أي حي — نخلة جميرا أم مارينا أم وسط المدينة؟', wait:1500},
+    {from:'user',text:'نخلة جميرا بالتفضيل.',input:1200},
+    {from:'bot', text:'اختيار رائع ! لأرسل لك العقارات المناسبة، هل يمكنني الحصول على بريدك الإلكتروني؟', wait:1500},
+    {from:'user',text:'sana.rashid@email.ae',input:1400},
+    {from:'bot', text:'✅ ممتاز سانا! تم تسجيل مشروعك. سيتواصل معك وكيلنا خلال 24 ساعة عبر واتساب.', wait:1800},
+  ],
+  s1leadTitle:'✅ عميل مؤهَّل',
+  s1leadSaved:'مسجَّل',
+  s1leadBudget:'الميزانية',
+  s1leadLoc:'الموقع',
+  s1leadType:'النوع',
+  s1leadTypeVal:'فيلا 3 غرف+ · مسبح',
+  s1leadSavedText:'✅ مرئي في Mini CRM · تم إرسال إشعار واتساب',
+  s2tag:'🔍 الوحدة 2 — البحث',
+  s2title1:'بحث',
+  s2title2:'متقدم وفي الوقت الفعلي',
+  s2sub:'فلاتر ديناميكية مولَّدة من كتالوج Supabase الخاص بك — نتائج فورية.',
+  s2steps:['**الوصول** من شريط التنقل أو الصفحة الرئيسية.','**التصفية** حسب المنطقة والمدينة والنوع وغرف النوم ونطاق السعر.','**نتائج في الوقت الفعلي** — الخيارات تتكيف مع كتالوجك.','**انقر** للحصول على القائمة الكاملة: صور، خريطة، نموذج اتصال.'],
+  s2note:'<strong>فلاتر ديناميكية:</strong> المناطق والمدن مولَّدة تلقائياً من Supabase.',
+  s2searchPlaceholder:'ماربيا، فيلا مع مسبح...',
+  s2searchBtn:'بحث',
+  s2priceLabel:'💶 نطاق السعر',
+  s2filterLabels:['📍 المنطقة','🏙️ المدينة','🏠 النوع','🛏️ الحد الأدنى للغرف'],
+  s2filterValues:['الأندلس','ماربيا','فيلا','+3'],
+  s2propType:'فيلا',
+  s3tag:'🏠 الوحدة 3 — مساحتي',
+  s3title1:'أدِر كتالوجك',
+  s3title2:'بدون مطوّر',
+  s3sub:'لوحة إدارة خفيفة محمية بكلمة مرور لنشر عقاراتك في دقيقتين.',
+  s3steps:['**فعِّل** من لوحة التحكم — يظهر رابط "مساحتي" في التذييل.','**أنشئ كلمة مرورك** عند أول تسجيل دخول (مخزنة كـ bcrypt hash).','**أضف وعدِّل واحذف** عقاراتك — صور، سعر، وصف، مواصفات.','**نشر فوري** على الموقع العام بعد الحفظ.'],
+  s3note:'<strong>الأمان:</strong> جلسة 8 ساعات في sessionStorage، bcrypt، API محمي من جهة الخادم.',
+  s3authTitle:'فضاء الوكالة',
+  s3authSub:'أدخل كلمة مرورك لإدارة كتالوجك',
+  s3authBtn:'🔑 الدخول إلى مساحتي',
+  s3afterLabel:'↓ بعد تسجيل الدخول',
+  s3logout:'خروج ⬅',
+  s3meTitle:'عقاراتي',
+  s3meCount:'3 منشور',
+  s3meAdd:'+ إضافة',
+  s4tag:'📊 الوحدة 4 — Mini CRM',
+  s4title1:'جميع عملاءك المحتملين',
+  s4title2:'في مكان واحد',
+  s4sub:'لوحة تحكم محمية وقابلة للتصفية، تُحدَّث في الوقت الفعلي مع كل محادثة مع روبوت المحادثة.',
+  s4statLabels:['المجموع','جديد','تم التواصل','تحوّل'],
+  s4steps:['**فعِّل** من لوحة التحكم — رابط "عملائي" في التذييل.','**اعرض** اسم وبريد وهاتف وميزانية ومنطقة وموعد كل عميل محتمل.','**غيِّر الحالة** بنقرة واحدة: {new} ← {cont} ← {conv}'],
+  s4note:'<strong>الوقت الفعلي:</strong> بمجرد تأهيل عميل محتمل بواسطة روبوت المحادثة، يظهر فوراً في CRM.',
+  s4hint:'👆 انقر على شارة الحالة لتغييرها',
+  s4pills:['الكل','جديد','تم التواصل','تحوّل'],
+  s4statuses:['جديد','تم التواصل','تحوّل'],
+  s4statusClasses:['b-new','b-cont','b-conv'],
+  s5tag:'✦ ملخص',
+  s5title:'كل شيء في قالب واحد',
+  s5sub:'معمارية Next.js + Supabase، قابلة للنشر في 24 ساعة على نطاقك، قابلة للتخصيص الكامل بدون كود.',
+  s5cards:[
+    {icon:'🤖',title:'روبوت المحادثة الذكي',desc:'GPT-4o · 13 لغة · كشف تلقائي · تأهيل + التقاط عميل محتمل'},
+    {icon:'🔍',title:'البحث المتقدم',desc:'فلاتر ديناميكية · نتائج Supabase في الوقت الفعلي'},
+    {icon:'🏠',title:'مساحتي',desc:'CRUD الكتالوج · رفع الصور · مصادقة bcrypt · جلسة 8 ساعات'},
+    {icon:'📊',title:'Mini CRM',desc:'لوحة العملاء المحتملين · الحالة بنقرة · فلاتر · وقت فعلي'},
+    {icon:'🌍',title:'i18n 6 لغات',desc:'FR · EN · ES · NL · PL · AR مع دعم RTL للعربية'},
+    {icon:'⚙️',title:'لوحة الإدارة',desc:'اللون · الخط · الشعار · الهيرو · الوحدات — بدون لمس الكود'},
+  ],
+},
+}; // end T
+
+/* ═══════════════════════════════════════════════════
+   SLIDE SYSTEM
+═══════════════════════════════════════════════════ */
 const slides = document.querySelectorAll('.slide');
 const dotsEl = document.getElementById('dots');
 const scEl   = document.getElementById('sc');
 const barEl  = document.getElementById('prog');
 let cur = 0;
+let LABELS = T.fr.navLabels;
 
 slides.forEach((_, i) => {
   const d = document.createElement('div');
@@ -562,68 +955,176 @@ slides.forEach((_, i) => {
   dotsEl.appendChild(d);
 });
 
+function updateCounter() {
+  scEl.textContent = LABELS[cur] + '  ' + (cur+1) + ' / ' + slides.length;
+}
+
 function goTo(n) {
   if (n < 0 || n >= slides.length) return;
-  // Cancel chat animation when leaving slide 1
   if (cur === 1 && n !== 1) chatGen++;
   slides[cur].classList.remove('active');
   slides[cur].classList.add('out');
   setTimeout(() => slides[cur].classList.remove('out'), 500);
   cur = n;
   slides[cur].classList.add('active');
-  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
-  scEl.textContent = LABELS[cur] + '  ' + (cur + 1) + ' / ' + slides.length;
-  barEl.style.width = ((cur + 1) / slides.length * 100) + '%';
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===cur));
+  barEl.style.width = ((cur+1)/slides.length*100)+'%';
+  updateCounter();
   if (cur === 1) startChat();
 }
 
-function go(d) { goTo(cur + d); }
+function go(d) { goTo(cur+d); }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
-  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') go(1);
+  if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   go(-1);
 });
 
-// Init
-barEl.style.width = (1 / slides.length * 100) + '%';
+/* ═══════════════════════════════════════════════════
+   I18N — apply language
+═══════════════════════════════════════════════════ */
+function boldify(s) { return s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>'); }
 
-/* ── Chat animation ──────────────────────────────── */
-const SEQ = [
-  { from:'bot',  text:'Bonjour ! 👋 Vous avez un projet immobilier à Dubaï ? Je suis votre assistant IA.', wait:1200 },
-  { from:'user', text:'Oui, je cherche une villa avec piscine, 3 chambres minimum.', input:1800 },
-  { from:'bot',  text:'Parfait ! 🏡 Quel est votre budget approximatif ?', wait:1300 },
-  { from:'user', text:'Environ 1,5 à 2 millions de dirhams.', input:1600 },
-  { from:'bot',  text:'Excellent ! Dans quel quartier — Palm Jumeirah, Marina ou Downtown ?', wait:1500 },
-  { from:'user', text:'Palm Jumeirah de préférence.', input:1200 },
-  { from:'bot',  text:'Super choix ! Pour vous envoyer les biens correspondants, puis-je avoir votre email ?', wait:1500 },
-  { from:'user', text:'sana.rashid@email.ae', input:1400 },
-  { from:'bot',  text:'✅ Parfait Sana ! Votre projet est enregistré. Notre agent vous contacte sous 24h via WhatsApp.', wait:1800 },
-];
+function buildSteps(arr, color, t) {
+  // Replace {new} {cont} {conv} tokens in step text
+  return arr.map((s, i) => {
+    let text = boldify(s);
+    if (t && text.includes('{new}')) {
+      text = text
+        .replace('{new}',  `<span style="color:#60a5fa;font-weight:800">${t.s4statuses[0]}</span>`)
+        .replace('{cont}', `<span style="color:#fbbf24;font-weight:800">${t.s4statuses[1]}</span>`)
+        .replace('{conv}', `<span style="color:#4ade80;font-weight:800">${t.s4statuses[2]}</span>`);
+    }
+    return `<li class="step"><div class="sn" style="background:${color}">${i+1}</div><div class="st">${text}</div></li>`;
+  }).join('');
+}
 
+let currentLang = 'fr';
+
+function applyLang(lang) {
+  const t = T[lang];
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir  = t.dir;
+  LABELS = t.navLabels;
+  updateCounter();
+
+  // Lang buttons
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.l===lang));
+  localStorage.setItem('habihub-demo-lang', lang);
+
+  // ── Slide 0
+  document.getElementById('heroBadge').textContent  = t.heroBadge;
+  document.getElementById('heroTitle1').textContent = t.heroTitle1;
+  document.getElementById('heroTitle2').textContent = t.heroTitle2;
+  document.getElementById('heroSub').innerHTML      = t.heroSub;
+  document.getElementById('heroChips').innerHTML    = t.heroChips.map(c=>`<div class="chip">${c}</div>`).join('');
+  document.getElementById('heroCta').textContent    = t.heroCta;
+
+  // ── Slide 1
+  document.getElementById('s1tag').textContent         = t.s1tag;
+  document.getElementById('s1title1').textContent      = t.s1title1;
+  document.getElementById('s1title2').textContent      = t.s1title2;
+  document.getElementById('s1sub').textContent         = t.s1sub;
+  document.getElementById('s1feats').innerHTML         = t.s1feats.map(f=>`<div class="fi"><div class="fi-icon">${f.icon}</div><div><div class="fi-title">${f.title}</div><div class="fi-desc">${f.desc}</div></div></div>`).join('');
+  document.getElementById('s1chatName').textContent    = t.s1chatName;
+  document.getElementById('s1chatStatus').textContent  = t.s1chatStatus;
+  document.getElementById('s1leadTitle').textContent   = t.s1leadTitle;
+  document.getElementById('s1leadSavedBadge').textContent = t.s1leadSaved;
+  document.getElementById('s1leadBudget').textContent  = t.s1leadBudget;
+  document.getElementById('s1leadLoc').textContent     = t.s1leadLoc;
+  document.getElementById('s1leadType').textContent    = t.s1leadType;
+  document.getElementById('s1leadTypeVal').textContent = t.s1leadTypeVal;
+  document.getElementById('s1leadSavedText').textContent = t.s1leadSavedText;
+
+  // Restart chat if on slide 1
+  if (cur === 1) { chatGen++; startChat(); }
+
+  // ── Slide 2
+  document.getElementById('s2tag').textContent          = t.s2tag;
+  document.getElementById('s2title1').textContent       = t.s2title1;
+  document.getElementById('s2title2').textContent       = t.s2title2;
+  document.getElementById('s2sub').textContent          = t.s2sub;
+  document.getElementById('s2steps').innerHTML          = buildSteps(t.s2steps,'var(--gold)');
+  document.getElementById('s2note').innerHTML           = t.s2note;
+  document.getElementById('s2searchInput').value        = t.s2searchPlaceholder;
+  document.getElementById('s2searchBtn').textContent    = t.s2searchBtn;
+  document.getElementById('s2priceLabel').textContent   = t.s2priceLabel;
+  document.getElementById('s2badge1').textContent       = t.s2propType;
+  document.getElementById('s2badge2').textContent       = t.s2propType;
+  document.getElementById('s2filters').innerHTML        = t.s2filterLabels.map((lbl,i)=>`<div class="fi2 on"><div class="fl">${lbl}</div><div class="fv">${t.s2filterValues[i]}</div></div>`).join('');
+
+  // ── Slide 3
+  document.getElementById('s3tag').textContent      = t.s3tag;
+  document.getElementById('s3title1').textContent   = t.s3title1;
+  document.getElementById('s3title2').textContent   = t.s3title2;
+  document.getElementById('s3sub').textContent      = t.s3sub;
+  document.getElementById('s3steps').innerHTML      = buildSteps(t.s3steps,'var(--gold)');
+  document.getElementById('s3note').innerHTML       = t.s3note;
+  document.getElementById('s3authTitle').textContent= t.s3authTitle;
+  document.getElementById('s3authSub').textContent  = t.s3authSub;
+  document.getElementById('s3authBtn').textContent  = t.s3authBtn;
+  document.getElementById('s3afterLabel').textContent= t.s3afterLabel;
+  document.getElementById('s3logout').textContent   = t.s3logout;
+  document.getElementById('s3meTitle').textContent  = t.s3meTitle;
+  document.getElementById('s3meCount').textContent  = t.s3meCount;
+  document.getElementById('s3meAdd').textContent    = t.s3meAdd;
+
+  // ── Slide 4
+  document.getElementById('s4tag').textContent    = t.s4tag;
+  document.getElementById('s4title1').textContent = t.s4title1;
+  document.getElementById('s4title2').textContent = t.s4title2;
+  document.getElementById('s4sub').textContent    = t.s4sub;
+  document.getElementById('s4steps').innerHTML    = buildSteps(t.s4steps,'var(--orange)', t);
+  document.getElementById('s4note').innerHTML     = t.s4note;
+  document.getElementById('s4hint').textContent   = t.s4hint;
+  document.getElementById('s4stats').innerHTML    = t.s4statLabels.map((lbl,i)=>{
+    const vals=['12','5','4','3'], colors=['var(--s700)','#1d4ed8','#92400e','var(--green)'];
+    return `<div class="ls-card"><div class="ls-label">${lbl}</div><div class="ls-val" style="color:${colors[i]}">${vals[i]}</div></div>`;
+  }).join('');
+  document.getElementById('s4pills').innerHTML   = t.s4pills.map((p,i)=>
+    `<div class="lf-pill${i===0?' on':''}"${i===0?' style="background:var(--orange)"':''}>${p}</div>`
+  ).join('');
+  // Reset sana status
+  sIdx = 0;
+  document.getElementById('sanaStatus').className = 'lbadge ' + t.s4statusClasses[0];
+  document.getElementById('sanaStatus').textContent= t.s4statuses[0];
+  document.getElementById('jamesBadge').className = 'lbadge ' + t.s4statusClasses[1];
+  document.getElementById('jamesBadge').textContent= t.s4statuses[1];
+  document.getElementById('annaBadge').className  = 'lbadge ' + t.s4statusClasses[2];
+  document.getElementById('annaBadge').textContent = t.s4statuses[2];
+
+  // ── Slide 5
+  document.getElementById('s5tag').textContent  = t.s5tag;
+  document.getElementById('s5title').textContent= t.s5title;
+  document.getElementById('s5sub').textContent  = t.s5sub;
+  document.getElementById('s5cards').innerHTML  = t.s5cards.map(c=>`<div class="rc"><div class="rc-icon">${c.icon}</div><div class="rc-title">${c.title}</div><div class="rc-desc">${c.desc}</div></div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   CHAT ANIMATION
+═══════════════════════════════════════════════════ */
 let chatGen = 0;
 
 function sleep(ms, gen) {
   return new Promise(resolve => {
     const id = setTimeout(resolve, ms);
-    // Abort if generation changed
-    const check = setInterval(() => { if (chatGen !== gen) { clearTimeout(id); clearInterval(check); resolve(); } }, 50);
-    // Clean up checker after resolve
-    setTimeout(() => clearInterval(check), ms + 100);
+    const check = setInterval(() => { if (chatGen !== gen) { clearTimeout(id); clearInterval(check); resolve(); } }, 60);
+    setTimeout(() => clearInterval(check), ms + 120);
   });
 }
 
 function addBubble(from, text) {
   const body = document.getElementById('chatBody');
   const wrap = document.createElement('div');
-  wrap.className = 'msg' + (from === 'user' ? ' u' : '');
+  wrap.className = 'msg' + (from==='user'?' u':'');
   const av = document.createElement('div');
-  av.className = 'mav ' + (from === 'bot' ? 'b' : 'u');
-  av.textContent = from === 'bot' ? '🤖' : '😊';
+  av.className = 'mav '+(from==='bot'?'b':'u');
+  av.textContent = from==='bot'?'🤖':'😊';
   const bub = document.createElement('div');
-  bub.className = 'bubble ' + from;
+  bub.className = 'bubble '+from;
   bub.textContent = text;
-  wrap.appendChild(av);
-  wrap.appendChild(bub);
+  wrap.appendChild(av); wrap.appendChild(bub);
   body.appendChild(wrap);
   body.scrollTop = body.scrollHeight;
 }
@@ -631,12 +1132,12 @@ function addBubble(from, text) {
 function showTyping() {
   const body = document.getElementById('chatBody');
   const wrap = document.createElement('div');
-  wrap.className = 'msg'; wrap.id = 'typingWrap';
+  wrap.className='msg'; wrap.id='typingWrap';
   const av = document.createElement('div');
-  av.className = 'mav b'; av.textContent = '🤖';
+  av.className='mav b'; av.textContent='🤖';
   const bub = document.createElement('div');
-  bub.className = 'bubble bot';
-  bub.innerHTML = '<div class="td-wrap"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  bub.className='bubble bot';
+  bub.innerHTML='<div class="td-wrap"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
   wrap.appendChild(av); wrap.appendChild(bub);
   body.appendChild(wrap);
   body.scrollTop = body.scrollHeight;
@@ -646,29 +1147,32 @@ function hideTyping() { document.getElementById('typingWrap')?.remove(); }
 
 function setInputText(text) {
   const el = document.getElementById('chatInput');
-  if (!text) { el.textContent = 'Votre message...'; el.style.color = 'rgba(255,255,255,.4)'; return; }
+  if (!text) {
+    el.textContent = T[currentLang].s1chatPlaceholder;
+    el.style.color = 'rgba(255,255,255,.4)';
+    return;
+  }
   el.style.color = 'rgba(255,255,255,.85)';
   el.textContent = '';
-  let i = 0;
-  const iv = setInterval(() => {
-    if (i < text.length) el.textContent += text[i++];
-    else clearInterval(iv);
-  }, 45);
+  let i=0;
+  const iv = setInterval(()=>{ if(i<text.length) el.textContent+=text[i++]; else clearInterval(iv); },45);
 }
 
 async function startChat() {
   const gen = ++chatGen;
+  const t = T[currentLang];
   const body = document.getElementById('chatBody');
   body.innerHTML = '';
   document.getElementById('leadCard').classList.add('hidden');
+  document.getElementById('chatInput').textContent = t.s1chatPlaceholder;
+  document.getElementById('chatInput').style.color = 'rgba(255,255,255,.4)';
 
   await sleep(500, gen);
   if (chatGen !== gen) return;
 
-  for (const step of SEQ) {
+  for (const step of t.s1chatSeq) {
     if (chatGen !== gen) return;
-
-    if (step.from === 'bot') {
+    if (step.from==='bot') {
       showTyping();
       await sleep(step.wait, gen);
       if (chatGen !== gen) return;
@@ -691,19 +1195,28 @@ async function startChat() {
   document.getElementById('leadCard').classList.remove('hidden');
 }
 
-/* ── CRM status cycle (interactive demo) ─────────── */
-const STATUSES = [
-  { cls:'b-new',  label:'NOUVEAU'  },
-  { cls:'b-cont', label:'CONTACTÉ' },
-  { cls:'b-conv', label:'CONVERTI' },
-];
+/* ═══════════════════════════════════════════════════
+   CRM STATUS CYCLE
+═══════════════════════════════════════════════════ */
 let sIdx = 0;
 function cycleSana() {
-  sIdx = (sIdx + 1) % 3;
+  const t = T[currentLang];
+  sIdx = (sIdx+1) % 3;
   const el = document.getElementById('sanaStatus');
-  el.className = 'lbadge ' + STATUSES[sIdx].cls;
-  el.textContent = STATUSES[sIdx].label;
+  el.className = 'lbadge ' + t.s4statusClasses[sIdx];
+  el.textContent = t.s4statuses[sIdx];
 }
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+const saved = localStorage.getItem('habihub-demo-lang');
+const browser = navigator.language.slice(0,2);
+const supported = ['fr','en','es','nl','pl','ar'];
+const initLang = (saved && supported.includes(saved)) ? saved : (supported.includes(browser) ? browser : 'fr');
+
+applyLang(initLang);
+barEl.style.width = (1/slides.length*100)+'%';
 </script>
 </body>
 </html>
