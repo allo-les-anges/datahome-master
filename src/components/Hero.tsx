@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from "@/contexts/I18nContext";
 
 interface HeroProps {
-  agency?: any; 
+  agency?: any;
   title?: string;
   subtitle?: string;
   backgroundImage?: string;
@@ -20,32 +20,47 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
   const brandColor = agency?.primary_color || "#D4AF37";
   const displayTitle = agency?.hero_title || title || t('footer.excellence') || "Luxury Real Estate";
 
+  const isVideo = agency?.hero_type === 'video';
   const rawBgUrl = agency?.hero_url || backgroundImage;
   const cleanBgUrl = rawBgUrl ? rawBgUrl.replace(/['"]+/g, '').trim() : null;
   const isValidUrl = cleanBgUrl && (cleanBgUrl.startsWith('http') || cleanBgUrl.startsWith('/'));
 
-  const finalBg = (!isValidUrl || error) 
-    ? "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" 
-    : cleanBgUrl;
+  const fallbackImage = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop";
+  const finalBg = (!isValidUrl || error) ? fallbackImage : cleanBgUrl;
 
   return (
     <div className="relative w-full h-[85vh] flex items-center justify-center overflow-hidden bg-slate-900 top-0 left-0 mt-0 block">
-      
-      {/* IMAGE DE FOND AVEC OPTIMISATION */}
+
       <div className="absolute inset-0 z-0">
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-slate-800 animate-pulse" />
+        {isVideo && isValidUrl && !error ? (
+          <video
+            key={cleanBgUrl}
+            src={cleanBgUrl!}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+            style={{ opacity: 0.85 }}
+            onError={() => setError(true)}
+          />
+        ) : (
+          <>
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-slate-800 animate-pulse" />
+            )}
+            <img
+              src={finalBg}
+              alt={agency?.agency_name || agencyName || "Luxury Property"}
+              className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setError(true)}
+              style={{ opacity: 0.85 }}
+              loading="eager"
+              fetchPriority="high"
+            />
+          </>
         )}
-        <img
-          src={finalBg}
-          alt={agency?.agency_name || agencyName || "Luxury Property"}
-          className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setError(true)}
-          style={{ opacity: 0.85 }}
-          loading="eager"
-          fetchPriority="high"
-        />
         <div className="absolute inset-0 bg-black/30" />
       </div>
 

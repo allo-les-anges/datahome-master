@@ -489,9 +489,16 @@ export default function AgencyDashboard() {
       setIsSaving(true);
       const fileExt = file.name.split('.').pop();
       const filePath = `${selectedAgency.subdomain}/team/team_${Date.now()}_${Math.random()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
+      const form = new FormData();
+      form.append('file', file);
+      form.append('filePath', filePath);
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_API_SECRET || '' },
+        body: form,
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
+      const { publicUrl } = await res.json();
       const newTeam = [...team];
       newTeam[index].photo = publicUrl;
       setTeam(newTeam);
@@ -515,9 +522,16 @@ export default function AgencyDashboard() {
       setIsSaving(true);
       const fileExt = file.name.split('.').pop();
       const filePath = `${selectedAgency.subdomain}/branding/logo_${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
+      const form = new FormData();
+      form.append('file', file);
+      form.append('filePath', filePath);
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_API_SECRET || '' },
+        body: form,
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
+      const { publicUrl } = await res.json();
       setSelectedAgency({ ...selectedAgency, logo_url: publicUrl });
       setMessage({ type: 'success', text: "Logo téléchargé avec succès !" });
       setTimeout(() => setMessage(null), 3000);
@@ -562,28 +576,36 @@ export default function AgencyDashboard() {
       const randomId = Math.random().toString(36).substring(2, 8);
       const folder = isVideo ? 'hero-video' : 'hero';
       const filePath = `${selectedAgency.subdomain}/${folder}/${timestamp}_${randomId}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
+
+      const form = new FormData();
+      form.append('file', file);
+      form.append('filePath', filePath);
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_API_SECRET || '' },
+        body: form,
       });
-      
-      if (uploadError) throw uploadError;
-      
-      const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
-      
-      setSelectedAgency({ 
-        ...selectedAgency, 
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Upload échoué');
+      }
+
+      const { publicUrl } = await res.json();
+
+      setSelectedAgency({
+        ...selectedAgency,
         hero_url: publicUrl,
         hero_type: isVideo ? 'video' : 'image'
       });
-      
+
       setMessage({ type: 'success', text: isVideo ? "Vidéo téléchargée avec succès !" : "Image téléchargée avec succès !" });
       setTimeout(() => setMessage(null), 3000);
-      
+
     } catch (error: any) {
       console.error('Upload error:', error);
-      setMessage({ type: 'error', text: error.message || "Erreur lors de l'upload. Vérifiez les permissions du bucket." });
+      setMessage({ type: 'error', text: error.message || "Erreur lors de l'upload." });
       setTimeout(() => setMessage(null), 5000);
     } finally {
       setIsSaving(false);
