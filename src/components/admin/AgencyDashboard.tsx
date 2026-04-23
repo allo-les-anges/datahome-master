@@ -469,6 +469,23 @@ export default function AgencyDashboard() {
     setSelectedAgency({ ...selectedAgency, team_data: newTeam });
   };
 
+  const uploadToStorage = async (file: File, filePath: string): Promise<string> => {
+    const res = await fetch('/api/admin/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath }),
+    });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
+    const { signedUrl, publicUrl } = await res.json();
+    const uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error('Upload direct échoué');
+    return publicUrl;
+  };
+
   const updateMember = (index: number, field: string, value: string) => {
     const newTeam = [...team];
     newTeam[index][field] = value;
@@ -489,16 +506,7 @@ export default function AgencyDashboard() {
       setIsSaving(true);
       const fileExt = file.name.split('.').pop();
       const filePath = `${selectedAgency.subdomain}/team/team_${Date.now()}_${Math.random()}.${fileExt}`;
-      const form = new FormData();
-      form.append('file', file);
-      form.append('filePath', filePath);
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {},
-        body: form,
-      });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
-      const { publicUrl } = await res.json();
+      const publicUrl = await uploadToStorage(file, filePath);
       const newTeam = [...team];
       newTeam[index].photo = publicUrl;
       setTeam(newTeam);
@@ -522,16 +530,7 @@ export default function AgencyDashboard() {
       setIsSaving(true);
       const fileExt = file.name.split('.').pop();
       const filePath = `${selectedAgency.subdomain}/branding/logo_${Date.now()}.${fileExt}`;
-      const form = new FormData();
-      form.append('file', file);
-      form.append('filePath', filePath);
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {},
-        body: form,
-      });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
-      const { publicUrl } = await res.json();
+      const publicUrl = await uploadToStorage(file, filePath);
       setSelectedAgency({ ...selectedAgency, logo_url: publicUrl });
       setMessage({ type: 'success', text: "Logo téléchargé avec succès !" });
       setTimeout(() => setMessage(null), 3000);
@@ -577,22 +576,7 @@ export default function AgencyDashboard() {
       const folder = isVideo ? 'hero-video' : 'hero';
       const filePath = `${selectedAgency.subdomain}/${folder}/${timestamp}_${randomId}.${fileExt}`;
 
-      const form = new FormData();
-      form.append('file', file);
-      form.append('filePath', filePath);
-
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {},
-        body: form,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Upload échoué');
-      }
-
-      const { publicUrl } = await res.json();
+      const publicUrl = await uploadToStorage(file, filePath);
 
       setSelectedAgency({
         ...selectedAgency,

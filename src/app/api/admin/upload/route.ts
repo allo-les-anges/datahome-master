@@ -6,36 +6,29 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Returns a signed upload URL so the browser can upload directly to Supabase,
+// bypassing Vercel's 4.5MB serverless payload limit.
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const filePath = formData.get('filePath') as string;
+    const { filePath } = await request.json();
 
-    if (!file || !filePath) {
-      return NextResponse.json({ error: 'file and filePath are required' }, { status: 400 });
+    if (!filePath) {
+      return NextResponse.json({ error: 'filePath is required' }, { status: 400 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const { error: uploadError } = await supabaseAdmin.storage
+    const { data, error } = await supabaseAdmin.storage
       .from('agencies')
-      .upload(filePath, buffer, {
-        contentType: file.type,
-        cacheControl: '3600',
-        upsert: true,
-      });
+      .createSignedUploadUrl(filePath);
 
-    if (uploadError) throw uploadError;
+    if (error) throw error;
 
     const { data: { publicUrl } } = supabaseAdmin.storage
       .from('agencies')
       .getPublicUrl(filePath);
 
-    return NextResponse.json({ publicUrl });
+    return NextResponse.json({ signedUrl: data.signedUrl, token: data.token, publicUrl });
   } catch (error: any) {
-    console.error('Upload error:', error);
+    console.error('Signed URL error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
