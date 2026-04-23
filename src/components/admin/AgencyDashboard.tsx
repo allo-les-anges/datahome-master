@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -25,6 +25,8 @@ const translations = {
     success_save: "Configuration enregistrée avec succès !",
     error_save: "Erreur lors de la sauvegarde.",
     generate: "Générer l'agence",
+    upload_video_error: "Erreur lors de l'upload vidéo. La vidéo doit être au format MP4 et ne pas dépasser 50 Mo.",
+    upload_image_error: "Erreur lors de l'upload image. L'image ne doit pas dépasser 5 Mo.",
     sections: {
       lang_xml: "Langues & Flux XML",
       socials: "Réseaux Sociaux & Contact",
@@ -96,6 +98,8 @@ const translations = {
     success_save: "Settings saved successfully!",
     error_save: "Error while saving.",
     generate: "Generate Agency",
+    upload_video_error: "Video upload error. Video must be MP4 format and less than 50MB.",
+    upload_image_error: "Image upload error. Image must be less than 5MB.",
     sections: {
       lang_xml: "Languages & XML Feeds",
       socials: "Social Networks & Contact",
@@ -167,6 +171,8 @@ const translations = {
     success_save: "¡Configuración guardada con éxito!",
     error_save: "Error al guardar.",
     generate: "Generar Agencia",
+    upload_video_error: "Error al subir el video. El video debe ser MP4 y no superar los 50 MB.",
+    upload_image_error: "Error al subir la imagen. La imagen no debe superar los 5 MB.",
     sections: {
       lang_xml: "Idiomas y Flujos XML",
       socials: "Redes Sociales y Contacto",
@@ -228,77 +234,6 @@ const translations = {
       remove_member: "Eliminar"
     }
   },
-  pl: {
-    admin: "Administracja",
-    saas_title: "SaaS Agencje",
-    new_agency: "Nowa Agencja",
-    select_agency: "Wybierz agencję, aby skonfigurować jej branding.",
-    save: "Zapisz zmiany",
-    saving: "Zapisywanie...",
-    success_save: "Konfiguracja zapisana pomyślnie!",
-    error_save: "Błąd podczas zapisywania.",
-    generate: "Generuj Agencję",
-    sections: {
-      lang_xml: "Języki i kanały XML",
-      socials: "Media społecznościowe i kontakt",
-      integrations: "Integracje",
-      branding: "Tożsamość wizualna i kolory",
-      hero: "Konfiguracja nagłówka Hero",
-      preview: "Podgląd na żywo",
-      legal: "Zgodność i prawo",
-      about: "Strony statyczne (O nas)",
-      team: "Zarządzanie zespołem"
-    },
-    fields: {
-      allowed_langs: "Dozwolone języki witryny",
-      xml_sources: "Kanały nieruchomości (XML)",
-      facebook: "Link do Facebooka",
-      instagram: "Link do Instagrama",
-      linkedin: "Link do LinkedIn",
-      tiktok: "Link do TikToka",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "Nazwa agencji",
-      subdomain: "URL witryny (Slug)",
-      logo: "Logo agencji",
-      font: "Czcionka",
-      font_family: "Czcionka",
-      primary_color: "Kolor główny (Akcenty)",
-      button_color: "Kolor przycisków (CTA)",
-      button_style: "Styl przycisków",
-      button_animation: "Animacja przycisków",
-      hero_title: "Tytuł nagłówka (Hero)",
-      hero_type: "Typ mediów",
-      hero_file: "Plik multimedialny (Obraz/Wideo)",
-      email: "E-mail kontaktowy",
-      phone: "Telefon stacjonarny",
-      whatsapp: "Numer WhatsApp (Komórkowy)",
-      about_title: "Tytuł strony O nas",
-      about_text: "Tekst strony O nas",
-      privacy_policy: "Polityka prywatności",
-      member_name: "Imię i nazwisko",
-      member_role: "Stanowisko / Rola",
-      member_bio: "Biografia",
-      member_photo: "Zdjęcie członka"
-    },
-    placeholders: {
-      slug: "nazwa-agencji",
-      hero_text: "Odkryj nasze wyjątkowe nieruchomości...",
-      about_title: "Sztuka wyjątkowego życia...",
-      about_text: "Opisz swoją agencję...",
-      click_upload: "Kliknij, aby przesłać",
-      media_upload: "Prześlij media",
-      button: "Przycisk",
-      whatsapp: "Np: 48600000000 (bez +)",
-      member_name: "Jan Kowalski",
-      member_role: "Agent nieruchomości",
-      member_bio: "Ekspert nieruchomości od 15 lat..."
-    },
-    buttons: {
-      add_member: "Dodaj członka",
-      remove_member: "Usuń"
-    }
-  },
   nl: {
     admin: "Administratie",
     saas_title: "SaaS Agentschappen",
@@ -309,6 +244,8 @@ const translations = {
     success_save: "Configuratie succesvol opgeslagen!",
     error_save: "Fout bij het opslaan.",
     generate: "Agentschap genereren",
+    upload_video_error: "Fout bij uploaden video. Video moet MP4 zijn en mag niet groter zijn dan 50 MB.",
+    upload_image_error: "Fout bij uploaden afbeelding. Afbeelding mag niet groter zijn dan 5 MB.",
     sections: {
       lang_xml: "Talen & XML-feeds",
       socials: "Sociale netwerken & Contact",
@@ -368,77 +305,6 @@ const translations = {
     buttons: {
       add_member: "Lid toevoegen",
       remove_member: "Verwijderen"
-    }
-  },
-  ar: {
-    admin: "الإدارة",
-    saas_title: "نظام إدارة الوكالات",
-    new_agency: "وكالة جديدة",
-    select_agency: "اختر وكالة لتكوين هويتها التجارية.",
-    save: "حفظ التغييرات",
-    saving: "جاري الحفظ...",
-    success_save: "تم حفظ الإعدادات بنجاح!",
-    error_save: "خطأ أثناء الحفظ.",
-    generate: "إنشاء الوكالة",
-    sections: {
-      lang_xml: "اللغات وخلاصات XML",
-      socials: "شبكات التواصل والاتصال",
-      integrations: "التكاملات",
-      branding: "الهوية البصرية والألوان",
-      hero: "إعداد واجهة العرض (Hero)",
-      preview: "معاينة مباشرة",
-      legal: "المطابقة والقانوني",
-      about: "الصفحات الثابتة (من نحن)",
-      team: "إدارة الفريق"
-    },
-    fields: {
-      allowed_langs: "اللغات المسموح بها في الموقع",
-      xml_sources: "خلاصات العقارات (XML)",
-      facebook: "رابط فيسبوك",
-      instagram: "رابط إنستغرام",
-      linkedin: "رابط لينكد إن",
-      tiktok: "رابط تيك توك",
-      zoho: "Zoho CRM (ID / Token)",
-      taskade: "Taskade AI Agent ID",
-      agency_name: "اسم الوكالة",
-      subdomain: "رابط الموقع (Slug)",
-      logo: "شعار الوكالة",
-      font: "نوع الخط",
-      font_family: "نوع الخط",
-      primary_color: "اللون الأساسي",
-      button_color: "لون الأزرار",
-      button_style: "نمط الأزرار",
-      button_animation: "حركة الأزرار",
-      hero_title: "عنوان واجهة العرض",
-      hero_type: "نوع الوسائط",
-      hero_file: "ملف الوسائط (صورة/فيديو)",
-      email: "البريد الإلكتروني للاتصال",
-      phone: "الهاتف الثابت",
-      whatsapp: "رقم الواتساب (الجوال)",
-      about_title: "عنوان صفحة 'من نحن'",
-      about_text: "نص صفحة 'من نحن'",
-      privacy_policy: "سياسة الخصوصية",
-      member_name: "الاسم الكامل",
-      member_role: "المنصب / الدور",
-      member_bio: "السيرة الذاتية",
-      member_photo: "صورة العضو"
-    },
-    placeholders: {
-      slug: "اسم-الوكالة",
-      hero_text: "اكتشف عقاراتنا الاستثنائية...",
-      about_title: "فن العيش الاستثنائي...",
-      about_text: "صف وكالتك...",
-      click_upload: "انقر للتحميل",
-      media_upload: "تحميل الوسائط",
-      button: "زر",
-      whatsapp: "مثال: 966500000000 (بدون +)",
-      member_name: "أحمد محمد",
-      member_role: "وكيل عقاري",
-      member_bio: "خبير عقاري منذ 15 عاماً..."
-    },
-    buttons: {
-      add_member: "إضافة عضو",
-      remove_member: "حذف"
     }
   }
 };
@@ -634,19 +500,118 @@ export default function AgencyDashboard() {
     finally { setIsSaving(false); }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, folder: string, field: string) => {
+  // Fonction pour gérer l'upload du logo
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedAgency) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ type: 'error', text: t.upload_image_error });
+      setTimeout(() => setMessage(null), 5000);
+      return;
+    }
+    
     try {
       setIsSaving(true);
       const fileExt = file.name.split('.').pop();
-      const filePath = `${selectedAgency.subdomain}/${folder}/${Math.random()}.${fileExt}`;
+      const filePath = `${selectedAgency.subdomain}/branding/logo_${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
-      setSelectedAgency({ ...selectedAgency, [field]: publicUrl });
-    } catch { setMessage({ type: 'error', text: "Upload Error" }); }
-    finally { setIsSaving(false); }
+      setSelectedAgency({ ...selectedAgency, logo_url: publicUrl });
+      setMessage({ type: 'success', text: "Logo téléchargé avec succès !" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      setMessage({ type: 'error', text: "Erreur lors de l'upload du logo" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Fonction pour gérer l'upload du média héros (image ou vidéo)
+  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedAgency) return;
+
+    const isVideo = file.type.startsWith('video/');
+    
+    // Validation pour les vidéos
+    if (isVideo) {
+      if (!file.type.includes('mp4')) {
+        setMessage({ type: 'error', text: t.upload_video_error || "Format vidéo non supporté. Utilisez MP4." });
+        setTimeout(() => setMessage(null), 5000);
+        return;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        setMessage({ type: 'error', text: t.upload_video_error || "La vidéo ne doit pas dépasser 50 Mo." });
+        setTimeout(() => setMessage(null), 5000);
+        return;
+      }
+    } else {
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ type: 'error', text: t.upload_image_error || "L'image ne doit pas dépasser 5 Mo." });
+        setTimeout(() => setMessage(null), 5000);
+        return;
+      }
+    }
+
+    try {
+      setIsSaving(true);
+      const fileExt = file.name.split('.').pop();
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2, 8);
+      const folder = isVideo ? 'hero-video' : 'hero';
+      const filePath = `${selectedAgency.subdomain}/${folder}/${timestamp}_${randomId}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage.from('agencies').upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage.from('agencies').getPublicUrl(filePath);
+      
+      setSelectedAgency({ 
+        ...selectedAgency, 
+        hero_url: publicUrl,
+        hero_type: isVideo ? 'video' : 'image'
+      });
+      
+      setMessage({ type: 'success', text: isVideo ? "Vidéo téléchargée avec succès !" : "Image téléchargée avec succès !" });
+      setTimeout(() => setMessage(null), 3000);
+      
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      setMessage({ type: 'error', text: error.message || "Erreur lors de l'upload. Vérifiez les permissions du bucket." });
+      setTimeout(() => setMessage(null), 5000);
+    } finally {
+      setIsSaving(false);
+      e.target.value = '';
+    }
+  };
+
+  // Fonction pour supprimer le média héros
+  const handleRemoveHero = async () => {
+    if (!selectedAgency?.hero_url) return;
+    
+    try {
+      setIsSaving(true);
+      const urlParts = selectedAgency.hero_url.split('/object/public/agencies/');
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1];
+        await supabase.storage.from('agencies').remove([filePath]);
+      }
+      setSelectedAgency({ ...selectedAgency, hero_url: null, hero_type: 'image' });
+      setMessage({ type: 'success', text: "Média supprimé avec succès !" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error('Delete error:', error);
+      setMessage({ type: 'error', text: "Erreur lors de la suppression" });
+      setTimeout(() => setMessage(null), 5000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -673,7 +638,13 @@ export default function AgencyDashboard() {
     setIsSaving(true);
     try {
       const teamDataToSave = JSON.parse(JSON.stringify(team));
-      const { data, error, status } = await supabase
+      
+      let footerConfig = selectedAgency.footer_config;
+      if (typeof footerConfig === 'string') {
+        try { footerConfig = JSON.parse(footerConfig); } catch { footerConfig = {}; }
+      }
+      
+      const { data, error } = await supabase
         .from('agency_settings')
         .update({
           agency_name: selectedAgency.agency_name,
@@ -684,7 +655,7 @@ export default function AgencyDashboard() {
           button_animation: selectedAgency.button_animation || 'none',
           font_family: selectedAgency.font_family,
           hero_title: selectedAgency.hero_title,
-          hero_type: selectedAgency.hero_type,
+          hero_type: selectedAgency.hero_type || 'image',
           hero_url: selectedAgency.hero_url,
           logo_url: selectedAgency.logo_url,
           default_lang: selectedAgency.default_lang,
@@ -693,8 +664,7 @@ export default function AgencyDashboard() {
           about_title: selectedAgency.about_title,
           about_text: selectedAgency.about_text,
           whatsapp_number: selectedAgency.whatsapp_number,
-          footer_config: selectedAgency.footer_config,
-          property_manager_enabled: !!selectedAgency?.footer_config?.integrations?.property_manager_enabled,
+          footer_config: footerConfig,
           habihub_agent_id: selectedAgency.habihub_agent_id || null,
           team_data: teamDataToSave,
           updated_at: new Date().toISOString(),
@@ -713,6 +683,7 @@ export default function AgencyDashboard() {
         setMessage({ type: 'error', text: "Erreur: Agence non trouvée avec cet ID" });
       }
     } catch (err: any) {
+      console.error('Save error:', err);
       setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
       setIsSaving(false);
@@ -732,6 +703,7 @@ export default function AgencyDashboard() {
           package_level: newAgency.package_level,
           button_style: 'rounded-full',
           button_animation: 'none',
+          hero_type: 'image',
           footer_config: { allowed_langs: ['fr', 'en'], xml_urls: [], socials: {}, integrations: {} },
           team_data: [],
           created_at: new Date().toISOString(),
@@ -847,7 +819,12 @@ export default function AgencyDashboard() {
                     <div className="space-y-3">
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.logo}</label>
                       <div className="relative group">
-                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'branding', 'logo_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleLogoUpload} 
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                        />
                         <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
                           <UploadCloud className="text-slate-300" size={24} />
                           <span className="text-xs text-slate-500">{selectedAgency?.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
@@ -938,20 +915,57 @@ export default function AgencyDashboard() {
                         <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}><Video size={14} /> Vidéo</button>
                       </div>
                     </div>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-3">
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.hero_file}</label>
                         <div className="relative group">
-                          <input type="file" accept={selectedAgency.hero_type === 'video' ? 'video/mp4' : 'image/*'} onChange={(e) => handleFileUpload(e, 'hero', 'hero_url')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                          <input 
+                            type="file" 
+                            accept={selectedAgency.hero_type === 'video' ? 'video/mp4' : 'image/*'} 
+                            onChange={handleHeroUpload} 
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                          />
                           <div className="w-full border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 bg-slate-50 group-hover:bg-slate-100 transition-colors">
                             <UploadCloud className="text-slate-300" size={24} />
-                            <span className="text-xs text-slate-500 font-medium">{t.placeholders.media_upload}</span>
+                            <span className="text-xs text-slate-500 font-medium">
+                              {selectedAgency?.hero_url 
+                                ? (selectedAgency.hero_type === 'video' ? "Changer la vidéo" : "Changer l'image") 
+                                : t.placeholders.media_upload}
+                            </span>
+                            {selectedAgency.hero_type === 'video' && (
+                              <span className="text-[9px] text-slate-400">MP4 uniquement, max 50 Mo</span>
+                            )}
                           </div>
                         </div>
+                        
+                        {selectedAgency?.hero_url && (
+                          <div className="mt-3 p-3 bg-slate-100 rounded-xl relative group">
+                            {selectedAgency.hero_type === 'video' ? (
+                              <video src={selectedAgency.hero_url} className="w-full h-32 object-cover rounded-lg" controls />
+                            ) : (
+                              <img src={selectedAgency.hero_url} className="w-full h-32 object-cover rounded-lg" alt="Hero preview" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={handleRemoveHero}
+                              className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
                       </div>
+                      
                       <div className="space-y-3">
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.fields.hero_title}</label>
-                        <textarea rows={4} value={selectedAgency.hero_title || ''} onChange={(e) => setSelectedAgency({...selectedAgency, hero_title: e.target.value})} placeholder={t.placeholders.hero_text} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-serif italic text-lg" />
+                        <textarea 
+                          rows={4} 
+                          value={selectedAgency.hero_title || ''} 
+                          onChange={(e) => setSelectedAgency({...selectedAgency, hero_title: e.target.value})} 
+                          placeholder={t.placeholders.hero_text} 
+                          className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-serif italic text-lg" 
+                        />
                       </div>
                     </div>
                   </div>
@@ -1480,6 +1494,17 @@ export default function AgencyDashboard() {
                     <Monitor size={14} /> {t.sections.preview}
                   </div>
                   <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-slate-800" style={{ fontFamily: selectedAgency.font_family || 'Montserrat, sans-serif' }}>
+                    {selectedAgency.hero_url && selectedAgency.hero_type === 'video' && (
+                      <video
+                        key={selectedAgency.hero_url}
+                        src={selectedAgency.hero_url}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover opacity-60"
+                      />
+                    )}
                     {selectedAgency.hero_url && selectedAgency.hero_type !== 'video' && (
                       <img src={selectedAgency.hero_url} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="BG" />
                     )}
