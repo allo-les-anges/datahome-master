@@ -494,7 +494,7 @@ export default function AgencyDashboard() {
       form.append('filePath', filePath);
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_API_SECRET || '' },
+        headers: {},
         body: form,
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
@@ -527,7 +527,7 @@ export default function AgencyDashboard() {
       form.append('filePath', filePath);
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_API_SECRET || '' },
+        headers: {},
         body: form,
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
@@ -583,7 +583,7 @@ export default function AgencyDashboard() {
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_API_SECRET || '' },
+        headers: {},
         body: form,
       });
 

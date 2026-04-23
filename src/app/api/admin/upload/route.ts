@@ -7,11 +7,6 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(request: Request) {
-  const authHeader = request.headers.get('x-admin-secret');
-  if (authHeader !== process.env.ADMIN_API_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
