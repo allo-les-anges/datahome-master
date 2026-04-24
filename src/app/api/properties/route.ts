@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 
     // Optimisation : sélectionner seulement les champs nécessaires pour la liste
     const { data: properties, error, count } = await query
-      .select('id, ref, price, town, region, beds, baths, surface_built, surface_plot, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, xml_source')
+      .select('id, ref, price, town, region, beds, baths, surface_built, surface_plot, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, xml_source, development_name, promoteur_name')
       .order('price', { ascending: true })
       .range(offset, offset + limit - 1);
 
@@ -76,7 +76,9 @@ export async function GET(request: Request) {
       images: Array.isArray(p.images) ? p.images.slice(0, 5) : [], // Limiter les images
       titre: p[`titre_${lang}`] || p.titre_fr || p.ref,
       description: p[`description_${lang}`] || p.description_fr || "",
-      xml_source: p.xml_source
+      xml_source: p.xml_source,
+      development_name: p.development_name || null,
+      promoteur_name: p.promoteur_name || null,
     }));
 
     const response = { properties: formatted, total: count };
