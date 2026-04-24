@@ -1,24 +1,14 @@
-Le "grand code React", c'est celui que tu as partagé un peu plus haut : ton **dictionnaire avec les 9 langues** (FR, NL, EN, ES, DE, PL, RU, NO, DA) et toute la logique du formulaire (OTP, Branding, Contenu).
-
-C'est lui qui contient tout le design et les fonctionnalités de ta page d'onboarding. Pour que ton projet fonctionne parfaitement avec **Vite**, voici le code **complet et nettoyé** (j'ai corrigé les petites erreurs de balises qui s'étaient glissées dans ton copier-coller).
-
-**Copie tout ce bloc et colle-le dans ton fichier `src/App.jsx` :**
-
-```jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle2, 
-  Palette, 
-  Globe, 
-  Rocket, 
-  ShieldCheck, 
+import {
+  CheckCircle2,
+  Palette,
+  Globe,
+  Rocket,
+  ShieldCheck,
   ArrowRight,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 
-/**
- * DICTIONNAIRE MULTILINGUE (9 LANGUES)
- */
 const i18n = {
   fr: {
     title: "Vérification de sécurité",
@@ -43,7 +33,7 @@ const i18n = {
     launch: "Lancer mon Dashboard",
     congrats: "Félicitations !",
     success_msg: "Votre agence est en cours de déploiement.",
-    access_dash: "Accéder à mon Dashboard"
+    access_dash: "Accéder à mon Dashboard",
   },
   nl: {
     title: "Beveiligingscontrole",
@@ -68,7 +58,7 @@ const i18n = {
     launch: "Start mijn Dashboard",
     congrats: "Gefeliciteerd!",
     success_msg: "Uw agentschap wordt momenteel geïmplementeerd.",
-    access_dash: "Ga naar mijn Dashboard"
+    access_dash: "Ga naar mijn Dashboard",
   },
   en: {
     title: "Security Verification",
@@ -93,7 +83,7 @@ const i18n = {
     launch: "Launch my Dashboard",
     congrats: "Congratulations!",
     success_msg: "Your agency is being deployed.",
-    access_dash: "Access my Dashboard"
+    access_dash: "Access my Dashboard",
   },
   es: {
     title: "Verificación de seguridad",
@@ -118,7 +108,7 @@ const i18n = {
     launch: "Lanzar mi Dashboard",
     congrats: "¡Felicidades!",
     success_msg: "Su agencia está siendo desplegada.",
-    access_dash: "Acceder a mi Dashboard"
+    access_dash: "Acceder a mi Dashboard",
   },
   de: {
     title: "Sicherheitsüberprüfung",
@@ -143,7 +133,7 @@ const i18n = {
     launch: "Mein Dashboard starten",
     congrats: "Herzlichen Glückwunsch!",
     success_msg: "Ihre Agentur wird gerade bereitgestellt.",
-    access_dash: "Zum Dashboard gehen"
+    access_dash: "Zum Dashboard gehen",
   },
   pl: {
     title: "Weryfikacja bezpieczeństwa",
@@ -168,7 +158,7 @@ const i18n = {
     launch: "Uruchom mój Panel",
     congrats: "Gratulacje!",
     success_msg: "Twoja agencja jest w trakcie wdrażania.",
-    access_dash: "Przejdź do Panelu"
+    access_dash: "Przejdź do Panelu",
   },
   ru: {
     title: "Проверка безопасности",
@@ -193,7 +183,7 @@ const i18n = {
     launch: "Запустить панель управления",
     congrats: "Поздравляем!",
     success_msg: "Ваше агентство находится в процессе развертывания.",
-    access_dash: "Перейти в панель управления"
+    access_dash: "Перейти в панель управления",
   },
   no: {
     title: "Sikkerhetsverifisering",
@@ -218,7 +208,7 @@ const i18n = {
     launch: "Start mitt Dashboard",
     congrats: "Gratulerer!",
     success_msg: "Byrået ditt blir distribuert.",
-    access_dash: "Gå til Dashboard"
+    access_dash: "Gå til Dashboard",
   },
   da: {
     title: "Sikkerhedsbekræftelse",
@@ -243,21 +233,26 @@ const i18n = {
     launch: "Start mit Dashboard",
     congrats: "Tillykke!",
     success_msg: "Dit bureau er under udrulning.",
-    access_dash: "Gå til Dashboard"
-  }
+    access_dash: "Gå til Dashboard",
+  },
 };
 
 export default function App() {
   const [lang, setLang] = useState('fr');
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState('');
-  
+
   const [params, setParams] = useState({ email: '', name: '', company: '' });
   const [config, setConfig] = useState({
-    agency_name: '', subdomain: '', primary_color: '#e5992e',
-    font_family: 'Montserrat', hero_title: 'PROFESSIONALS AT YOUR SERVICE',
-    default_lang: 'fr', facebook: '', whatsapp: '', instagram: '', xml_url: ''
+    agency_name: '',
+    subdomain: '',
+    primary_color: '#e5992e',
+    hero_title: 'PROFESSIONALS AT YOUR SERVICE',
+    default_lang: 'fr',
+    facebook: '',
+    whatsapp: '',
+    xml_url: '',
   });
 
   useEffect(() => {
@@ -266,15 +261,14 @@ export default function App() {
     const email = urlParams.get('email') || '';
     const name = urlParams.get('name') || '';
     const company = urlParams.get('company') || '';
-    
+
     if (i18n[urlLang]) setLang(urlLang);
-    
     setParams({ email, name, company });
-    setConfig(prev => ({ 
-      ...prev, 
+    setConfig(prev => ({
+      ...prev,
       agency_name: company,
-      subdomain: company.toLowerCase().replace(/\s+/g, '-'),
-      default_lang: urlLang
+      subdomain: company.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      default_lang: urlLang,
     }));
   }, []);
 
@@ -297,15 +291,22 @@ export default function App() {
     }, 1800);
   };
 
+  const progressClass = { 1: 'w-1/4', 2: 'w-2/4', 3: 'w-3/4', 4: 'w-full' }[step] || 'w-1/4';
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col items-center justify-center p-4">
-      {/* Selector de secours */}
-      <div className="absolute top-4 right-4 flex gap-2">
+
+      {/* Sélecteur de langue */}
+      <div className="absolute top-4 right-4 flex flex-wrap gap-1 max-w-xs justify-end">
         {Object.keys(i18n).map(l => (
-          <button 
+          <button
             key={l}
             onClick={() => setLang(l)}
-            className={`px-2 py-1 text-[10px] font-bold rounded border ${lang === l ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-200'}`}
+            className={`px-2 py-1 text-[10px] font-bold rounded border transition-all ${
+              lang === l
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white text-slate-400 border-slate-200 hover:border-slate-400'
+            }`}
           >
             {l.toUpperCase()}
           </button>
@@ -313,44 +314,49 @@ export default function App() {
       </div>
 
       <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
-        <div className="h-2 bg-slate-100 flex">
-          <div className={`h-full transition-all duration-700 bg-blue-600 ${step === 1 ? 'w-1/4' : step === 2 ? 'w-2/4' : step === 3 ? 'w-3/4' : 'w-full'}`}></div>
+
+        {/* Barre de progression */}
+        <div className="h-2 bg-slate-100">
+          <div className={`h-full bg-blue-600 transition-all duration-700 ${progressClass}`} />
         </div>
 
         <div className="p-8 md:p-12">
-          
-          {/* STEP 1: OTP */}
+
+          {/* STEP 1 : OTP */}
           {step === 1 && (
             <div className="space-y-6 text-center">
-              <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto">
                 <ShieldCheck size={40} />
               </div>
               <h1 className="text-3xl font-bold tracking-tight">{t.title}</h1>
               <p className="text-slate-500">
-                {t.welcome} <span className="font-semibold text-slate-800">{params.name}</span>, {t.otp_instruction} <span className="font-semibold text-slate-800">{params.company}</span>.
+                {t.welcome} <span className="font-semibold text-slate-800">{params.name}</span>,{' '}
+                {t.otp_instruction}{' '}
+                <span className="font-semibold text-slate-800">{params.company}</span>.
               </p>
               <form onSubmit={handleVerifyOTP} className="space-y-4">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
+                  inputMode="numeric"
                   placeholder={t.otp_placeholder}
-                  className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-blue-500 outline-none text-center text-2xl tracking-[0.5em] font-mono"
+                  className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-blue-500 outline-none text-center text-2xl tracking-[0.5em] font-mono transition-colors"
                   maxLength={6}
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                   required
                 />
-                <button 
+                <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? <Loader2 className="animate-spin" /> : t.validate}
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : t.validate}
                 </button>
               </form>
             </div>
           )}
 
-          {/* STEP 2: BRANDING */}
+          {/* STEP 2 : BRANDING */}
           {step === 2 && (
             <div className="space-y-8">
               <header className="text-center">
@@ -363,38 +369,64 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_agency}</label>
-                  <input className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50" value={config.agency_name} onChange={e => setConfig({...config, agency_name: e.target.value})} />
+                  <input
+                    className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={config.agency_name}
+                    onChange={e => setConfig({ ...config, agency_name: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_subdomain}</label>
-                  <input className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 font-mono text-sm" value={config.subdomain} onChange={e => setConfig({...config, subdomain: e.target.value})} />
+                  <input
+                    className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={config.subdomain}
+                    onChange={e => setConfig({ ...config, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_color}</label>
-                  <div className="flex gap-3">
-                    <input type="color" className="h-12 w-20 rounded-lg cursor-pointer" value={config.primary_color} onChange={e => setConfig({...config, primary_color: e.target.value})} />
-                    <input className="flex-1 px-5 py-3 rounded-xl border border-slate-100 bg-slate-50 uppercase font-mono" value={config.primary_color} onChange={e => setConfig({...config, primary_color: e.target.value})} />
+                  <div className="flex gap-3 items-center">
+                    <input
+                      type="color"
+                      className="h-12 w-16 rounded-lg cursor-pointer border border-slate-100 p-1"
+                      value={config.primary_color}
+                      onChange={e => setConfig({ ...config, primary_color: e.target.value })}
+                    />
+                    <input
+                      className="flex-1 px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 uppercase font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={config.primary_color}
+                      onChange={e => setConfig({ ...config, primary_color: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_lang}</label>
-                  <select className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50" value={config.default_lang} onChange={e => { setConfig({...config, default_lang: e.target.value}); setLang(e.target.value); }}>
-                    <option value="fr">Français</option>
-                    <option value="en">English</option>
-                    <option value="nl">Nederlands</option>
-                    <option value="es">Español</option>
-                    <option value="de">Deutsch</option>
+                  <select
+                    className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={config.default_lang}
+                    onChange={e => {
+                      setConfig({ ...config, default_lang: e.target.value });
+                      setLang(e.target.value);
+                    }}
+                  >
+                    {Object.keys(i18n).map(l => (
+                      <option key={l} value={l}>{l.toUpperCase()}</option>
+                    ))}
                   </select>
                 </div>
               </div>
 
-              <button onClick={() => setStep(3)} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+              <button
+                onClick={() => setStep(3)}
+                disabled={!config.agency_name || !config.subdomain}
+                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
                 {t.next} <ArrowRight size={20} />
               </button>
             </div>
           )}
 
-          {/* STEP 3: CONTENT */}
+          {/* STEP 3 : CONTENT */}
           {step === 3 && (
             <div className="space-y-8">
               <header className="text-center">
@@ -407,49 +439,79 @@ export default function App() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_hero}</label>
-                  <input className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50" value={config.hero_title} onChange={e => setConfig({...config, hero_title: e.target.value})} />
+                  <input
+                    className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={config.hero_title}
+                    onChange={e => setConfig({ ...config, hero_title: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_xml}</label>
-                  <input placeholder="https://..." className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 font-mono text-sm" value={config.xml_url} onChange={e => setConfig({...config, xml_url: e.target.value})} />
+                  <input
+                    placeholder="https://..."
+                    className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={config.xml_url}
+                    onChange={e => setConfig({ ...config, xml_url: e.target.value })}
+                  />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <div className="space-y-2">
+                  <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_whatsapp}</label>
-                    <input className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50" value={config.whatsapp} onChange={e => setConfig({...config, whatsapp: e.target.value})} />
+                    <input
+                      placeholder="336XXXXXXXX"
+                      className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={config.whatsapp}
+                      onChange={e => setConfig({ ...config, whatsapp: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_facebook}</label>
-                    <input className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50" value={config.facebook} onChange={e => setConfig({...config, facebook: e.target.value})} />
+                    <input
+                      placeholder="https://facebook.com/..."
+                      className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={config.facebook}
+                      onChange={e => setConfig({ ...config, facebook: e.target.value })}
+                    />
                   </div>
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <button onClick={() => setStep(2)} className="flex-1 py-5 border border-slate-100 text-slate-400 rounded-2xl font-bold hover:bg-slate-50 transition-all">
+                <button
+                  onClick={() => setStep(2)}
+                  className="flex-1 py-5 border border-slate-200 text-slate-500 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                >
                   {t.back}
                 </button>
-                <button onClick={handleFinalize} disabled={loading} className="flex-[2] py-5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl hover:bg-green-600 transition-all flex items-center justify-center gap-2">
-                  {loading ? <Loader2 className="animate-spin" /> : <><Rocket size={20} /> {t.launch}</>}
+                <button
+                  onClick={handleFinalize}
+                  disabled={loading}
+                  className="flex-[2] py-5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl hover:bg-green-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {loading
+                    ? <Loader2 className="animate-spin" size={20} />
+                    : <><Rocket size={20} /> {t.launch}</>
+                  }
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 4: SUCCESS */}
+          {/* STEP 4 : SUCCESS */}
           {step === 4 && (
             <div className="text-center py-10 space-y-6">
-              <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 scale-110">
+              <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 size={50} />
               </div>
               <h1 className="text-4xl font-black text-slate-900">{t.congrats}</h1>
               <p className="text-lg text-slate-500 max-w-sm mx-auto">
-                {t.success_msg} (<span className="text-slate-900 font-bold">{config.agency_name}</span>)
+                {t.success_msg}{' '}
+                <span className="text-slate-900 font-bold">({config.agency_name})</span>
               </p>
               <div className="pt-8">
-                <a 
+                <a
                   href={`https://${config.subdomain}.habihub.com/admin`}
-                  className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:px-10 transition-all shadow-xl shadow-slate-200"
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all shadow-xl"
                 >
                   {t.access_dash} <ArrowRight size={18} />
                 </a>
@@ -459,11 +521,10 @@ export default function App() {
 
         </div>
       </div>
-      
+
       <p className="mt-8 text-slate-400 text-[10px] uppercase tracking-[0.3em] font-bold">
         HabiHub Premium Onboarding • {lang.toUpperCase()}
       </p>
     </div>
   );
 }
-```
