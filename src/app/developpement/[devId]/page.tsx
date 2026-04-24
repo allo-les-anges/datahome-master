@@ -250,8 +250,12 @@ export default function DevelopmentPage() {
         const res = await fetch("/api/properties?limit=200");
         const data = await res.json();
         const all: Unit[] = data.properties || data || [];
-        const idInUrl = String(devId).toLowerCase();
-        setUnits(all.filter(p => slugify(p.development_name || "") === idInUrl));
+        const devPrefix = String(devId).toLowerCase();
+        setUnits(all.filter(p => {
+          // Group by ref prefix (e.g. "55499639" from "55499639-03") since development_name is not populated by the XML sync
+          const refPrefix = p.ref?.split('-')[0]?.toLowerCase() || "";
+          return refPrefix === devPrefix;
+        }));
       } catch (err) {
         console.error("Erreur API:", err);
       } finally {
@@ -320,7 +324,7 @@ export default function DevelopmentPage() {
                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">Programme Exclusif</span>
               </div>
               <h1 className="text-5xl md:text-7xl font-serif italic leading-tight mb-4">
-                {dev.development_name}
+                {dev.development_name || `Programme ${devId}`}
               </h1>
               <p className="text-slate-400 flex items-center gap-2 text-sm">
                 <MapPin size={16} className="text-[#D4AF37]" />
@@ -509,7 +513,7 @@ export default function DevelopmentPage() {
       <section className="py-24 bg-[#0A0A0A] text-white">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <Building2 size={40} className="mx-auto mb-6 text-[#D4AF37]" />
-          <h2 className="text-4xl md:text-5xl font-serif italic mb-4">{dev.development_name}</h2>
+          <h2 className="text-4xl md:text-5xl font-serif italic mb-4">{dev.development_name || `Programme ${devId}`}</h2>
           <p className="text-slate-400 mb-10 text-sm leading-relaxed">
             Recevez le dossier complet du projet : plans d'architecte, plan de paiement personnalisé, brochure et disponibilités.
           </p>
@@ -528,7 +532,7 @@ export default function DevelopmentPage() {
       {leadUnit && (
         <LeadModal
           unitRef={leadUnit}
-          devName={dev.development_name || ""}
+          devName={dev.development_name || `Programme ${devId}`}
           onClose={() => setLeadUnit(null)}
         />
       )}
