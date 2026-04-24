@@ -151,6 +151,7 @@ const PropertyGrid = memo(function PropertyGrid({
   locale,
   blurAfter6 = false,
 }: PropertyGridProps) {
+  const { t } = useTranslation() as any;
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {properties.map((property: Villa, index: number) => {
@@ -170,7 +171,7 @@ const PropertyGrid = memo(function PropertyGrid({
               <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[2.5rem] bg-white/30 backdrop-blur-[2px]">
                 <div className="px-6 py-4 bg-white/90 rounded-2xl shadow-xl text-center border border-slate-100">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 text-slate-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">Contactez-nous</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">{t('contact.title').toUpperCase()}</p>
                 </div>
               </div>
             )}
