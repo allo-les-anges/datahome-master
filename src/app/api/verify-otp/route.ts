@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'email et otp_code requis' }, { status: 400 });
   }
 
-  const now = new Date().toISOString();
+  const now = encodeURIComponent(new Date().toISOString());
 
   // Cherche un enregistrement pending avec ce code non expiré
   const selectRes = await fetch(
-    sb(`register_premium?email=eq.${encodeURIComponent(email)}&otp_code=eq.${otp_code}&status=eq.pending&otp_expires_at=gt.${now}&select=id,first_name,last_name,email,company_name,phone_number,preferred_language`),
+    sb(`register_premium?email=eq.${encodeURIComponent(email)}&otp_code=eq.${encodeURIComponent(otp_code)}&status=eq.pending&otp_expires_at=gt.${now}&select=id,first_name,last_name,email,company_name,phone_number,preferred_language`),
     { headers: HEADERS },
   );
 
