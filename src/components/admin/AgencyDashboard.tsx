@@ -1147,6 +1147,45 @@ export default function AgencyDashboard() {
                     );
                   })()}
 
+                  {/* MODULE: Flou vignettes après 6 */}
+                  {(() => {
+                    const enabled = getSub('blur_listings') === true;
+                    return (
+                      <div className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${enabled ? 'border-blue-200' : 'border-slate-200'}`}>
+                        <div className={`flex items-center justify-between p-4 ${enabled ? 'bg-blue-50/40' : 'bg-slate-50/20'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${enabled ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                              <Monitor size={20} className={enabled ? 'text-blue-600' : 'text-slate-400'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">Flou des vignettes (après 6)</span>
+                                <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-blue-100 text-blue-700">Visibilité</span>
+                              </div>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-tight font-bold mt-0.5">Masque les biens au-delà des 6 premiers</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${enabled ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {enabled ? 'ACTIF' : 'INACTIF'}
+                            </span>
+                            <ToggleSwitch
+                              checked={enabled}
+                              checkedColor="#2563eb"
+                              onChange={(v) => updateNestedConfig('subscription', 'blur_listings', v)}
+                            />
+                          </div>
+                        </div>
+                        {enabled && (
+                          <div className="px-5 py-3 bg-blue-50 border-t border-blue-100 flex items-center gap-2">
+                            <AlertCircle size={13} className="text-blue-500 shrink-0" />
+                            <p className="text-[10px] text-blue-700 font-bold uppercase tracking-wide">Les vignettes au-delà de la 6ème apparaissent floutées avec un message "Contactez-nous".</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   {/* MODULE: Property Manager */}
                   {(() => {
                     const enabled = !!getInt('property_manager_enabled');

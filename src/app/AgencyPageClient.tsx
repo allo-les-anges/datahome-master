@@ -490,6 +490,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, [agency?.footer_config]);
 
   const chatbotEnabled = parsedFooterConfig?.integrations?.chatbot_enabled === true;
+  const blurAfter6 = parsedFooterConfig?.subscription?.blur_listings === true;
 
   // Loader
   if (loadingProperties && allProperties.length === 0) {
@@ -561,11 +562,12 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                   
                   <AnimatePresence mode="popLayout">
                     {localizedProperties.length > 0 ? (
-                      <PropertyGrid 
+                      <PropertyGrid
                         agency={agency}
-                        properties={localizedProperties.slice(0, displayLimit)} 
+                        properties={localizedProperties.slice(0, displayLimit)}
                         favorites={favorites}
                         onToggleFavorite={toggleFavorite}
+                        blurAfter6={blurAfter6}
                         onPropertyClick={(p: Villa) => {
                           const originalProperty = allProperties.find(prop => prop.id === p.id);
                           openPropertyDetail(originalProperty || p);
