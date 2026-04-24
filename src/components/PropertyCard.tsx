@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Bed, Bath, Waves, Car, Maximize, Map, ChevronRight, Heart } from 'lucide-react';
+import { Bed, Bath, Waves, Car, Maximize, Map, ChevronRight, Heart, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from "next-themes";
 import { useTranslation } from "@/contexts/I18nContext";
@@ -10,9 +10,16 @@ interface PropertyCardProps {
   property: any;
   agency?: any;
   isLight?: boolean;
+  isLocked?: boolean;
+  onContact?: () => void;
 }
 
-export default function PropertyCard({ property, agency, isLight = false }: PropertyCardProps) {
+/* Skeleton inline — aucune donnée réelle dans le DOM */
+function Skel({ w = 'w-24', h = 'h-4' }: { w?: string; h?: string }) {
+  return <span className={`inline-block ${w} ${h} rounded bg-slate-300/60 animate-pulse align-middle`} />;
+}
+
+export default function PropertyCard({ property, agency, isLight = false, isLocked = false, onContact }: PropertyCardProps) {
   const { resolvedTheme } = useTheme();
   const { t, locale } = useTranslation() as any;
   const [mounted, setMounted] = useState(false);
@@ -51,35 +58,61 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
 
   if (!mounted) return null;
   const showDark = resolvedTheme === 'dark' && !isLight;
-  
-  const detailUrl = `/bien/${property.id}${isLight ? '?pack=light' : ''}`;
+
+  const detailUrl = isLocked ? '#' : `/bien/${property.id}${isLight ? '?pack=light' : ''}`;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (isLocked) e.preventDefault();
+  };
 
   return (
-    <Link href={detailUrl} className="group flex flex-col w-full transition-all duration-500">
-      <div 
+    <Link href={detailUrl} onClick={handleCardClick} className="group flex flex-col w-full transition-all duration-500">
+      <div
         className="relative h-[380px] overflow-hidden rounded-none border transition-colors duration-500"
-        style={{ 
+        style={{
           backgroundColor: showDark ? '#0f172a' : '#f1f5f9',
           borderColor: showDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0'
         }}
       >
-        <img 
-          src={property.images?.[0] || "/placeholder-house.jpg"} 
-          alt={property.titre}
+        {/* Image — blurée si verrou actif */}
+        <img
+          src={property.images?.[0] || "/placeholder-house.jpg"}
+          alt={isLocked ? "Propriété confidentielle" : property.titre}
           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+          style={isLocked ? { filter: 'blur(12px)', transform: 'scale(1.08)' } : undefined}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90" />
 
+        {/* OVERLAY DE VERROUILLAGE — intercepte les clics, données réelles absentes du DOM */}
+        {isLocked && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 backdrop-blur-[2px]">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-white/10 border border-white/30 flex items-center justify-center backdrop-blur-sm">
+                <Lock size={24} className="text-white" strokeWidth={1.5} />
+              </div>
+              <button
+                onClick={(e) => { e.preventDefault(); onContact?.(); }}
+                className="flex items-center gap-2 px-6 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-white border border-white/60 hover:bg-white hover:text-black transition-all duration-300"
+                style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+              >
+                <Lock size={12} strokeWidth={2.5} />
+                {t('contact.title').toUpperCase()}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* BADGES GAUCHE */}
         <div className="absolute bottom-6 left-6 flex flex-wrap gap-2 max-w-[70%] z-10">
-          <span 
+          <span
             className="text-[9px] font-black px-4 py-2 rounded-none uppercase tracking-widest shadow-xl border border-white/10"
-            style={{ 
+            style={{
               backgroundColor: isLight ? 'black' : primaryColor,
-              color: isLight ? 'white' : 'black' 
+              color: isLight ? 'white' : 'black'
             }}
           >
-            {translate('propertyCard.ref', { ref: property.ref || property.id_externe })}
+            {/* Référence jamais dans le DOM si verrouillé */}
+            {isLocked ? '••• ••••••' : translate('propertyCard.ref', { ref: property.ref || property.id_externe })}
           </span>
           <span className="bg-black/60 backdrop-blur-md text-white border border-white/30 text-[8px] font-bold px-4 py-2 rounded-none uppercase tracking-[0.2em]">
             {property.type || "EXCLUSIVITÉ"}
@@ -88,43 +121,54 @@ export default function PropertyCard({ property, agency, isLight = false }: Prop
 
         {/* BOUTONS DROITE */}
         <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-10">
-          <button className="bg-black/40 backdrop-blur-md p-3 rounded-none border border-white/20 text-white hover:bg-opacity-100 transition-all">
-            <Heart size={18} strokeWidth={1.5} />
-          </button>
-          <div 
+          {!isLocked && (
+            <button className="bg-black/40 backdrop-blur-md p-3 rounded-none border border-white/20 text-white hover:bg-opacity-100 transition-all">
+              <Heart size={18} strokeWidth={1.5} />
+            </button>
+          )}
+          <div
             className="p-3 rounded-none shadow-xl transform group-hover:translate-x-1 transition-all border border-white/10"
-            style={{ 
+            style={{
               backgroundColor: isLight ? 'black' : primaryColor,
               color: isLight ? 'white' : 'black'
             }}
           >
-            <ChevronRight size={20} strokeWidth={2.5} />
+            {isLocked ? <Lock size={20} strokeWidth={2} /> : <ChevronRight size={20} strokeWidth={2.5} />}
           </div>
         </div>
       </div>
 
       <div className="py-8 px-2">
         <div className="flex justify-between items-start gap-4 mb-3">
-          <h3 
+          <h3
             className="text-2xl italic leading-tight flex-grow line-clamp-1 font-normal"
-            style={{ 
+            style={{
               fontFamily: `${fontFamily}, 'Playfair Display', serif`,
               color: showDark ? '#ffffff' : '#0f172a',
               fontWeight: 400
             }}
           >
+            {/* Titre : affiché même verrouillé (non sensible) */}
             {property.titre}
           </h3>
-          <span className="text-right pt-1" style={{ color: isLight ? 'black' : primaryColor }}>
-            <span className="text-xl font-bold block">{isArabic ? aedFormatted : eurFormatted}</span>
-            {isArabic && <span className="text-xs font-normal text-slate-400 block">{eurFormatted}</span>}
+          {/* Prix : jamais dans le DOM si verrouillé */}
+          <span className="text-right pt-1 shrink-0" style={{ color: isLight ? 'black' : primaryColor }}>
+            {isLocked
+              ? <Skel w="w-28" h="h-6" />
+              : <>
+                  <span className="text-xl font-bold block">{isArabic ? aedFormatted : eurFormatted}</span>
+                  {isArabic && <span className="text-xs font-normal text-slate-400 block">{eurFormatted}</span>}
+                </>
+            }
           </span>
         </div>
+        {/* Ville / région : jamais dans le DOM si verrouillé */}
         <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-bold" style={{ color: showDark ? '#e2e8f0' : '#475569' }}>
           <span style={{ color: isLight ? 'black' : primaryColor }}>●</span>
-          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town}</span>
-          <span className="opacity-30">|</span>
-          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span>
+          {isLocked
+            ? <><Skel w="w-20" h="h-3" /><span className="opacity-30">|</span><Skel w="w-16" h="h-3" /></>
+            : <><span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town}</span><span className="opacity-30">|</span><span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span></>
+          }
         </div>
       </div>
 
