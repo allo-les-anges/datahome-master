@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useTranslation } from "@/contexts/I18nContext";
 import {
   Search, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   Bed, Bath, Waves, Building2, MapPin, Map as MapIcon,
@@ -188,6 +189,7 @@ interface FilterSidebarProps {
 }
 
 function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebarProps) {
+  const { t } = useTranslation() as any;
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch });
   const activeCount = countActiveFilters(filters);
 
@@ -197,6 +199,64 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
   const toggleType = (label: string) =>
     set({ types: filters.types.includes(label) ? filters.types.filter(t => t !== label) : [...filters.types, label] });
 
+  const distributionCheckboxes = [
+    { key: "garage",         fallback: "Garage" },
+    { key: "outdoorKitchen", fallback: "Outdoor kitchen" },
+    { key: "balcony",        fallback: "Balcony" },
+    { key: "garden",         fallback: "Garden" },
+    { key: "solarium",       fallback: "Solarium" },
+    { key: "terrace",        fallback: "Terrace" },
+    { key: "storageRoom",    fallback: "Storage room" },
+  ];
+
+  const propertyFeatures = [
+    { key: "airConditioner",   fallback: "Air conditioner" },
+    { key: "builtInCabinets",  fallback: "Built-in cabinets" },
+    { key: "elevatorProp",     fallback: "Elevator" },
+    { key: "heating",          fallback: "Heating" },
+    { key: "homeAppliances",   fallback: "Home appliances" },
+    { key: "gymProp",          fallback: "Gym" },
+    { key: "barbecue",         fallback: "Barbecue" },
+    { key: "climatizedPool",   fallback: "Climatized pool" },
+    { key: "saltwaterPool",    fallback: "Saltwater pool" },
+    { key: "indoorPool",       fallback: "Indoor pool" },
+    { key: "outdoorPool",      fallback: "Outdoor pool" },
+    { key: "furnished",        fallback: "Furnished" },
+    { key: "floorHeating",     fallback: "Floor heating" },
+    { key: "furnishedKitchen", fallback: "Furnished kitchen" },
+    { key: "pergola",          fallback: "Pergola" },
+    { key: "solarWaterPanels", fallback: "Solar water panels" },
+    { key: "solarLightPanels", fallback: "Solar light panels" },
+    { key: "automaticWatering",fallback: "Automatic watering" },
+    { key: "spa",              fallback: "SPA" },
+    { key: "adaptedHousing",   fallback: "Adapted housing" },
+    { key: "woodFloor",        fallback: "Wood floor" },
+    { key: "ceramicFloor",     fallback: "Ceramic floor" },
+    { key: "parquetFloor",     fallback: "Parquet floor" },
+    { key: "marbleFloor",      fallback: "Marble floor" },
+  ];
+
+  const devFeatures = [
+    { key: "paddleTennisCourt",    fallback: "Paddle or tennis court" },
+    { key: "gardenAreas",          fallback: "Garden areas" },
+    { key: "gym",                  fallback: "Gym" },
+    { key: "parkingFeat",          fallback: "Parking" },
+    { key: "elevatorFeat",         fallback: "Elevator" },
+    { key: "investmentOpportunity",fallback: "Investment opportunity" },
+    { key: "vacationRental",       fallback: "Vacation rental" },
+    { key: "vr",                   fallback: "VR" },
+    { key: "showProperty",         fallback: "Show property" },
+  ];
+
+  const areaViews = [
+    { key: "seaViews",        fallback: "Sea views" },
+    { key: "mountainViews",   fallback: "Mountain views" },
+    { key: "cityViews",       fallback: "City views" },
+    { key: "residentialArea", fallback: "Residential area" },
+    { key: "sportsAreas",     fallback: "Sports areas" },
+    { key: "greenAreas",      fallback: "Green areas" },
+  ];
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
 
@@ -204,7 +264,7 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <span className="text-sm font-semibold text-slate-800 flex items-center gap-2">
           <SlidersHorizontal size={13} style={{ color: BRAND }} />
-          Filters
+          {t("developments.filters") || "Filters"}
           {activeCount > 0 && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none" style={{ backgroundColor: BRAND }}>
               {activeCount}
@@ -216,13 +276,13 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
             onClick={() => onChange(DEFAULT_FILTERS)}
             className="text-[11px] text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors"
           >
-            <RotateCcw size={10} /> Reset
+            <RotateCcw size={10} /> {t("developments.reset") || "Reset"}
           </button>
         )}
       </div>
 
       {/* LOCATION */}
-      <FilterSection title="Location">
+      <FilterSection title={t("developments.locationSection") || "Location"}>
         {allCities.length === 0 ? (
           <p className="text-xs text-slate-400">Loading…</p>
         ) : (
@@ -240,18 +300,18 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
       </FilterSection>
 
       {/* TYPOLOGY */}
-      <FilterSection title="Typology" defaultOpen={false}>
+      <FilterSection title={t("developments.typologySection") || "Typology"} defaultOpen={false}>
         <div className="space-y-0">
-          {TYPOLOGIES.map(t => {
+          {TYPOLOGIES.map(typo => {
             const available = allTypes.some(dt =>
-              t.keys.some(k => (dt || "").toLowerCase().includes(k))
+              typo.keys.some(k => (dt || "").toLowerCase().includes(k))
             );
             return (
               <CheckRow
-                key={t.label}
-                label={t.label}
-                checked={filters.types.includes(t.label)}
-                onChange={() => toggleType(t.label)}
+                key={typo.label}
+                label={typo.label}
+                checked={filters.types.includes(typo.label)}
+                onChange={() => toggleType(typo.label)}
                 disabled={!available}
               />
             );
@@ -260,7 +320,7 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
       </FilterSection>
 
       {/* PRICE */}
-      <FilterSection title="Price">
+      <FilterSection title={t("developments.priceSection") || "Price"}>
         <div className="flex rounded-lg border border-slate-200 overflow-hidden text-[12px] font-medium mb-3">
           {(["total", "m2"] as const).map(mode => (
             <button
@@ -269,13 +329,13 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
               className="flex-1 py-1.5 transition-colors"
               style={filters.priceMode === mode ? { backgroundColor: BRAND, color: "#fff" } : { color: "#94a3b8" }}
             >
-              {mode === "total" ? "Total" : "Per m²"}
+              {mode === "total" ? (t("developments.total") || "Total") : (t("developments.perM2") || "Per m²")}
             </button>
           ))}
         </div>
         <div className="flex gap-2">
           <div className="flex-1">
-            <p className="text-[10px] text-slate-400 mb-1">Min</p>
+            <p className="text-[10px] text-slate-400 mb-1">{t("developments.min") || "Min"}</p>
             <input
               type="number" placeholder="50 000"
               value={filters.minPrice}
@@ -284,7 +344,7 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
             />
           </div>
           <div className="flex-1">
-            <p className="text-[10px] text-slate-400 mb-1">Max</p>
+            <p className="text-[10px] text-slate-400 mb-1">{t("developments.max") || "Max"}</p>
             <input
               type="number" placeholder="30 000 000"
               value={filters.maxPrice}
@@ -296,11 +356,11 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
       </FilterSection>
 
       {/* DISTRIBUTION */}
-      <FilterSection title="Distribution" defaultOpen={false}>
-        <Counter label="Bedrooms"  value={filters.beds}  onChange={v => set({ beds: v })} />
-        <Counter label="Bathrooms" value={filters.baths} onChange={v => set({ baths: v })} />
+      <FilterSection title={t("developments.distributionSection") || "Distribution"} defaultOpen={false}>
+        <Counter label={t("developments.bedrooms") || "Bedrooms"}  value={filters.beds}  onChange={v => set({ beds: v })} />
+        <Counter label={t("developments.bathrooms") || "Bathrooms"} value={filters.baths} onChange={v => set({ baths: v })} />
         <div className="mt-2.5">
-          <p className="text-[10px] text-slate-400 mb-1">Surface from (m²)</p>
+          <p className="text-[10px] text-slate-400 mb-1">{t("developments.surfaceFrom") || "Surface from (m²)"}</p>
           <input
             type="number" placeholder="0"
             value={filters.surfaceMin}
@@ -309,57 +369,51 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
           />
         </div>
         <div className="mt-3 pt-3 border-t border-slate-100">
-          <p className="text-[10px] text-slate-400 mb-1.5">Living room from (m²)</p>
+          <p className="text-[10px] text-slate-400 mb-1.5">{t("developments.livingRoomFrom") || "Living room from (m²)"}</p>
           <input type="number" placeholder="0" disabled
             className="w-full px-2.5 py-1.5 text-[13px] border border-slate-200 rounded-lg opacity-40 cursor-not-allowed mb-2.5" />
-          <p className="text-[10px] text-slate-400 mb-1.5">Solarium from (m²)</p>
+          <p className="text-[10px] text-slate-400 mb-1.5">{t("developments.solariumFrom") || "Solarium from (m²)"}</p>
           <input type="number" placeholder="0" disabled
             className="w-full px-2.5 py-1.5 text-[13px] border border-slate-200 rounded-lg opacity-40 cursor-not-allowed mb-2.5" />
           <div className="space-y-0 mt-1">
-            {["Garage", "Outdoor kitchen", "Balcony", "Garden", "Solarium", "Terrace", "Storage room"].map(f => (
-              <CheckRow key={f} label={f} checked={false} onChange={() => {}} disabled />
+            {distributionCheckboxes.map(f => (
+              <CheckRow key={f.key} label={t(`developments.${f.key}`) || f.fallback} checked={false} onChange={() => {}} disabled />
             ))}
           </div>
         </div>
       </FilterSection>
 
       {/* FEATURES (PROPERTY) */}
-      <FilterSection title="Features (Property)" defaultOpen={false}>
+      <FilterSection title={t("developments.featuresPropertySection") || "Features (Property)"} defaultOpen={false}>
         <div className="space-y-0">
-          {[
-            "Air conditioner", "Built-in cabinets", "Elevator", "Heating",
-            "Home appliances", "Gym", "Barbecue", "Climatized pool",
-            "Saltwater pool", "Indoor pool", "Outdoor pool", "Furnished",
-            "Floor heating", "Furnished kitchen", "Pergola", "Solar water panels",
-            "Solar light panels", "Automatic watering", "SPA", "Adapted housing",
-            "Wood floor", "Ceramic floor", "Parquet floor", "Marble floor",
-          ].map(f => <CheckRow key={f} label={f} checked={false} onChange={() => {}} disabled />)}
+          {propertyFeatures.map(f => (
+            <CheckRow key={f.key} label={t(`developments.${f.key}`) || f.fallback} checked={false} onChange={() => {}} disabled />
+          ))}
         </div>
       </FilterSection>
 
       {/* FEATURES (DEVELOPMENT) */}
-      <FilterSection title="Features (Development)" defaultOpen={false}>
+      <FilterSection title={t("developments.featuresDevelopmentSection") || "Features (Development)"} defaultOpen={false}>
         <CheckRow
-          label="Swimming pool"
+          label={t("developments.swimmingPool") || "Swimming pool"}
           checked={filters.pool}
           onChange={() => set({ pool: !filters.pool })}
         />
-        {[
-          "Paddle or tennis court", "Garden areas", "Gym", "Parking",
-          "Elevator", "Investment opportunity", "Vacation rental", "VR", "Show property",
-        ].map(f => <CheckRow key={f} label={f} checked={false} onChange={() => {}} disabled />)}
+        {devFeatures.map(f => (
+          <CheckRow key={f.key} label={t(`developments.${f.key}`) || f.fallback} checked={false} onChange={() => {}} disabled />
+        ))}
       </FilterSection>
 
       {/* FEATURES (AREA) */}
-      <FilterSection title="Features (Area)" defaultOpen={false}>
+      <FilterSection title={t("developments.featuresAreaSection") || "Features (Area)"} defaultOpen={false}>
         <div className="space-y-2.5 mb-3">
           <div>
-            <p className="text-[10px] text-slate-400 mb-1">Airport up to (km)</p>
+            <p className="text-[10px] text-slate-400 mb-1">{t("developments.airportUpTo") || "Airport up to (km)"}</p>
             <input type="number" placeholder="0" disabled
               className="w-full px-2.5 py-1.5 text-[13px] border border-slate-200 rounded-lg opacity-40 cursor-not-allowed" />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 mb-1">Sea up to (km)</p>
+            <p className="text-[10px] text-slate-400 mb-1">{t("developments.seaUpTo") || "Sea up to (km)"}</p>
             <input
               type="number" placeholder="0"
               value={filters.seaMax}
@@ -368,7 +422,7 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
             />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 mb-1">Golf up to (km)</p>
+            <p className="text-[10px] text-slate-400 mb-1">{t("developments.golfUpTo") || "Golf up to (km)"}</p>
             <input
               type="number" placeholder="0"
               value={filters.golfMax}
@@ -378,18 +432,23 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
           </div>
         </div>
         <div className="space-y-0">
-          {["Sea views", "Mountain views", "City views", "Residential area", "Sports areas", "Green areas"].map(f => (
-            <CheckRow key={f} label={f} checked={false} onChange={() => {}} disabled />
+          {areaViews.map(f => (
+            <CheckRow key={f.key} label={t(`developments.${f.key}`) || f.fallback} checked={false} onChange={() => {}} disabled />
           ))}
         </div>
       </FilterSection>
 
       {/* DELIVERY DATE */}
-      <FilterSection title="Delivery Date" defaultOpen={false}>
+      <FilterSection title={t("developments.deliveryDateSection") || "Delivery Date"} defaultOpen={false}>
         <div className="grid grid-cols-2 gap-2">
-          {[["From (Month)", "MM"], ["From (Year)", "YYYY"], ["To (Month)", "MM"], ["To (Year)", "YYYY"]].map(([label, ph]) => (
-            <div key={label}>
-              <p className="text-[10px] text-slate-400 mb-1">{label}</p>
+          {([
+            ["fromMonth", "MM"],
+            ["fromYear",  "YYYY"],
+            ["toMonth",   "MM"],
+            ["toYear",    "YYYY"],
+          ] as const).map(([key, ph]) => (
+            <div key={key}>
+              <p className="text-[10px] text-slate-400 mb-1">{t(`developments.${key}`) || key}</p>
               <input type="number" placeholder={ph} disabled
                 className="w-full px-2.5 py-1.5 text-[13px] border border-slate-200 rounded-lg opacity-40 cursor-not-allowed" />
             </div>
@@ -405,6 +464,7 @@ function FilterSidebar({ filters, onChange, allCities, allTypes }: FilterSidebar
 const MAX_VISIBLE = 2;
 
 function DevCard({ dev }: { dev: DevelopmentSummary }) {
+  const { t } = useTranslation() as any;
   const [imgIdx, setImgIdx] = useState(0);
   const [expanded, setExpanded] = useState(false);
 
@@ -437,7 +497,9 @@ function DevCard({ dev }: { dev: DevelopmentSummary }) {
         <span className={`absolute top-2.5 left-2.5 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm ${
           dev.unitCount === 1 ? "bg-amber-500" : "bg-green-500"
         }`}>
-          {dev.unitCount === 1 ? "Last available" : `${dev.unitCount} available`}
+          {dev.unitCount === 1
+            ? (t("developments.lastAvailable") || "Last available")
+            : `${dev.unitCount} ${t("developments.available") || "available"}`}
         </span>
         <Link
           href={`/developpement/${dev.devId}`}
@@ -509,7 +571,9 @@ function DevCard({ dev }: { dev: DevelopmentSummary }) {
                 className="text-xs font-medium mt-0.5 text-left transition-colors"
                 style={{ color: BRAND }}
               >
-                {expanded ? "Show less ↑" : `Show all options (+${hiddenCount})`}
+                {expanded
+                  ? (t("developments.showLess") || "Show less ↑")
+                  : (t("developments.showAllOptions", { count: String(hiddenCount) }) || `Show all options (+${hiddenCount})`)}
               </button>
             )}
           </div>
@@ -522,7 +586,7 @@ function DevCard({ dev }: { dev: DevelopmentSummary }) {
 
       {/* Footer */}
       <div className="border-t border-gray-100 px-4 py-3 flex justify-between items-center">
-        <span className="text-xs text-gray-400">Delivery: To consult</span>
+        <span className="text-xs text-gray-400">{t("developments.delivery") || "Delivery: To consult"}</span>
         <div className="flex gap-1">
           <button
             onClick={() => setImgIdx(i => (i - 1 + Math.max(images.length, 1)) % Math.max(images.length, 1))}
@@ -597,6 +661,7 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function DevelopmentsPage() {
+  const { t } = useTranslation() as any;
   const [developments, setDevelopments] = useState<DevelopmentSummary[]>([]);
   const [loading, setLoading]           = useState(true);
   const [search, setSearch]             = useState("");
@@ -699,13 +764,13 @@ export default function DevelopmentsPage() {
 
         {/* Page title */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Developments</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{t("developments.pageTitle") || "Developments"}</h1>
           <Link
             href="/data-home"
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D4AF37] text-[#D4AF37] text-sm font-semibold hover:bg-[#D4AF37] hover:text-white transition-colors"
           >
             <MapIcon size={15} />
-            Map view
+            {t("developments.mapView") || "Map view"}
           </Link>
         </div>
 
@@ -733,7 +798,7 @@ export default function DevelopmentsPage() {
                 className="lg:hidden inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
               >
                 <SlidersHorizontal size={14} />
-                Filters
+                {t("developments.filters") || "Filters"}
                 {activeFilterCount > 0 && (
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white leading-none" style={{ backgroundColor: BRAND }}>
                     {activeFilterCount}
@@ -747,7 +812,7 @@ export default function DevelopmentsPage() {
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Search developments…"
+                  placeholder={t("developments.searchPlaceholder") || "Search developments..."}
                   className="w-full pl-9 pr-8 py-2 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 transition-all placeholder:text-slate-400"
                   style={{ "--tw-ring-color": BRAND } as React.CSSProperties}
                 />
@@ -767,14 +832,14 @@ export default function DevelopmentsPage() {
                 >
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${hideSingle ? "translate-x-4" : ""}`} />
                 </div>
-                <span className="text-sm text-slate-600 whitespace-nowrap">Hide last available</span>
+                <span className="text-sm text-slate-600 whitespace-nowrap">{t("developments.hideLastAvailable") || "Hide last available"}</span>
               </label>
             </div>
 
             {/* Count */}
             {!loading && (
               <p className="text-sm text-slate-500 mb-4">
-                <span className="font-semibold text-slate-800">{totalUnits.toLocaleString("fr-FR")}</span> available
+                <span className="font-semibold text-slate-800">{totalUnits.toLocaleString("fr-FR")}</span> {t("developments.available") || "available"}
                 <span className="ml-2 text-slate-400">
                   — {filtered.length} development{filtered.length !== 1 ? "s" : ""}
                   {filtered.length > PAGE_SIZE && `, page ${page} / ${Math.ceil(filtered.length / PAGE_SIZE)}`}
@@ -788,8 +853,8 @@ export default function DevelopmentsPage() {
                 {filters.cities.map(c => (
                   <FilterChip key={c} label={c} onRemove={() => setFilters(f => ({ ...f, cities: f.cities.filter(x => x !== c) }))} />
                 ))}
-                {filters.types.map(t => (
-                  <FilterChip key={t} label={t} onRemove={() => setFilters(f => ({ ...f, types: f.types.filter(x => x !== t) }))} />
+                {filters.types.map(ty => (
+                  <FilterChip key={ty} label={ty} onRemove={() => setFilters(f => ({ ...f, types: f.types.filter(x => x !== ty) }))} />
                 ))}
                 {filters.minPrice && (
                   <FilterChip label={`Min ${parseInt(filters.minPrice).toLocaleString("fr-FR")} €`} onRemove={() => setFilters(f => ({ ...f, minPrice: "" }))} />
@@ -807,7 +872,7 @@ export default function DevelopmentsPage() {
                   <FilterChip label={`≥ ${filters.surfaceMin} m²`} onRemove={() => setFilters(f => ({ ...f, surfaceMin: "" }))} />
                 )}
                 {filters.pool && (
-                  <FilterChip label="Pool" onRemove={() => setFilters(f => ({ ...f, pool: false }))} />
+                  <FilterChip label={t("developments.swimmingPool") || "Pool"} onRemove={() => setFilters(f => ({ ...f, pool: false }))} />
                 )}
                 {filters.seaMax && (
                   <FilterChip label={`Sea ≤ ${filters.seaMax} km`} onRemove={() => setFilters(f => ({ ...f, seaMax: "" }))} />
@@ -837,14 +902,14 @@ export default function DevelopmentsPage() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-20 text-slate-400">
-                <p className="text-sm">No developments match your filters.</p>
+                <p className="text-sm">{t("developments.noResults") || "No developments match your filters."}</p>
                 {(search || activeFilterCount > 0) && (
                   <button
                     onClick={() => { setSearch(""); setFilters(DEFAULT_FILTERS); }}
                     className="mt-3 text-xs hover:underline"
                     style={{ color: BRAND }}
                   >
-                    Clear all filters
+                    {t("developments.clearFilters") || "Clear all filters"}
                   </button>
                 )}
               </div>
@@ -871,7 +936,7 @@ export default function DevelopmentsPage() {
           />
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[90vw] bg-white flex flex-col shadow-2xl">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
-              <span className="font-semibold text-slate-800">Filters</span>
+              <span className="font-semibold text-slate-800">{t("developments.filters") || "Filters"}</span>
               <button onClick={() => setShowFilters(false)} className="text-slate-400 hover:text-slate-700">
                 <X size={18} />
               </button>
@@ -890,7 +955,7 @@ export default function DevelopmentsPage() {
                 className="w-full py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90"
                 style={{ backgroundColor: BRAND }}
               >
-                Show {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+                {t("developments.showResults", { count: String(filtered.length) }) || `Show ${filtered.length} result${filtered.length !== 1 ? "s" : ""}`}
               </button>
             </div>
           </div>

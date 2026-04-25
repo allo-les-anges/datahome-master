@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useTranslation } from "@/contexts/I18nContext";
 import {
   ArrowLeft, Building2, MapPin, Search, X,
   ChevronLeft, ChevronRight, FileText, CheckCircle,
@@ -70,6 +71,7 @@ function isAvailable(unit: Unit) {
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ unit }: { unit: Unit }) {
+  const { t } = useTranslation() as any;
   const avail    = isAvailable(unit);
   const reserved = ["réservé", "reserved", "reservado"].includes((unit.status || "").toLowerCase());
   return (
@@ -78,7 +80,11 @@ function StatusBadge({ unit }: { unit: Unit }) {
       : avail   ? "bg-green-50 text-green-700 border border-green-200"
                 : "bg-slate-100 text-slate-500 border border-slate-200"
     }`}>
-      {reserved ? "Reserved" : avail ? "Available" : unit.status}
+      {reserved
+        ? (t("developmentDetail.statusReserved") || "Reserved")
+        : avail
+          ? (t("developmentDetail.statusAvailable") || "Available")
+          : unit.status}
     </span>
   );
 }
@@ -86,6 +92,7 @@ function StatusBadge({ unit }: { unit: Unit }) {
 // ─── Lead modal ───────────────────────────────────────────────────────────────
 
 function LeadModal({ unitRef, devName, onClose }: { unitRef: string; devName: string; onClose: () => void }) {
+  const { t } = useTranslation() as any;
   const [form, setForm]     = useState<LeadForm>({ name: "", email: "", phone: "", unitRef });
   const [sent, setSent]     = useState(false);
   const [sending, setSending] = useState(false);
@@ -106,22 +113,38 @@ function LeadModal({ unitRef, devName, onClose }: { unitRef: string; devName: st
         {sent ? (
           <div className="text-center py-6">
             <CheckCircle size={44} className="mx-auto mb-4 text-green-500" />
-            <h3 className="text-lg font-bold mb-2">Request sent!</h3>
-            <p className="text-slate-500 text-sm">Our team will contact you within 24h.</p>
-            <button onClick={onClose} className="mt-6 px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-lg">Close</button>
+            <h3 className="text-lg font-bold mb-2">{t("developmentDetail.requestSentTitle") || "Request sent!"}</h3>
+            <p className="text-slate-500 text-sm">{t("developmentDetail.requestSentBody") || "Our team will contact you within 24h."}</p>
+            <button onClick={onClose} className="mt-6 px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-lg">
+              {t("common.close") || "Close"}
+            </button>
           </div>
         ) : (
           <>
             <h3 className="text-lg font-bold text-slate-900 mb-1">{devName}</h3>
-            {unitRef !== "general" && <p className="text-xs text-slate-400 mb-5">Unit · {unitRef}</p>}
-            <p className="text-sm text-slate-500 mb-6">Receive the complete dossier: floor plans, payment schedule and availability.</p>
+            {unitRef !== "general" && (
+              <p className="text-xs text-slate-400 mb-5">
+                {t("developmentDetail.leadUnit", { unitRef }) || `Unit · ${unitRef}`}
+              </p>
+            )}
+            <p className="text-sm text-slate-500 mb-6">
+              {t("developmentDetail.leadDescription") || "Receive the complete dossier: floor plans, payment schedule and availability."}
+            </p>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full name" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
-              <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
-              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Phone (optional)" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
-              <button type="submit" disabled={sending} className="w-full py-3 text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2" style={{ backgroundColor: BRAND }}>
+              <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                placeholder={t("developmentDetail.fullName") || "Full name"}
+                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+              <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="Email"
+                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder={t("developmentDetail.phone") || "Phone (optional)"}
+                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+              <button type="submit" disabled={sending}
+                className="w-full py-3 text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2"
+                style={{ backgroundColor: BRAND }}>
                 {sending ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FileText size={14} />}
-                Request dossier
+                {t("developmentDetail.requestDossier") || "Request dossier"}
               </button>
             </form>
           </>
@@ -136,6 +159,7 @@ function LeadModal({ unitRef, devName, onClose }: { unitRef: string; devName: st
 const PAGE_SIZE = 10;
 
 function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: string) => void }) {
+  const { t } = useTranslation() as any;
   const [search, setSearch] = useState("");
   const [page, setPage]     = useState(1);
   const [goTo, setGoTo]     = useState("");
@@ -150,30 +174,46 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
   const safePage   = Math.min(page, totalPages);
   const slice      = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
+  const headers = [
+    t("developmentDetail.colName")      || "Name",
+    t("developmentDetail.colRef")       || "Ref.",
+    t("developmentDetail.colStatus")    || "Status",
+    t("developmentDetail.colTypology")  || "Typology",
+    t("developmentDetail.colPrice")     || "Price",
+    t("developmentDetail.colBedrooms")  || "Bedrooms",
+    t("developmentDetail.colBathrooms") || "Bathrooms",
+    t("developmentDetail.colSqm")       || "Sq. meters",
+    t("developmentDetail.colPool")      || "Pool",
+    t("developmentDetail.colActions")   || "Actions",
+  ];
+
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search"
+          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+            placeholder={t("developmentDetail.searchProps") || "Search..."}
             className="pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-[#D4AF37] w-52" />
           {search && <button onClick={() => { setSearch(""); setPage(1); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"><X size={12} /></button>}
         </div>
-        <span className="text-xs text-slate-500">{filtered.length} properties</span>
+        <span className="text-xs text-slate-500">{filtered.length} {t("developmentDetail.statsProperties") || "properties"}</span>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-slate-200">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Name", "Ref.", "Status", "Typology", "Price", "Bedrooms", "Bathrooms", "Sq. meters", "Pool", "Actions"].map(h => (
+              {headers.map(h => (
                 <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {slice.length === 0 ? (
-              <tr><td colSpan={10} className="text-center py-10 text-slate-400 text-sm">No properties found.</td></tr>
+              <tr><td colSpan={10} className="text-center py-10 text-slate-400 text-sm">
+                {t("developmentDetail.noProperties") || "No properties found."}
+              </td></tr>
             ) : slice.map((unit, i) => {
               const surf    = parseFloat(String(unit.surface_built || "0")) || 0;
               const hasPool = unit.pool === "Oui" || unit.pool === true || unit.pool === "1";
@@ -190,8 +230,12 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
                   <td className="px-3 py-2.5 text-center">{hasPool ? <span className="text-green-500">✓</span> : <span className="text-slate-300">—</span>}</td>
                   <td className="px-3 py-2.5 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <Link href={`/bien/${unit.id}`} className="text-xs hover:underline" style={{ color: BRAND }}>View</Link>
-                      <button onClick={() => onRequest(unit.ref || unit.id)} className="text-xs text-slate-500 hover:text-slate-800 hover:underline">Dossier</button>
+                      <Link href={`/bien/${unit.id}`} className="text-xs hover:underline" style={{ color: BRAND }}>
+                        {t("developmentDetail.view") || "View"}
+                      </Link>
+                      <button onClick={() => onRequest(unit.ref || unit.id)} className="text-xs text-slate-500 hover:text-slate-800 hover:underline">
+                        {t("developmentDetail.dossier") || "Dossier"}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -203,7 +247,7 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
 
       <div className="flex items-center justify-between mt-4 flex-wrap gap-3">
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
-          <span>Row per page</span>
+          <span>{t("developmentDetail.rowPerPage") || "Row per page"}</span>
           <span className="px-2 py-1 border border-slate-200 rounded font-medium">{PAGE_SIZE}</span>
         </div>
         <div className="flex items-center gap-3">
@@ -211,7 +255,7 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
           <span className="text-xs text-slate-600 font-medium">{safePage} / {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} className="p-1.5 rounded border border-slate-200 disabled:opacity-30"><ChevronRight size={14} /></button>
           <div className="flex items-center gap-1.5 text-xs text-slate-500 ml-2">
-            <span>Go to</span>
+            <span>{t("developmentDetail.goTo") || "Go to"}</span>
             <input value={goTo} onChange={e => setGoTo(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { const n = parseInt(goTo); if (!isNaN(n)) setPage(Math.min(Math.max(1, n), totalPages)); setGoTo(""); }}}
               className="w-10 px-2 py-1 border border-slate-200 rounded text-center outline-none" />
@@ -225,17 +269,20 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
 // ─── Location I tab ───────────────────────────────────────────────────────────
 
 function LocationTab({ unit }: { unit: Unit }) {
+  const { t } = useTranslation() as any;
   const hasCoords = unit.latitude && unit.longitude;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div>
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Location I</h3>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+          {t("developmentDetail.locationITitle") || "Location I"}
+        </h3>
         <dl>
           {[
-            ["Autonomous Community", unit.region || "—"],
-            ["Province",            unit.province || unit.region || "—"],
-            ["City",                unit.town || "—"],
-            ["Coordinates",         hasCoords ? `${unit.latitude}, ${unit.longitude}` : "—"],
+            [t("developmentDetail.autonomousCommunity") || "Autonomous Community", unit.region || "—"],
+            [t("developmentDetail.province")            || "Province",             unit.province || unit.region || "—"],
+            [t("developmentDetail.city")                || "City",                 unit.town || "—"],
+            [t("developmentDetail.coordinates")         || "Coordinates",          hasCoords ? `${unit.latitude}, ${unit.longitude}` : "—"],
           ].map(([label, value]) => (
             <div key={label} className="flex gap-4 py-2.5 border-b border-slate-100">
               <dt className="text-xs text-slate-400 w-44 shrink-0">{label}</dt>
@@ -246,7 +293,7 @@ function LocationTab({ unit }: { unit: Unit }) {
         {hasCoords && (
           <a href={`https://maps.google.com/?q=${unit.latitude},${unit.longitude}`} target="_blank" rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 text-xs hover:underline" style={{ color: BRAND }}>
-            <MapPin size={12} /> Open in Google Maps
+            <MapPin size={12} /> {t("developmentDetail.openGoogleMaps") || "Open in Google Maps"}
           </a>
         )}
       </div>
@@ -257,7 +304,7 @@ function LocationTab({ unit }: { unit: Unit }) {
         ) : (
           <div className="text-center text-slate-400 p-8">
             <MapPin size={32} className="mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No coordinates available</p>
+            <p className="text-sm">{t("developmentDetail.noCoordinates") || "No coordinates available"}</p>
           </div>
         )}
       </div>
@@ -270,19 +317,21 @@ function LocationTab({ unit }: { unit: Unit }) {
 interface DistanceRow { icon: React.ReactNode; label: string; value: string | null }
 
 function LocationIITab({ unit }: { unit: Unit }) {
+  const { t } = useTranslation() as any;
+
   const rows: DistanceRow[] = [
-    { icon: <Plane      size={14} />, label: "Airport",         value: fmtDist(null) },
-    { icon: <Flag       size={14} />, label: "Golf course",     value: fmtDist(unit.distance_golf) },
-    { icon: <Waves      size={14} />, label: "Near the sea",    value: fmtDist(unit.distance_beach) },
-    { icon: <Home       size={14} />, label: "Town center",     value: fmtDist(unit.distance_town) },
-    { icon: <ShoppingBag size={14}/>, label: "Mall",            value: null },
-    { icon: <Hospital   size={14} />, label: "Hospital",        value: null },
-    { icon: <Train      size={14} />, label: "Train station",   value: null },
-    { icon: <Utensils   size={14} />, label: "Restaurants",     value: null },
-    { icon: <Clapperboard size={14}/>,label: "Cinema",          value: null },
-    { icon: <GraduationCap size={14}/>,label:"University",      value: null },
-    { icon: <Trees      size={14} />, label: "Natural park",    value: null },
-    { icon: <Baby       size={14} />, label: "Kindergarten",    value: null },
+    { icon: <Plane      size={14} />, label: t("developmentDetail.airport")      || "Airport",       value: fmtDist(null) },
+    { icon: <Flag       size={14} />, label: t("developmentDetail.golfCourse")   || "Golf course",   value: fmtDist(unit.distance_golf) },
+    { icon: <Waves      size={14} />, label: t("developmentDetail.nearSea")      || "Near the sea",  value: fmtDist(unit.distance_beach) },
+    { icon: <Home       size={14} />, label: t("developmentDetail.townCenter")   || "Town center",   value: fmtDist(unit.distance_town) },
+    { icon: <ShoppingBag size={14}/>, label: t("developmentDetail.mall")         || "Mall",          value: null },
+    { icon: <Hospital   size={14} />, label: t("developmentDetail.hospital")     || "Hospital",      value: null },
+    { icon: <Train      size={14} />, label: t("developmentDetail.trainStation") || "Train station", value: null },
+    { icon: <Utensils   size={14} />, label: t("developmentDetail.restaurants")  || "Restaurants",   value: null },
+    { icon: <Clapperboard size={14}/>,label: t("developmentDetail.cinema")       || "Cinema",        value: null },
+    { icon: <GraduationCap size={14}/>,label:t("developmentDetail.university")   || "University",    value: null },
+    { icon: <Trees      size={14} />, label: t("developmentDetail.naturalPark")  || "Natural park",  value: null },
+    { icon: <Baby       size={14} />, label: t("developmentDetail.kindergarten") || "Kindergarten",  value: null },
   ];
 
   const available = rows.filter(r => r.value !== null);
@@ -290,7 +339,9 @@ function LocationIITab({ unit }: { unit: Unit }) {
 
   return (
     <div>
-      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Location II — Distances & Features</h3>
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+        {t("developmentDetail.locationIITitle") || "Location II — Distances & Features"}
+      </h3>
       {hasAny ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0">
           {available.map(row => (
@@ -303,18 +354,19 @@ function LocationIITab({ unit }: { unit: Unit }) {
         </div>
       ) : (
         <p className="text-sm text-slate-400">
-          No distance data available for this development.
-          Distance information is sourced from the property feed.
+          {t("developmentDetail.noDistanceData") || "No distance data available for this development."}
         </p>
       )}
 
-      {/* Feature tags (city view, residential area, etc.) */}
+      {/* Feature tags */}
       <div className="mt-6">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Environment</h4>
+        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+          {t("developmentDetail.environment") || "Environment"}
+        </h4>
         <div className="flex flex-wrap gap-2">
           {[
-            unit.town && { icon: <Eye size={13} />,   label: "City views" },
-            unit.region && { icon: <Trees size={13} />, label: "Green surroundings" },
+            unit.town   && { icon: <Eye   size={13} />, label: t("developmentDetail.cityViewsTag")        || "City views" },
+            unit.region && { icon: <Trees size={13} />, label: t("developmentDetail.greenSurroundingsTag") || "Green surroundings" },
           ].filter(Boolean).map((tag: any) => (
             <span key={tag.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-600">
               {tag.icon} {tag.label}
@@ -329,20 +381,21 @@ function LocationIITab({ unit }: { unit: Unit }) {
 
 // ─── Features tab ─────────────────────────────────────────────────────────────
 
-const ALL_FEATURES = [
-  { key: "pool",      label: "Swimming pool",     icon: <Waves      size={15} /> },
-  { key: "garden",    label: "Garden areas",       icon: <TreePine   size={15} /> },
-  { key: "gym",       label: "Gym",                icon: <Dumbbell   size={15} /> },
-  { key: "parking",   label: "Parking / Garage",   icon: <Car        size={15} /> },
-  { key: "security",  label: "Safe urbanization",  icon: <ShieldCheck size={15}/> },
-  { key: "elevator",  label: "Elevator",           icon: <Building2  size={15} /> },
-];
-
 function FeaturesTab({ units }: { units: Unit[] }) {
+  const { t } = useTranslation() as any;
+
+  const ALL_FEATURES = [
+    { key: "pool",      label: t("developmentDetail.swimmingPool") || "Swimming pool", icon: <Waves      size={15} /> },
+    { key: "garden",    label: t("developmentDetail.gardenAreas")  || "Garden areas",  icon: <TreePine   size={15} /> },
+    { key: "gym",       label: t("developmentDetail.gym")          || "Gym",           icon: <Dumbbell   size={15} /> },
+    { key: "parking",   label: t("developmentDetail.parking")      || "Parking",       icon: <Car        size={15} /> },
+    { key: "security",  label: "Safe urbanization",                                    icon: <ShieldCheck size={15}/> },
+    { key: "elevator",  label: t("developmentDetail.elevator")     || "Elevator",      icon: <Building2  size={15} /> },
+  ];
+
   const hasPool     = units.some(u => u.pool === "Oui" || u.pool === true || u.pool === "1");
   const types       = Array.from(new Set(units.map(u => u.type).filter(Boolean)));
-  const hasApartment = types.some(t => t.toLowerCase().includes("apartment") || t.toLowerCase().includes("piso"));
-  const hasVilla    = types.some(t => t.toLowerCase().includes("villa"));
+  const hasApartment = types.some(ty => ty.toLowerCase().includes("apartment") || ty.toLowerCase().includes("piso"));
 
   const active = ALL_FEATURES.filter(f => {
     if (f.key === "pool") return hasPool;
@@ -352,7 +405,9 @@ function FeaturesTab({ units }: { units: Unit[] }) {
 
   return (
     <div>
-      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Development Features</h3>
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+        {t("developmentDetail.devFeaturesTitle") || "Development Features"}
+      </h3>
       {active.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
           {active.map(f => (
@@ -362,14 +417,18 @@ function FeaturesTab({ units }: { units: Unit[] }) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-400 mb-6">Feature data is sourced from the property feed — no specific amenities detected.</p>
+        <p className="text-sm text-slate-400 mb-6">
+          {t("developmentDetail.noFeaturesDetected") || "No specific amenities detected."}
+        </p>
       )}
 
-      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Property types in this development</h4>
+      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+        {t("developmentDetail.propTypesTitle") || "Property types in this development"}
+      </h4>
       <div className="flex flex-wrap gap-2">
-        {types.length > 0 ? types.map(t => (
-          <span key={t} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-700 capitalize">{t}</span>
-        )) : <p className="text-sm text-slate-400">No type data available.</p>}
+        {types.length > 0 ? types.map(ty => (
+          <span key={ty} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-700 capitalize">{ty}</span>
+        )) : <p className="text-sm text-slate-400">{t("developmentDetail.noTypeData") || "No type data available."}</p>}
       </div>
     </div>
   );
@@ -377,20 +436,24 @@ function FeaturesTab({ units }: { units: Unit[] }) {
 
 // ─── Payment Method tab ───────────────────────────────────────────────────────
 
-const SPAIN_PLAN = [
-  { step: 1, label: "Reservation",      icon: <Key size={16} />,       pct: 10, color: BRAND,      desc: "Signing the reservation contract" },
-  { step: 2, label: "Start of works",   icon: <TrendingUp size={16} />, pct: 20, color: "#10b981",  desc: "Effective launch of construction" },
-  { step: 3, label: "Key handover",     icon: <Home size={16} />,       pct: 70, color: "#3b82f6",  desc: "Delivery & notarial deed" },
-];
-
 function PaymentMethodTab({ units }: { units: Unit[] }) {
+  const { t } = useTranslation() as any;
+
+  const SPAIN_PLAN = [
+    { step: 1, label: t("developmentDetail.reservation")    || "Reservation",    icon: <Key        size={16} />, pct: 10, color: BRAND,     desc: t("developmentDetail.signingReservation")  || "Signing the reservation contract" },
+    { step: 2, label: t("developmentDetail.startOfWorks")   || "Start of works",  icon: <TrendingUp size={16} />, pct: 20, color: "#10b981", desc: t("developmentDetail.effectiveLaunch")     || "Effective launch of construction" },
+    { step: 3, label: t("developmentDetail.keyHandover")    || "Key handover",    icon: <Home       size={16} />, pct: 70, color: "#3b82f6", desc: t("developmentDetail.deliveryNotarial")    || "Delivery & notarial deed" },
+  ];
+
   const exampleUnit = units.find(u => Number(u.price) > 0);
   const price       = exampleUnit ? Number(exampleUnit.price) : 0;
 
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Spain VEFA Payment Plan</h3>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+          {t("developmentDetail.spainVefaTitle") || "Spain VEFA Payment Plan"}
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {SPAIN_PLAN.map(s => (
             <div key={s.step} className="bg-slate-50 border border-slate-200 rounded-xl p-5">
@@ -410,7 +473,7 @@ function PaymentMethodTab({ units }: { units: Unit[] }) {
       {price > 0 && (
         <div>
           <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
-            Example — {exampleUnit?.titre || unitName(exampleUnit!)}
+            {t("developmentDetail.exampleLabel", { name: exampleUnit?.titre || unitName(exampleUnit!) }) || `Example — ${exampleUnit?.titre || unitName(exampleUnit!)}`}
           </h4>
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
             {SPAIN_PLAN.map((s, i) => {
@@ -427,7 +490,7 @@ function PaymentMethodTab({ units }: { units: Unit[] }) {
               );
             })}
             <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-t border-slate-200">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t("developments.total") || "Total"}</span>
               <span className="font-bold text-slate-900 text-base">{fmtPrice(price)}</span>
             </div>
           </div>
@@ -440,6 +503,7 @@ function PaymentMethodTab({ units }: { units: Unit[] }) {
 // ─── Metrics tab ──────────────────────────────────────────────────────────────
 
 function MetricsTab({ units }: { units: Unit[] }) {
+  const { t } = useTranslation() as any;
   const prices     = units.map(u => Number(u.price || 0)).filter(Boolean);
   const surfaces   = units.map(u => parseFloat(String(u.surface_built || "0"))).filter(n => n > 0);
   const available  = units.filter(isAvailable).length;
@@ -453,16 +517,18 @@ function MetricsTab({ units }: { units: Unit[] }) {
   const maxPrice   = prices.length ? Math.max(...prices) : null;
 
   const stats = [
-    { label: "Average price",     value: avgPrice   ? fmtPrice(avgPrice)      : "—", icon: <Euro    size={16} /> },
-    { label: "Average €/m²",      value: avgPriceM2 ? `${avgPriceM2.toLocaleString("fr-FR")} €/m²` : "—", icon: <BarChart3 size={16} /> },
-    { label: "Stock available",   value: `${available} / ${units.length}`,             icon: <Home    size={16} /> },
-    { label: "Cumul. % sold",     value: `${pctSold}%`,                                icon: <TrendingUp size={16} /> },
+    { label: t("developmentDetail.averagePrice")  || "Average price",   value: avgPrice   ? fmtPrice(avgPrice)      : "—", icon: <Euro    size={16} /> },
+    { label: t("developmentDetail.averagePerM2")  || "Average €/m²",    value: avgPriceM2 ? `${avgPriceM2.toLocaleString("fr-FR")} €/m²` : "—", icon: <BarChart3 size={16} /> },
+    { label: t("developmentDetail.stockAvailable")|| "Stock available",  value: `${available} / ${units.length}`,    icon: <Home    size={16} /> },
+    { label: t("developmentDetail.cumulSold")     || "Cumul. % sold",    value: `${pctSold}%`,                       icon: <TrendingUp size={16} /> },
   ];
 
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Development Metrics</h3>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+          {t("developmentDetail.metricsTitle") || "Development Metrics"}
+        </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {stats.map(s => (
             <div key={s.label} className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-4">
@@ -476,12 +542,14 @@ function MetricsTab({ units }: { units: Unit[] }) {
 
       {(minPrice || maxPrice) && (
         <div>
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Price range</h4>
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+            {t("developmentDetail.priceRangeTitle") || "Price range"}
+          </h4>
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
             {[
-              ["Minimum price", minPrice ? fmtPrice(minPrice) : "—"],
-              ["Maximum price", maxPrice ? fmtPrice(maxPrice) : "—"],
-              ["Average price", avgPrice ? fmtPrice(avgPrice) : "—"],
+              [t("developmentDetail.minimumPrice") || "Minimum price", minPrice ? fmtPrice(minPrice) : "—"],
+              [t("developmentDetail.maximumPrice") || "Maximum price", maxPrice ? fmtPrice(maxPrice) : "—"],
+              [t("developmentDetail.averagePrice") || "Average price", avgPrice ? fmtPrice(avgPrice) : "—"],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between items-center px-5 py-3 border-b border-slate-100 last:border-0">
                 <span className="text-sm text-slate-500">{label}</span>
@@ -493,7 +561,7 @@ function MetricsTab({ units }: { units: Unit[] }) {
       )}
 
       <p className="text-xs text-slate-400 italic">
-        The information provided regarding prices, commissions, specifications, and details of this development is subject to changes. Commissions must be confirmed directly with the developer.
+        {t("developmentDetail.metricsDisclaimer") || "The information provided is subject to changes. Commissions must be confirmed directly with the developer."}
       </p>
     </div>
   );
@@ -502,16 +570,19 @@ function MetricsTab({ units }: { units: Unit[] }) {
 // ─── Sales Information tab ────────────────────────────────────────────────────
 
 function SalesTab({ unit }: { unit: Unit }) {
+  const { t } = useTranslation() as any;
   const commission = unit.commission_percentage;
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Sales Information</h3>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+          {t("developmentDetail.salesTitle") || "Sales Information"}
+        </h3>
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           {[
-            ["Commission type", "Fixed percentage"],
-            ["Commission", commission ? `${commission}%` : "To confirm with developer"],
-            ["Referral commission", "To confirm"],
+            [t("developmentDetail.commissionType")   || "Commission type",     t("developmentDetail.fixedPercentage") || "Fixed percentage"],
+            [t("developmentDetail.commission")        || "Commission",          commission ? `${commission}%` : (t("developmentDetail.toConfirmDeveloper") || "To confirm with developer")],
+            [t("developmentDetail.referralCommission")|| "Referral commission", t("developmentDetail.toConfirm") || "To confirm"],
           ].map(([label, value]) => (
             <div key={label} className="flex gap-4 py-3 px-5 border-b border-slate-100 last:border-0">
               <span className="text-xs text-slate-400 w-44 shrink-0">{label}</span>
@@ -522,7 +593,7 @@ function SalesTab({ unit }: { unit: Unit }) {
       </div>
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
         <p className="text-xs text-amber-800 leading-relaxed">
-          The information provided regarding prices, commissions, specifications, and details of this development is subject to changes and variations depending on the source. It has no contractual or commercial value by itself. Commissions must be confirmed directly with the developer.
+          {t("developmentDetail.salesDisclaimer") || "The information provided regarding prices, commissions and specifications is subject to changes depending on the source. It has no contractual value. Commissions must be confirmed directly with the developer."}
         </p>
       </div>
     </div>
@@ -534,6 +605,7 @@ function SalesTab({ unit }: { unit: Unit }) {
 type Tab = "properties" | "location" | "location2" | "features" | "payment" | "metrics" | "sales";
 
 export default function DevelopmentPage() {
+  const { t } = useTranslation() as any;
   const { devId }    = useParams();
   const router       = useRouter();
   const [units, setUnits]         = useState<Unit[]>([]);
@@ -564,7 +636,6 @@ export default function DevelopmentPage() {
   const minPrice       = prices.length ? Math.min(...prices) : 0;
   const maxPrice       = prices.length ? Math.max(...prices) : 0;
 
-  // Collect unique images from all units
   const allImages = useMemo(() => {
     const seen = new Set<string>();
     const imgs: string[] = [];
@@ -577,20 +648,20 @@ export default function DevelopmentPage() {
   }, [units]);
 
   const TABS: { key: Tab; label: string; count?: number }[] = [
-    { key: "properties", label: "Properties",       count: units.length },
-    { key: "location",   label: "Location I" },
-    { key: "location2",  label: "Location II" },
-    { key: "features",   label: "Features" },
-    { key: "payment",    label: "Payment Method" },
-    { key: "metrics",    label: "Metrics" },
-    { key: "sales",      label: "Sales Information" },
+    { key: "properties", label: t("developmentDetail.tabProperties")  || "Properties",       count: units.length },
+    { key: "location",   label: t("developmentDetail.tabLocation1")   || "Location I" },
+    { key: "location2",  label: t("developmentDetail.tabLocation2")   || "Location II" },
+    { key: "features",   label: t("developmentDetail.tabFeatures")    || "Features" },
+    { key: "payment",    label: t("developmentDetail.tabPayment")     || "Payment Method" },
+    { key: "metrics",    label: t("developmentDetail.tabMetrics")     || "Metrics" },
+    { key: "sales",      label: t("developmentDetail.tabSales")       || "Sales Information" },
   ];
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50"><Navbar />
       <div className="h-[60vh] flex flex-col items-center justify-center mt-32">
         <div className="w-8 h-8 border-2 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-3" />
-        <p className="text-sm text-slate-400">Loading development…</p>
+        <p className="text-sm text-slate-400">{t("developmentDetail.loading") || "Loading development..."}</p>
       </div>
     </div>
   );
@@ -599,10 +670,12 @@ export default function DevelopmentPage() {
     <div className="min-h-screen bg-slate-50"><Navbar />
       <div className="h-[60vh] flex flex-col items-center justify-center text-center px-6 mt-32">
         <Building2 size={36} className="mb-4 text-slate-300" />
-        <h1 className="text-xl font-bold text-slate-700 mb-2">Development not found</h1>
-        <p className="text-sm text-slate-400 mb-6">No units found for ID: {devId}</p>
+        <h1 className="text-xl font-bold text-slate-700 mb-2">{t("developmentDetail.notFound") || "Development not found"}</h1>
+        <p className="text-sm text-slate-400 mb-6">
+          {t("developmentDetail.noUnitsFound", { id: String(devId) }) || `No units found for ID: ${devId}`}
+        </p>
         <Link href="/developpements" className="text-sm flex items-center gap-1 hover:underline" style={{ color: BRAND }}>
-          <ArrowLeft size={14} /> Back to developments
+          <ArrowLeft size={14} /> {t("nav.back") || "Back"}
         </Link>
       </div>
     </div>
@@ -619,7 +692,7 @@ export default function DevelopmentPage() {
             onClick={() => router.back()}
             className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm"
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> {t("nav.back") || "Back"}
           </button>
         </div>
 
@@ -631,7 +704,6 @@ export default function DevelopmentPage() {
               alt={devName}
               className="w-full h-full object-cover"
             />
-            {/* Gradient overlay with title */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
               <div>
@@ -645,10 +717,9 @@ export default function DevelopmentPage() {
               <button onClick={() => setLeadUnit("general")}
                 className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90 shadow-lg"
                 style={{ backgroundColor: BRAND }}>
-                <FileText size={14} /> Request dossier
+                <FileText size={14} /> {t("developmentDetail.requestDossier") || "Request dossier"}
               </button>
             </div>
-            {/* Nav arrows */}
             {allImages.length > 1 && (
               <>
                 <button onClick={() => setGalleryIdx(i => (i - 1 + allImages.length) % allImages.length)}
@@ -659,13 +730,11 @@ export default function DevelopmentPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
                   <ChevronRight size={16} />
                 </button>
-                {/* Dot counter */}
                 <div className="absolute top-3 right-3 bg-black/40 text-white text-xs px-2 py-1 rounded-full">
                   {galleryIdx + 1} / {allImages.length}
                 </div>
               </>
             )}
-            {/* Thumbnail strip */}
             {allImages.length > 1 && (
               <div className="absolute bottom-0 left-0 right-0 flex gap-1.5 px-4 pb-2 justify-center overflow-hidden">
                 {allImages.slice(0, 8).map((img, i) => (
@@ -694,7 +763,7 @@ export default function DevelopmentPage() {
             <button onClick={() => setLeadUnit("general")}
               className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90"
               style={{ backgroundColor: BRAND }}>
-              <FileText size={14} /> Request dossier
+              <FileText size={14} /> {t("developmentDetail.requestDossier") || "Request dossier"}
             </button>
           </div>
         )}
@@ -702,26 +771,34 @@ export default function DevelopmentPage() {
         {/* Stats bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Properties</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              {t("developmentDetail.statsProperties") || "Properties"}
+            </p>
             <p className="text-base font-bold text-slate-900">{availableCount} <span className="text-slate-400 font-normal">/ {units.length}</span></p>
-            <p className="text-[10px] text-slate-400">Available / Total</p>
+            <p className="text-[10px] text-slate-400">{t("developmentDetail.statsAvailableTotal") || "Available / Total"}</p>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Price (€)</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              {t("developmentDetail.statsPriceEur") || "Price (€)"}
+            </p>
             <p className="text-base font-bold text-slate-900">
               {minPrice ? minPrice.toLocaleString("fr-FR") : "—"}
               {maxPrice && maxPrice !== minPrice ? <span className="text-slate-400 font-normal text-sm">–{maxPrice.toLocaleString("fr-FR")}</span> : ""}
             </p>
-            <p className="text-[10px] text-slate-400">From – To</p>
+            <p className="text-[10px] text-slate-400">{t("developmentDetail.statsFromTo") || "From – To"}</p>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Development Company</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              {t("developmentDetail.statsDevCompany") || "Development Company"}
+            </p>
             <p className="text-sm font-bold text-slate-900 truncate">{company || "—"}</p>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Contact</p>
-              <p className="text-sm font-bold text-slate-900">Sales team</p>
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                {t("developmentDetail.statsContact") || "Contact"}
+              </p>
+              <p className="text-sm font-bold text-slate-900">{t("developmentDetail.statsSalesTeam") || "Sales team"}</p>
             </div>
             <button onClick={() => setLeadUnit("general")} className="p-2 rounded-lg hover:opacity-80" style={{ backgroundColor: `${BRAND}20`, color: BRAND }}>
               <Home size={16} />
