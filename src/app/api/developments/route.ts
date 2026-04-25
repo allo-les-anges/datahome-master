@@ -40,12 +40,24 @@ export interface DevelopmentSummary {
 
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    // Try with date columns first; fall back silently if they don't exist in the table
+    const baseSelect = 'ref, price, town, region, type, images, development_name, beds, baths, surface_built, latitude, longitude, pool, distance_beach, distance_golf';
+
+    let result: any = await supabase
       .from('villas')
-      .select('ref, price, town, region, type, images, development_name, beds, baths, surface_built, latitude, longitude, pool, distance_beach, distance_golf, delivery_date, start_date')
+      .select(`${baseSelect}, delivery_date, start_date`)
       .eq('is_excluded', false)
       .not('ref', 'is', null);
 
+    if (result.error) {
+      result = await supabase
+        .from('villas')
+        .select(baseSelect)
+        .eq('is_excluded', false)
+        .not('ref', 'is', null);
+    }
+
+    const { data, error } = result as { data: any[] | null; error: any };
     if (error) throw error;
 
     const groups = new Map<string, {
