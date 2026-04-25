@@ -23,7 +23,7 @@ interface NavbarProps {
 export default function Navbar({ agency: propsAgency }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { t, locale } = useTranslation() as any;
+  const { t, locale, setLocale } = useTranslation() as any;
   
   const { agency: contextAgency } = useAgency();
   const agency = propsAgency || contextAgency;
@@ -68,13 +68,22 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   ];
 
   const handleLangChange = (newLang: string) => {
+    setIsMenuOpen(false);
+    setIsLangOpen(false);
+
+    // Pages sans locale dans l'URL : changer la langue sans naviguer
+    if (
+      pathname === '/developpements' ||
+      pathname?.startsWith('/developpement/')
+    ) {
+      setLocale(newLang);
+      return;
+    }
+
     const pathSegments = pathname.split('/').filter(Boolean);
     const slug = agency?.subdomain || pathSegments[1] || "default";
     const remainingPath = pathSegments.slice(2).join('/');
     const newPath = `/${newLang}/${slug}${remainingPath ? '/' + remainingPath : ''}`;
-    
-    setIsMenuOpen(false);
-    setIsLangOpen(false);
     router.push(newPath);
   };
 
