@@ -7,7 +7,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
   Search, X, ChevronLeft, ChevronRight,
-  MapPin, LayoutGrid, Map as MapIcon
+  MapPin, LayoutGrid, Map as MapIcon,
+  Waves, Umbrella, Flag,
 } from "lucide-react";
 import type { DevelopmentSummary, UnitOption } from "@/app/api/developments/route";
 import type L from "leaflet";
@@ -30,21 +31,52 @@ function fmtPrice(n: number) {
   return n.toLocaleString("fr-FR") + " €";
 }
 
+// ─── Helpers: livraison & progression ────────────────────────────────────────
+
+function deliveryBadge(d: string | null): { label: string; color: string } {
+  if (!d) return { label: "Date inconnue", color: "#9ca3af" };
+  const months = (new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30.44);
+  if (months < 6)  return { label: "< 6 mois",    color: "#ef4444" };
+  if (months <= 18) return { label: "6 - 18 mois", color: "#f97316" };
+  return { label: "+ 18 mois", color: "#22c55e" };
+}
+
+function progressPct(start: string | null, end: string | null): number | null {
+  if (!start || !end) return null;
+  const s = new Date(start).getTime();
+  const e = new Date(end).getTime();
+  const total = e - s;
+  if (total <= 0) return null;
+  return Math.min(100, Math.max(0, Math.round((Date.now() - s) / total * 100)));
+}
+
 // ─── DevCard (compact) ───────────────────────────────────────────────────────
 
 function DevCard({ dev }: { dev: DevelopmentSummary }) {
-  const [imgIdx, setImgIdx]   = useState(0);
+  const [imgIdx, setImgIdx]     = useState(0);
   const [expanded, setExpanded] = useState(false);
   const images      = dev.images?.length ? dev.images : [];
   const currentImg  = images[imgIdx] ?? "/placeholder-villa.jpg";
   const visible     = expanded ? dev.options : dev.options.slice(0, 2);
   const hiddenCount = dev.options.length - 2;
 
+  const badge = deliveryBadge(dev.delivery_date);
+  const pct   = progressPct(dev.start_date, dev.delivery_date);
+
+  const amenities = [
+    dev.hasPool            && { icon: <Waves    size={13} />, label: null },
+    dev.minDistanceBeach   && { icon: <Umbrella size={13} />, label: `${dev.minDistanceBeach} m` },
+    dev.minDistanceGolf    && { icon: <Flag     size={13} />, label: `${dev.minDistanceGolf} m` },
+  ].filter(Boolean) as { icon: React.ReactNode; label: string | null }[];
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300">
+
       {/* Image */}
       <div className="relative h-44 bg-gray-100 overflow-hidden">
         <img src={currentImg} alt={dev.name || dev.devId} className="w-full h-full object-cover" loading="lazy" />
+
+        {/* Top badges */}
         <span className={`absolute top-2.5 left-2.5 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm ${dev.unitCount === 1 ? "bg-amber-500" : "bg-green-500"}`}>
           {dev.unitCount === 1 ? "Last available" : `${dev.unitCount} available`}
         </span>
@@ -53,6 +85,16 @@ function DevCard({ dev }: { dev: DevelopmentSummary }) {
           style={{ backgroundColor: BRAND }}>
           <MapPin size={12} />
         </Link>
+
+        {/* Delivery badge — bottom left, above carousel */}
+        <span
+          className="absolute left-2.5 bottom-9 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm"
+          style={{ backgroundColor: badge.color }}
+        >
+          Livraison · {badge.label}
+        </span>
+
+        {/* Carousel arrows */}
         {images.length > 1 && (
           <>
             <button onClick={e => { e.preventDefault(); setImgIdx(i => (i - 1 + images.length) % images.length); }}
@@ -74,8 +116,43 @@ function DevCard({ dev }: { dev: DevelopmentSummary }) {
             {dev.name || `Programme ${dev.devId}`}
           </h3>
         </Link>
-        {dev.town && <p className="text-xs text-gray-400 mb-3">{dev.town}{dev.region && dev.region !== dev.town ? ` · ${dev.region}` : ""}</p>}
+        {dev.town && (
+          <p className="text-xs text-gray-400 mb-2">
+            {dev.town}{dev.region && dev.region !== dev.town ? ` · ${dev.region}` : ""}
+          </p>
+        )}
 
+        {/* Progress bar */}
+        {pct !== null && (
+          <div className="mb-3">
+            {pct >= 100 ? (
+              <p className="text-[10px] font-semibold text-green-500 mb-1">Livré ✓</p>
+            ) : (
+              <>
+                <p className="text-[10px] text-gray-400 mb-1">Avancement · {pct}%</p>
+                <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: BRAND }} />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Amenity icons */}
+        {amenities.length > 0 && (
+          <div className="flex gap-3 mb-3">
+            {amenities.map(({ icon, label }, i) => (
+              <div key={i} className="flex flex-col items-center gap-0.5">
+                <div className="w-7 h-7 rounded-full border-2 flex items-center justify-center" style={{ borderColor: BRAND, color: BRAND }}>
+                  {icon}
+                </div>
+                {label && <span className="text-[10px] text-gray-400">{label}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Price options */}
         {dev.options.length > 0 ? (
           <div className="border-t border-gray-100 pt-2.5 space-y-2">
             {visible.map((opt: UnitOption, i: number) => (
@@ -103,6 +180,7 @@ function DevCard({ dev }: { dev: DevelopmentSummary }) {
         ) : null}
       </div>
 
+      {/* Footer */}
       <div className="border-t border-gray-100 px-4 py-2.5 flex justify-between items-center">
         <span className="text-[10px] text-gray-400">Delivery: To consult</span>
         <div className="flex gap-1">

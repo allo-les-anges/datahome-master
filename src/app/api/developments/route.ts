@@ -34,13 +34,15 @@ export interface DevelopmentSummary {
   hasPool: boolean;
   minDistanceBeach: number | null;
   minDistanceGolf: number | null;
+  delivery_date: string | null;
+  start_date: string | null;
 }
 
 export async function GET() {
   try {
     const { data, error } = await supabase
       .from('villas')
-      .select('ref, price, town, region, type, images, development_name, beds, baths, surface_built, latitude, longitude, pool, distance_beach, distance_golf')
+      .select('ref, price, town, region, type, images, development_name, beds, baths, surface_built, latitude, longitude, pool, distance_beach, distance_golf, delivery_date, start_date')
       .eq('is_excluded', false)
       .not('ref', 'is', null);
 
@@ -59,6 +61,8 @@ export async function GET() {
       hasPool: boolean;
       minDistanceBeach: number | null;
       minDistanceGolf: number | null;
+      delivery_date: string | null;
+      start_date: string | null;
     }>();
 
     for (const p of data || []) {
@@ -81,6 +85,8 @@ export async function GET() {
           hasPool: false,
           minDistanceBeach: null,
           minDistanceGolf: null,
+          delivery_date: null,
+          start_date: null,
         });
       }
 
@@ -110,6 +116,10 @@ export async function GET() {
       if (golf && golf > 0 && (g.minDistanceGolf === null || golf < g.minDistanceGolf)) {
         g.minDistanceGolf = golf;
       }
+
+      // Dates — first non-null value wins for the group
+      if (!g.delivery_date && p.delivery_date) g.delivery_date = String(p.delivery_date);
+      if (!g.start_date   && p.start_date)    g.start_date    = String(p.start_date);
 
       // Build option key from beds + baths + rounded surface
       const beds = parseInt(String(p.beds || '0')) || 0;
@@ -150,6 +160,8 @@ export async function GET() {
         hasPool: g.hasPool,
         minDistanceBeach: g.minDistanceBeach,
         minDistanceGolf: g.minDistanceGolf,
+        delivery_date: g.delivery_date,
+        start_date: g.start_date,
       };
     });
 
