@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 
     // Optimisation : sélectionner seulement les champs nécessaires pour la liste
     const { data: properties, error, count } = await query
-      .select('id, ref, price, town, region, beds, baths, surface_built, surface_plot, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, xml_source, development_name, promoteur_name')
+      .select('id, ref, price, town, region, province, beds, baths, surface_built, surface_plot, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, commission_percentage')
       .order('price', { ascending: true })
       .range(offset, offset + limit - 1);
 
@@ -79,6 +79,13 @@ export async function GET(request: Request) {
       xml_source: p.xml_source,
       development_name: p.development_name || null,
       promoteur_name: p.promoteur_name || null,
+      province: p.province || null,
+      distance_beach: p.distance_beach ?? null,
+      distance_golf: p.distance_golf ?? null,
+      distance_town: p.distance_town ?? null,
+      latitude: p.latitude ?? null,
+      longitude: p.longitude ?? null,
+      commission_percentage: p.commission_percentage ?? null,
     }));
 
     const response = { properties: formatted, total: count };

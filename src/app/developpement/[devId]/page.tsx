@@ -8,9 +8,13 @@ import Footer from "@/components/Footer";
 import {
   ArrowLeft, Building2, MapPin, Search, X,
   ChevronLeft, ChevronRight, FileText, CheckCircle,
-  Waves, Car, TreePine, Dumbbell, ShieldCheck, Wifi,
-  Euro, Home, SquareAsterisk
+  Waves, Car, TreePine, Dumbbell, ShieldCheck,
+  Home, Plane, Flag, Utensils, ShoppingBag, Hospital,
+  Train, Eye, Trees, Baby, GraduationCap, Clapperboard,
+  TrendingUp, BarChart3, Key, Euro
 } from "lucide-react";
+
+const BRAND = "#D4AF37";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -29,21 +33,28 @@ interface Unit {
   town?: string;
   region?: string;
   province?: string;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   development_name?: string;
   promoteur_name?: string;
   description?: string;
   status?: string;
-  commission_percentage?: string | number;
+  commission_percentage?: string | number | null;
+  distance_beach?: string | number | null;
+  distance_golf?: string | number | null;
+  distance_town?: string | number | null;
 }
 
 interface LeadForm { name: string; email: string; phone: string; unitRef: string }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fmtPrice(n: number) {
-  return n.toLocaleString("fr-FR") + " €";
+function fmtPrice(n: number) { return n.toLocaleString("fr-FR") + " €"; }
+
+function fmtDist(v: string | number | null | undefined) {
+  if (v === null || v === undefined || v === "" || v === "0") return null;
+  const n = parseFloat(String(v));
+  return isNaN(n) || n === 0 ? null : `${n} km`;
 }
 
 function unitName(unit: Unit) {
@@ -59,13 +70,13 @@ function isAvailable(unit: Unit) {
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ unit }: { unit: Unit }) {
-  const avail = isAvailable(unit);
+  const avail    = isAvailable(unit);
   const reserved = ["réservé", "reserved", "reservado"].includes((unit.status || "").toLowerCase());
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
       reserved ? "bg-orange-50 text-orange-700 border border-orange-200"
-      : avail    ? "bg-green-50 text-green-700 border border-green-200"
-                 : "bg-slate-100 text-slate-500 border border-slate-200"
+      : avail   ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-slate-100 text-slate-500 border border-slate-200"
     }`}>
       {reserved ? "Reserved" : avail ? "Available" : unit.status}
     </span>
@@ -75,19 +86,15 @@ function StatusBadge({ unit }: { unit: Unit }) {
 // ─── Lead modal ───────────────────────────────────────────────────────────────
 
 function LeadModal({ unitRef, devName, onClose }: { unitRef: string; devName: string; onClose: () => void }) {
-  const [form, setForm] = useState<LeadForm>({ name: "", email: "", phone: "", unitRef });
-  const [sent, setSent] = useState(false);
+  const [form, setForm]     = useState<LeadForm>({ name: "", email: "", phone: "", unitRef });
+  const [sent, setSent]     = useState(false);
   const [sending, setSending] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSending(true);
+    e.preventDefault(); setSending(true);
     try {
-      await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, subject: `Dossier – ${devName} – ${unitRef}` }),
-      });
+      await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, subject: `Dossier – ${devName} – ${unitRef}` }) });
       setSent(true);
     } finally { setSending(false); }
   }
@@ -95,17 +102,13 @@ function LeadModal({ unitRef, devName, onClose }: { unitRef: string; devName: st
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
-        <button onClick={onClose} className="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
-          <X size={18} />
-        </button>
+        <button onClick={onClose} className="absolute top-5 right-5 text-slate-400 hover:text-slate-700"><X size={18} /></button>
         {sent ? (
           <div className="text-center py-6">
             <CheckCircle size={44} className="mx-auto mb-4 text-green-500" />
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Request sent!</h3>
+            <h3 className="text-lg font-bold mb-2">Request sent!</h3>
             <p className="text-slate-500 text-sm">Our team will contact you within 24h.</p>
-            <button onClick={onClose} className="mt-6 px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 transition-colors">
-              Close
-            </button>
+            <button onClick={onClose} className="mt-6 px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-lg">Close</button>
           </div>
         ) : (
           <>
@@ -113,10 +116,10 @@ function LeadModal({ unitRef, devName, onClose }: { unitRef: string; devName: st
             {unitRef !== "general" && <p className="text-xs text-slate-400 mb-5">Unit · {unitRef}</p>}
             <p className="text-sm text-slate-500 mb-6">Receive the complete dossier: floor plans, payment schedule and availability.</p>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full name" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-400" />
-              <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-400" />
-              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Phone (optional)" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-400" />
-              <button type="submit" disabled={sending} className="w-full py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+              <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full name" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+              <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Phone (optional)" className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+              <button type="submit" disabled={sending} className="w-full py-3 text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2" style={{ backgroundColor: BRAND }}>
                 {sending ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FileText size={14} />}
                 Request dossier
               </button>
@@ -128,51 +131,37 @@ function LeadModal({ unitRef, devName, onClose }: { unitRef: string; devName: st
   );
 }
 
-// ─── Properties table ─────────────────────────────────────────────────────────
+// ─── Properties tab ───────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 10;
 
 function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: string) => void }) {
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [goTo, setGoTo] = useState("");
+  const [page, setPage]     = useState(1);
+  const [goTo, setGoTo]     = useState("");
 
-  const filtered = useMemo(() => {
+  const filtered    = useMemo(() => {
     const q = search.toLowerCase();
     if (!q) return units;
-    return units.filter(u =>
-      (u.ref || "").toLowerCase().includes(q) ||
-      (u.type || "").toLowerCase().includes(q) ||
-      String(u.price).includes(q)
-    );
+    return units.filter(u => (u.ref || "").toLowerCase().includes(q) || (u.type || "").toLowerCase().includes(q) || String(u.price).includes(q));
   }, [units, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const slice = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const safePage   = Math.min(page, totalPages);
+  const slice      = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     <div>
-      {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search"
-            className="pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 w-52"
-          />
-          {search && (
-            <button onClick={() => { setSearch(""); setPage(1); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-              <X size={12} />
-            </button>
-          )}
+          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search"
+            className="pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-[#D4AF37] w-52" />
+          {search && <button onClick={() => { setSearch(""); setPage(1); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"><X size={12} /></button>}
         </div>
         <span className="text-xs text-slate-500">{filtered.length} properties</span>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto rounded-lg border border-slate-200">
         <table className="w-full text-sm">
           <thead>
@@ -184,30 +173,24 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
           </thead>
           <tbody>
             {slice.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="text-center py-10 text-slate-400 text-sm">No properties found.</td>
-              </tr>
+              <tr><td colSpan={10} className="text-center py-10 text-slate-400 text-sm">No properties found.</td></tr>
             ) : slice.map((unit, i) => {
-              const surf = parseFloat(String(unit.surface_built || "0")) || 0;
+              const surf    = parseFloat(String(unit.surface_built || "0")) || 0;
               const hasPool = unit.pool === "Oui" || unit.pool === true || unit.pool === "1";
               return (
-                <tr key={unit.id} className={`border-b border-slate-100 hover:bg-blue-50/30 transition-colors ${i % 2 === 0 ? "" : "bg-slate-50/50"}`}>
+                <tr key={unit.id} className={`border-b border-slate-100 hover:bg-amber-50/20 transition-colors ${i % 2 === 0 ? "" : "bg-slate-50/50"}`}>
                   <td className="px-3 py-2.5 font-medium text-slate-800 whitespace-nowrap">{unitName(unit)}</td>
                   <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">{unit.ref?.split("-").slice(1).join("-") || "—"}</td>
                   <td className="px-3 py-2.5 whitespace-nowrap"><StatusBadge unit={unit} /></td>
                   <td className="px-3 py-2.5 text-slate-600 whitespace-nowrap capitalize">{unit.type || "—"}</td>
-                  <td className="px-3 py-2.5 font-semibold text-slate-800 whitespace-nowrap">
-                    {unit.price ? fmtPrice(Number(unit.price)) : "—"}
-                  </td>
+                  <td className="px-3 py-2.5 font-semibold text-slate-800 whitespace-nowrap">{unit.price ? fmtPrice(Number(unit.price)) : "—"}</td>
                   <td className="px-3 py-2.5 text-center text-slate-600">{unit.beds ?? "—"}</td>
                   <td className="px-3 py-2.5 text-center text-slate-600">{unit.baths ?? "—"}</td>
                   <td className="px-3 py-2.5 text-slate-600 whitespace-nowrap">{surf > 0 ? `${surf} m²` : "—"}</td>
-                  <td className="px-3 py-2.5 text-center">
-                    {hasPool ? <span className="text-blue-500 text-base">✓</span> : <span className="text-slate-300 text-base">—</span>}
-                  </td>
+                  <td className="px-3 py-2.5 text-center">{hasPool ? <span className="text-green-500">✓</span> : <span className="text-slate-300">—</span>}</td>
                   <td className="px-3 py-2.5 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <Link href={`/bien/${unit.id}`} className="text-xs text-blue-600 hover:underline">View</Link>
+                      <Link href={`/bien/${unit.id}`} className="text-xs hover:underline" style={{ color: BRAND }}>View</Link>
                       <button onClick={() => onRequest(unit.ref || unit.id)} className="text-xs text-slate-500 hover:text-slate-800 hover:underline">Dossier</button>
                     </div>
                   </td>
@@ -218,34 +201,20 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between mt-4 flex-wrap gap-3">
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
           <span>Row per page</span>
           <span className="px-2 py-1 border border-slate-200 rounded font-medium">{PAGE_SIZE}</span>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} className="p-1.5 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-50">
-            <ChevronLeft size={14} />
-          </button>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} className="p-1.5 rounded border border-slate-200 disabled:opacity-30"><ChevronLeft size={14} /></button>
           <span className="text-xs text-slate-600 font-medium">{safePage} / {totalPages}</span>
-          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} className="p-1.5 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-50">
-            <ChevronRight size={14} />
-          </button>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} className="p-1.5 rounded border border-slate-200 disabled:opacity-30"><ChevronRight size={14} /></button>
           <div className="flex items-center gap-1.5 text-xs text-slate-500 ml-2">
             <span>Go to</span>
-            <input
-              value={goTo}
-              onChange={e => setGoTo(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  const n = parseInt(goTo);
-                  if (!isNaN(n)) setPage(Math.min(Math.max(1, n), totalPages));
-                  setGoTo("");
-                }
-              }}
-              className="w-10 px-2 py-1 border border-slate-200 rounded text-center outline-none focus:border-blue-400"
-            />
+            <input value={goTo} onChange={e => setGoTo(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { const n = parseInt(goTo); if (!isNaN(n)) setPage(Math.min(Math.max(1, n), totalPages)); setGoTo(""); }}}
+              className="w-10 px-2 py-1 border border-slate-200 rounded text-center outline-none" />
           </div>
         </div>
       </div>
@@ -253,52 +222,38 @@ function PropertiesTab({ units, onRequest }: { units: Unit[]; onRequest: (ref: s
   );
 }
 
-// ─── Location tab ─────────────────────────────────────────────────────────────
+// ─── Location I tab ───────────────────────────────────────────────────────────
 
 function LocationTab({ unit }: { unit: Unit }) {
   const hasCoords = unit.latitude && unit.longitude;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Address */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Location I</h3>
-        <dl className="space-y-3">
+        <dl>
           {[
             ["Autonomous Community", unit.region || "—"],
-            ["Province", unit.province || unit.region || "—"],
-            ["City", unit.town || "—"],
-            ["Coordinates", hasCoords ? `${unit.latitude}, ${unit.longitude}` : "—"],
+            ["Province",            unit.province || unit.region || "—"],
+            ["City",                unit.town || "—"],
+            ["Coordinates",         hasCoords ? `${unit.latitude}, ${unit.longitude}` : "—"],
           ].map(([label, value]) => (
-            <div key={label} className="flex gap-4 py-2 border-b border-slate-100">
+            <div key={label} className="flex gap-4 py-2.5 border-b border-slate-100">
               <dt className="text-xs text-slate-400 w-44 shrink-0">{label}</dt>
               <dd className="text-sm text-slate-800 font-medium">{value}</dd>
             </div>
           ))}
         </dl>
-
         {hasCoords && (
-          <a
-            href={`https://maps.google.com/?q=${unit.latitude},${unit.longitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 text-xs text-blue-600 hover:underline"
-          >
+          <a href={`https://maps.google.com/?q=${unit.latitude},${unit.longitude}`} target="_blank" rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-xs hover:underline" style={{ color: BRAND }}>
             <MapPin size={12} /> Open in Google Maps
           </a>
         )}
       </div>
-
-      {/* Map placeholder */}
       <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 min-h-[240px] flex items-center justify-center">
         {hasCoords ? (
-          <iframe
-            title="map"
-            width="100%"
-            height="280"
-            style={{ border: 0 }}
-            loading="lazy"
-            src={`https://maps.google.com/maps?q=${unit.latitude},${unit.longitude}&z=14&output=embed`}
-          />
+          <iframe title="map" width="100%" height="280" style={{ border: 0 }} loading="lazy"
+            src={`https://maps.google.com/maps?q=${unit.latitude},${unit.longitude}&z=14&output=embed`} />
         ) : (
           <div className="text-center text-slate-400 p-8">
             <MapPin size={32} className="mx-auto mb-2 opacity-30" />
@@ -310,110 +265,329 @@ function LocationTab({ unit }: { unit: Unit }) {
   );
 }
 
-// ─── Features tab ─────────────────────────────────────────────────────────────
+// ─── Location II tab ──────────────────────────────────────────────────────────
 
-const FEATURE_ICONS: Record<string, React.ReactNode> = {
-  "Pool": <Waves size={16} />, "Piscine": <Waves size={16} />,
-  "Gym": <Dumbbell size={16} />, "Salle de sport": <Dumbbell size={16} />,
-  "Garden": <TreePine size={16} />, "Jardin": <TreePine size={16} />,
-  "Garage": <Car size={16} />, "Parking": <Car size={16} />,
-  "Security": <ShieldCheck size={16} />, "Sécurité": <ShieldCheck size={16} />,
-  "WiFi": <Wifi size={16} />,
-};
+interface DistanceRow { icon: React.ReactNode; label: string; value: string | null }
 
-function FeaturesTab({ units }: { units: Unit[] }) {
-  const hasPool = units.some(u => u.pool === "Oui" || u.pool === true || u.pool === "1");
-  const types = Array.from(new Set(units.map(u => u.type).filter(Boolean)));
+function LocationIITab({ unit }: { unit: Unit }) {
+  const rows: DistanceRow[] = [
+    { icon: <Plane      size={14} />, label: "Airport",         value: fmtDist(null) },
+    { icon: <Flag       size={14} />, label: "Golf course",     value: fmtDist(unit.distance_golf) },
+    { icon: <Waves      size={14} />, label: "Near the sea",    value: fmtDist(unit.distance_beach) },
+    { icon: <Home       size={14} />, label: "Town center",     value: fmtDist(unit.distance_town) },
+    { icon: <ShoppingBag size={14}/>, label: "Mall",            value: null },
+    { icon: <Hospital   size={14} />, label: "Hospital",        value: null },
+    { icon: <Train      size={14} />, label: "Train station",   value: null },
+    { icon: <Utensils   size={14} />, label: "Restaurants",     value: null },
+    { icon: <Clapperboard size={14}/>,label: "Cinema",          value: null },
+    { icon: <GraduationCap size={14}/>,label:"University",      value: null },
+    { icon: <Trees      size={14} />, label: "Natural park",    value: null },
+    { icon: <Baby       size={14} />, label: "Kindergarten",    value: null },
+  ];
 
-  const features = [
-    hasPool && "Swimming pool",
-    types.length > 0 && `Types: ${types.join(", ")}`,
-  ].filter(Boolean) as string[];
+  const available = rows.filter(r => r.value !== null);
+  const hasAny    = available.length > 0;
 
   return (
     <div>
-      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Development Features</h3>
-      {features.length > 0 ? (
-        <div className="flex flex-wrap gap-3">
-          {features.map(f => (
-            <div key={f} className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700">
-              {FEATURE_ICONS[f] || <SquareAsterisk size={14} className="text-slate-400" />}
-              {f}
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Location II — Distances & Features</h3>
+      {hasAny ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0">
+          {available.map(row => (
+            <div key={row.label} className="flex items-center gap-3 py-2.5 border-b border-slate-100">
+              <span className="text-slate-400 shrink-0">{row.icon}</span>
+              <span className="text-sm text-slate-600 flex-1">{row.label}</span>
+              <span className="text-sm font-medium text-slate-800">{row.value}</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-400">No feature data available for this development.</p>
+        <p className="text-sm text-slate-400">
+          No distance data available for this development.
+          Distance information is sourced from the property feed.
+        </p>
       )}
+
+      {/* Feature tags (city view, residential area, etc.) */}
+      <div className="mt-6">
+        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Environment</h4>
+        <div className="flex flex-wrap gap-2">
+          {[
+            unit.town && { icon: <Eye size={13} />,   label: "City views" },
+            unit.region && { icon: <Trees size={13} />, label: "Green surroundings" },
+          ].filter(Boolean).map((tag: any) => (
+            <span key={tag.label} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-600">
+              {tag.icon} {tag.label}
+            </span>
+          ))}
+          {!unit.town && <p className="text-sm text-slate-400">No environment tags available.</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Features tab ─────────────────────────────────────────────────────────────
+
+const ALL_FEATURES = [
+  { key: "pool",      label: "Swimming pool",     icon: <Waves      size={15} /> },
+  { key: "garden",    label: "Garden areas",       icon: <TreePine   size={15} /> },
+  { key: "gym",       label: "Gym",                icon: <Dumbbell   size={15} /> },
+  { key: "parking",   label: "Parking / Garage",   icon: <Car        size={15} /> },
+  { key: "security",  label: "Safe urbanization",  icon: <ShieldCheck size={15}/> },
+  { key: "elevator",  label: "Elevator",           icon: <Building2  size={15} /> },
+];
+
+function FeaturesTab({ units }: { units: Unit[] }) {
+  const hasPool     = units.some(u => u.pool === "Oui" || u.pool === true || u.pool === "1");
+  const types       = Array.from(new Set(units.map(u => u.type).filter(Boolean)));
+  const hasApartment = types.some(t => t.toLowerCase().includes("apartment") || t.toLowerCase().includes("piso"));
+  const hasVilla    = types.some(t => t.toLowerCase().includes("villa"));
+
+  const active = ALL_FEATURES.filter(f => {
+    if (f.key === "pool") return hasPool;
+    if (f.key === "elevator") return hasApartment;
+    return false;
+  });
+
+  return (
+    <div>
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Development Features</h3>
+      {active.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+          {active.map(f => (
+            <div key={f.key} className="flex items-center gap-2.5 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700">
+              <span style={{ color: BRAND }}>{f.icon}</span> {f.label}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-400 mb-6">Feature data is sourced from the property feed — no specific amenities detected.</p>
+      )}
+
+      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Property types in this development</h4>
+      <div className="flex flex-wrap gap-2">
+        {types.length > 0 ? types.map(t => (
+          <span key={t} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-700 capitalize">{t}</span>
+        )) : <p className="text-sm text-slate-400">No type data available.</p>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Payment Method tab ───────────────────────────────────────────────────────
+
+const SPAIN_PLAN = [
+  { step: 1, label: "Reservation",      icon: <Key size={16} />,       pct: 10, color: BRAND,      desc: "Signing the reservation contract" },
+  { step: 2, label: "Start of works",   icon: <TrendingUp size={16} />, pct: 20, color: "#10b981",  desc: "Effective launch of construction" },
+  { step: 3, label: "Key handover",     icon: <Home size={16} />,       pct: 70, color: "#3b82f6",  desc: "Delivery & notarial deed" },
+];
+
+function PaymentMethodTab({ units }: { units: Unit[] }) {
+  const exampleUnit = units.find(u => Number(u.price) > 0);
+  const price       = exampleUnit ? Number(exampleUnit.price) : 0;
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Spain VEFA Payment Plan</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {SPAIN_PLAN.map(s => (
+            <div key={s.step} className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: s.color }}>
+                  {s.icon}
+                </div>
+                <span className="text-3xl font-bold" style={{ color: s.color }}>{s.pct}%</span>
+              </div>
+              <p className="font-semibold text-slate-800 text-sm mb-1">{s.label}</p>
+              <p className="text-xs text-slate-500">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {price > 0 && (
+        <div>
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+            Example — {exampleUnit?.titre || unitName(exampleUnit!)}
+          </h4>
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            {SPAIN_PLAN.map((s, i) => {
+              const amount = Math.round(price * s.pct / 100);
+              return (
+                <div key={s.step} className={`flex items-center justify-between px-5 py-3.5 ${i < SPAIN_PLAN.length - 1 ? "border-b border-slate-100" : ""}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                    <span className="text-sm text-slate-700">{s.label}</span>
+                    <span className="text-xs text-slate-400">({s.pct}%)</span>
+                  </div>
+                  <span className="font-semibold text-slate-900">{fmtPrice(amount)}</span>
+                </div>
+              );
+            })}
+            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-t border-slate-200">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</span>
+              <span className="font-bold text-slate-900 text-base">{fmtPrice(price)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Metrics tab ──────────────────────────────────────────────────────────────
+
+function MetricsTab({ units }: { units: Unit[] }) {
+  const prices     = units.map(u => Number(u.price || 0)).filter(Boolean);
+  const surfaces   = units.map(u => parseFloat(String(u.surface_built || "0"))).filter(n => n > 0);
+  const available  = units.filter(isAvailable).length;
+  const sold       = units.length - available;
+
+  const avgPrice   = prices.length   ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)    : null;
+  const avgSurf    = surfaces.length ? Math.round(surfaces.reduce((a, b) => a + b, 0) / surfaces.length) : null;
+  const avgPriceM2 = avgPrice && avgSurf ? Math.round(avgPrice / avgSurf) : null;
+  const pctSold    = units.length > 0 ? Math.round((sold / units.length) * 100) : 0;
+  const minPrice   = prices.length ? Math.min(...prices) : null;
+  const maxPrice   = prices.length ? Math.max(...prices) : null;
+
+  const stats = [
+    { label: "Average price",     value: avgPrice   ? fmtPrice(avgPrice)      : "—", icon: <Euro    size={16} /> },
+    { label: "Average €/m²",      value: avgPriceM2 ? `${avgPriceM2.toLocaleString("fr-FR")} €/m²` : "—", icon: <BarChart3 size={16} /> },
+    { label: "Stock available",   value: `${available} / ${units.length}`,             icon: <Home    size={16} /> },
+    { label: "Cumul. % sold",     value: `${pctSold}%`,                                icon: <TrendingUp size={16} /> },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Development Metrics</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {stats.map(s => (
+            <div key={s.label} className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-4">
+              <div className="flex items-center gap-2 mb-2" style={{ color: BRAND }}>{s.icon}</div>
+              <p className="text-lg font-bold text-slate-900">{s.value}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {(minPrice || maxPrice) && (
+        <div>
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Price range</h4>
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            {[
+              ["Minimum price", minPrice ? fmtPrice(minPrice) : "—"],
+              ["Maximum price", maxPrice ? fmtPrice(maxPrice) : "—"],
+              ["Average price", avgPrice ? fmtPrice(avgPrice) : "—"],
+            ].map(([label, value]) => (
+              <div key={label} className="flex justify-between items-center px-5 py-3 border-b border-slate-100 last:border-0">
+                <span className="text-sm text-slate-500">{label}</span>
+                <span className="font-semibold text-slate-800">{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="text-xs text-slate-400 italic">
+        The information provided regarding prices, commissions, specifications, and details of this development is subject to changes. Commissions must be confirmed directly with the developer.
+      </p>
+    </div>
+  );
+}
+
+// ─── Sales Information tab ────────────────────────────────────────────────────
+
+function SalesTab({ unit }: { unit: Unit }) {
+  const commission = unit.commission_percentage;
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Sales Information</h3>
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          {[
+            ["Commission type", "Fixed percentage"],
+            ["Commission", commission ? `${commission}%` : "To confirm with developer"],
+            ["Referral commission", "To confirm"],
+          ].map(([label, value]) => (
+            <div key={label} className="flex gap-4 py-3 px-5 border-b border-slate-100 last:border-0">
+              <span className="text-xs text-slate-400 w-44 shrink-0">{label}</span>
+              <span className="text-sm text-slate-800 font-medium">{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <p className="text-xs text-amber-800 leading-relaxed">
+          The information provided regarding prices, commissions, specifications, and details of this development is subject to changes and variations depending on the source. It has no contractual or commercial value by itself. Commissions must be confirmed directly with the developer.
+        </p>
+      </div>
     </div>
   );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-type Tab = "properties" | "location" | "features" | "sales";
+type Tab = "properties" | "location" | "location2" | "features" | "payment" | "metrics" | "sales";
 
 export default function DevelopmentPage() {
-  const { devId } = useParams();
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { devId }    = useParams();
+  const [units, setUnits]         = useState<Unit[]>([]);
+  const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("properties");
-  const [leadUnit, setLeadUnit] = useState<string | null>(null);
+  const [leadUnit, setLeadUnit]   = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/properties?reference=${devId}&limit=200`);
+        const res  = await fetch(`/api/properties?reference=${devId}&limit=200`);
         const data = await res.json();
         const all: Unit[] = data.properties || data || [];
-        const devPrefix = String(devId).toLowerCase();
-        const devUnits = all.filter(p => {
-          const refPrefix = (p.ref?.split("-")[0] || "").toLowerCase();
-          return refPrefix === devPrefix;
-        });
-        setUnits(devUnits);
-      } catch (err) {
-        console.error("Erreur API:", err);
-      } finally {
-        setLoading(false);
-      }
+        const devPrefix   = String(devId).toLowerCase();
+        setUnits(all.filter(p => (p.ref?.split("-")[0] || "").toLowerCase() === devPrefix));
+      } catch (err) { console.error("Erreur API:", err); }
+      finally { setLoading(false); }
     }
     load();
   }, [devId]);
 
-  const dev = units[0];
-  const devName = dev?.development_name || `Programme ${devId}`;
-  const company = dev?.promoteur_name || null;
+  const dev          = units[0];
+  const devName      = dev?.development_name || `Programme ${devId}`;
+  const company      = dev?.promoteur_name   || null;
   const availableCount = units.filter(isAvailable).length;
-  const prices = units.map(u => Number(u.price || 0)).filter(Boolean);
-  const minPrice = prices.length ? Math.min(...prices) : 0;
-  const maxPrice = prices.length ? Math.max(...prices) : 0;
+  const prices         = units.map(u => Number(u.price || 0)).filter(Boolean);
+  const minPrice       = prices.length ? Math.min(...prices) : 0;
+  const maxPrice       = prices.length ? Math.max(...prices) : 0;
 
   const TABS: { key: Tab; label: string; count?: number }[] = [
-    { key: "properties", label: "Properties", count: units.length },
-    { key: "location",   label: "Location" },
+    { key: "properties", label: "Properties",       count: units.length },
+    { key: "location",   label: "Location I" },
+    { key: "location2",  label: "Location II" },
     { key: "features",   label: "Features" },
+    { key: "payment",    label: "Payment Method" },
+    { key: "metrics",    label: "Metrics" },
     { key: "sales",      label: "Sales Information" },
   ];
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50"><Navbar />
       <div className="h-[60vh] flex flex-col items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-3" />
+        <div className="w-8 h-8 border-2 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-3" />
         <p className="text-sm text-slate-400">Loading development…</p>
       </div>
     </div>
   );
 
   if (!units.length) return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50"><Navbar />
       <div className="h-[60vh] flex flex-col items-center justify-center text-center px-6">
         <Building2 size={36} className="mb-4 text-slate-300" />
         <h1 className="text-xl font-bold text-slate-700 mb-2">Development not found</h1>
         <p className="text-sm text-slate-400 mb-6">No units found for ID: {devId}</p>
-        <Link href="/developpements" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+        <Link href="/developpements" className="text-sm flex items-center gap-1 hover:underline" style={{ color: BRAND }}>
           <ArrowLeft size={14} /> Back to developments
         </Link>
       </div>
@@ -423,12 +597,11 @@ export default function DevelopmentPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-16">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-slate-400 mb-4 pt-4">
-          <Link href="/developpements" className="hover:text-blue-600 transition-colors flex items-center gap-1">
+          <Link href="/developpements" className="hover:underline flex items-center gap-1" style={{ color: BRAND }}>
             <ArrowLeft size={12} /> Developments
           </Link>
           <span>/</span>
@@ -446,10 +619,9 @@ export default function DevelopmentPage() {
             )}
             <h1 className="text-2xl font-bold text-slate-900">{devName}</h1>
           </div>
-          <button
-            onClick={() => setLeadUnit("general")}
-            className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-          >
+          <button onClick={() => setLeadUnit("general")}
+            className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90"
+            style={{ backgroundColor: BRAND }}>
             <FileText size={14} /> Request dossier
           </button>
         </div>
@@ -458,35 +630,27 @@ export default function DevelopmentPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Properties</p>
-            <p className="text-base font-bold text-slate-900">
-              {availableCount} <span className="text-slate-400 font-normal">/ {units.length}</span>
-            </p>
+            <p className="text-base font-bold text-slate-900">{availableCount} <span className="text-slate-400 font-normal">/ {units.length}</span></p>
             <p className="text-[10px] text-slate-400">Available / Total</p>
           </div>
-
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Price (€)</p>
             <p className="text-base font-bold text-slate-900">
               {minPrice ? minPrice.toLocaleString("fr-FR") : "—"}
-              {maxPrice && maxPrice !== minPrice ? <span className="text-slate-400 font-normal">–{maxPrice.toLocaleString("fr-FR")}</span> : ""}
+              {maxPrice && maxPrice !== minPrice ? <span className="text-slate-400 font-normal text-sm">–{maxPrice.toLocaleString("fr-FR")}</span> : ""}
             </p>
             <p className="text-[10px] text-slate-400">From – To</p>
           </div>
-
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Development Company</p>
             <p className="text-sm font-bold text-slate-900 truncate">{company || "—"}</p>
           </div>
-
           <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex items-center justify-between">
             <div>
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Contact</p>
               <p className="text-sm font-bold text-slate-900">Sales team</p>
             </div>
-            <button
-              onClick={() => setLeadUnit("general")}
-              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-            >
+            <button onClick={() => setLeadUnit("general")} className="p-2 rounded-lg hover:opacity-80" style={{ backgroundColor: `${BRAND}20`, color: BRAND }}>
               <Home size={16} />
             </button>
           </div>
@@ -494,23 +658,17 @@ export default function DevelopmentPage() {
 
         {/* Tabs */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          {/* Tab bar */}
           <div className="flex border-b border-slate-200 overflow-x-auto">
             {TABS.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                  activeTab === tab.key
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-                }`}
-              >
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                  activeTab === tab.key ? "border-[#D4AF37] text-[#b8962e]" : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                }`}>
                 {tab.label}
                 {tab.count !== undefined && (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                    activeTab === tab.key ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-500"
-                  }`}>
+                    activeTab === tab.key ? "text-[#b8962e]" : "bg-slate-100 text-slate-500"
+                  }`} style={activeTab === tab.key ? { backgroundColor: `${BRAND}20` } : {}}>
                     {tab.count}
                   </span>
                 )}
@@ -518,45 +676,20 @@ export default function DevelopmentPage() {
             ))}
           </div>
 
-          {/* Tab content */}
           <div className="p-6">
-            {activeTab === "properties" && (
-              <PropertiesTab units={units} onRequest={setLeadUnit} />
-            )}
-            {activeTab === "location" && <LocationTab unit={dev} />}
-            {activeTab === "features" && <FeaturesTab units={units} />}
-            {activeTab === "sales" && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Sales Information</h3>
-                  <dl className="space-y-0">
-                    {[
-                      ["Commission type", "Fixed percentage"],
-                      ["Percentage", dev.commission_percentage ? `${dev.commission_percentage}%` : "To confirm"],
-                    ].map(([label, value]) => (
-                      <div key={label} className="flex gap-4 py-2.5 border-b border-slate-100">
-                        <dt className="text-xs text-slate-400 w-44 shrink-0">{label}</dt>
-                        <dd className="text-sm text-slate-800 font-medium">{value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <p className="text-xs text-amber-800 leading-relaxed">
-                    The information provided regarding prices, commissions, specifications, and details of this development is subject to changes and variations depending on the source. Commissions must be confirmed directly with the developer.
-                  </p>
-                </div>
-              </div>
-            )}
+            {activeTab === "properties" && <PropertiesTab units={units} onRequest={setLeadUnit} />}
+            {activeTab === "location"   && <LocationTab unit={dev} />}
+            {activeTab === "location2"  && <LocationIITab unit={dev} />}
+            {activeTab === "features"   && <FeaturesTab units={units} />}
+            {activeTab === "payment"    && <PaymentMethodTab units={units} />}
+            {activeTab === "metrics"    && <MetricsTab units={units} />}
+            {activeTab === "sales"      && <SalesTab unit={dev} />}
           </div>
         </div>
       </div>
 
       <Footer />
-
-      {leadUnit && (
-        <LeadModal unitRef={leadUnit} devName={devName} onClose={() => setLeadUnit(null)} />
-      )}
+      {leadUnit && <LeadModal unitRef={leadUnit} devName={devName} onClose={() => setLeadUnit(null)} />}
     </div>
   );
 }
