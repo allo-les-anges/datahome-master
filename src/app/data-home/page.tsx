@@ -239,6 +239,13 @@ export default function DataHomePage() {
           </div>
 
           {/* View toggle */}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/developpements"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#D4AF37] text-[#D4AF37] text-xs font-semibold hover:bg-[#D4AF37] hover:text-white transition-colors"
+            >
+              <LayoutGrid size={13} /> List view
+            </Link>
           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1">
             <button
               onClick={() => setView("split")}
@@ -252,6 +259,7 @@ export default function DataHomePage() {
             >
               <LayoutGrid size={13} /> Cards
             </button>
+          </div>
           </div>
         </div>
 

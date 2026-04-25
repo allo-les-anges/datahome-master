@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
   Search, X, ChevronLeft, ChevronRight,
-  Bed, Bath, Waves, Building2, MapPin
+  Bed, Bath, Waves, Building2, MapPin, Map as MapIcon
 } from "lucide-react";
 import type { DevelopmentSummary, UnitOption } from "@/app/api/developments/route";
 
@@ -293,7 +293,16 @@ export default function DevelopmentsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20">
 
         {/* Page title */}
-        <h1 className="text-2xl font-bold text-slate-900 mb-6">Developments</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-slate-900">Developments</h1>
+          <Link
+            href="/data-home"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D4AF37] text-[#D4AF37] text-sm font-semibold hover:bg-[#D4AF37] hover:text-white transition-colors"
+          >
+            <MapIcon size={15} />
+            Map view
+          </Link>
+        </div>
 
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
