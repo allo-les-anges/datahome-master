@@ -290,7 +290,7 @@ export default function DevelopmentsPage() {
     <div className="min-h-screen bg-slate-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-36 pb-20">
 
         {/* Page title */}
         <div className="flex items-center justify-between mb-6">

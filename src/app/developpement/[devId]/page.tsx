@@ -588,7 +588,7 @@ export default function DevelopmentPage() {
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50"><Navbar />
-      <div className="h-[60vh] flex flex-col items-center justify-center">
+      <div className="h-[60vh] flex flex-col items-center justify-center mt-32">
         <div className="w-8 h-8 border-2 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-3" />
         <p className="text-sm text-slate-400">Loading development…</p>
       </div>
@@ -597,7 +597,7 @@ export default function DevelopmentPage() {
 
   if (!units.length) return (
     <div className="min-h-screen bg-slate-50"><Navbar />
-      <div className="h-[60vh] flex flex-col items-center justify-center text-center px-6">
+      <div className="h-[60vh] flex flex-col items-center justify-center text-center px-6 mt-32">
         <Building2 size={36} className="mb-4 text-slate-300" />
         <h1 className="text-xl font-bold text-slate-700 mb-2">Development not found</h1>
         <p className="text-sm text-slate-400 mb-6">No units found for ID: {devId}</p>
@@ -611,10 +611,10 @@ export default function DevelopmentPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-36 pb-16">
 
         {/* Back button */}
-        <div className="pt-4 mb-4">
+        <div className="mb-4">
           <button
             onClick={() => router.back()}
             className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm"
