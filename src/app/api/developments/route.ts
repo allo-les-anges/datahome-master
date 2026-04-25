@@ -30,13 +30,17 @@ export interface DevelopmentSummary {
   isNew: boolean;
   lat: number | null;
   lng: number | null;
+  types: string[];
+  hasPool: boolean;
+  minDistanceBeach: number | null;
+  minDistanceGolf: number | null;
 }
 
 export async function GET() {
   try {
     const { data, error } = await supabase
       .from('villas')
-      .select('ref, price, town, region, type, images, development_name, beds, baths, surface_built, latitude, longitude')
+      .select('ref, price, town, region, type, images, development_name, beds, baths, surface_built, latitude, longitude, pool, distance_beach, distance_golf')
       .eq('is_excluded', false)
       .not('ref', 'is', null);
 
@@ -51,6 +55,10 @@ export async function GET() {
       optionMap: Map<string, { beds: number; baths: number; surface: number; minPrice: number; count: number }>;
       lat: number | null;
       lng: number | null;
+      types: Set<string>;
+      hasPool: boolean;
+      minDistanceBeach: number | null;
+      minDistanceGolf: number | null;
     }>();
 
     for (const p of data || []) {
@@ -69,6 +77,10 @@ export async function GET() {
           optionMap: new Map(),
           lat: null,
           lng: null,
+          types: new Set(),
+          hasPool: false,
+          minDistanceBeach: null,
+          minDistanceGolf: null,
         });
       }
 
@@ -80,6 +92,24 @@ export async function GET() {
       if (price > 0) g.prices.push(price);
 
       if (Array.isArray(p.images)) g.images.push(...p.images.slice(0, 2));
+
+      // Type
+      if (p.type) g.types.add(String(p.type));
+
+      // Pool
+      if (!g.hasPool && (p.pool === 'Oui' || p.pool === true || p.pool === '1' || p.pool === 1)) {
+        g.hasPool = true;
+      }
+
+      // Distances — keep the smallest non-zero value seen in the group
+      const beach = p.distance_beach ? parseFloat(String(p.distance_beach)) : null;
+      if (beach && beach > 0 && (g.minDistanceBeach === null || beach < g.minDistanceBeach)) {
+        g.minDistanceBeach = beach;
+      }
+      const golf = p.distance_golf ? parseFloat(String(p.distance_golf)) : null;
+      if (golf && golf > 0 && (g.minDistanceGolf === null || golf < g.minDistanceGolf)) {
+        g.minDistanceGolf = golf;
+      }
 
       // Build option key from beds + baths + rounded surface
       const beds = parseInt(String(p.beds || '0')) || 0;
@@ -116,6 +146,10 @@ export async function GET() {
         isNew: false,
         lat: g.lat,
         lng: g.lng,
+        types: Array.from(g.types),
+        hasPool: g.hasPool,
+        minDistanceBeach: g.minDistanceBeach,
+        minDistanceGolf: g.minDistanceGolf,
       };
     });
 
