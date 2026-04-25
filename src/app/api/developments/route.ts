@@ -19,15 +19,15 @@ export interface DevelopmentSummary {
   maxPrice: number;
   types: string[];
   images: string[];
-  latestCreatedAt: string | null;
   isNew: boolean;
 }
 
 export async function GET() {
   try {
+    // Only select columns that are guaranteed to exist in the villas table
     const { data, error } = await supabase
       .from('villas')
-      .select('ref, price, town, region, type, images, development_name, created_at')
+      .select('ref, price, town, region, type, images, development_name, promoteur_name')
       .eq('is_excluded', false)
       .not('ref', 'is', null);
 
@@ -38,63 +38,54 @@ export async function GET() {
       name: string | null;
       town: string;
       region: string;
+      unitCount: number;
       prices: number[];
       types: Set<string>;
       images: string[];
-      createdAts: string[];
     }>();
 
     for (const p of data || []) {
-      const parts = (p.ref as string).split('-');
-      if (parts.length < 2) continue; // skip non-development refs
-      const devId = parts[0];
+      const ref = p.ref as string;
+      const dashIdx = ref.indexOf('-');
+      // Skip refs without a dash (not a development unit)
+      if (dashIdx === -1) continue;
+      const devId = ref.slice(0, dashIdx);
 
       if (!groups.has(devId)) {
         groups.set(devId, {
           name: p.development_name || null,
           town: p.town || '',
           region: p.region || '',
+          unitCount: 0,
           prices: [],
           types: new Set(),
           images: [],
-          createdAts: [],
         });
       }
 
       const g = groups.get(devId)!;
+      g.unitCount++;
       if (p.price) g.prices.push(Number(p.price));
       if (p.type) g.types.add(p.type);
       if (Array.isArray(p.images)) g.images.push(...p.images.slice(0, 2));
-      if (p.created_at) g.createdAts.push(p.created_at);
-      // Use first non-null name found
       if (!g.name && p.development_name) g.name = p.development_name;
     }
 
-    // Build summary array sorted by most recent first
-    const summaries: DevelopmentSummary[] = Array.from(groups.entries()).map(([devId, g]) => {
-      const sortedDates = g.createdAts.sort((a, b) => b.localeCompare(a));
-      const latestCreatedAt = sortedDates[0] || null;
-      return {
-        devId,
-        name: g.name,
-        town: g.town,
-        region: g.region,
-        unitCount: g.prices.length,
-        minPrice: g.prices.length ? Math.min(...g.prices) : 0,
-        maxPrice: g.prices.length ? Math.max(...g.prices) : 0,
-        types: Array.from(g.types),
-        images: Array.from(new Set(g.images)).slice(0, 4),
-        latestCreatedAt,
-        isNew: false, // will be set below
-      };
-    });
+    const summaries: DevelopmentSummary[] = Array.from(groups.entries()).map(([devId, g]) => ({
+      devId,
+      name: g.name,
+      town: g.town,
+      region: g.region,
+      unitCount: g.unitCount,
+      minPrice: g.prices.length ? Math.min(...g.prices) : 0,
+      maxPrice: g.prices.length ? Math.max(...g.prices) : 0,
+      types: Array.from(g.types),
+      images: Array.from(new Set(g.images)).slice(0, 4),
+      isNew: false,
+    }));
 
-    // Sort by most recent
-    summaries.sort((a, b) => {
-      if (!a.latestCreatedAt) return 1;
-      if (!b.latestCreatedAt) return -1;
-      return b.latestCreatedAt.localeCompare(a.latestCreatedAt);
-    });
+    // Higher devId number = more recently added to the Habihub feed
+    summaries.sort((a, b) => Number(b.devId) - Number(a.devId));
 
     // Mark top 5 as new
     summaries.slice(0, 5).forEach(s => { s.isNew = true; });
@@ -102,6 +93,6 @@ export async function GET() {
     return NextResponse.json({ developments: summaries, total: summaries.length });
   } catch (error: any) {
     console.error('Erreur API Developments:', error.message);
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur serveur', detail: error.message }, { status: 500 });
   }
 }
