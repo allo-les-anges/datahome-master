@@ -4,8 +4,13 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, ChevronDown, ChevronUp, Calendar, X } from "lucide-react";
+import {
+  Search, X, ChevronLeft, ChevronRight,
+  Bed, Bath, Waves, Building2, MapPin
+} from "lucide-react";
 import type { DevelopmentSummary, UnitOption } from "@/app/api/developments/route";
+
+const BRAND = "#D4AF37";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -13,119 +18,162 @@ function fmtPrice(n: number) {
   return n.toLocaleString("fr-FR") + " €";
 }
 
-// ─── AvailabilityBadge ────────────────────────────────────────────────────────
+// ─── DevCard ─────────────────────────────────────────────────────────────────
 
-function AvailabilityBadge({ count }: { count: number }) {
-  if (count === 1) {
-    return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-        Last available
-      </span>
-    );
-  }
+const MAX_VISIBLE = 2;
+
+function DevCard({ dev }: { dev: DevelopmentSummary }) {
+  const [imgIdx, setImgIdx] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+
+  const images = dev.images?.length ? dev.images : [];
+  const hasImages = images.length > 0;
+  const currentImg = images[imgIdx] ?? "/placeholder-villa.jpg";
+
+  const visibleOptions = expanded ? dev.options : dev.options.slice(0, MAX_VISIBLE);
+  const hiddenCount = dev.options.length - MAX_VISIBLE;
+
+  // Derive amenity icons from available data
+  const maxBeds = Math.max(0, ...dev.options.map(o => o.beds));
+  const maxBaths = Math.max(0, ...dev.options.map(o => o.baths));
+  const amenities = [
+    { icon: <Building2 size={14} />, show: true },
+    { icon: <Bed size={14} />,       show: maxBeds > 0 },
+    { icon: <Bath size={14} />,      show: maxBaths > 0 },
+    { icon: <Waves size={14} />,     show: true },
+  ].filter(a => a.show).slice(0, 4);
+
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-      {count} available
-    </span>
-  );
-}
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300">
 
-// ─── OptionRow ────────────────────────────────────────────────────────────────
+      {/* ── Image ── */}
+      <div className="relative h-48 bg-gray-100 overflow-hidden">
+        <img
+          src={currentImg}
+          alt={dev.name || dev.devId}
+          className="w-full h-full object-cover transition-opacity duration-300"
+          loading="lazy"
+        />
 
-function OptionRow({ opt }: { opt: UnitOption }) {
-  return (
-    <div className="py-2.5 border-b border-slate-100 last:border-0">
-      <div className="flex items-baseline gap-1.5 mb-0.5">
-        <span className="text-sm font-semibold text-slate-800">
-          From {fmtPrice(opt.minPrice)}
+        {/* Available badge */}
+        <span className={`absolute top-2.5 left-2.5 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm ${
+          dev.unitCount === 1 ? "bg-amber-500" : "bg-green-500"
+        }`}>
+          {dev.unitCount === 1 ? "Last available" : `${dev.unitCount} available`}
         </span>
-        <span className="text-xs text-slate-500 font-medium">(x{opt.count})</span>
-      </div>
-      <div className="text-xs text-slate-500">
-        {opt.beds > 0 && <span>{opt.beds} bedro.</span>}
-        {opt.beds > 0 && opt.baths > 0 && <span className="mx-1 opacity-40">-</span>}
-        {opt.baths > 0 && <span>{opt.baths} bathr.</span>}
-        {opt.surface > 0 && (
+
+        {/* Gold link button */}
+        <Link
+          href={`/developpement/${dev.devId}`}
+          className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm transition-opacity hover:opacity-90"
+          style={{ backgroundColor: BRAND }}
+        >
+          <MapPin size={14} />
+        </Link>
+
+        {/* Image nav (only if multiple images) */}
+        {images.length > 1 && (
           <>
-            {(opt.beds > 0 || opt.baths > 0) && <span className="mx-1 opacity-40">-</span>}
-            <span>{opt.surface} m²</span>
+            <button
+              onClick={e => { e.preventDefault(); setImgIdx(i => (i - 1 + images.length) % images.length); }}
+              className="absolute left-2 bottom-2 w-6 h-6 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors"
+            >
+              <ChevronLeft size={12} />
+            </button>
+            <button
+              onClick={e => { e.preventDefault(); setImgIdx(i => (i + 1) % images.length); }}
+              className="absolute left-10 bottom-2 w-6 h-6 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors"
+            >
+              <ChevronRight size={12} />
+            </button>
           </>
         )}
       </div>
-    </div>
-  );
-}
 
-// ─── DevCard ─────────────────────────────────────────────────────────────────
+      {/* ── Body ── */}
+      <div className="p-4">
 
-const MAX_VISIBLE_OPTIONS = 2;
-
-function DevCard({ dev }: { dev: DevelopmentSummary }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const visibleOptions = expanded ? dev.options : dev.options.slice(0, MAX_VISIBLE_OPTIONS);
-  const hiddenCount = dev.options.length - MAX_VISIBLE_OPTIONS;
-
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-200 overflow-hidden">
-      <div className="p-5">
-        {/* Header row */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <Link
-            href={`/developpement/${dev.devId}`}
-            className="text-base font-bold text-slate-900 hover:text-blue-600 transition-colors leading-tight line-clamp-2"
-          >
+        {/* Title */}
+        <Link href={`/developpement/${dev.devId}`}>
+          <h3 className="text-base font-medium text-gray-900 mb-1 hover:text-[#b8962e] transition-colors line-clamp-1">
             {dev.name || `Programme ${dev.devId}`}
-          </Link>
-          <AvailabilityBadge count={dev.unitCount} />
-        </div>
-
-        {/* Location */}
+          </h3>
+        </Link>
         {dev.town && (
-          <p className="text-xs text-slate-400 mb-3">
+          <p className="text-xs text-gray-400 mb-3">
             {dev.town}{dev.region && dev.region !== dev.town ? ` · ${dev.region}` : ""}
           </p>
         )}
 
-        {/* Options */}
+        {/* Amenity icons */}
+        <div className="flex gap-2 mb-4">
+          {amenities.map(({ icon }, i) => (
+            <div
+              key={i}
+              className="w-8 h-8 rounded-full border-2 flex items-center justify-center"
+              style={{ borderColor: BRAND, color: BRAND }}
+            >
+              {icon}
+            </div>
+          ))}
+        </div>
+
+        {/* Price options */}
         {dev.options.length > 0 ? (
-          <div className="mt-1">
-            {visibleOptions.map((opt, i) => (
-              <OptionRow key={i} opt={opt} />
+          <div className="border-t border-gray-100 pt-3 flex flex-col gap-2.5">
+            {visibleOptions.map((opt: UnitOption, i: number) => (
+              <div key={i} className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    From {fmtPrice(opt.minPrice)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {opt.beds > 0 && `${opt.beds} bedro.`}
+                    {opt.beds > 0 && opt.baths > 0 && " · "}
+                    {opt.baths > 0 && `${opt.baths} bathr.`}
+                    {opt.surface > 0 && ` · ${opt.surface} m²`}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-400 shrink-0 ml-2">(x{opt.count})</span>
+              </div>
             ))}
 
             {hiddenCount > 0 && (
               <button
                 onClick={() => setExpanded(v => !v)}
-                className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                className="text-xs font-medium mt-0.5 text-left transition-colors"
+                style={{ color: BRAND }}
               >
-                {expanded ? (
-                  <>Show less <ChevronUp size={12} /></>
-                ) : (
-                  <>Show all options (+{hiddenCount}) <ChevronDown size={12} /></>
-                )}
+                {expanded ? "Show less ↑" : `Show all options (+${hiddenCount})`}
               </button>
             )}
           </div>
         ) : dev.minPrice > 0 ? (
-          <p className="text-sm font-semibold text-slate-800 py-2">
-            From {fmtPrice(dev.minPrice)}
-          </p>
+          <div className="border-t border-gray-100 pt-3">
+            <p className="text-sm font-medium text-gray-900">From {fmtPrice(dev.minPrice)}</p>
+          </div>
         ) : null}
       </div>
 
-      {/* Footer */}
-      <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs text-slate-500">
-          <Calendar size={11} className="text-slate-400" />
-          <span>To consult</span>
+      {/* ── Footer ── */}
+      <div className="border-t border-gray-100 px-4 py-3 flex justify-between items-center">
+        <span className="text-xs text-gray-400">Delivery: To consult</span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setImgIdx(i => (i - 1 + Math.max(images.length, 1)) % Math.max(images.length, 1))}
+            disabled={images.length <= 1}
+            className="w-6 h-6 rounded-full border border-gray-200 text-gray-400 flex items-center justify-center hover:border-gray-400 disabled:opacity-30 transition-colors"
+          >
+            <ChevronLeft size={12} />
+          </button>
+          <button
+            onClick={() => setImgIdx(i => (i + 1) % Math.max(images.length, 1))}
+            disabled={images.length <= 1}
+            className="w-6 h-6 rounded-full border border-gray-200 text-gray-400 flex items-center justify-center hover:border-gray-400 disabled:opacity-30 transition-colors"
+          >
+            <ChevronRight size={12} />
+          </button>
         </div>
-        <Link
-          href={`/developpement/${dev.devId}`}
-          className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          View →
-        </Link>
       </div>
     </div>
   );
@@ -200,7 +248,8 @@ export default function DevelopmentsPage() {
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <div
               onClick={() => setHideSingle(v => !v)}
-              className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${hideSingle ? "bg-blue-500" : "bg-slate-200"}`}
+              className="relative w-9 h-5 rounded-full transition-colors duration-200"
+              style={{ backgroundColor: hideSingle ? BRAND : "#e2e8f0" }}
             >
               <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${hideSingle ? "translate-x-4" : "translate-x-0"}`} />
             </div>
