@@ -179,6 +179,64 @@ function DevCard({ dev }: { dev: DevelopmentSummary }) {
   );
 }
 
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 15;
+
+function Pagination({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (totalPages <= 1) return null;
+
+  // Build page number list: always show first, last, current ±1, with "…" gaps
+  const pages: (number | "…")[] = [];
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+      pages.push(p);
+    } else if (pages[pages.length - 1] !== "…") {
+      pages.push("…");
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-center gap-1.5 mt-10 flex-wrap">
+      <button
+        onClick={() => onChange(page - 1)}
+        disabled={page === 1}
+        className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 disabled:opacity-30 transition-colors"
+      >
+        <ChevronLeft size={15} />
+      </button>
+
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">…</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className="w-9 h-9 rounded-lg border text-sm font-medium transition-colors"
+            style={
+              p === page
+                ? { backgroundColor: BRAND, borderColor: BRAND, color: "#fff" }
+                : { borderColor: "#e5e7eb", color: "#374151" }
+            }
+          >
+            {p}
+          </button>
+        )
+      )}
+
+      <button
+        onClick={() => onChange(page + 1)}
+        disabled={page === totalPages}
+        className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 disabled:opacity-30 transition-colors"
+      >
+        <ChevronRight size={15} />
+      </button>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function DevelopmentsPage() {
@@ -186,6 +244,7 @@ export default function DevelopmentsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [hideSingle, setHideSingle] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetch("/api/developments")
@@ -209,10 +268,23 @@ export default function DevelopmentsPage() {
     return list;
   }, [developments, search, hideSingle]);
 
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [search, hideSingle]);
+
   const totalUnits = useMemo(
     () => filtered.reduce((s, d) => s + d.unitCount, 0),
     [filtered]
   );
+
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
+  );
+
+  function goToPage(p: number) {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -232,7 +304,8 @@ export default function DevelopmentsPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search"
-              className="w-full pl-9 pr-8 py-2 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
+              className="w-full pl-9 pr-8 py-2 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 transition-all placeholder:text-slate-400"
+              style={{ "--tw-ring-color": BRAND } as React.CSSProperties}
             />
             {search && (
               <button
@@ -261,22 +334,28 @@ export default function DevelopmentsPage() {
         {!loading && (
           <p className="text-sm text-slate-500 mb-5">
             <span className="font-semibold text-slate-800">{totalUnits.toLocaleString("fr-FR")}</span> available
-            {search && <span className="ml-2 text-slate-400">({filtered.length} developments)</span>}
+            <span className="ml-2 text-slate-400">
+              — {filtered.length} development{filtered.length !== 1 ? "s" : ""}
+              {filtered.length > PAGE_SIZE && `, page ${page} / ${Math.ceil(filtered.length / PAGE_SIZE)}`}
+            </span>
           </p>
         )}
 
         {/* Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 animate-pulse">
-                <div className="p-5 space-y-3">
-                  <div className="h-4 bg-slate-100 rounded w-2/3" />
-                  <div className="h-3 bg-slate-100 rounded w-1/3" />
-                  <div className="h-10 bg-slate-100 rounded mt-4" />
-                  <div className="h-10 bg-slate-100 rounded" />
+            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 animate-pulse">
+                <div className="h-48 bg-gray-100 rounded-t-2xl" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-100 rounded w-2/3" />
+                  <div className="h-3 bg-gray-100 rounded w-1/3" />
+                  <div className="flex gap-2 mt-2">
+                    {[0,1,2,3].map(j => <div key={j} className="w-8 h-8 rounded-full bg-gray-100" />)}
+                  </div>
+                  <div className="h-10 bg-gray-100 rounded mt-2" />
                 </div>
-                <div className="h-10 bg-slate-50 border-t border-slate-100" />
+                <div className="h-10 bg-gray-50 border-t border-gray-100 rounded-b-2xl" />
               </div>
             ))}
           </div>
@@ -284,17 +363,21 @@ export default function DevelopmentsPage() {
           <div className="text-center py-20 text-slate-400">
             <p className="text-sm">No developments match your search.</p>
             {search && (
-              <button onClick={() => setSearch("")} className="mt-3 text-xs text-blue-500 hover:underline">
+              <button onClick={() => setSearch("")} className="mt-3 text-xs hover:underline" style={{ color: BRAND }}>
                 Clear search
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(dev => (
-              <DevCard key={dev.devId} dev={dev} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginated.map(dev => (
+                <DevCard key={dev.devId} dev={dev} />
+              ))}
+            </div>
+
+            <Pagination page={page} total={filtered.length} onChange={goToPage} />
+          </>
         )}
       </div>
 
