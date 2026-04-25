@@ -3,11 +3,11 @@
 
 import { useEffect, useState, useRef, useMemo } from "react";
 import ContactForm from "@/components/ContactForm";
-import { 
-  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon, Play, X
+import {
+  Bed, Bath, Maximize, MessageCircle, Home, Waves, Car, MapPin, Navigation, ImageIcon, Play, X, ArrowLeft
 } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface PropertyDetailClientProps {
   property: any;
@@ -17,6 +17,7 @@ interface PropertyDetailClientProps {
 export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
   const { t, locale } = useTranslation() as any;
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeImage, setActiveImage] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -142,6 +143,21 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
         fontWeight: 400
       }}
     >
+      {/* Back button */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mb-4">
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors"
+          style={{
+            borderColor: isLight ? "#e2e8f0" : "#374151",
+            color: isLight ? "#475569" : "#9ca3af",
+            backgroundColor: isLight ? "#fff" : "#1f2937",
+          }}
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
+      </div>
+
       {/* Modal vidéo */}
       {isVideoModalOpen && embedUrl && (
         <div 

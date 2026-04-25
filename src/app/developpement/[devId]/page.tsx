@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -535,10 +535,12 @@ type Tab = "properties" | "location" | "location2" | "features" | "payment" | "m
 
 export default function DevelopmentPage() {
   const { devId }    = useParams();
+  const router       = useRouter();
   const [units, setUnits]         = useState<Unit[]>([]);
   const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("properties");
   const [leadUnit, setLeadUnit]   = useState<string | null>(null);
+  const [galleryIdx, setGalleryIdx] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -561,6 +563,18 @@ export default function DevelopmentPage() {
   const prices         = units.map(u => Number(u.price || 0)).filter(Boolean);
   const minPrice       = prices.length ? Math.min(...prices) : 0;
   const maxPrice       = prices.length ? Math.max(...prices) : 0;
+
+  // Collect unique images from all units
+  const allImages = useMemo(() => {
+    const seen = new Set<string>();
+    const imgs: string[] = [];
+    for (const u of units) {
+      for (const img of (u.images || [])) {
+        if (img && !seen.has(img)) { seen.add(img); imgs.push(img); }
+      }
+    }
+    return imgs.slice(0, 20);
+  }, [units]);
 
   const TABS: { key: Tab; label: string; count?: number }[] = [
     { key: "properties", label: "Properties",       count: units.length },
@@ -599,32 +613,91 @@ export default function DevelopmentPage() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-16">
 
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-slate-400 mb-4 pt-4">
-          <Link href="/developpements" className="hover:underline flex items-center gap-1" style={{ color: BRAND }}>
-            <ArrowLeft size={12} /> Developments
-          </Link>
-          <span>/</span>
-          <span className="text-slate-600 font-medium">{devName}</span>
-        </div>
-
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-          <div>
-            {dev.town && (
-              <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5">
-                <MapPin size={12} className="text-slate-400" />
-                {dev.town}{dev.region && dev.region !== dev.town ? ` · ${dev.region}` : ""}
-              </p>
-            )}
-            <h1 className="text-2xl font-bold text-slate-900">{devName}</h1>
-          </div>
-          <button onClick={() => setLeadUnit("general")}
-            className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90"
-            style={{ backgroundColor: BRAND }}>
-            <FileText size={14} /> Request dossier
+        {/* Back button */}
+        <div className="pt-4 mb-4">
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={14} /> Back
           </button>
         </div>
+
+        {/* Image gallery */}
+        {allImages.length > 0 && (
+          <div className="mb-6 rounded-2xl overflow-hidden bg-slate-900 relative" style={{ height: 340 }}>
+            <img
+              src={allImages[galleryIdx]}
+              alt={devName}
+              className="w-full h-full object-cover"
+            />
+            {/* Gradient overlay with title */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+              <div>
+                <h1 className="text-white text-xl font-bold drop-shadow">{devName}</h1>
+                {dev.town && (
+                  <p className="text-white/80 text-sm flex items-center gap-1 mt-0.5">
+                    <MapPin size={12} /> {dev.town}{dev.region && dev.region !== dev.town ? ` · ${dev.region}` : ""}
+                  </p>
+                )}
+              </div>
+              <button onClick={() => setLeadUnit("general")}
+                className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90 shadow-lg"
+                style={{ backgroundColor: BRAND }}>
+                <FileText size={14} /> Request dossier
+              </button>
+            </div>
+            {/* Nav arrows */}
+            {allImages.length > 1 && (
+              <>
+                <button onClick={() => setGalleryIdx(i => (i - 1 + allImages.length) % allImages.length)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
+                  <ChevronLeft size={16} />
+                </button>
+                <button onClick={() => setGalleryIdx(i => (i + 1) % allImages.length)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
+                  <ChevronRight size={16} />
+                </button>
+                {/* Dot counter */}
+                <div className="absolute top-3 right-3 bg-black/40 text-white text-xs px-2 py-1 rounded-full">
+                  {galleryIdx + 1} / {allImages.length}
+                </div>
+              </>
+            )}
+            {/* Thumbnail strip */}
+            {allImages.length > 1 && (
+              <div className="absolute bottom-0 left-0 right-0 flex gap-1.5 px-4 pb-2 justify-center overflow-hidden">
+                {allImages.slice(0, 8).map((img, i) => (
+                  <button key={i} onClick={() => setGalleryIdx(i)}
+                    className={`shrink-0 w-10 h-7 rounded overflow-hidden border-2 transition-all ${i === galleryIdx ? "border-white opacity-100" : "border-transparent opacity-50 hover:opacity-75"}`}>
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Header (when no images) */}
+        {allImages.length === 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div>
+              {dev.town && (
+                <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5">
+                  <MapPin size={12} className="text-slate-400" />
+                  {dev.town}{dev.region && dev.region !== dev.town ? ` · ${dev.region}` : ""}
+                </p>
+              )}
+              <h1 className="text-2xl font-bold text-slate-900">{devName}</h1>
+            </div>
+            <button onClick={() => setLeadUnit("general")}
+              className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90"
+              style={{ backgroundColor: BRAND }}>
+              <FileText size={14} /> Request dossier
+            </button>
+          </div>
+        )}
 
         {/* Stats bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
