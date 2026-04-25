@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useTranslation } from "@/contexts/I18nContext";
+import PasswordGate from "@/components/PasswordGate";
 import {
   Search, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   Bed, Bath, Waves, Building2, MapPin, Map as MapIcon,
@@ -757,6 +758,7 @@ export default function DevelopmentsPage() {
   const activeFilterCount = countActiveFilters(filters);
 
   return (
+    <PasswordGate>
     <div className="min-h-screen bg-slate-50">
       <Navbar />
 
@@ -962,5 +964,6 @@ export default function DevelopmentsPage() {
         </div>
       )}
     </div>
+    </PasswordGate>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useTranslation } from "@/contexts/I18nContext";
+import PasswordGate from "@/components/PasswordGate";
 import {
   ArrowLeft, Building2, MapPin, Search, X,
   ChevronLeft, ChevronRight, FileText, CheckCircle,
@@ -658,15 +659,18 @@ export default function DevelopmentPage() {
   ];
 
   if (loading) return (
+    <PasswordGate>
     <div className="min-h-screen bg-slate-50"><Navbar />
       <div className="h-[60vh] flex flex-col items-center justify-center mt-32">
         <div className="w-8 h-8 border-2 border-slate-200 border-t-[#D4AF37] rounded-full animate-spin mb-3" />
         <p className="text-sm text-slate-400">{t("developmentDetail.loading") || "Loading development..."}</p>
       </div>
     </div>
+    </PasswordGate>
   );
 
   if (!units.length) return (
+    <PasswordGate>
     <div className="min-h-screen bg-slate-50"><Navbar />
       <div className="h-[60vh] flex flex-col items-center justify-center text-center px-6 mt-32">
         <Building2 size={36} className="mb-4 text-slate-300" />
@@ -679,9 +683,11 @@ export default function DevelopmentPage() {
         </Link>
       </div>
     </div>
+    </PasswordGate>
   );
 
   return (
+    <PasswordGate>
     <div className="min-h-screen bg-slate-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-36 pb-16">
@@ -841,5 +847,6 @@ export default function DevelopmentPage() {
       <Footer />
       {leadUnit && <LeadModal unitRef={leadUnit} devName={devName} onClose={() => setLeadUnit(null)} />}
     </div>
+    </PasswordGate>
   );
 }
