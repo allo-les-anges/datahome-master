@@ -28,13 +28,15 @@ export interface DevelopmentSummary {
   options: UnitOption[];
   images: string[];
   isNew: boolean;
+  lat: number | null;
+  lng: number | null;
 }
 
 export async function GET() {
   try {
     const { data, error } = await supabase
       .from('villas')
-      .select('ref, price, town, region, type, images, development_name, beds, baths, surface_built')
+      .select('ref, price, town, region, type, images, development_name, beds, baths, surface_built, latitude, longitude')
       .eq('is_excluded', false)
       .not('ref', 'is', null);
 
@@ -47,6 +49,8 @@ export async function GET() {
       prices: number[];
       images: string[];
       optionMap: Map<string, { beds: number; baths: number; surface: number; minPrice: number; count: number }>;
+      lat: number | null;
+      lng: number | null;
     }>();
 
     for (const p of data || []) {
@@ -63,11 +67,14 @@ export async function GET() {
           prices: [],
           images: [],
           optionMap: new Map(),
+          lat: null,
+          lng: null,
         });
       }
 
       const g = groups.get(devId)!;
       if (!g.name && p.development_name) g.name = p.development_name;
+      if (!g.lat && p.latitude) { g.lat = Number(p.latitude); g.lng = Number(p.longitude); }
 
       const price = Number(p.price) || 0;
       if (price > 0) g.prices.push(price);
@@ -107,6 +114,8 @@ export async function GET() {
         options,
         images: Array.from(new Set(g.images)).slice(0, 4),
         isNew: false,
+        lat: g.lat,
+        lng: g.lng,
       };
     });
 
