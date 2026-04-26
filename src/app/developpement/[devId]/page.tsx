@@ -13,7 +13,7 @@ import {
   Waves, Car, TreePine, Dumbbell, ShieldCheck,
   Home, Plane, Flag, Utensils, ShoppingBag, Hospital,
   Train, Eye, Trees, Baby, GraduationCap, Clapperboard,
-  TrendingUp, BarChart3, Key, Euro
+  TrendingUp, BarChart3, Key, Euro, Calendar, FileDown
 } from "lucide-react";
 
 const BRAND = "#D4AF37";
@@ -45,6 +45,8 @@ interface Unit {
   distance_beach?: string | number | null;
   distance_golf?: string | number | null;
   distance_town?: string | number | null;
+  delivery_date?: string | null;
+  start_date?: string | null;
 }
 
 interface LeadForm { name: string; email: string; phone: string; unitRef: string }
@@ -435,9 +437,177 @@ function FeaturesTab({ units }: { units: Unit[] }) {
   );
 }
 
+// ─── Construction Progress bar ───────────────────────────────────────────────
+
+function ConstructionProgress({ startDate, deliveryDate }: { startDate: string | null; deliveryDate: string | null }) {
+  const { t } = useTranslation() as any;
+  if (!startDate && !deliveryDate) return null;
+
+  const now   = new Date();
+  const start = startDate   ? new Date(startDate)   : null;
+  const end   = deliveryDate ? new Date(deliveryDate) : null;
+
+  let pct = 0;
+  if (start && end && end > start) {
+    pct = Math.min(100, Math.max(0, Math.round(((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)));
+  } else if (end && now >= end) {
+    pct = 100;
+  }
+
+  let badgeColor = "#10b981";
+  let badgeText  = t("developmentDetail.progressOnTrack")   || "En cours";
+  if (end) {
+    if (now > end) {
+      pct = 100; badgeColor = "#10b981"; badgeText = t("developmentDetail.progressDelivered") || "Livré";
+    } else {
+      const months = (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30.5);
+      if (months < 3)  { badgeColor = "#ef4444"; badgeText = t("developmentDetail.progressImminent") || "Livraison imminente"; }
+      else if (months < 12) { badgeColor = "#f59e0b"; badgeText = t("developmentDetail.progressSoon")    || "Livraison proche"; }
+    }
+  }
+
+  const fmtShort = (d: Date) => d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+  const fmtMY    = (d: Date) => d.toLocaleDateString("fr-FR", { month: "2-digit", year: "numeric" });
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 px-5 py-4 mb-6">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <Calendar size={14} style={{ color: BRAND }} />
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            {t("developmentDetail.constructionProgress") || "Avancement du chantier"}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="px-2.5 py-1 text-xs font-semibold rounded-full text-white" style={{ backgroundColor: badgeColor }}>
+            {badgeText}
+          </span>
+          {end && (
+            <span className="text-xs text-slate-500">
+              {t("developmentDetail.deliveryExpected") || "Livraison prévue"} :{" "}
+              <strong className="text-slate-700">{fmtMY(end)}</strong>
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: badgeColor }} />
+        </div>
+        <span className="text-sm font-bold text-slate-700 w-10 text-right">{pct}%</span>
+      </div>
+      {start && end && (
+        <div className="flex justify-between mt-1.5">
+          <span className="text-[10px] text-slate-400">{fmtShort(start)}</span>
+          <span className="text-[10px] text-slate-400">{fmtShort(end)}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Phases tab ───────────────────────────────────────────────────────────────
+
+function PhasesTab({ units }: { units: Unit[] }) {
+  const { t } = useTranslation() as any;
+
+  const phaseMap = new Map<string, Unit[]>();
+  for (const unit of units) {
+    const parts  = (unit.ref || "").split("-");
+    const phase  = parts.length >= 3 && /^[A-Za-z]$/.test(parts[1]) ? parts[1].toUpperCase() : "MAIN";
+    if (!phaseMap.has(phase)) phaseMap.set(phase, []);
+    phaseMap.get(phase)!.push(unit);
+  }
+
+  const phases = Array.from(phaseMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+  const now    = new Date();
+
+  const statusOf = (phaseUnits: Unit[]) => {
+    const dates = phaseUnits.map(u => u.delivery_date).filter(Boolean) as string[];
+    if (!dates.length) return "ongoing";
+    const earliest = new Date(dates.sort()[0]);
+    if (now > earliest) return "delivered";
+    const months = (earliest.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30.5);
+    return months < 12 ? "upcoming" : "ongoing";
+  };
+
+  const STATUS_COLOR: Record<string, string> = {
+    delivered: "#10b981", upcoming: "#f59e0b", ongoing: BRAND,
+  };
+  const STATUS_LABEL = (s: string) => ({
+    delivered: t("developmentDetail.phaseDelivered") || "Livré",
+    upcoming:  t("developmentDetail.phaseUpcoming")  || "À venir",
+    ongoing:   t("developmentDetail.phaseOngoing")   || "En cours",
+  }[s] || s);
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        {t("developmentDetail.phasesTitle") || "Phases du projet"}
+      </h3>
+      {phases.map(([phaseName, phaseUnits]) => {
+        const prices    = phaseUnits.map(u => Number(u.price)).filter(p => p > 0);
+        const minP      = prices.length ? Math.min(...prices) : null;
+        const maxP      = prices.length ? Math.max(...prices) : null;
+        const available = phaseUnits.filter(isAvailable).length;
+        const status    = statusOf(phaseUnits);
+        const dates     = phaseUnits.map(u => u.delivery_date).filter(Boolean) as string[];
+        const delivDate = dates.length ? new Date(dates.sort()[0]) : null;
+        const label     = phaseName === "MAIN"
+          ? (t("developmentDetail.phaseMain") || "Programme principal")
+          : `${t("developmentDetail.phase") || "Phase"} ${phaseName}`;
+
+        return (
+          <div key={phaseName} className="bg-white border border-slate-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                  style={{ backgroundColor: BRAND }}>
+                  {phaseName === "MAIN" ? "1" : phaseName}
+                </div>
+                <h4 className="font-semibold text-slate-800">{label}</h4>
+              </div>
+              <span className="px-2.5 py-1 text-xs font-semibold rounded-full text-white" style={{ backgroundColor: STATUS_COLOR[status] }}>
+                {STATUS_LABEL(status)}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">
+                  {t("developmentDetail.phaseAvailable") || "Disponibles"}
+                </p>
+                <p className="font-semibold text-slate-800">
+                  {available} <span className="text-slate-400 font-normal">/ {phaseUnits.length}</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">
+                  {t("developmentDetail.phasePriceRange") || "Fourchette"}
+                </p>
+                <p className="font-semibold text-slate-800">
+                  {minP ? `${minP.toLocaleString("fr-FR")} €` : "—"}
+                  {maxP && maxP !== minP ? <span className="text-slate-400 font-normal"> – {maxP.toLocaleString("fr-FR")} €</span> : ""}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">
+                  {t("developmentDetail.deliveryExpected") || "Livraison"}
+                </p>
+                <p className="font-semibold text-slate-800">
+                  {delivDate ? delivDate.toLocaleDateString("fr-FR", { month: "2-digit", year: "numeric" }) : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Payment Method tab ───────────────────────────────────────────────────────
 
-function PaymentMethodTab({ units }: { units: Unit[] }) {
+function PaymentMethodTab({ units, startDate, deliveryDate }: { units: Unit[]; startDate: string | null; deliveryDate: string | null }) {
   const { t } = useTranslation() as any;
 
   const SPAIN_PLAN = [
@@ -497,6 +667,80 @@ function PaymentMethodTab({ units }: { units: Unit[] }) {
           </div>
         </div>
       )}
+
+      {/* ── Payment Timeline ── */}
+      {(startDate || deliveryDate) && (() => {
+        const start = startDate   ? new Date(startDate)   : null;
+        const end   = deliveryDate ? new Date(deliveryDate) : null;
+        const fmtMY = (d: Date | null) => d ? d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }) : t("developmentDetail.dateTBD") || "À définir";
+
+        const timelineSteps = [
+          { label: t("developmentDetail.reservation") || "Réservation",     color: BRAND,      date: start, pct: 10 },
+          { label: t("developmentDetail.startOfWorks") || "Début des travaux", color: "#10b981", date: start, pct: 20 },
+          { label: t("developmentDetail.keyHandover") || "Remise des clés",  color: "#3b82f6",  date: end,   pct: 70 },
+        ];
+
+        return (
+          <>
+            <div>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
+                {t("developmentDetail.paymentTimelineTitle") || "Timeline des paiements"}
+              </h4>
+              {/* Horizontal timeline */}
+              <div className="relative flex items-start justify-between px-4">
+                <div className="absolute top-3 left-4 right-4 h-0.5 bg-slate-200" />
+                {timelineSteps.map((step, i) => (
+                  <div key={i} className="relative flex flex-col items-center gap-2 w-1/3">
+                    <div className="w-6 h-6 rounded-full border-2 border-white shadow flex items-center justify-center z-10"
+                      style={{ backgroundColor: step.color }}>
+                      <span className="text-white text-[8px] font-bold">{step.pct}%</span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-700 text-center leading-tight">{step.label}</p>
+                    <p className="text-[10px] text-slate-400 text-center">{fmtMY(step.date)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {price > 0 && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                  {t("developmentDetail.paymentCashflowTitle") || "Vue cashflow estimée"}
+                </h4>
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                  {/* header */}
+                  <div className="grid grid-cols-4 bg-slate-50 border-b border-slate-200 px-4 py-2">
+                    {[
+                      t("developmentDetail.paymentDate")       || "Date estimée",
+                      t("developmentDetail.colName")           || "Étape",
+                      t("developmentDetail.paymentAmount")     || "Montant",
+                      t("developmentDetail.paymentCumulative") || "Cumul",
+                    ].map(h => (
+                      <span key={h} className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{h}</span>
+                    ))}
+                  </div>
+                  {timelineSteps.map((step, i) => {
+                    const amount  = Math.round(price * step.pct / 100);
+                    const cumPct  = timelineSteps.slice(0, i + 1).reduce((s, ss) => s + ss.pct, 0);
+                    const cumAmt  = Math.round(price * cumPct / 100);
+                    return (
+                      <div key={i} className={`grid grid-cols-4 px-4 py-3 text-sm ${i < timelineSteps.length - 1 ? "border-b border-slate-100" : ""}`}>
+                        <span className="text-slate-500 text-xs">{fmtMY(step.date)}</span>
+                        <span className="flex items-center gap-1.5 text-slate-700">
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: step.color }} />
+                          {step.label}
+                        </span>
+                        <span className="font-semibold text-slate-800">{fmtPrice(amount)}</span>
+                        <span className="text-slate-500">{fmtPrice(cumAmt)} <span className="text-[10px]">({cumPct}%)</span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }
@@ -601,19 +845,235 @@ function SalesTab({ unit }: { unit: Unit }) {
   );
 }
 
+// ─── PDF Modal ───────────────────────────────────────────────────────────────
+
+function PdfModal({ units, devName, startDate, deliveryDate, onClose }: {
+  units: Unit[];
+  devName: string;
+  startDate: string | null;
+  deliveryDate: string | null;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation() as any;
+  const [selectedId, setSelectedId] = useState(units[0]?.id || "");
+  const [form, setForm]     = useState({ name: "", email: "", phone: "" });
+  const [generating, setGenerating] = useState(false);
+  const [done, setDone]     = useState(false);
+
+  const selectedUnit = units.find(u => u.id === selectedId) || units[0];
+
+  async function handleGenerate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedUnit) return;
+    setGenerating(true);
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, unitRef: selectedUnit.ref || selectedUnit.id,
+          subject: `PDF Dossier – ${devName} – ${selectedUnit.ref}` }),
+      });
+
+      const { default: jsPDF } = await import("jspdf");
+      const { default: autoTable } = await import("jspdf-autotable");
+      const doc = new jsPDF();
+      const price = Number(selectedUnit.price) || 0;
+
+      const gold: [number, number, number]      = [212, 175, 55];
+      const darkC: [number, number, number]     = [30, 30, 30];
+      const grayC: [number, number, number]     = [110, 110, 110];
+      const lightG: [number, number, number]    = [245, 245, 245];
+
+      // Header band
+      doc.setFillColor(...gold);
+      doc.rect(0, 0, 210, 28, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("DATAhome", 14, 12);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(devName, 14, 21);
+      doc.setFontSize(9);
+      doc.text(`Réf: ${selectedUnit.ref || selectedUnit.id}`, 196, 12, { align: "right" });
+
+      let y = 38;
+      const sectionTitle = (txt: string) => {
+        doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(...darkC);
+        doc.text(txt, 14, y); y += 2;
+        doc.setDrawColor(...gold); doc.setLineWidth(0.5); doc.line(14, y, 196, y); y += 7;
+      };
+
+      // Unit details
+      sectionTitle("DÉTAILS DE L'UNITÉ");
+      const surf = parseFloat(String(selectedUnit.surface_built || "0")) || 0;
+      const detailRows = [
+        ["Référence",        selectedUnit.ref || selectedUnit.id],
+        ["Type",             selectedUnit.type || "—"],
+        ["Prix",             price > 0 ? fmtPrice(price) : "—"],
+        ["Surface",          surf > 0 ? `${surf} m²` : "—"],
+        ["Chambres",         String(selectedUnit.beds ?? "—")],
+        ["Salles de bains",  String(selectedUnit.baths ?? "—")],
+        ["Ville",            selectedUnit.town || "—"],
+      ];
+      doc.setFontSize(9);
+      for (const [label, value] of detailRows) {
+        doc.setFont("helvetica", "bold"); doc.setTextColor(...grayC); doc.text(label, 16, y);
+        doc.setFont("helvetica", "normal"); doc.setTextColor(...darkC); doc.text(String(value), 90, y);
+        y += 7;
+      }
+      y += 4;
+
+      // Payment plan table
+      sectionTitle("PLAN DE PAIEMENT VEFA");
+      if (price > 0) {
+        const planBody = [
+          ["Réservation",       "10%", fmtPrice(Math.round(price * 0.10))],
+          ["Début des travaux", "20%", fmtPrice(Math.round(price * 0.20))],
+          ["Remise des clés",   "70%", fmtPrice(Math.round(price * 0.70))],
+        ];
+        autoTable(doc, {
+          startY: y,
+          head: [["Étape", "%", "Montant"]],
+          body: planBody,
+          foot: [["Total", "100%", fmtPrice(price)]],
+          theme: "plain",
+          styles: { fontSize: 9, cellPadding: 3 },
+          headStyles: { fillColor: gold, textColor: [255, 255, 255], fontStyle: "bold" },
+          footStyles: { fillColor: lightG, fontStyle: "bold" },
+          columnStyles: { 2: { halign: "right" } },
+        });
+        y = (doc as any).lastAutoTable.finalY + 8;
+      }
+
+      // Timeline
+      if (startDate || deliveryDate) {
+        sectionTitle("TIMELINE DES PAIEMENTS");
+        const fmtD = (d: string | null) =>
+          d ? new Date(d).toLocaleDateString("fr-FR", { month: "short", year: "numeric" }) : "À définir";
+        const tlBody = [
+          ["Réservation",       fmtD(startDate),    price > 0 ? fmtPrice(Math.round(price * 0.10)) : "—"],
+          ["Début des travaux", fmtD(startDate),    price > 0 ? fmtPrice(Math.round(price * 0.20)) : "—"],
+          ["Remise des clés",   fmtD(deliveryDate), price > 0 ? fmtPrice(Math.round(price * 0.70)) : "—"],
+        ];
+        autoTable(doc, {
+          startY: y,
+          head: [["Étape", "Date estimée", "Montant"]],
+          body: tlBody,
+          theme: "plain",
+          styles: { fontSize: 9, cellPadding: 3 },
+          headStyles: { fillColor: gold, textColor: [255, 255, 255], fontStyle: "bold" },
+          columnStyles: { 2: { halign: "right" } },
+        });
+        y = (doc as any).lastAutoTable.finalY + 8;
+      }
+
+      // Footer
+      const pageH = doc.internal.pageSize.getHeight();
+      doc.setFillColor(...lightG);
+      doc.rect(0, pageH - 18, 210, 18, "F");
+      doc.setFontSize(7); doc.setFont("helvetica", "italic"); doc.setTextColor(...grayC);
+      const disc = "Les informations fournies sont indicatives et ne constituent pas un engagement contractuel. Commissions à confirmer directement avec le promoteur.";
+      doc.text(disc, 14, pageH - 10, { maxWidth: 140 });
+      doc.setFont("helvetica", "bold");
+      doc.text("DATAhome · datahome.fr", 196, pageH - 6, { align: "right" });
+
+      const fname = `dossier-${String(devName).replace(/\s+/g, "-")}-${(selectedUnit.ref || selectedUnit.id).slice(-6)}.pdf`.toLowerCase();
+      doc.save(fname);
+      setDone(true);
+    } catch (err) {
+      console.error("PDF error:", err);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative overflow-y-auto max-h-[90vh]">
+        <button onClick={onClose} className="absolute top-5 right-5 text-slate-400 hover:text-slate-700"><X size={18} /></button>
+        {done ? (
+          <div className="text-center py-6">
+            <CheckCircle size={44} className="mx-auto mb-4 text-green-500" />
+            <h3 className="text-lg font-bold mb-2">{t("developmentDetail.pdfGenerated") || "PDF généré !"}</h3>
+            <p className="text-slate-500 text-sm mb-6">{t("developmentDetail.pdfSaved") || "Votre dossier a été téléchargé."}</p>
+            <button onClick={onClose} className="px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-lg">
+              {t("common.close") || "Fermer"}
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${BRAND}20` }}>
+                <FileDown size={18} style={{ color: BRAND }} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">{t("developmentDetail.generatePdf") || "Générer mon dossier PDF"}</h3>
+                <p className="text-xs text-slate-400">{devName}</p>
+              </div>
+            </div>
+            <form onSubmit={handleGenerate} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                  {t("developmentDetail.selectUnit") || "Sélectionner une unité"}
+                </label>
+                <select value={selectedId} onChange={e => setSelectedId(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37] bg-white">
+                  {units.map(u => (
+                    <option key={u.id} value={u.id}>
+                      {unitName(u)} — {u.type || "—"} — {u.price ? fmtPrice(Number(u.price)) : "—"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                  {t("developmentDetail.yourDetails") || "Vos coordonnées"}
+                </label>
+                <div className="space-y-2.5">
+                  <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder={t("developmentDetail.fullName") || "Nom complet"}
+                    className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="Email"
+                    className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                    placeholder={t("developmentDetail.phone") || "Téléphone (facultatif)"}
+                    className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]" />
+                </div>
+              </div>
+              <button type="submit" disabled={generating}
+                className="w-full py-3 text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+                style={{ backgroundColor: BRAND }}>
+                {generating
+                  ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <FileDown size={14} />}
+                {generating
+                  ? (t("developmentDetail.pdfGenerating") || "Génération en cours...")
+                  : (t("developmentDetail.generatePdf")   || "Générer le PDF")}
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-type Tab = "properties" | "location" | "location2" | "features" | "payment" | "metrics" | "sales";
+type Tab = "properties" | "location" | "location2" | "features" | "phases" | "payment" | "metrics" | "sales";
 
 export default function DevelopmentPage() {
   const { t } = useTranslation() as any;
   const { devId }    = useParams();
   const router       = useRouter();
-  const [units, setUnits]         = useState<Unit[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("properties");
-  const [leadUnit, setLeadUnit]   = useState<string | null>(null);
+  const [units, setUnits]           = useState<Unit[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [activeTab, setActiveTab]   = useState<Tab>("properties");
+  const [leadUnit, setLeadUnit]     = useState<string | null>(null);
   const [galleryIdx, setGalleryIdx] = useState(0);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -632,6 +1092,8 @@ export default function DevelopmentPage() {
   const dev          = units[0];
   const devName      = dev?.development_name || `Programme ${devId}`;
   const company      = dev?.promoteur_name   || null;
+  const startDate    = units.find(u => u.start_date)?.start_date    || null;
+  const deliveryDate = units.find(u => u.delivery_date)?.delivery_date || null;
   const availableCount = units.filter(isAvailable).length;
   const prices         = units.map(u => Number(u.price || 0)).filter(Boolean);
   const minPrice       = prices.length ? Math.min(...prices) : 0;
@@ -653,6 +1115,7 @@ export default function DevelopmentPage() {
     { key: "location",   label: t("developmentDetail.tabLocation1")   || "Location I" },
     { key: "location2",  label: t("developmentDetail.tabLocation2")   || "Location II" },
     { key: "features",   label: t("developmentDetail.tabFeatures")    || "Features" },
+    { key: "phases",     label: t("developmentDetail.tabPhases")      || "Phases" },
     { key: "payment",    label: t("developmentDetail.tabPayment")     || "Payment Method" },
     { key: "metrics",    label: t("developmentDetail.tabMetrics")     || "Metrics" },
     { key: "sales",      label: t("developmentDetail.tabSales")       || "Sales Information" },
@@ -720,11 +1183,17 @@ export default function DevelopmentPage() {
                   </p>
                 )}
               </div>
-              <button onClick={() => setLeadUnit("general")}
-                className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90 shadow-lg"
-                style={{ backgroundColor: BRAND }}>
-                <FileText size={14} /> {t("developmentDetail.requestDossier") || "Request dossier"}
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => setLeadUnit("general")}
+                  className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90 shadow-lg"
+                  style={{ backgroundColor: BRAND }}>
+                  <FileText size={14} /> {t("developmentDetail.requestDossier") || "Request dossier"}
+                </button>
+                <button onClick={() => setShowPdfModal(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white text-sm font-semibold rounded-lg transition-opacity hover:bg-white/30 shadow-lg border border-white/30">
+                  <FileDown size={14} /> {t("developmentDetail.generatePdf") || "Générer PDF"}
+                </button>
+              </div>
             </div>
             {allImages.length > 1 && (
               <>
@@ -766,11 +1235,18 @@ export default function DevelopmentPage() {
               )}
               <h1 className="text-2xl font-bold text-slate-900">{devName}</h1>
             </div>
-            <button onClick={() => setLeadUnit("general")}
-              className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90"
-              style={{ backgroundColor: BRAND }}>
-              <FileText size={14} /> {t("developmentDetail.requestDossier") || "Request dossier"}
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button onClick={() => setLeadUnit("general")}
+                className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition-opacity hover:opacity-90"
+                style={{ backgroundColor: BRAND }}>
+                <FileText size={14} /> {t("developmentDetail.requestDossier") || "Request dossier"}
+              </button>
+              <button onClick={() => setShowPdfModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg border transition-opacity hover:opacity-80"
+                style={{ borderColor: BRAND, color: BRAND }}>
+                <FileDown size={14} /> {t("developmentDetail.generatePdf") || "Générer PDF"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -812,6 +1288,9 @@ export default function DevelopmentPage() {
           </div>
         </div>
 
+        {/* Construction progress */}
+        <ConstructionProgress startDate={startDate} deliveryDate={deliveryDate} />
+
         {/* Tabs */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="flex border-b border-slate-200 overflow-x-auto">
@@ -837,7 +1316,8 @@ export default function DevelopmentPage() {
             {activeTab === "location"   && <LocationTab unit={dev} />}
             {activeTab === "location2"  && <LocationIITab unit={dev} />}
             {activeTab === "features"   && <FeaturesTab units={units} />}
-            {activeTab === "payment"    && <PaymentMethodTab units={units} />}
+            {activeTab === "phases"     && <PhasesTab units={units} />}
+            {activeTab === "payment"    && <PaymentMethodTab units={units} startDate={startDate} deliveryDate={deliveryDate} />}
             {activeTab === "metrics"    && <MetricsTab units={units} />}
             {activeTab === "sales"      && <SalesTab unit={dev} />}
           </div>
@@ -846,6 +1326,7 @@ export default function DevelopmentPage() {
 
       <Footer />
       {leadUnit && <LeadModal unitRef={leadUnit} devName={devName} onClose={() => setLeadUnit(null)} />}
+      {showPdfModal && <PdfModal units={units} devName={devName} startDate={startDate} deliveryDate={deliveryDate} onClose={() => setShowPdfModal(false)} />}
     </div>
     </PasswordGate>
   );

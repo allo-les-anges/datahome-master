@@ -38,26 +38,36 @@ export async function GET(request: Request) {
     const maxPrice = searchParams.get('maxPrice');
     const ref = searchParams.get('reference');
 
-    let query = supabase
-      .from('villas')
-      .select('*', { count: 'exact' })
-      .eq('is_excluded', false);
-
-    // Application des filtres
-    if (type) query = query.ilike('type', `%${type}%`);
-    if (region) query = query.eq('region', region);
-    if (town) query = query.ilike('town', `%${town}%`);
-    if (ref) query = query.ilike('ref', `%${ref}%`);
-    if (beds) query = query.gte('beds', parseInt(beds));
-    if (minPrice) query = query.gte('price', parseInt(minPrice));
-    if (maxPrice) query = query.lte('price', parseInt(maxPrice));
 
     // Optimisation : sélectionner seulement les champs nécessaires pour la liste
-    const { data: properties, error, count } = await query
-      .select('id, ref, price, town, region, province, beds, baths, surface_built, surface_plot, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, commission_percentage')
+    const BASE_FIELDS = 'id, ref, price, town, region, province, beds, baths, surface_built, surface_plot, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, commission_percentage, status';
+
+    // Rebuild base query as a function so we can retry without date columns if needed
+    const buildQuery = () => {
+      let q = supabase.from('villas').select('*', { count: 'exact' }).eq('is_excluded', false);
+      if (type) q = q.ilike('type', `%${type}%`);
+      if (region) q = q.eq('region', region);
+      if (town) q = q.ilike('town', `%${town}%`);
+      if (ref) q = q.ilike('ref', `%${ref}%`);
+      if (beds) q = q.gte('beds', parseInt(beds));
+      if (minPrice) q = q.gte('price', parseInt(minPrice));
+      if (maxPrice) q = q.lte('price', parseInt(maxPrice));
+      return q;
+    };
+
+    let result: any = await buildQuery()
+      .select(`${BASE_FIELDS}, delivery_date, start_date`)
       .order('price', { ascending: true })
       .range(offset, offset + limit - 1);
 
+    if (result.error) {
+      result = await buildQuery()
+        .select(BASE_FIELDS)
+        .order('price', { ascending: true })
+        .range(offset, offset + limit - 1);
+    }
+
+    const { data: properties, error, count } = result;
     if (error) throw error;
 
     // Transformation multilingue optimisée
@@ -86,6 +96,9 @@ export async function GET(request: Request) {
       latitude: p.latitude ?? null,
       longitude: p.longitude ?? null,
       commission_percentage: p.commission_percentage ?? null,
+      status: p.status ?? null,
+      delivery_date: p.delivery_date ?? null,
+      start_date: p.start_date ?? null,
     }));
 
     const response = { properties: formatted, total: count };
