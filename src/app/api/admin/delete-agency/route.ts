@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_BASE = process.env.SUPABASE_URL || 'https://idoosovuatkqfrkuyiie.supabase.co';
-const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY
-                   || process.env.SUPABASE_KEY
-                   || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb29zb3Z1YXRrcWZya3V5aWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MTEwMDgsImV4cCI6MjA4NzI4NzAwOH0.JJKPOFgVdNgoweD4B4cIo28Ip3aGRvh-0czsgvY0AuM';
-
-const BASE_HEADERS = {
-  apikey:        SUPABASE_KEY,
-  Authorization: `Bearer ${SUPABASE_KEY}`,
-  'Content-Type': 'application/json',
-  Prefer:        'return=minimal',
-};
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
 
 export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -20,17 +14,21 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'id requis' }, { status: 400 });
   }
 
-  const res = await fetch(
-    `${SUPABASE_BASE}/rest/v1/agency_settings?id=eq.${encodeURIComponent(id)}`,
-    { method: 'DELETE', headers: BASE_HEADERS },
-  );
+  console.log('[delete-agency] Tentative suppression id:', id);
 
-  // Supabase renvoie 204 No Content (sans body) quand le DELETE réussit
-  if (res.status === 204 || res.ok) {
-    return NextResponse.json({ success: true });
+  const { error, count } = await supabase
+    .from('agency_settings')
+    .delete({ count: 'exact' })
+    .eq('id', id);
+
+  if (error) {
+    console.error('[delete-agency] Erreur Supabase:', error.code, error.message, error.details);
+    return NextResponse.json(
+      { success: false, error: error.message, code: error.code, details: error.details },
+      { status: 400 },
+    );
   }
 
-  const err = await res.text();
-  console.error('[delete-agency]', res.status, err);
-  return NextResponse.json({ success: false, error: err }, { status: res.status });
+  console.log('[delete-agency] Supprimé, lignes affectées:', count);
+  return NextResponse.json({ success: true, count });
 }

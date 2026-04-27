@@ -697,7 +697,11 @@ export default function AgencyDashboard() {
       setIsSaving(true);
       const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+      console.log('[delete-agency] réponse API:', json);
+      if (!res.ok || !json.success) {
+        const detail = json.code ? `[${json.code}] ${json.error}` : (json.error || `HTTP ${res.status}`);
+        throw new Error(detail);
+      }
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
       if (selectedAgency?.id === id) {
