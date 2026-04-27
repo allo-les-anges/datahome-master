@@ -373,6 +373,7 @@ export default function AgencyDashboard() {
   const [team, setTeam] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'agencies' | 'pending'>('agencies');
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [loadingPending, setLoadingPending] = useState(false);
 
   // Integration panel expand state
   const [intOpen, setIntOpen] = useState({ propertyManager: false, whatsapp: false, crm: false, chatbot: false, leadsCrm: false });
@@ -383,13 +384,29 @@ export default function AgencyDashboard() {
     package_level: 'silver'
   });
 
+  const fetchPendingAgencies = async () => {
+    setLoadingPending(true);
+    try {
+      const { data, error } = await supabase
+        .from('agency_settings')
+        .select('*')
+        .eq('website_status', 'pending')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setPendingAgencies(data || []);
+    } catch (err) {
+      console.error('fetchPendingAgencies error:', err);
+    } finally {
+      setLoadingPending(false);
+    }
+  };
+
   useEffect(() => {
     const fetchAgencies = async () => {
       try {
         const { data, error } = await supabase.from('agency_settings').select('*');
         if (error) throw error;
         setAgencies(data || []);
-        setPendingAgencies((data || []).filter((a: any) => a.website_status === 'pending'));
         if (data && data.length > 0 && !selectedAgency) {
           setSelectedAgency(data[0]);
           setTeam(data[0].team_data || []);
@@ -402,6 +419,10 @@ export default function AgencyDashboard() {
     };
     fetchAgencies();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'pending') fetchPendingAgencies();
+  }, [activeTab]);
 
   useEffect(() => {
     if (selectedAgency) {
@@ -882,7 +903,19 @@ export default function AgencyDashboard() {
           </nav>
         ) : (
           <nav className="flex-1 overflow-y-auto p-3 space-y-2">
-            {pendingAgencies.length === 0 ? (
+            <div className="flex justify-end mb-1">
+              <button
+                onClick={fetchPendingAgencies}
+                disabled={loadingPending}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-all disabled:opacity-40"
+              >
+                {loadingPending ? <Loader2 size={9} className="animate-spin" /> : <Activity size={9} />}
+                Actualiser
+              </button>
+            </div>
+            {loadingPending ? (
+              <div className="flex justify-center pt-6"><Loader2 size={18} className="animate-spin text-orange-400/50" /></div>
+            ) : pendingAgencies.length === 0 ? (
               <p className="text-center text-white/20 text-[10px] uppercase tracking-widest pt-6">Aucune demande</p>
             ) : pendingAgencies.map((agency) => (
               <div key={agency.id} className="bg-white/[0.03] border border-orange-500/20 rounded-xl p-3 space-y-2">
