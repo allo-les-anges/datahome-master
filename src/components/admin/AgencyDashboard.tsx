@@ -693,15 +693,24 @@ export default function AgencyDashboard() {
     if (!confirm(`Supprimer définitivement l'agence "${name}" ?`)) return;
     try {
       setIsSaving(true);
-      const { error } = await supabase.from('agency_settings').delete().eq('id', id);
-      if (error) throw error;
-      setMessage({ type: 'success', text: "Agence supprimée" });
+      const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+      if (selectedAgency?.id === id) setSelectedAgency(null);
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
-      if (data && data.length > 0) setSelectedAgency(data[0]);
-      else setSelectedAgency(null);
-    } catch { setMessage({ type: 'error', text: t.error_save }); }
-    finally { setIsSaving(false); setTimeout(() => setMessage(null), 3000); }
+      if (!selectedAgency || selectedAgency.id === id) {
+        setSelectedAgency(data?.[0] ?? null);
+        setTeam(data?.[0]?.team_data || []);
+      }
+      setMessage({ type: 'success', text: `"${name}" supprimée` });
+    } catch (err: any) {
+      console.error('[handleDelete]', err);
+      setMessage({ type: 'error', text: err.message || t.error_save });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setMessage(null), 4000);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
