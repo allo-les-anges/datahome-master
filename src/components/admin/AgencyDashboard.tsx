@@ -863,30 +863,18 @@ export default function AgencyDashboard() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Erreur création agence');
 
-      // Set agency to active (API creates with 'pending' by default)
-      if (json.agency_id) {
-        await supabase
-          .from('agency_settings')
-          .update({ website_status: 'active', updated_at: new Date().toISOString() })
-          .eq('id', json.agency_id);
-      }
-
-      // Mark pre-registration as published
+      // Mark pre-registration as converted (removed from DEMANDES)
       await supabase
         .from('register_premium')
         .update({ status: 'published' })
         .eq('id', selectedPreRegistration.id);
 
-      setMessage({ type: 'success', text: '✅ Agence mise en ligne avec succès' });
-      setTimeout(() => setMessage(null), 5000);
-
-      // Remove from lists and reset panel
+      // Remove from DEMANDES lists
       setPreRegistrations(prev => prev.filter(r => r.id !== selectedPreRegistration.id));
       setPendingRegistrations(prev => prev.filter(r => r.id !== selectedPreRegistration.id));
       setSelectedPreRegistration(null);
-      setActivePanel('agency');
 
-      // Refresh agencies list and select the new agency
+      // Refresh agencies list, switch to AGENCES tab and open the new agency
       const { data: refreshedAgencies } = await supabase.from('agency_settings').select('*');
       if (refreshedAgencies) {
         setAgencies(refreshedAgencies);
@@ -897,9 +885,14 @@ export default function AgencyDashboard() {
         }
       }
       setLoading(false);
+      setActiveTab('agencies');
+      setActivePanel('agency');
+
+      setMessage({ type: 'success', text: '✅ Agence créée — complétez la configuration avant la mise en ligne' });
+      setTimeout(() => setMessage(null), 6000);
     } catch (err: any) {
-      console.error('Publish preregistration error:', err);
-      setMessage({ type: 'error', text: err.message || 'Erreur lors de la mise en ligne' });
+      console.error('Convert preregistration error:', err);
+      setMessage({ type: 'error', text: err.message || 'Erreur lors de la création de l\'agence' });
       setTimeout(() => setMessage(null), 5000);
     } finally {
       setIsPublishing(false);
@@ -1144,10 +1137,10 @@ export default function AgencyDashboard() {
                     type="button"
                     onClick={handlePublishPreRegistration}
                     disabled={isPublishing}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50 active:scale-95"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 active:scale-95"
                   >
-                    {isPublishing ? <Loader2 className="animate-spin" size={14} /> : <Rocket size={14} />}
-                    {isPublishing ? 'Mise en ligne...' : 'Mettre en ligne'}
+                    {isPublishing ? <Loader2 className="animate-spin" size={14} /> : <UserPlus size={14} />}
+                    {isPublishing ? 'Création...' : 'Créer l\'agence'}
                   </button>
                 </div>
               </div>
