@@ -380,6 +380,8 @@ export default function AgencyDashboard() {
   const [team, setTeam] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'agencies' | 'pending'>('agencies');
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [loadingPending, setLoadingPending] = useState(false);
 
   // Integration panel expand state
@@ -690,7 +692,7 @@ export default function AgencyDashboard() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Supprimer définitivement l'agence "${name}" ?`)) return;
+    setDeleteConfirmId(null);
     try {
       setIsSaving(true);
       const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
@@ -705,10 +707,11 @@ export default function AgencyDashboard() {
       setMessage({ type: 'success', text: `"${name}" supprimée` });
     } catch (err: any) {
       console.error('handleDelete error:', err);
-      setMessage({ type: 'error', text: err?.message || t.error_save });
+      const msg = err?.message || t.error_save;
+      setDeleteError(msg);
+      setTimeout(() => setDeleteError(null), 6000);
     } finally {
       setIsSaving(false);
-      setTimeout(() => setMessage(null), 4000);
     }
   };
 
@@ -1003,35 +1006,71 @@ export default function AgencyDashboard() {
           </button>
         </div>
 
+        {/* Toast erreur suppression — toujours visible dans la sidebar */}
+        <AnimatePresence>
+          {deleteError && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+              className="mx-3 mt-1 px-3 py-2 bg-red-500/15 border border-red-500/30 rounded-xl flex items-start gap-2"
+            >
+              <AlertCircle size={12} className="text-red-400 mt-0.5 flex-shrink-0" />
+              <span className="text-[10px] text-red-300 font-semibold leading-tight">{deleteError}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {activeTab === 'agencies' ? (
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {agencies.map((agency) => (
               <div key={agency.id} className="relative group">
-                <button
-                  onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 relative ${selectedAgency?.id === agency.id ? 'text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
-                >
-                  {selectedAgency?.id === agency.id && (
-                    <motion.div layoutId="sidebar-indicator" className="absolute inset-0 rounded-xl bg-indigo-500/10 border border-indigo-500/25" />
-                  )}
-                  <div className="relative z-10">
-                    <div className="font-semibold text-[13px] flex items-center gap-1 pr-6">
-                      <span className="truncate">{agency.agency_name}</span>
-                      {agency.website_status === 'pending' && (
-                        <span className="text-[8px] bg-orange-100 text-orange-600 font-bold px-1.5 py-0.5 rounded-full ml-1">
-                          En attente
-                        </span>
-                      )}
+                {deleteConfirmId === agency.id ? (
+                  /* Confirmation inline — remplace le bouton de sélection */
+                  <div className="w-full px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer «&nbsp;{agency.agency_name}&nbsp;» ?</span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => handleDelete(agency.id, agency.agency_name)}
+                        className="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg transition-all"
+                      >
+                        Oui
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-2.5 py-1 bg-white/[0.08] hover:bg-white/[0.14] text-white/60 text-[10px] font-bold rounded-lg transition-all"
+                      >
+                        Non
+                      </button>
                     </div>
-                    <div className="text-[9px] opacity-40 mt-0.5 uppercase tracking-wider">{agency.subdomain}</div>
                   </div>
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDelete(agency.id, agency.agency_name); }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                >
-                  <Trash2 size={13} />
-                </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 relative ${selectedAgency?.id === agency.id ? 'text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
+                    >
+                      {selectedAgency?.id === agency.id && (
+                        <motion.div layoutId="sidebar-indicator" className="absolute inset-0 rounded-xl bg-indigo-500/10 border border-indigo-500/25" />
+                      )}
+                      <div className="relative z-10">
+                        <div className="font-semibold text-[13px] flex items-center gap-1 pr-6">
+                          <span className="truncate">{agency.agency_name}</span>
+                          {agency.website_status === 'pending' && (
+                            <span className="text-[8px] bg-orange-100 text-orange-600 font-bold px-1.5 py-0.5 rounded-full ml-1">
+                              En attente
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[9px] opacity-40 mt-0.5 uppercase tracking-wider">{agency.subdomain}</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(agency.id); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </>
+                )}
               </div>
             ))}
           </nav>
