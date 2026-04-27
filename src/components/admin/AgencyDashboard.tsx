@@ -9,7 +9,7 @@ import {
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram,
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
   MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, Briefcase, FileText,
-  ChevronDown, Lock, Bot, Home as HomeIcon, TrendingUp, Sparkles, Activity
+  ChevronDown, Lock, Bot, Home as HomeIcon, TrendingUp, Sparkles, Activity, Clock
 } from 'lucide-react';
 
 // ============================================================
@@ -363,6 +363,7 @@ export default function AgencyDashboard() {
   const t = translations[lang];
 
   const [agencies, setAgencies] = useState<any[]>([]);
+  const [pendingAgencies, setPendingAgencies] = useState<any[]>([]);
   const [selectedAgency, setSelectedAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -370,6 +371,8 @@ export default function AgencyDashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [team, setTeam] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'agencies' | 'pending'>('agencies');
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   // Integration panel expand state
   const [intOpen, setIntOpen] = useState({ propertyManager: false, whatsapp: false, crm: false, chatbot: false, leadsCrm: false });
@@ -386,6 +389,7 @@ export default function AgencyDashboard() {
         const { data, error } = await supabase.from('agency_settings').select('*');
         if (error) throw error;
         setAgencies(data || []);
+        setPendingAgencies((data || []).filter((a: any) => a.website_status === 'pending'));
         if (data && data.length > 0 && !selectedAgency) {
           setSelectedAgency(data[0]);
           setTeam(data[0].team_data || []);
@@ -738,6 +742,35 @@ export default function AgencyDashboard() {
     } finally { setIsCreating(false); }
   };
 
+  const handlePublish = async (agency: any) => {
+    if (!confirm(`Publier le site de "${agency.agency_name}" ?`)) return;
+    setPublishingId(agency.id);
+    try {
+      const currentFooter = typeof agency.footer_config === 'string'
+        ? JSON.parse(agency.footer_config)
+        : (agency.footer_config || {});
+      const updatedFooter = {
+        ...currentFooter,
+        subscription: { ...(currentFooter.subscription || {}), website_active: true },
+      };
+      const { error } = await supabase
+        .from('agency_settings')
+        .update({ website_status: 'active', footer_config: updatedFooter, updated_at: new Date().toISOString() })
+        .eq('id', agency.id);
+      if (error) throw error;
+      setPendingAgencies((prev) => prev.filter((a) => a.id !== agency.id));
+      setAgencies((prev) => prev.map((a) => a.id === agency.id ? { ...a, website_status: 'active', footer_config: updatedFooter } : a));
+      setMessage({ type: 'success', text: `${agency.agency_name} est maintenant en ligne !` });
+      setTimeout(() => setMessage(null), 4000);
+    } catch (err: any) {
+      console.error('Publish error:', err);
+      setMessage({ type: 'error', text: 'Erreur lors de la publication : ' + err.message });
+      setTimeout(() => setMessage(null), 4000);
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
   // KPI computed values
   const activeModulesCount = selectedAgency ? [
     getSub('website_active') !== false,
@@ -796,27 +829,82 @@ export default function AgencyDashboard() {
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {agencies.map((agency) => (
-            <div key={agency.id} className="relative group">
-              <button
-                onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); }}
-                className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 relative ${selectedAgency?.id === agency.id ? 'text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
-              >
-                {selectedAgency?.id === agency.id && (
-                  <motion.div layoutId="sidebar-indicator" className="absolute inset-0 rounded-xl bg-indigo-500/10 border border-indigo-500/25" />
-                )}
-                <div className="relative z-10">
-                  <div className="font-semibold truncate pr-6 text-[13px]">{agency.agency_name}</div>
-                  <div className="text-[9px] opacity-40 mt-0.5 uppercase tracking-wider">{agency.subdomain}</div>
+        {/* Tabs */}
+        <div className="px-3 pt-2 pb-1 flex gap-1">
+          <button
+            onClick={() => setActiveTab('agencies')}
+            className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'agencies' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'}`}
+          >
+            Agences
+          </button>
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1 ${activeTab === 'pending' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'}`}
+          >
+            <Clock size={9} />
+            Demandes
+            {pendingAgencies.length > 0 && (
+              <span className="bg-orange-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                {pendingAgencies.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {activeTab === 'agencies' ? (
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+            {agencies.map((agency) => (
+              <div key={agency.id} className="relative group">
+                <button
+                  onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); }}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 relative ${selectedAgency?.id === agency.id ? 'text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
+                >
+                  {selectedAgency?.id === agency.id && (
+                    <motion.div layoutId="sidebar-indicator" className="absolute inset-0 rounded-xl bg-indigo-500/10 border border-indigo-500/25" />
+                  )}
+                  <div className="relative z-10">
+                    <div className="font-semibold text-[13px] flex items-center gap-1 pr-6">
+                      <span className="truncate">{agency.agency_name}</span>
+                      {agency.website_status === 'pending' && (
+                        <span className="text-[8px] bg-orange-100 text-orange-600 font-bold px-1.5 py-0.5 rounded-full ml-1">
+                          En attente
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[9px] opacity-40 mt-0.5 uppercase tracking-wider">{agency.subdomain}</div>
+                  </div>
+                </button>
+                <button onClick={() => handleDelete(agency.id, agency.agency_name)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </nav>
+        ) : (
+          <nav className="flex-1 overflow-y-auto p-3 space-y-2">
+            {pendingAgencies.length === 0 ? (
+              <p className="text-center text-white/20 text-[10px] uppercase tracking-widest pt-6">Aucune demande</p>
+            ) : pendingAgencies.map((agency) => (
+              <div key={agency.id} className="bg-white/[0.03] border border-orange-500/20 rounded-xl p-3 space-y-2">
+                <div>
+                  <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
+                  <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
+                  <div className="text-[9px] text-white/20 mt-0.5">
+                    {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : '—'}
+                  </div>
                 </div>
-              </button>
-              <button onClick={() => handleDelete(agency.id, agency.agency_name)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
-                <Trash2 size={13} />
-              </button>
-            </div>
-          ))}
-        </nav>
+                <button
+                  onClick={() => handlePublish(agency)}
+                  disabled={publishingId === agency.id}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
+                >
+                  {publishingId === agency.id ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                  Publier
+                </button>
+              </div>
+            ))}
+          </nav>
+        )}
       </aside>
 
       {/* MAIN */}

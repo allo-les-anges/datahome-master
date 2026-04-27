@@ -27,23 +27,42 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'email, agency_name et subdomain sont requis' }, { status: 400 });
   }
 
+  console.log('[create-agency-premium] ① Vérification OTP pour:', email);
+
   // ① Vérifie que le prospect a bien validé son OTP
   const checkRes = await fetch(
     sb(`register_premium?email=eq.${encodeURIComponent(email)}&status=eq.verified&select=id`),
     { headers: BASE_HEADERS },
   );
+
+  if (!checkRes.ok) {
+    const errBody = await checkRes.text();
+    console.error('[create-agency-premium] ① Erreur lecture register_premium:', checkRes.status, errBody);
+    return NextResponse.json({ success: false, error: 'Erreur vérification OTP', details: errBody }, { status: 502 });
+  }
+
   const checkRows: any[] = await checkRes.json();
+  console.log('[create-agency-premium] ① checkRows:', checkRows);
 
   if (!checkRows || checkRows.length === 0) {
     return NextResponse.json({ success: false, error: 'OTP non vérifié pour cet email.' }, { status: 403 });
   }
   const prospectId = checkRows[0].id;
 
+  console.log('[create-agency-premium] ② Vérification doublon subdomain:', subdomain);
+
   // ② Vérifie que le sous-domaine n'est pas déjà pris
   const dupRes = await fetch(
     sb(`agency_settings?subdomain=eq.${encodeURIComponent(subdomain)}&select=id`),
     { headers: BASE_HEADERS },
   );
+
+  if (!dupRes.ok) {
+    const errBody = await dupRes.text();
+    console.error('[create-agency-premium] ② Erreur lecture agency_settings:', dupRes.status, errBody);
+    return NextResponse.json({ success: false, error: 'Erreur vérification subdomain', details: errBody }, { status: 502 });
+  }
+
   const dupRows: any[] = await dupRes.json();
 
   if (dupRows && dupRows.length > 0) {
@@ -57,8 +76,30 @@ export async function POST(req: NextRequest) {
     xml_urls:       xml_url ? [xml_url] : [],
     socials:        { facebook: facebook || '', whatsapp: whatsapp || '' },
     integrations:   { crm_enabled: false, leads_enabled: false, property_manager_enabled: true },
-    subscription:   { website_active: true, plan: 'trial', trial_expires_at: trialExpiresAt },
+    subscription:   { website_active: false, plan: 'trial', trial_expires_at: trialExpiresAt },
   };
+
+  const insertPayload = {
+    agency_name:      agency_name.trim(),
+    subdomain:        subdomain.trim().toLowerCase().replace(/\s+/g, '-'),
+    primary_color:    primary_color || '#e5992e',
+    button_color:     primary_color || '#e5992e',
+    button_style:     'rounded-full',
+    button_animation: 'none',
+    hero_type:        'image',
+    hero_title:       hero_title || '',
+    whatsapp_number:  whatsapp || null,
+    default_lang:     default_lang || 'en',
+    package_level:    'premium',
+    footer_config,
+    website_status:   'pending',
+    trial_expires_at: trialExpiresAt,
+    team_data:        [],
+    created_at:       new Date().toISOString(),
+    updated_at:       new Date().toISOString(),
+  };
+
+  console.log('[create-agency-premium] ④ INSERT agency_settings:', insertPayload);
 
   // ④ Crée l'agence dans agency_settings
   const insertRes = await fetch(
@@ -66,35 +107,25 @@ export async function POST(req: NextRequest) {
     {
       method:  'POST',
       headers: { ...BASE_HEADERS, Prefer: 'return=representation' },
-      body: JSON.stringify({
-        agency_name:      agency_name.trim(),
-        subdomain:        subdomain.trim().toLowerCase().replace(/\s+/g, '-'),
-        primary_color:    primary_color || '#e5992e',
-        button_color:     primary_color || '#e5992e',
-        button_style:     'rounded-full',
-        button_animation: 'none',
-        hero_type:        'image',
-        hero_title:       hero_title || '',
-        whatsapp_number:  whatsapp || null,
-        default_lang:     default_lang || 'en',
-        package_level:    'premium',
-        footer_config,
-        team_data:        [],
-        created_at:       new Date().toISOString(),
-        updated_at:       new Date().toISOString(),
-      }),
+      body: JSON.stringify(insertPayload),
     },
   );
 
-  if (!insertRes.ok) {
-    const err = await insertRes.text();
-    return NextResponse.json({ success: false, error: `Supabase insert error: ${err}` }, { status: 502 });
+  if (insertRes.status >= 400) {
+    const errBody = await insertRes.text();
+    console.error('[create-agency-premium] ④ INSERT agency_settings FAILED:', insertRes.status, errBody);
+    return NextResponse.json({
+      success: false,
+      error:   errBody,
+      details: { status: insertRes.status, payload_keys: Object.keys(insertPayload) },
+    }, { status: 502 });
   }
 
   const [newAgency] = await insertRes.json();
+  console.log('[create-agency-premium] ④ INSERT success:', newAgency?.id, newAgency?.subdomain);
 
   // ⑤ Marque le prospect comme actif
-  await fetch(
+  const patchRes = await fetch(
     sb(`register_premium?id=eq.${prospectId}`),
     {
       method:  'PATCH',
@@ -102,6 +133,9 @@ export async function POST(req: NextRequest) {
       body:    JSON.stringify({ status: 'active' }),
     },
   );
+  if (!patchRes.ok) {
+    console.error('[create-agency-premium] ⑤ PATCH register_premium failed (non bloquant):', await patchRes.text());
+  }
 
   return NextResponse.json({
     success:   true,

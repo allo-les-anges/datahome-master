@@ -489,7 +489,7 @@ function OnboardingContent() {
                     </div>
 
                     <div className="w-full">
-                      <a href={`/${config.default_lang}/${config.subdomain}/mon-espace`}>
+                      <a href={`/client?agency=${config.subdomain}&lang=${lang}`}>
                         <ShimmerButton color={config.primary_color}>
                           <Zap size={15} /> {t.go_dashboard}
                         </ShimmerButton>
