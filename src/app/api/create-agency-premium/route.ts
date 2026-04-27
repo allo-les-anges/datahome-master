@@ -50,13 +50,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Ce sous-domaine est déjà utilisé.' }, { status: 409 });
   }
 
-  // ③ Construit le footer_config
+  // ③ Construit le footer_config avec trial de 15 jours
+  const trialExpiresAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
   const footer_config = {
     allowed_langs:  default_lang ? [default_lang, 'en'].filter((v, i, a) => a.indexOf(v) === i) : ['en'],
     xml_urls:       xml_url ? [xml_url] : [],
     socials:        { facebook: facebook || '', whatsapp: whatsapp || '' },
-    integrations:   {},
-    subscription:   { website_active: true },
+    integrations:   { crm_enabled: false, leads_enabled: false, property_manager_enabled: true },
+    subscription:   { website_active: true, plan: 'trial', trial_expires_at: trialExpiresAt },
   };
 
   // ④ Crée l'agence dans agency_settings

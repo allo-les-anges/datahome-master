@@ -3,12 +3,15 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Home, LogOut, Plus, Pencil, Trash2, X, Eye, EyeOff,
   Loader2, CheckCircle2, AlertCircle, Upload, Key, Save,
   BedDouble, Bath, Maximize2, MapPin, Image as ImageIcon,
   ArrowLeft, Building2, Euro, Waves, LayoutGrid, AlignLeft,
-  Camera, Info, ChevronDown,
+  Camera, Info, ChevronDown, TrendingUp, Globe, BarChart3,
+  Lock, Zap, Clock, ChevronRight, Star,
 } from "lucide-react";
 
 import fr from "@/dictionaries/fr.json";
@@ -320,12 +323,60 @@ function PropertyForm({
   );
 }
 
+// ─── Trial helpers ─────────────────────────────────────────────────────────────
+function getTrialInfo(agency: any): { isExpired: boolean; daysLeft: number; expiresAt: Date | null } {
+  const sub = agency?.footer_config?.subscription;
+  if (!sub?.trial_expires_at) return { isExpired: false, daysLeft: 15, expiresAt: null };
+  const expiresAt = new Date(sub.trial_expires_at);
+  const msLeft = expiresAt.getTime() - Date.now();
+  const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+  return { isExpired: daysLeft <= 0, daysLeft: Math.max(0, daysLeft), expiresAt };
+}
+
+// ─── Trial Banner ──────────────────────────────────────────────────────────────
+function TrialBanner({ daysLeft, brandColor, dict }: { daysLeft: number; brandColor: string; dict: any }) {
+  const pct = Math.min(100, Math.round((daysLeft / 15) * 100));
+  const urgent = daysLeft <= 3;
+  const color = urgent ? "#ef4444" : brandColor;
+
+  const label = daysLeft === 0
+    ? dict?.expiresToday || "Expire aujourd'hui"
+    : daysLeft === 1
+    ? dict?.dayLeft || "1 jour restant"
+    : (dict?.daysLeft || "{days} jours restants").replace("{days}", String(daysLeft));
+
+  return (
+    <div className="mx-6 my-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-4"
+      style={{ background: `${color}10`, border: `1px solid ${color}30` }}>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <Clock size={14} style={{ color }} className="shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[9px] font-black uppercase tracking-widest" style={{ color }}>{dict?.badge || "Essai Gratuit"}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex-1 h-1 rounded-full bg-white/10">
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
+            </div>
+            <span className="text-[9px] text-white/40 font-bold whitespace-nowrap">{label}</span>
+          </div>
+        </div>
+      </div>
+      <button className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl transition-all hover:opacity-80 shrink-0 text-black"
+        style={{ backgroundColor: color }}>
+        {dict?.upgradeBtn || "Upgrade"}
+      </button>
+    </div>
+  );
+}
+
 // ─── Page principale ───────────────────────────────────────────────────────────
 export default function MonEspacePage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params?.slug as string;
   const locale = (params?.locale as string) || "fr";
   const dict = (dicts[locale] || dicts.fr).propertyManager;
+  const trialDict = (dicts[locale] || dicts.fr).trial;
+  const upsellDict = (dicts[locale] || dicts.fr).upsell;
   const isRtl = locale === "ar";
 
   const [agency, setAgency] = useState<any>(null);
@@ -341,7 +392,7 @@ export default function MonEspacePage() {
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [propLoading, setPropLoading] = useState(false);
-  const [view, setView] = useState<"list" | "form">("list");
+  const [view, setView] = useState<"dashboard" | "list" | "form">("dashboard");
   const [editing, setEditing] = useState<Partial<Property> | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -389,6 +440,12 @@ export default function MonEspacePage() {
   }, [session]);
 
   useEffect(() => { if (session) loadProperties(); }, [session, loadProperties]);
+
+  useEffect(() => {
+    if (!session || !agency) return;
+    const { isExpired } = getTrialInfo(agency);
+    if (isExpired) router.push(`/${locale}/${slug}/expired`);
+  }, [session, agency, locale, slug, router]);
 
   const handleAuth = async () => {
     setAuthError("");
@@ -547,9 +604,15 @@ export default function MonEspacePage() {
         style={{ background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
         <div className="flex items-center gap-3">
-          {view === "form" && (
-            <button type="button" onClick={() => { setView("list"); setEditing(null); }}
-              className="p-2 rounded-xl hover:bg-white/5 transition-all text-white/40 hover:text-white/70 mr-1">
+          {(view === "list" || view === "form") && (
+            <button
+              type="button"
+              onClick={() => {
+                if (view === "form") { setView("list"); setEditing(null); }
+                else setView("dashboard");
+              }}
+              className="p-2 rounded-xl hover:bg-white/5 transition-all text-white/40 hover:text-white/70 mr-1"
+            >
               <ArrowLeft size={18} />
             </button>
           )}
@@ -574,8 +637,151 @@ export default function MonEspacePage() {
         </div>
       </div>
 
+      {/* Trial Banner — shown in dashboard and list views */}
+      {view !== "form" && (() => {
+        const { daysLeft } = getTrialInfo(agency);
+        return <TrialBanner daysLeft={daysLeft} brandColor={brandColor} dict={trialDict} />;
+      })()}
+
       <div className="max-w-6xl mx-auto px-6 py-10">
-        {view === "list" ? (
+        {view === "dashboard" ? (
+          <>
+            {/* Welcome header */}
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-10"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/20 mb-1">
+                {upsellDict?.viewModule || "Mon Espace"}
+              </p>
+              <h2 className="text-3xl font-bold text-white">
+                {agency.agency_name}
+              </h2>
+            </motion.div>
+
+            {/* Module Bento Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+              {/* ── Propriétés ── */}
+              <motion.button
+                type="button"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                onClick={() => { loadProperties(); setView("list"); }}
+                className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                    <Building2 size={22} style={{ color: brandColor }} />
+                  </div>
+                  <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
+                </div>
+                <p className="text-lg font-bold text-white mb-1">{upsellDict?.propertiesTitle || "Mes Propriétés"}</p>
+                <p className="text-sm text-white/30 mb-4">{upsellDict?.propertiesSubtitle || "Gérez votre catalogue"}</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
+                  <span className="text-xs font-bold text-white/40">
+                    {properties.length} {properties.length <= 1 ? dict.published : dict.publishedPlural}
+                  </span>
+                </div>
+              </motion.button>
+
+              {/* ── Mini CRM ── */}
+              {(() => {
+                const crmEnabled = agency?.footer_config?.integrations?.crm_enabled;
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="relative rounded-3xl p-7 overflow-hidden"
+                    style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                  >
+                    {/* Card content (blurred when locked) */}
+                    <div style={{ filter: crmEnabled ? "none" : "blur(3px)", pointerEvents: crmEnabled ? "auto" : "none", opacity: crmEnabled ? 1 : 0.5 }}>
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-purple-900/20">
+                          <TrendingUp size={22} className="text-purple-400" />
+                        </div>
+                      </div>
+                      <p className="text-lg font-bold text-white mb-1">{upsellDict?.crmTitle || "Mini CRM"}</p>
+                      <p className="text-sm text-white/30">{upsellDict?.crmSubtitle || "Gérez vos leads et contacts"}</p>
+                    </div>
+
+                    {/* Lock overlay */}
+                    {!crmEnabled && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-3xl"
+                        style={{ background: "rgba(13,13,13,0.6)", backdropFilter: "blur(4px)" }}>
+                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10">
+                          <Lock size={18} className="text-white/40" />
+                        </div>
+                        <div className="text-center px-4">
+                          <span className="block text-[9px] font-black uppercase tracking-[0.25em] mb-1"
+                            style={{ color: brandColor }}>{upsellDict?.crmBadge || "Premium"}</span>
+                          <p className="text-xs text-white/40">{upsellDict?.locked || "Module non activé"}</p>
+                        </div>
+                        <a
+                          href={`mailto:${agency?.email || "contact@habihub.com"}?subject=Activer CRM — ${agency?.agency_name || ""}`}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-black transition-all hover:opacity-90"
+                          style={{ backgroundColor: brandColor }}
+                        >
+                          <Zap size={12} /> {upsellDict?.crmBtn || "Activer"}
+                        </a>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })()}
+
+              {/* ── Site Vitrine ── */}
+              <motion.a
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                href={`/${locale}/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-sky-900/20">
+                    <Globe size={22} className="text-sky-400" />
+                  </div>
+                  <ChevronRight size={18} className="text-white/20 group-hover:text-sky-400 group-hover:translate-x-1 transition-all" />
+                </div>
+                <p className="text-lg font-bold text-white mb-1">{upsellDict?.siteTitle || "Mon Site Vitrine"}</p>
+                <p className="text-sm text-white/30">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
+              </motion.a>
+
+              {/* ── Statistiques ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="relative rounded-3xl p-7 overflow-hidden"
+                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)", opacity: 0.6 }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-900/20">
+                    <BarChart3 size={22} className="text-amber-400" />
+                  </div>
+                  <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
+                    style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>
+                    {upsellDict?.statsBadge || "Bientôt"}
+                  </span>
+                </div>
+                <p className="text-lg font-bold text-white mb-1">{upsellDict?.statsTitle || "Statistiques"}</p>
+                <p className="text-sm text-white/30">{upsellDict?.statsSubtitle || "Vues, clics, performances"}</p>
+              </motion.div>
+
+            </div>
+          </>
+        ) : view === "list" ? (
           <>
             {/* Header liste */}
             <div className="flex items-end justify-between mb-10">
