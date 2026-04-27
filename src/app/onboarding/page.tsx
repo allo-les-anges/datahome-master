@@ -226,7 +226,7 @@ function OnboardingContent() {
         body: JSON.stringify({ email: params.email, otp_code: otp }),
       });
       const json = await res.json();
-      if (!res.ok || !json.success) { setError(json.error?.includes('sous-domaine') ? t.error_subdomain : t.error_otp); return; }
+      if (!res.ok || !json.success) { setError(json.error?.includes('sous-domaine') ? t.error_subdomain : (json.error || t.error_otp)); return; }
       if (json.data?.company_name) {
         setConfig((prev) => ({ ...prev, agency_name: json.data.company_name, subdomain: json.data.company_name.toLowerCase().replace(/[^a-z0-9]+/g, '-') }));
       }
@@ -242,7 +242,7 @@ function OnboardingContent() {
         body: JSON.stringify({ email: params.email, agency_name: config.agency_name, subdomain: config.subdomain, primary_color: config.primary_color, hero_title: config.hero_title, default_lang: config.default_lang, xml_url: config.xml_url, whatsapp: config.whatsapp, facebook: config.facebook }),
       });
       const json = await res.json();
-      if (!res.ok || !json.success) { setError(json.error?.includes('sous-domaine') ? t.error_subdomain : t.error_generic); return; }
+      if (!res.ok || !json.success) { setError(json.error?.includes('sous-domaine') ? t.error_subdomain : (json.error || t.error_generic)); return; }
       setStep(4);
     } catch { setError(t.error_generic); } finally { setLoading(false); }
   };
