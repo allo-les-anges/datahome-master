@@ -25,11 +25,12 @@ export async function DELETE(req: NextRequest) {
     { method: 'DELETE', headers: BASE_HEADERS },
   );
 
-  if (!res.ok) {
-    const err = await res.text();
-    console.error('[delete-agency]', res.status, err);
-    return NextResponse.json({ success: false, error: err }, { status: res.status });
+  // Supabase renvoie 204 No Content (sans body) quand le DELETE réussit
+  if (res.status === 204 || res.ok) {
+    return NextResponse.json({ success: true });
   }
 
-  return NextResponse.json({ success: true });
+  const err = await res.text();
+  console.error('[delete-agency]', res.status, err);
+  return NextResponse.json({ success: false, error: err }, { status: res.status });
 }
