@@ -488,14 +488,8 @@ function OnboardingContent() {
                       </div>
                     </div>
 
-                    <div className="w-full">
-                      <a href={`/client?agency=${config.subdomain}&lang=${lang}`}>
-                        <ShimmerButton color={config.primary_color}>
-                          <Zap size={15} /> {t.go_dashboard}
-                        </ShimmerButton>
-                      </a>
-                    </div>
                     <p className="text-[9px] text-white/20 text-center uppercase tracking-widest font-bold">{config.agency_name} · {config.subdomain}</p>
+                    <a href="/" className="text-[9px] text-white/20 hover:text-white/40 transition-colors text-center block mt-1">← Retour à l'accueil</a>
                   </motion.div>
                 )}
 

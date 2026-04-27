@@ -932,7 +932,11 @@ export default function AgencyDashboard() {
                       À publier ({pendingAgencies.length})
                     </p>
                     {pendingAgencies.map((agency) => (
-                      <div key={agency.id} className="bg-white/[0.03] border border-emerald-500/20 rounded-xl p-3 space-y-2">
+                      <div
+                        key={agency.id}
+                        className={`border rounded-xl p-3 space-y-2 cursor-pointer transition-all ${selectedAgency?.id === agency.id ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/[0.03] border-emerald-500/20 hover:border-emerald-500/35'}`}
+                        onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); }}
+                      >
                         <div>
                           <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
                           <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
@@ -941,7 +945,7 @@ export default function AgencyDashboard() {
                           </div>
                         </div>
                         <button
-                          onClick={() => handlePublish(agency)}
+                          onClick={(e) => { e.stopPropagation(); handlePublish(agency); }}
                           disabled={publishingId === agency.id}
                           className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
                         >
