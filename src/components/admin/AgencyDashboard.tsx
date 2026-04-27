@@ -9,7 +9,8 @@ import {
   Video, Monitor, Type, UploadCloud, Trash2, Facebook, Instagram,
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
   MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, Briefcase, FileText,
-  ChevronDown, Lock, Bot, Home as HomeIcon, TrendingUp, Sparkles, Activity, Clock
+  ChevronDown, Lock, Bot, Home as HomeIcon, TrendingUp, Sparkles, Activity, Clock,
+  Rocket
 } from 'lucide-react';
 
 // ============================================================
@@ -365,6 +366,11 @@ export default function AgencyDashboard() {
   const [agencies, setAgencies] = useState<any[]>([]);
   const [pendingAgencies, setPendingAgencies] = useState<any[]>([]);
   const [pendingRegistrations, setPendingRegistrations] = useState<any[]>([]);
+  const [preRegistrations, setPreRegistrations] = useState<any[]>([]);
+  const [selectedPreRegistration, setSelectedPreRegistration] = useState<any>(null);
+  const [activePanel, setActivePanel] = useState<'agency' | 'preregistration'>('agency');
+  const [preRegForm, setPreRegForm] = useState({ subdomain: '', packageLevel: 'silver', defaultLang: 'fr', xmlUrl: '', whatsapp: '' });
+  const [isPublishing, setIsPublishing] = useState(false);
   const [selectedAgency, setSelectedAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -388,16 +394,22 @@ export default function AgencyDashboard() {
   const fetchPendingAgencies = async () => {
     setLoadingPending(true);
     try {
-      const [agenciesRes, regsRes] = await Promise.all([
+      const [agenciesRes, regsRes, preRegsRes] = await Promise.all([
         supabase
           .from('agency_settings')
           .select('*')
           .eq('website_status', 'pending')
           .order('created_at', { ascending: false }),
         fetch('/api/admin/pending-registrations'),
+        supabase
+          .from('register_premium')
+          .select('*')
+          .neq('status', 'published')
+          .order('created_at', { ascending: false }),
       ]);
       if (agenciesRes.error) throw agenciesRes.error;
       setPendingAgencies(agenciesRes.data || []);
+      setPreRegistrations(preRegsRes.data || []);
       if (regsRes.ok) {
         const regs = await regsRes.json();
         setPendingRegistrations(Array.isArray(regs) ? regs : []);
@@ -409,23 +421,25 @@ export default function AgencyDashboard() {
     }
   };
 
-  useEffect(() => {
-    const fetchAgencies = async () => {
-      try {
-        const { data, error } = await supabase.from('agency_settings').select('*');
-        if (error) throw error;
-        setAgencies(data || []);
-        if (data && data.length > 0 && !selectedAgency) {
-          setSelectedAgency(data[0]);
-          setTeam(data[0].team_data || []);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const fetchAgencies = async () => {
+    try {
+      const { data, error } = await supabase.from('agency_settings').select('*');
+      if (error) throw error;
+      setAgencies(data || []);
+      if (data && data.length > 0 && !selectedAgency) {
+        setSelectedAgency(data[0]);
+        setTeam(data[0].team_data || []);
       }
-    };
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchAgencies();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -445,6 +459,18 @@ export default function AgencyDashboard() {
       });
     }
   }, [selectedAgency?.id]);
+
+  useEffect(() => {
+    if (selectedPreRegistration) {
+      setPreRegForm({
+        subdomain: selectedPreRegistration.company_name?.toLowerCase().replace(/\s+/g, '-') || '',
+        packageLevel: 'silver',
+        defaultLang: selectedPreRegistration.preferred_language || 'fr',
+        xmlUrl: '',
+        whatsapp: '',
+      });
+    }
+  }, [selectedPreRegistration?.id]);
 
   // ---- Helpers ----
 
@@ -800,6 +826,86 @@ export default function AgencyDashboard() {
     }
   };
 
+  const handlePublishPreRegistration = async () => {
+    if (!selectedPreRegistration) return;
+    if (!preRegForm.subdomain.trim()) {
+      setMessage({ type: 'error', text: 'Le sous-domaine est requis' });
+      setTimeout(() => setMessage(null), 4000);
+      return;
+    }
+    setIsPublishing(true);
+    try {
+      // Ensure status is 'verified' so the API check passes
+      if (selectedPreRegistration.status !== 'verified') {
+        const { error: verifyErr } = await supabase
+          .from('register_premium')
+          .update({ status: 'verified' })
+          .eq('id', selectedPreRegistration.id);
+        if (verifyErr) throw verifyErr;
+      }
+
+      const primaryColor = selectedPreRegistration.primary_color || '#D4AF37';
+      const res = await fetch('/api/create-agency-premium', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: selectedPreRegistration.email,
+          agency_name: selectedPreRegistration.company_name,
+          subdomain: preRegForm.subdomain,
+          primary_color: primaryColor,
+          logo_url: selectedPreRegistration.logo_url || '',
+          default_lang: preRegForm.defaultLang,
+          xml_url: preRegForm.xmlUrl,
+          whatsapp: preRegForm.whatsapp,
+          package_level: preRegForm.packageLevel,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur création agence');
+
+      // Set agency to active (API creates with 'pending' by default)
+      if (json.agency_id) {
+        await supabase
+          .from('agency_settings')
+          .update({ website_status: 'active', updated_at: new Date().toISOString() })
+          .eq('id', json.agency_id);
+      }
+
+      // Mark pre-registration as published
+      await supabase
+        .from('register_premium')
+        .update({ status: 'published' })
+        .eq('id', selectedPreRegistration.id);
+
+      setMessage({ type: 'success', text: '✅ Agence mise en ligne avec succès' });
+      setTimeout(() => setMessage(null), 5000);
+
+      // Remove from lists and reset panel
+      setPreRegistrations(prev => prev.filter(r => r.id !== selectedPreRegistration.id));
+      setPendingRegistrations(prev => prev.filter(r => r.id !== selectedPreRegistration.id));
+      setSelectedPreRegistration(null);
+      setActivePanel('agency');
+
+      // Refresh agencies list and select the new agency
+      const { data: refreshedAgencies } = await supabase.from('agency_settings').select('*');
+      if (refreshedAgencies) {
+        setAgencies(refreshedAgencies);
+        const newAgencyData = refreshedAgencies.find((a: any) => a.subdomain === preRegForm.subdomain);
+        if (newAgencyData) {
+          setSelectedAgency(newAgencyData);
+          setTeam(newAgencyData.team_data || []);
+        }
+      }
+      setLoading(false);
+    } catch (err: any) {
+      console.error('Publish preregistration error:', err);
+      setMessage({ type: 'error', text: err.message || 'Erreur lors de la mise en ligne' });
+      setTimeout(() => setMessage(null), 5000);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   // KPI computed values
   const activeModulesCount = selectedAgency ? [
     getSub('website_active') !== false,
@@ -861,7 +967,7 @@ export default function AgencyDashboard() {
         {/* Tabs */}
         <div className="px-3 pt-2 pb-1 flex gap-1">
           <button
-            onClick={() => setActiveTab('agencies')}
+            onClick={() => { setActiveTab('agencies'); setActivePanel('agency'); setSelectedPreRegistration(null); }}
             className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'agencies' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'}`}
           >
             Agences
@@ -872,9 +978,9 @@ export default function AgencyDashboard() {
           >
             <Clock size={9} />
             Demandes
-            {(pendingAgencies.length + pendingRegistrations.length) > 0 && (
+            {(pendingAgencies.length + preRegistrations.length) > 0 && (
               <span className="bg-orange-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                {pendingAgencies.length + pendingRegistrations.length}
+                {pendingAgencies.length + preRegistrations.length}
               </span>
             )}
           </button>
@@ -885,7 +991,7 @@ export default function AgencyDashboard() {
             {agencies.map((agency) => (
               <div key={agency.id} className="relative group">
                 <button
-                  onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); }}
+                  onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
                   className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 relative ${selectedAgency?.id === agency.id ? 'text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
                 >
                   {selectedAgency?.id === agency.id && (
@@ -935,7 +1041,7 @@ export default function AgencyDashboard() {
                       <div
                         key={agency.id}
                         className={`border rounded-xl p-3 space-y-2 cursor-pointer transition-all ${selectedAgency?.id === agency.id ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/[0.03] border-emerald-500/20 hover:border-emerald-500/35'}`}
-                        onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); }}
+                        onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
                       >
                         <div>
                           <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
@@ -958,16 +1064,24 @@ export default function AgencyDashboard() {
                 )}
 
                 {/* Pré-inscriptions (register_premium) */}
-                {pendingRegistrations.length > 0 && (
+                {preRegistrations.length > 0 && (
                   <div className="space-y-2 mt-3">
                     <p className="text-[8px] font-black uppercase tracking-widest text-orange-400/60 px-1 pb-0.5 border-b border-orange-500/10">
-                      Pré-inscriptions ({pendingRegistrations.length})
+                      Pré-inscriptions ({preRegistrations.length})
                     </p>
-                    {pendingRegistrations.map((reg) => (
-                      <div key={reg.id} className="bg-white/[0.02] border border-orange-500/15 rounded-xl p-3">
+                    {preRegistrations.map((reg) => (
+                      <div
+                        key={reg.id}
+                        className={`rounded-xl p-3 cursor-pointer transition-all ${
+                          selectedPreRegistration?.id === reg.id
+                            ? 'bg-amber-500/10 border border-amber-500/40'
+                            : 'bg-white/[0.02] border border-orange-500/15 hover:border-orange-500/35'
+                        }`}
+                        onClick={() => { setSelectedPreRegistration(reg); setActivePanel('preregistration'); }}
+                      >
                         <div className="font-semibold text-[12px] text-white/80 truncate">{reg.company_name || '—'}</div>
                         <div className="text-[9px] text-white/40 mt-0.5">{reg.first_name} {reg.last_name}</div>
-                        <div className="text-[9px] text-white/25 font-mono">{reg.email}</div>
+                        <div className="text-[9px] text-white/25 font-mono truncate">{reg.email}</div>
                         <div className="flex items-center justify-between mt-1.5">
                           <span className="text-[8px] text-white/20">
                             {reg.created_at ? new Date(reg.created_at).toLocaleDateString('fr-FR') : '—'}
@@ -981,7 +1095,7 @@ export default function AgencyDashboard() {
                   </div>
                 )}
 
-                {pendingAgencies.length === 0 && pendingRegistrations.length === 0 && (
+                {pendingAgencies.length === 0 && preRegistrations.length === 0 && (
                   <p className="text-center text-white/20 text-[10px] uppercase tracking-widest pt-6">Aucune demande</p>
                 )}
               </>
@@ -992,7 +1106,188 @@ export default function AgencyDashboard() {
 
       {/* MAIN */}
       <main className="flex-1 overflow-y-auto">
-        {selectedAgency ? (
+        {activePanel === 'preregistration' && selectedPreRegistration ? (
+          <div className="max-w-4xl mx-auto px-8 py-6 space-y-6">
+            {/* STICKY HEADER */}
+            <div className="sticky top-0 z-20 -mx-8 px-8 pb-5 pt-5 bg-[#070c1a]/90 backdrop-blur-xl border-b border-white/[0.04]">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg"
+                    style={{ backgroundColor: '#D4AF37' }}
+                  >
+                    {selectedPreRegistration.company_name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-white">{selectedPreRegistration.company_name || '—'}</div>
+                    <div className="mt-1">
+                      <span className="px-2 py-0.5 bg-orange-500/15 text-orange-400 rounded-md text-[9px] font-bold uppercase tracking-wider border border-orange-500/20">
+                        Pré-inscription
+                      </span>
+                      <span className="ml-2 text-[9px] text-white/25 uppercase tracking-wider">À valider</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <AnimatePresence>
+                    {message && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wide ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}
+                      >
+                        {message.type === 'success' ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                        {message.text}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <button
+                    type="button"
+                    onClick={handlePublishPreRegistration}
+                    disabled={isPublishing}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50 active:scale-95"
+                  >
+                    {isPublishing ? <Loader2 className="animate-spin" size={14} /> : <Rocket size={14} />}
+                    {isPublishing ? 'Mise en ligne...' : 'Mettre en ligne'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* INFORMATIONS DE CONTACT */}
+              <div className={cardCls}>
+                <h3 className={sHdr}><Mail size={15} className="text-orange-400" /> Informations de Contact</h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Prénom & Nom', value: `${selectedPreRegistration.first_name || ''} ${selectedPreRegistration.last_name || ''}`.trim() || '—' },
+                    { label: 'Email', value: selectedPreRegistration.email || '—', mono: true },
+                    { label: 'Langue', value: selectedPreRegistration.preferred_language || '—' },
+                    { label: "Date d'inscription", value: selectedPreRegistration.created_at ? new Date(selectedPreRegistration.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
+                  ].map(({ label, value, mono }) => (
+                    <div key={label} className="flex justify-between items-center py-1.5 border-b border-white/[0.04]">
+                      <span className="text-white/40 text-xs">{label}</span>
+                      <span className={`text-white text-xs font-semibold ${mono ? 'font-mono' : ''}`}>{value}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center py-1.5">
+                    <span className="text-white/40 text-xs">Statut OTP</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      selectedPreRegistration.status === 'verified'
+                        ? 'bg-blue-500/20 text-blue-300'
+                        : selectedPreRegistration.otp_expires_at && new Date(selectedPreRegistration.otp_expires_at) > new Date()
+                          ? 'bg-amber-500/20 text-amber-300'
+                          : 'bg-red-500/20 text-red-300'
+                    }`}>
+                      {selectedPreRegistration.status === 'verified'
+                        ? 'OTP ✓ Vérifié'
+                        : selectedPreRegistration.otp_expires_at && new Date(selectedPreRegistration.otp_expires_at) > new Date()
+                          ? 'OTP valide'
+                          : 'OTP expiré'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* IDENTITÉ VISUELLE */}
+              <div className={cardCls}>
+                <h3 className={sHdr}><Palette size={15} className="text-orange-400" /> Identité Visuelle</h3>
+                <div className="space-y-5">
+                  <div>
+                    <label className={lbl}>Couleur principale</label>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div
+                        className="w-10 h-10 rounded-xl border border-white/10 flex-shrink-0"
+                        style={{ backgroundColor: selectedPreRegistration.primary_color || '#D4AF37' }}
+                      />
+                      <span className="text-white font-mono text-sm">
+                        {selectedPreRegistration.primary_color || '#D4AF37'}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className={lbl}>Logo</label>
+                    {selectedPreRegistration.logo_url ? (
+                      <img
+                        src={selectedPreRegistration.logo_url}
+                        className="h-16 object-contain bg-white/[0.04] border border-white/[0.08] rounded-xl p-2 mt-2"
+                        alt="Logo pré-inscription"
+                      />
+                    ) : (
+                      <p className="text-white/25 text-xs italic mt-2">Pas encore uploadé</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CONFIGURATION DU SITE */}
+            <div className={cardCls}>
+              <h3 className={sHdr}><Globe size={15} className="text-orange-400" /> Configuration du Site</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className={lbl}>Sous-domaine *</label>
+                  <div className="relative">
+                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
+                    <input
+                      type="text"
+                      value={preRegForm.subdomain}
+                      onChange={(e) => setPreRegForm(f => ({ ...f, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-') }))}
+                      className={`${inp} pl-11 font-mono`}
+                      placeholder="nom-agence"
+                    />
+                  </div>
+                  {preRegForm.subdomain && (
+                    <p className="text-[10px] text-white/25 font-mono">{preRegForm.subdomain}.habihub.io</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className={lbl}>Package</label>
+                  <select
+                    value={preRegForm.packageLevel}
+                    onChange={(e) => setPreRegForm(f => ({ ...f, packageLevel: e.target.value }))}
+                    className={`${inp} appearance-none [&>option]:bg-[#0d1528]`}
+                  >
+                    <option value="silver">Silver</option>
+                    <option value="gold">Gold</option>
+                    <option value="platinum">Platinum</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className={lbl}>Langue par défaut</label>
+                  <select
+                    value={preRegForm.defaultLang}
+                    onChange={(e) => setPreRegForm(f => ({ ...f, defaultLang: e.target.value }))}
+                    className={`${inp} appearance-none [&>option]:bg-[#0d1528]`}
+                  >
+                    {SUPPORTED_LANGUAGES.map(l => (
+                      <option key={l.code} value={l.code}>{l.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className={lbl}>Flux XML</label>
+                  <input
+                    type="url"
+                    value={preRegForm.xmlUrl}
+                    onChange={(e) => setPreRegForm(f => ({ ...f, xmlUrl: e.target.value }))}
+                    className={inp}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className={lbl}>WhatsApp</label>
+                  <input
+                    type="text"
+                    value={preRegForm.whatsapp}
+                    onChange={(e) => setPreRegForm(f => ({ ...f, whatsapp: e.target.value }))}
+                    className={inp}
+                    placeholder="Ex: 33600000000 (sans +)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : selectedAgency ? (
           <form onSubmit={handleSave} className="max-w-5xl mx-auto px-8 py-6 space-y-6">
 
             {/* STICKY HEADER + KPI STRIP */}
