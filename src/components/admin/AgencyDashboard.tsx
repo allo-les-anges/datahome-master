@@ -364,6 +364,7 @@ export default function AgencyDashboard() {
 
   const [agencies, setAgencies] = useState<any[]>([]);
   const [pendingAgencies, setPendingAgencies] = useState<any[]>([]);
+  const [pendingRegistrations, setPendingRegistrations] = useState<any[]>([]);
   const [selectedAgency, setSelectedAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -387,13 +388,20 @@ export default function AgencyDashboard() {
   const fetchPendingAgencies = async () => {
     setLoadingPending(true);
     try {
-      const { data, error } = await supabase
-        .from('agency_settings')
-        .select('*')
-        .eq('website_status', 'pending')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setPendingAgencies(data || []);
+      const [agenciesRes, regsRes] = await Promise.all([
+        supabase
+          .from('agency_settings')
+          .select('*')
+          .eq('website_status', 'pending')
+          .order('created_at', { ascending: false }),
+        fetch('/api/admin/pending-registrations'),
+      ]);
+      if (agenciesRes.error) throw agenciesRes.error;
+      setPendingAgencies(agenciesRes.data || []);
+      if (regsRes.ok) {
+        const regs = await regsRes.json();
+        setPendingRegistrations(Array.isArray(regs) ? regs : []);
+      }
     } catch (err) {
       console.error('fetchPendingAgencies error:', err);
     } finally {
@@ -864,9 +872,9 @@ export default function AgencyDashboard() {
           >
             <Clock size={9} />
             Demandes
-            {pendingAgencies.length > 0 && (
+            {(pendingAgencies.length + pendingRegistrations.length) > 0 && (
               <span className="bg-orange-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                {pendingAgencies.length}
+                {pendingAgencies.length + pendingRegistrations.length}
               </span>
             )}
           </button>
@@ -915,27 +923,65 @@ export default function AgencyDashboard() {
             </div>
             {loadingPending ? (
               <div className="flex justify-center pt-6"><Loader2 size={18} className="animate-spin text-orange-400/50" /></div>
-            ) : pendingAgencies.length === 0 ? (
-              <p className="text-center text-white/20 text-[10px] uppercase tracking-widest pt-6">Aucune demande</p>
-            ) : pendingAgencies.map((agency) => (
-              <div key={agency.id} className="bg-white/[0.03] border border-orange-500/20 rounded-xl p-3 space-y-2">
-                <div>
-                  <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
-                  <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
-                  <div className="text-[9px] text-white/20 mt-0.5">
-                    {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : '—'}
+            ) : (
+              <>
+                {/* Agences prêtes à publier */}
+                {pendingAgencies.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-emerald-400/60 px-1 pb-0.5 border-b border-emerald-500/10">
+                      À publier ({pendingAgencies.length})
+                    </p>
+                    {pendingAgencies.map((agency) => (
+                      <div key={agency.id} className="bg-white/[0.03] border border-emerald-500/20 rounded-xl p-3 space-y-2">
+                        <div>
+                          <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
+                          <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
+                          <div className="text-[9px] text-white/20 mt-0.5">
+                            {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : '—'}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handlePublish(agency)}
+                          disabled={publishingId === agency.id}
+                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
+                        >
+                          {publishingId === agency.id ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                          Publier
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <button
-                  onClick={() => handlePublish(agency)}
-                  disabled={publishingId === agency.id}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
-                >
-                  {publishingId === agency.id ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
-                  Publier
-                </button>
-              </div>
-            ))}
+                )}
+
+                {/* Pré-inscriptions (register_premium) */}
+                {pendingRegistrations.length > 0 && (
+                  <div className="space-y-2 mt-3">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-orange-400/60 px-1 pb-0.5 border-b border-orange-500/10">
+                      Pré-inscriptions ({pendingRegistrations.length})
+                    </p>
+                    {pendingRegistrations.map((reg) => (
+                      <div key={reg.id} className="bg-white/[0.02] border border-orange-500/15 rounded-xl p-3">
+                        <div className="font-semibold text-[12px] text-white/80 truncate">{reg.company_name || '—'}</div>
+                        <div className="text-[9px] text-white/40 mt-0.5">{reg.first_name} {reg.last_name}</div>
+                        <div className="text-[9px] text-white/25 font-mono">{reg.email}</div>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <span className="text-[8px] text-white/20">
+                            {reg.created_at ? new Date(reg.created_at).toLocaleDateString('fr-FR') : '—'}
+                          </span>
+                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${reg.status === 'verified' ? 'bg-blue-500/20 text-blue-300' : 'bg-orange-500/20 text-orange-300'}`}>
+                            {reg.status === 'verified' ? 'OTP ✓' : 'En attente OTP'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {pendingAgencies.length === 0 && pendingRegistrations.length === 0 && (
+                  <p className="text-center text-white/20 text-[10px] uppercase tracking-widest pt-6">Aucune demande</p>
+                )}
+              </>
+            )}
           </nav>
         )}
       </aside>
