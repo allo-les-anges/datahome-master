@@ -863,6 +863,22 @@ export default function AgencyDashboard() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Erreur création agence');
 
+      // Envoyer l'email de bienvenue avec les identifiants provisoires (non bloquant)
+      fetch('/api/admin/send-welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agency_id:       json.agency_id,
+          email:           selectedPreRegistration.email,
+          first_name:      selectedPreRegistration.first_name,
+          company_name:    selectedPreRegistration.company_name,
+          subdomain:       preRegForm.subdomain,
+          default_lang:    preRegForm.defaultLang,
+          package_level:   preRegForm.packageLevel,
+          trial_expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      }).catch(err => console.error('[welcome-email]', err));
+
       // Mark pre-registration as converted (removed from DEMANDES)
       await supabase
         .from('register_premium')
