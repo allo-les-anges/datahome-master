@@ -696,17 +696,16 @@ export default function AgencyDashboard() {
       const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
-      if (selectedAgency?.id === id) setSelectedAgency(null);
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
-      if (!selectedAgency || selectedAgency.id === id) {
-        setSelectedAgency(data?.[0] ?? null);
+      if (selectedAgency?.id === id) {
+        setSelectedAgency(data && data.length > 0 ? data[0] : null);
         setTeam(data?.[0]?.team_data || []);
       }
       setMessage({ type: 'success', text: `"${name}" supprimée` });
     } catch (err: any) {
-      console.error('[handleDelete]', err);
-      setMessage({ type: 'error', text: err.message || t.error_save });
+      console.error('handleDelete error:', err);
+      setMessage({ type: 'error', text: err?.message || t.error_save });
     } finally {
       setIsSaving(false);
       setTimeout(() => setMessage(null), 4000);
@@ -1027,7 +1026,10 @@ export default function AgencyDashboard() {
                     <div className="text-[9px] opacity-40 mt-0.5 uppercase tracking-wider">{agency.subdomain}</div>
                   </div>
                 </button>
-                <button onClick={() => handleDelete(agency.id, agency.agency_name)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(agency.id, agency.agency_name); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                >
                   <Trash2 size={13} />
                 </button>
               </div>
