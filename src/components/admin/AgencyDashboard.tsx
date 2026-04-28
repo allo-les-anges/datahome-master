@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+import ModuleMarketplace from '@/components/admin/ModuleMarketplace';
 import {
   Save, Plus, Globe, Image as ImageIcon, Loader2,
   CheckCircle2, AlertCircle, Palette, Phone, Mail, Layout, X,
@@ -377,6 +378,7 @@ export default function AgencyDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [marketplaceModule, setMarketplaceModule] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [team, setTeam] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'agencies' | 'pending'>('agencies');
@@ -1754,7 +1756,7 @@ export default function AgencyDashboard() {
                               <HomeIcon size={17} className={enabled ? 'text-green-400' : 'text-white/30'} />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Property Manager</span><span className="flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-green-500/15 text-green-400 border border-green-500/20"><Lock size={7} /> Module</span></div>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Property Manager</span><span onClick={() => setMarketplaceModule('property_manager')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-green-500/15 text-green-400 border border-green-500/20 hover:bg-green-500/25 transition-colors"><Lock size={7} /> Module</span></div>
                               <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Gestion manuelle des biens</p>
                             </div>
                           </div>
@@ -1786,7 +1788,7 @@ export default function AgencyDashboard() {
                               </svg>
                             </div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">WhatsApp Business</span><span className="flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20"><Lock size={7} /> Module</span></div>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">WhatsApp Business</span><span onClick={() => setMarketplaceModule('whatsapp')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20 hover:bg-violet-500/25 transition-colors"><Lock size={7} /> Module</span></div>
                               <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Bouton de contact rapide</p>
                             </div>
                           </div>
@@ -1817,7 +1819,7 @@ export default function AgencyDashboard() {
                               <Bot size={17} className={enabled ? 'text-violet-400' : 'text-white/30'} />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Chatbot IA</span><span className="flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20"><Lock size={7} /> Module</span></div>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Chatbot IA</span><span onClick={() => setMarketplaceModule('chatbot')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20 hover:bg-violet-500/25 transition-colors"><Lock size={7} /> Module</span></div>
                               <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Qualification automatique des leads</p>
                             </div>
                           </div>
@@ -1868,7 +1870,7 @@ export default function AgencyDashboard() {
                               <Zap size={17} className={enabled ? 'text-blue-400' : 'text-white/30'} />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">CRM (Zoho / HubSpot)</span><span className="flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20"><Lock size={7} /> Module</span></div>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">CRM (Zoho / HubSpot)</span><span onClick={() => setMarketplaceModule('crm_sync')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20 hover:bg-violet-500/25 transition-colors"><Lock size={7} /> Module</span></div>
                               <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Synchronisation des leads</p>
                             </div>
                           </div>
@@ -1899,7 +1901,7 @@ export default function AgencyDashboard() {
                               <TrendingUp size={17} className={enabled ? 'text-orange-400' : 'text-white/30'} />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Mini CRM Leads</span><span className="flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-orange-500/15 text-orange-400 border border-orange-500/20"><Lock size={7} /> Module</span></div>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Mini CRM Leads</span><span onClick={() => setMarketplaceModule('mini_crm')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25 transition-colors"><Lock size={7} /> Module</span></div>
                               <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Accès leads depuis le site agence</p>
                             </div>
                           </div>
@@ -2054,6 +2056,17 @@ export default function AgencyDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {marketplaceModule && selectedAgency && (
+        <ModuleMarketplace
+          moduleId={marketplaceModule}
+          agencyId={selectedAgency.id}
+          agencyName={selectedAgency.agency_name}
+          agencyEmail={selectedAgency.email || ''}
+          currentPlan={selectedAgency.package_level || 'silver'}
+          onClose={() => setMarketplaceModule(null)}
+        />
+      )}
     </div>
   );
 }

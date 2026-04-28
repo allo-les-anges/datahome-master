@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2, Palette, Globe, Rocket,
   ShieldCheck, ArrowRight, Loader2, AlertCircle,
-  Upload, Sparkles, Clock, Star, Zap, Lock,
+  Upload, Lock,
 } from 'lucide-react';
 
 // ─── i18n ──────────────────────────────────────────────────────────────────────
@@ -25,7 +25,6 @@ const i18n = {
     trial_days: "15 jours offerts", trial_f1: "Site immobilier personnalisé", trial_f2: "Property Manager",
     trial_f3: "Mini CRM inclus", trial_f4: "Support prioritaire",
     trial_expires: "Essai valable jusqu'au",
-    go_dashboard: "Voir le statut de ma demande →",
     error_otp: "Code invalide ou expiré.", error_subdomain: "Ce sous-domaine est déjà utilisé.",
     error_generic: "Une erreur est survenue.",
     step_of: "Étape {current} sur {total}",
@@ -44,7 +43,6 @@ const i18n = {
     trial_days: "15 days free", trial_f1: "Custom real estate site", trial_f2: "Property Manager",
     trial_f3: "Mini CRM included", trial_f4: "Priority support",
     trial_expires: "Trial valid until",
-    go_dashboard: "Check my application status →",
     error_otp: "Invalid or expired code.", error_subdomain: "This subdomain is already taken.",
     error_generic: "An error occurred.",
     step_of: "Step {current} of {total}",
@@ -63,7 +61,6 @@ const i18n = {
     trial_days: "15 días gratuitos", trial_f1: "Sitio inmobiliario personalizado", trial_f2: "Property Manager",
     trial_f3: "Mini CRM incluido", trial_f4: "Soporte prioritario",
     trial_expires: "Prueba válida hasta el",
-    go_dashboard: "Ver el estado de mi solicitud →",
     error_otp: "Código inválido o expirado.", error_subdomain: "Este subdominio ya está en uso.",
     error_generic: "Se produjo un error.",
     step_of: "Paso {current} de {total}",
@@ -82,7 +79,6 @@ const i18n = {
     trial_days: "15 dagen gratis", trial_f1: "Gepersonaliseerde vastgoedsite", trial_f2: "Property Manager",
     trial_f3: "Mini CRM inbegrepen", trial_f4: "Prioriteitsondersteuning",
     trial_expires: "Proef geldig tot",
-    go_dashboard: "Status van mijn aanvraag bekijken →",
     error_otp: "Ongeldige of verlopen code.", error_subdomain: "Dit subdomein is al in gebruik.",
     error_generic: "Er is een fout opgetreden.",
     step_of: "Stap {current} van {total}",
@@ -101,7 +97,6 @@ const i18n = {
     trial_days: "15 Tage kostenlos", trial_f1: "Personalisierte Immobilien-Website", trial_f2: "Property Manager",
     trial_f3: "Mini CRM inklusive", trial_f4: "Prioritäts-Support",
     trial_expires: "Test gültig bis",
-    go_dashboard: "Status meines Antrags ansehen →",
     error_otp: "Ungültiger oder abgelaufener Code.", error_subdomain: "Diese Subdomain ist bereits vergeben.",
     error_generic: "Ein Fehler ist aufgetreten.",
     step_of: "Schritt {current} von {total}",
@@ -120,15 +115,73 @@ const i18n = {
     trial_days: "15 dni za darmo", trial_f1: "Spersonalizowana strona nieruchomości", trial_f2: "Property Manager",
     trial_f3: "Mini CRM w zestawie", trial_f4: "Wsparcie priorytetowe",
     trial_expires: "Okres próbny ważny do",
-    go_dashboard: "Zobacz status mojego wniosku →",
     error_otp: "Nieprawidłowy lub wygasły kod.", error_subdomain: "Ta subdomena jest już zajęta.",
     error_generic: "Wystąpił błąd.",
     step_of: "Krok {current} z {total}",
   },
 } as const;
 
+const successText = {
+  fr: {
+    title: "Félicitations !",
+    subtitle: "Votre demande a bien été reçue.",
+    body: "Notre équipe configure votre espace sous 24h. Vous recevrez un email à {email} dès que votre site {company} sera en ligne.",
+    back: "← Retour à l'accueil",
+  },
+  nl: {
+    title: "Gefeliciteerd !",
+    subtitle: "Uw aanvraag is goed ontvangen.",
+    body: "Ons team configureert uw ruimte binnen 24 uur. U ontvangt een e-mail op {email} zodra uw site {company} online is.",
+    back: "← Terug naar home",
+  },
+  en: {
+    title: "Congratulations!",
+    subtitle: "Your request has been received.",
+    body: "Our team will set up your space within 24 hours. You will receive an email at {email} once your {company} site is live.",
+    back: "← Back to home",
+  },
+  es: {
+    title: "¡Felicidades!",
+    subtitle: "Su solicitud ha sido recibida.",
+    body: "Nuestro equipo configurará su espacio en 24 horas. Recibirá un correo en {email} cuando su sitio {company} esté en línea.",
+    back: "← Volver al inicio",
+  },
+  de: {
+    title: "Herzlichen Glückwunsch!",
+    subtitle: "Ihre Anfrage wurde erfolgreich übermittelt.",
+    body: "Unser Team richtet Ihren Bereich innerhalb von 24 Stunden ein. Sie erhalten eine E-Mail an {email}, sobald Ihre Website {company} online ist.",
+    back: "← Zurück zur Startseite",
+  },
+  pl: {
+    title: "Gratulacje!",
+    subtitle: "Twoje zgłoszenie zostało przyjęte.",
+    body: "Nasz zespół skonfiguruje Twoją przestrzeń w ciągu 24 godzin. Otrzymasz e-mail na {email}, gdy Twoja strona {company} będzie online.",
+    back: "← Powrót do strony głównej",
+  },
+  ru: {
+    title: "Поздравляем!",
+    subtitle: "Ваша заявка успешно получена.",
+    body: "Наша команда настроит ваше пространство в течение 24 часов. Вы получите письмо на {email}, когда сайт {company} будет запущен.",
+    back: "← Вернуться на главную",
+  },
+  no: {
+    title: "Gratulerer!",
+    subtitle: "Din forespørsel er mottatt.",
+    body: "Teamet vårt setter opp plassen din innen 24 timer. Du vil motta en e-post på {email} når nettstedet ditt {company} er live.",
+    back: "← Tilbake til forsiden",
+  },
+  da: {
+    title: "Tillykke!",
+    subtitle: "Din anmodning er modtaget.",
+    body: "Vores team opsætter dit område inden for 24 timer. Du modtager en e-mail på {email}, når dit websted {company} er live.",
+    back: "← Tilbage til forsiden",
+  },
+} as const;
+
 type Lang = keyof typeof i18n;
 const LANGS = Object.keys(i18n) as Lang[];
+type SuccessLang = keyof typeof successText;
+const SUCCESS_LANGS = Object.keys(successText) as SuccessLang[];
 
 function ShimmerButton({ onClick, disabled, loading, children, color = '#c5a059' }: {
   onClick?: () => void; disabled?: boolean; loading?: boolean; children: React.ReactNode; color?: string;
@@ -176,7 +229,7 @@ function OnboardingContent() {
   const [error, setError] = useState('');
   const [otp, setOtp] = useState('');
   const [logoPreview, setLogoPreview] = useState<string>('');
-  const [trialEndDate, setTrialEndDate] = useState('');
+  const [successLang, setSuccessLang] = useState<SuccessLang>('fr');
 
   const [params, setParams] = useState({ email: '', name: '', company: '' });
   const [config, setConfig] = useState({
@@ -187,12 +240,15 @@ function OnboardingContent() {
   });
 
   useEffect(() => {
-    const urlLang = (searchParams.get('lang') || 'fr') as Lang;
+    const rawLang = searchParams.get('lang') || 'fr';
+    const urlLang = rawLang as Lang;
     const email = searchParams.get('email') || '';
     const name = searchParams.get('name') || '';
     const company = searchParams.get('company') || '';
     const safeLang: Lang = LANGS.includes(urlLang) ? urlLang : 'fr';
     setLang(safeLang);
+    const safeSuccessLang: SuccessLang = (SUCCESS_LANGS as string[]).includes(rawLang) ? rawLang as SuccessLang : 'fr';
+    setSuccessLang(safeSuccessLang);
     setParams({ email, name, company });
     setConfig((prev) => ({
       ...prev, agency_name: company,
@@ -200,12 +256,6 @@ function OnboardingContent() {
       default_lang: safeLang,
     }));
   }, [searchParams]);
-
-  useEffect(() => {
-    const d = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-    const localeMap: Record<string, string> = { fr: 'fr-FR', en: 'en-GB', es: 'es-ES', nl: 'nl-NL', de: 'de-DE', pl: 'pl-PL' };
-    setTrialEndDate(d.toLocaleDateString(localeMap[lang] || 'fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }));
-  }, [lang, step]);
 
   const t = i18n[lang];
 
@@ -247,7 +297,6 @@ function OnboardingContent() {
     } catch { setError(t.error_generic); } finally { setLoading(false); }
   };
 
-  const glassCard = { background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.08)' };
   const stepLabel = (t.step_of as string).replace('{current}', String(Math.min(step, 3))).replace('{total}', '3');
 
   return (
@@ -360,9 +409,7 @@ function OnboardingContent() {
                         <AlertCircle size={14} className="shrink-0" /> {error}
                       </div>
                     )}
-                    <FloatInput label={t.field_agency} value={config.agency_name} onChange={(v) => setConfig({ ...config, agency_name: v })} />
-                    <FloatInput label={t.field_subdomain} value={config.subdomain} mono placeholder="mon-agence"
-                      onChange={(v) => setConfig({ ...config, subdomain: v.toLowerCase().replace(/[^a-z0-9-]/g, '') })} />
+                    <FloatInput label={t.field_agency} value={config.agency_name} onChange={(v) => setConfig({ ...config, agency_name: v, subdomain: v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') })} />
 
                     {/* Color + Logo */}
                     <div className="grid grid-cols-2 gap-3">
@@ -406,7 +453,7 @@ function OnboardingContent() {
                     </div>
 
                     <div className="mt-auto">
-                      <ShimmerButton disabled={!config.agency_name || !config.subdomain} onClick={() => setStep(3)} color={config.primary_color}>
+                      <ShimmerButton disabled={!config.agency_name} onClick={() => setStep(3)} color={config.primary_color}>
                         {t.next} <ArrowRight size={15} />
                       </ShimmerButton>
                     </div>
@@ -448,48 +495,26 @@ function OnboardingContent() {
 
                 {/* STEP 4 : SUCCESS */}
                 {step === 4 && (
-                  <motion.div key="s4" initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="flex-1 flex flex-col items-center justify-start pt-2 gap-5">
-                    <div className="relative">
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                        className="w-20 h-20 rounded-full flex items-center justify-center mx-auto"
-                        style={{ backgroundColor: `${config.primary_color}20`, border: `1px solid ${config.primary_color}40` }}>
-                        <CheckCircle2 size={36} style={{ color: config.primary_color }} />
-                      </motion.div>
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="absolute -top-1 -right-1">
-                        <Sparkles size={18} style={{ color: config.primary_color }} className="animate-pulse" />
-                      </motion.div>
+                  <motion.div key="s4" initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} className="flex-1 flex flex-col items-center justify-center gap-6">
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                      className="w-20 h-20 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: '#22c55e20', border: '1px solid #22c55e40' }}>
+                      <CheckCircle2 size={36} style={{ color: '#22c55e' }} />
+                    </motion.div>
+                    <div className="text-center space-y-2 px-2">
+                      <h1 className="text-2xl font-light text-white" style={{ fontFamily: '"Playfair Display", serif', letterSpacing: '-0.02em' }}>
+                        {successText[successLang].title}
+                      </h1>
+                      <p className="text-sm font-semibold text-white/70">{successText[successLang].subtitle}</p>
+                      <p className="text-xs text-white/40 leading-relaxed mt-2">
+                        {successText[successLang].body
+                          .replace('{email}', params.email)
+                          .replace('{company}', config.agency_name || params.company)}
+                      </p>
                     </div>
-                    <div className="text-center">
-                      <h1 className="text-2xl font-light text-white mb-1" style={{ fontFamily: '"Playfair Display", serif', letterSpacing: '-0.02em' }}>{t.trial_title}</h1>
-                      <p className="text-xs text-white/40 leading-relaxed">{t.trial_sub}</p>
-                    </div>
-
-                    {/* Trial card */}
-                    <div className="w-full rounded-3xl p-5" style={glassCard}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Clock size={13} style={{ color: config.primary_color }} />
-                          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: config.primary_color }}>{t.trial_days}</span>
-                        </div>
-                        <span className="text-[8px] text-white/25 uppercase tracking-widest font-bold">{t.trial_expires} {trialEndDate}</span>
-                      </div>
-                      <div className="h-1 rounded-full bg-white/10 mb-4">
-                        <div className="h-full w-full rounded-full" style={{ backgroundColor: config.primary_color }} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {[t.trial_f1, t.trial_f2, t.trial_f3, t.trial_f4].map((feat, i) => (
-                          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.08 }} className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${config.primary_color}20` }}>
-                              <Star size={8} style={{ color: config.primary_color }} />
-                            </div>
-                            <span className="text-[9px] text-white/50 font-medium">{feat}</span>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <p className="text-[9px] text-white/20 text-center uppercase tracking-widest font-bold">{config.agency_name} · {config.subdomain}</p>
-                    <a href="/" className="text-[9px] text-white/20 hover:text-white/40 transition-colors text-center block mt-1">← Retour à l'accueil</a>
+                    <a href="/" className="text-[10px] text-white/25 hover:text-white/50 transition-colors mt-2">
+                      {successText[successLang].back}
+                    </a>
                   </motion.div>
                 )}
 
@@ -505,7 +530,7 @@ function OnboardingContent() {
       </motion.div>
 
       <p className="mt-8 text-[9px] uppercase tracking-[0.3em] font-black" style={{ color: 'rgba(255,255,255,0.15)' }}>
-        HabiHub Premium · {lang.toUpperCase()}
+        data-home PREMIUM ONBOARDING • {lang.toUpperCase()}
       </p>
     </div>
   );

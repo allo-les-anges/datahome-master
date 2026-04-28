@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -12,17 +13,40 @@ export default async function AgencyLayout({
   children: React.ReactNode;
   params: Promise<{ slug: string; locale: string }>;
 }) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
 
   // 1. Récupération des paramètres de l'agence (SSR)
-  // CORRECTION : Utilisation du nom de table exact 'agency_settings'
-  const { data: agency } = await supabase
-    .from('agency_settings') 
+  let { data: agency } = await supabase
+    .from('agency_settings')
     .select('*')
-    .eq('subdomain', slug) 
+    .eq('subdomain', slug)
     .maybeSingle();
 
-  if (!agency) return notFound();
+  // Fallback: Safari et certains navigateurs normalisent les tirets finaux dans les URL.
+  // On tente les variantes sans tiret final et avec tiret final pour être robuste.
+  if (!agency) {
+    const variants = Array.from(new Set([
+      slug.replace(/^-+|-+$/g, ''),  // sans tirets de bord
+      slug.replace(/-+$/, '') + '-', // avec tiret final ajouté
+    ])).filter((v) => v !== slug);
+
+    for (const variant of variants) {
+      const { data: fallback } = await supabase
+        .from('agency_settings')
+        .select('*')
+        .eq('subdomain', variant)
+        .maybeSingle();
+      if (fallback) {
+        const headersList = await headers();
+        const rawUrl = headersList.get('x-url') || '';
+        const canonicalPath = rawUrl
+          ? new URL(rawUrl).pathname.replace(`/${slug}`, `/${variant}`)
+          : `/${locale}/${variant}`;
+        redirect(canonicalPath);
+      }
+    }
+    return notFound();
+  }
 
   // 2. Définition des variables CSS dynamiques
   const dynamicStyles = {

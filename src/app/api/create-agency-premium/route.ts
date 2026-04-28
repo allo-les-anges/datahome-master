@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
   const insertPayload = {
     agency_name:      agency_name.trim(),
-    subdomain:        subdomain.trim().toLowerCase().replace(/\s+/g, '-'),
+    subdomain:        subdomain.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
     primary_color:    primary_color || '#e5992e',
     button_color:     primary_color || '#e5992e',
     button_style:     'rounded-full',

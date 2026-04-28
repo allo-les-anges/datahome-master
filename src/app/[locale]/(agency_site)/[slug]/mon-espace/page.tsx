@@ -751,26 +751,28 @@ export default function MonEspacePage() {
                 );
               })()}
 
-              {/* ── Site Vitrine ── */}
-              <motion.a
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                href={`/${locale}/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
-              >
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-sky-900/20">
-                    <Globe size={22} className="text-sky-400" />
+              {/* ── Site Vitrine — masqué tant que le site n'est pas activé ── */}
+              {agency?.footer_config?.subscription?.website_active === true && (
+                <motion.a
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  href={`/${locale}/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                  style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                >
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-sky-900/20">
+                      <Globe size={22} className="text-sky-400" />
+                    </div>
+                    <ChevronRight size={18} className="text-white/20 group-hover:text-sky-400 group-hover:translate-x-1 transition-all" />
                   </div>
-                  <ChevronRight size={18} className="text-white/20 group-hover:text-sky-400 group-hover:translate-x-1 transition-all" />
-                </div>
-                <p className="text-lg font-bold text-white mb-1">{upsellDict?.siteTitle || "Mon Site Vitrine"}</p>
-                <p className="text-sm text-white/30">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
-              </motion.a>
+                  <p className="text-lg font-bold text-white mb-1">{upsellDict?.siteTitle || "Mon Site Vitrine"}</p>
+                  <p className="text-sm text-white/30">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
+                </motion.a>
+              )}
 
               {/* ── Paramètres ── */}
               <motion.button

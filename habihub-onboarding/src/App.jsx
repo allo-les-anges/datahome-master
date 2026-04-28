@@ -373,15 +373,7 @@ export default function App() {
                   <input
                     className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
                     value={config.agency_name}
-                    onChange={e => setConfig({ ...config, agency_name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.field_subdomain}</label>
-                  <input
-                    className="w-full px-5 py-4 rounded-xl border border-slate-100 bg-slate-50 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={config.subdomain}
-                    onChange={e => setConfig({ ...config, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                    onChange={e => setConfig({ ...config, agency_name: e.target.value, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -419,7 +411,7 @@ export default function App() {
 
               <button
                 onClick={() => setStep(3)}
-                disabled={!config.agency_name || !config.subdomain}
+                disabled={!config.agency_name}
                 className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {t.next} <ArrowRight size={20} />
