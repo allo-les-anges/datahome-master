@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   ArrowRight,
   Loader2,
+  Mail,
 } from 'lucide-react';
 
 const i18n = {
@@ -32,8 +33,8 @@ const i18n = {
     back: "Retour",
     launch: "Lancer mon Dashboard",
     congrats: "Félicitations !",
-    success_msg: "Votre agence est en cours de déploiement.",
-    access_dash: "Accéder à mon Dashboard",
+    success_msg: "Votre site est en cours de création.",
+    success_sub: "Toutes les informations utiles vous seront communiquées par email dans les 24 heures.",
   },
   nl: {
     title: "Beveiligingscontrole",
@@ -57,8 +58,8 @@ const i18n = {
     back: "Terug",
     launch: "Start mijn Dashboard",
     congrats: "Gefeliciteerd!",
-    success_msg: "Uw agentschap wordt momenteel geïmplementeerd.",
-    access_dash: "Ga naar mijn Dashboard",
+    success_msg: "Uw site wordt aangemaakt.",
+    success_sub: "Alle nuttige informatie wordt u binnen 24 uur per e-mail meegedeeld.",
   },
   en: {
     title: "Security Verification",
@@ -82,8 +83,8 @@ const i18n = {
     back: "Back",
     launch: "Launch my Dashboard",
     congrats: "Congratulations!",
-    success_msg: "Your agency is being deployed.",
-    access_dash: "Access my Dashboard",
+    success_msg: "Your site is being created.",
+    success_sub: "All useful information will be sent to you by email within 24 hours.",
   },
   es: {
     title: "Verificación de seguridad",
@@ -107,8 +108,8 @@ const i18n = {
     back: "Atrás",
     launch: "Lanzar mi Dashboard",
     congrats: "¡Felicidades!",
-    success_msg: "Su agencia está siendo desplegada.",
-    access_dash: "Acceder a mi Dashboard",
+    success_msg: "Su sitio está siendo creado.",
+    success_sub: "Toda la información necesaria le será comunicada por correo electrónico en las próximas 24 horas.",
   },
   de: {
     title: "Sicherheitsüberprüfung",
@@ -132,8 +133,8 @@ const i18n = {
     back: "Zurück",
     launch: "Mein Dashboard starten",
     congrats: "Herzlichen Glückwunsch!",
-    success_msg: "Ihre Agentur wird gerade bereitgestellt.",
-    access_dash: "Zum Dashboard gehen",
+    success_msg: "Ihre Website wird gerade erstellt.",
+    success_sub: "Alle nützlichen Informationen werden Ihnen innerhalb von 24 Stunden per E-Mail mitgeteilt.",
   },
   pl: {
     title: "Weryfikacja bezpieczeństwa",
@@ -157,8 +158,8 @@ const i18n = {
     back: "Wstecz",
     launch: "Uruchom mój Panel",
     congrats: "Gratulacje!",
-    success_msg: "Twoja agencja jest w trakcie wdrażania.",
-    access_dash: "Przejdź do Panelu",
+    success_msg: "Twoja strona jest w trakcie tworzenia.",
+    success_sub: "Wszystkie przydatne informacje zostaną przesłane na Twój adres e-mail w ciągu 24 godzin.",
   },
   ru: {
     title: "Проверка безопасности",
@@ -182,8 +183,8 @@ const i18n = {
     back: "Назад",
     launch: "Запустить панель управления",
     congrats: "Поздравляем!",
-    success_msg: "Ваше агентство находится в процессе развертывания.",
-    access_dash: "Перейти в панель управления",
+    success_msg: "Ваш сайт создаётся.",
+    success_sub: "Вся полезная информация будет отправлена вам по электронной почте в течение 24 часов.",
   },
   no: {
     title: "Sikkerhetsverifisering",
@@ -207,8 +208,8 @@ const i18n = {
     back: "Tilbake",
     launch: "Start mitt Dashboard",
     congrats: "Gratulerer!",
-    success_msg: "Byrået ditt blir distribuert.",
-    access_dash: "Gå til Dashboard",
+    success_msg: "Nettstedet ditt opprettes.",
+    success_sub: "All nyttig informasjon vil bli sendt til deg på e-post innen 24 timer.",
   },
   da: {
     title: "Sikkerhedsbekræftelse",
@@ -232,8 +233,8 @@ const i18n = {
     back: "Tilbage",
     launch: "Start mit Dashboard",
     congrats: "Tillykke!",
-    success_msg: "Dit bureau er under udrulning.",
-    access_dash: "Gå til Dashboard",
+    success_msg: "Dit websted er ved at blive oprettet.",
+    success_sub: "Alle nyttige oplysninger vil blive sendt til dig via e-mail inden for 24 timer.",
   },
 };
 
@@ -504,17 +505,13 @@ export default function App() {
                 <CheckCircle2 size={50} />
               </div>
               <h1 className="text-4xl font-black text-slate-900">{t.congrats}</h1>
-              <p className="text-lg text-slate-500 max-w-sm mx-auto">
+              <p className="text-lg text-slate-600 max-w-sm mx-auto">
                 {t.success_msg}{' '}
                 <span className="text-slate-900 font-bold">({config.agency_name})</span>
               </p>
-              <div className="pt-8">
-                <a
-                  href={`https://${config.subdomain}.habihub.com/admin`}
-                  className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all shadow-xl"
-                >
-                  {t.access_dash} <ArrowRight size={18} />
-                </a>
+              <div className="inline-flex items-start gap-3 px-6 py-4 bg-blue-50 border border-blue-100 rounded-2xl max-w-sm mx-auto text-left">
+                <Mail size={18} className="text-blue-500 mt-0.5 shrink-0" />
+                <p className="text-sm text-blue-700">{t.success_sub}</p>
               </div>
             </div>
           )}
