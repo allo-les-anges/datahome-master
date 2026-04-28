@@ -1101,26 +1101,53 @@ export default function AgencyDashboard() {
                       À publier ({pendingAgencies.length})
                     </p>
                     {pendingAgencies.map((agency) => (
-                      <div
-                        key={agency.id}
-                        className={`border rounded-xl p-3 space-y-2 cursor-pointer transition-all ${selectedAgency?.id === agency.id ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/[0.03] border-emerald-500/20 hover:border-emerald-500/35'}`}
-                        onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
-                      >
-                        <div>
-                          <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
-                          <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
-                          <div className="text-[9px] text-white/20 mt-0.5">
-                            {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : '—'}
+                      <div key={agency.id} className="relative group">
+                        {deleteConfirmId === agency.id ? (
+                          <div className="w-full px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer «&nbsp;{agency.agency_name}&nbsp;» ?</span>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <button
+                                onClick={() => handleDelete(agency.id, agency.agency_name)}
+                                className="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg transition-all"
+                              >
+                                Oui
+                              </button>
+                              <button
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="px-2.5 py-1 bg-white/[0.08] hover:bg-white/[0.14] text-white/60 text-[10px] font-bold rounded-lg transition-all"
+                              >
+                                Non
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handlePublish(agency); }}
-                          disabled={publishingId === agency.id}
-                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
-                        >
-                          {publishingId === agency.id ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
-                          Publier
-                        </button>
+                        ) : (
+                          <div
+                            className={`border rounded-xl p-3 space-y-2 cursor-pointer transition-all ${selectedAgency?.id === agency.id ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/[0.03] border-emerald-500/20 hover:border-emerald-500/35'}`}
+                            onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
+                          >
+                            <div className="pr-5">
+                              <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
+                              <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
+                              <div className="text-[9px] text-white/20 mt-0.5">
+                                {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : '—'}
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handlePublish(agency); }}
+                              disabled={publishingId === agency.id}
+                              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
+                            >
+                              {publishingId === agency.id ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                              Publier
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(agency.id); }}
+                              className="absolute right-2 top-2 p-1.5 text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
