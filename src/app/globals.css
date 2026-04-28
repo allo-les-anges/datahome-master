@@ -328,3 +328,99 @@ html[data-package="light"] .theme-toggle-component {
   background-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
   color: var(--foreground);
 }
+
+/* ===== 14. DASHBOARD THEME (AgencyDashboard & ClientDashboard) ===== */
+
+.dash-dark {
+  --d-root:        #070c1a;
+  --d-sidebar:     rgba(13,21,40,0.85);
+  --d-main:        rgba(7,12,26,0.5);
+  --d-card:        rgba(255,255,255,0.03);
+  --d-card-border: rgba(255,255,255,0.06);
+  --d-inp-bg:      rgba(255,255,255,0.05);
+  --d-inp-border:  rgba(255,255,255,0.08);
+  --d-inp-text:    #ffffff;
+  --d-inp-ph:      rgba(255,255,255,0.25);
+  --d-text:        #ffffff;
+  --d-text-80:     rgba(255,255,255,0.8);
+  --d-text-50:     rgba(255,255,255,0.5);
+  --d-text-40:     rgba(255,255,255,0.4);
+  --d-text-25:     rgba(255,255,255,0.25);
+  --d-text-20:     rgba(255,255,255,0.2);
+  --d-divider:     rgba(255,255,255,0.05);
+  --d-hover:       rgba(255,255,255,0.05);
+}
+
+.dash-light {
+  --d-root:        #f1f5f9;
+  --d-sidebar:     #ffffff;
+  --d-main:        #f1f5f9;
+  --d-card:        #ffffff;
+  --d-card-border: rgba(0,0,0,0.08);
+  --d-inp-bg:      #f8fafc;
+  --d-inp-border:  rgba(0,0,0,0.12);
+  --d-inp-text:    #0f172a;
+  --d-inp-ph:      rgba(0,0,0,0.3);
+  --d-text:        #0f172a;
+  --d-text-80:     #1e293b;
+  --d-text-50:     #475569;
+  --d-text-40:     #64748b;
+  --d-text-25:     #94a3b8;
+  --d-text-20:     #cbd5e1;
+  --d-divider:     rgba(0,0,0,0.07);
+  --d-hover:       rgba(0,0,0,0.04);
+}
+
+/* Text overrides */
+.dash-light .text-white          { color: var(--d-text)    !important; }
+.dash-light .text-white\/80      { color: var(--d-text-80) !important; }
+.dash-light .text-white\/70      { color: var(--d-text-80) !important; }
+.dash-light .text-white\/60      { color: var(--d-text-50) !important; }
+.dash-light .text-white\/50      { color: var(--d-text-50) !important; }
+.dash-light .text-white\/40      { color: var(--d-text-40) !important; }
+.dash-light .text-white\/30      { color: var(--d-text-40) !important; }
+.dash-light .text-white\/25      { color: var(--d-text-25) !important; }
+.dash-light .text-white\/20      { color: var(--d-text-20) !important; }
+
+/* Background overrides */
+.dash-light .bg-\[#070c1a\]        { background-color: var(--d-root)    !important; }
+.dash-light .bg-\[#0d0d0d\]        { background-color: var(--d-root)    !important; }
+.dash-light .bg-\[#0d1528\]        { background-color: var(--d-sidebar) !important; }
+.dash-light .bg-white\/\[0\.02\]   { background-color: rgba(0,0,0,0.02) !important; }
+.dash-light .bg-white\/\[0\.03\]   { background-color: rgba(0,0,0,0.03) !important; }
+.dash-light .bg-white\/\[0\.04\]   { background-color: rgba(0,0,0,0.04) !important; }
+.dash-light .bg-white\/\[0\.05\]   { background-color: rgba(0,0,0,0.04) !important; }
+.dash-light .bg-white\/\[0\.06\]   { background-color: rgba(0,0,0,0.05) !important; }
+.dash-light .bg-white\/\[0\.07\]   { background-color: rgba(0,0,0,0.05) !important; }
+.dash-light .bg-white\/\[0\.08\]   { background-color: rgba(0,0,0,0.06) !important; }
+.dash-light .bg-white\/\[0\.10\]   { background-color: rgba(0,0,0,0.07) !important; }
+.dash-light .bg-white\/5           { background-color: rgba(0,0,0,0.04) !important; }
+.dash-light .bg-white\/8           { background-color: rgba(0,0,0,0.05) !important; }
+.dash-light .bg-white\/10          { background-color: rgba(0,0,0,0.07) !important; }
+.dash-light .bg-white\/15          { background-color: rgba(0,0,0,0.09) !important; }
+
+/* Border overrides */
+.dash-light .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06)  !important; }
+.dash-light .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.07)  !important; }
+.dash-light .border-white\/\[0\.06\] { border-color: rgba(0,0,0,0.08)  !important; }
+.dash-light .border-white\/\[0\.07\] { border-color: rgba(0,0,0,0.09)  !important; }
+.dash-light .border-white\/\[0\.08\] { border-color: rgba(0,0,0,0.10)  !important; }
+.dash-light .border-white\/\[0\.10\] { border-color: rgba(0,0,0,0.10)  !important; }
+.dash-light .border-white\/\[0\.12\] { border-color: rgba(0,0,0,0.12)  !important; }
+.dash-light .border-white\/5         { border-color: rgba(0,0,0,0.06)  !important; }
+.dash-light .border-white\/10        { border-color: rgba(0,0,0,0.09)  !important; }
+.dash-light .border-white\/20        { border-color: rgba(0,0,0,0.14)  !important; }
+
+/* Placeholder overrides */
+.dash-light .placeholder-white\/25::placeholder { color: rgba(0,0,0,0.3) !important; }
+.dash-light .placeholder\:text-white\/20::placeholder { color: rgba(0,0,0,0.3) !important; }
+
+/* Hover overrides */
+.dash-light .hover\:bg-white\/5:hover  { background-color: rgba(0,0,0,0.04) !important; }
+.dash-light .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(0,0,0,0.04) !important; }
+.dash-light .hover\:bg-white\/\[0\.07\]:hover { background-color: rgba(0,0,0,0.05) !important; }
+.dash-light .hover\:bg-white\/\[0\.10\]:hover { background-color: rgba(0,0,0,0.07) !important; }
+.dash-light .hover\:border-white\/\[0\.12\]:hover { border-color: rgba(0,0,0,0.12) !important; }
+
+/* Input option backgrounds */
+.dash-light [class*="\[&\>option\]"]:is(select) option { background: #ffffff; color: #0f172a; }

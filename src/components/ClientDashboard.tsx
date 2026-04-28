@@ -5,7 +5,7 @@ import {
   ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle,
   Palette, Layout, Share2, Users, Type, ShieldCheck,
   UploadCloud, Trash2, UserPlus, Image as ImageIcon, Mail, Phone,
-  Facebook, Instagram, Linkedin, Briefcase, FileText,
+  Facebook, Instagram, Linkedin, Briefcase, FileText, Sun, Moon,
 } from "lucide-react";
 
 function TikTokIcon({ size = 15, className = "" }: { size?: number; className?: string }) {
@@ -47,18 +47,17 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
   const [team, setTeam] = useState<Member[]>(agency.team_data || []);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [isDark, setIsDark] = useState(true);
 
   const brandColor = form.primary_color || "#D4AF37";
   const fontFamily = form.font_family || "Montserrat";
 
-  const inp = "w-full px-4 py-3.5 rounded-2xl border text-sm text-white placeholder:text-white/20 focus:outline-none transition-all bg-white/[0.04] border-white/[0.07] focus:border-white/20";
-  const lbl = "block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2";
-  const sHdr = "flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest border-b border-white/[0.06] pb-4 mb-5";
-  const card = {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    backdropFilter: "blur(12px)",
-  };
+  const inp = `w-full px-4 py-3.5 rounded-2xl border text-sm focus:outline-none transition-all ${isDark ? "text-white placeholder:text-white/20 bg-white/[0.04] border-white/[0.07] focus:border-white/20" : "text-slate-900 placeholder:text-slate-400 bg-slate-50 border-slate-200 focus:border-slate-400"}`;
+  const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? "text-white/40" : "text-slate-500"}`;
+  const sHdr = `flex items-center gap-3 font-bold uppercase text-xs tracking-widest border-b pb-4 mb-5 ${isDark ? "text-white/80 border-white/[0.06]" : "text-slate-700 border-slate-200"}`;
+  const card = isDark
+    ? { background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }
+    : { background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 1px 3px rgba(0,0,0,0.07)" };
 
   const updateNested = (section: string, field: string, value: any) =>
     setForm((prev: any) => {
@@ -197,15 +196,21 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]" style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+    <div
+      className={`min-h-screen transition-colors duration-300 ${isDark ? "dash-dark bg-[#0d0d0d] text-white" : "dash-light bg-slate-100 text-slate-900"}`}
+      style={{ fontFamily: `${fontFamily}, sans-serif` }}
+    >
 
       {/* Header */}
       <div
         className="sticky top-0 z-50 px-6 py-4 flex items-center justify-between"
-        style={{ background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        style={isDark
+          ? { background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }
+          : { background: "rgba(255,255,255,0.95)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(0,0,0,0.08)" }
+        }
       >
         <div className="flex items-center gap-3">
-          <button type="button" onClick={onBack} className="p-2 rounded-xl hover:bg-white/5 transition-all text-white/40 hover:text-white/70">
+          <button type="button" onClick={onBack} className={`p-2 rounded-xl transition-all ${isDark ? "hover:bg-white/5 text-white/40 hover:text-white/70" : "hover:bg-black/5 text-slate-400 hover:text-slate-700"}`}>
             <ArrowLeft size={18} />
           </button>
           {form.logo_url
@@ -213,11 +218,19 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
             : <div className="w-9 h-9 rounded-xl flex items-center justify-center text-black font-bold" style={{ backgroundColor: brandColor }}>{form.agency_name?.charAt(0)}</div>
           }
           <div>
-            <p className="text-sm font-bold text-white">{form.agency_name}</p>
-            <p className="text-[10px] text-white/25 uppercase tracking-widest font-bold">Paramètres</p>
+            <p className={`text-sm font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{form.agency_name}</p>
+            <p className={`text-[10px] uppercase tracking-widest font-bold ${isDark ? "text-white/25" : "text-slate-400"}`}>Paramètres</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsDark(v => !v)}
+            title={isDark ? "Mode clair" : "Mode sombre"}
+            className={`p-2 rounded-xl transition-all ${isDark ? "hover:bg-white/5 text-white/40" : "hover:bg-black/5 text-slate-400"}`}
+          >
+            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           {message && (
             <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase ${message.type === "ok" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
               {message.type === "ok" ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
@@ -451,12 +464,12 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
           {/* Live Preview */}
           <div className="lg:col-span-1">
             <div className="sticky top-20">
-              <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05] bg-white/[0.02]">
+              <div className="rounded-2xl overflow-hidden" style={{ border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.08)", boxShadow: isDark ? "none" : "0 2px 8px rgba(0,0,0,0.06)" }}>
+                <div className={`flex items-center gap-2 px-4 py-3 border-b ${isDark ? "border-white/[0.05] bg-white/[0.02]" : "border-slate-100 bg-slate-50"}`}>
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
                   <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
-                  <div className="flex-1 ml-2 bg-white/[0.04] rounded-md px-3 py-1.5 text-[9px] text-white/25 font-mono truncate border border-white/[0.04]">
+                  <div className={`flex-1 ml-2 rounded-md px-3 py-1.5 text-[9px] font-mono truncate border ${isDark ? "bg-white/[0.04] text-white/25 border-white/[0.04]" : "bg-white text-slate-400 border-slate-200"}`}>
                     {slug}.habihub.io
                   </div>
                 </div>
@@ -488,8 +501,8 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
                     </div>
                   </div>
                 </div>
-                <div className="px-4 py-3 border-t border-white/[0.05]">
-                  <span className="text-[9px] text-white/20 font-mono uppercase tracking-widest">Aperçu en temps réel</span>
+                <div className={`px-4 py-3 border-t ${isDark ? "border-white/[0.05]" : "border-slate-100"}`}>
+                  <span className={`text-[9px] font-mono uppercase tracking-widest ${isDark ? "text-white/20" : "text-slate-400"}`}>Aperçu en temps réel</span>
                 </div>
               </div>
             </div>

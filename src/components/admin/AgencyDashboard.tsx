@@ -10,7 +10,7 @@ import {
   Share2, FileCode, Linkedin, Video as TikTokIcon, Zap, Cpu, Languages,
   MousePointer2, MessageCircle, ShieldCheck, Users, UserPlus, Briefcase, FileText,
   ChevronDown, Lock, Bot, Home as HomeIcon, TrendingUp, Sparkles, Activity, Clock,
-  Rocket
+  Rocket, Sun, Moon
 } from 'lucide-react';
 
 // ============================================================
@@ -361,6 +361,7 @@ function ToggleSwitch({ checked, onChange, checkedColor = '#6366f1' }: { checked
 
 export default function AgencyDashboard() {
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
+  const [isDark, setIsDark] = useState(true);
   const t = translations[lang];
 
   const [agencies, setAgencies] = useState<any[]>([]);
@@ -955,24 +956,35 @@ export default function AgencyDashboard() {
     </div>
   );
 
-  const inp = "w-full bg-white/[0.05] border border-white/[0.08] text-white placeholder-white/25 rounded-xl px-5 py-4 text-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 outline-none transition-all";
-  const lbl = "block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2";
-  const cardCls = "bg-white/[0.03] border border-white/[0.06] rounded-2xl p-7 space-y-6 hover:border-white/[0.10] transition-all duration-300";
-  const sHdr = "flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest border-b border-white/[0.06] pb-4";
+  const inp = `w-full border rounded-xl px-5 py-4 text-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 outline-none transition-all ${isDark ? 'bg-white/[0.05] border-white/[0.08] text-white placeholder-white/25' : 'bg-[var(--d-inp-bg)] border-[var(--d-inp-border)] text-[var(--d-text)] placeholder:text-[var(--d-text-25)]'}`;
+  const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-[var(--d-text-40)]'}`;
+  const cardCls = `border rounded-2xl p-7 space-y-6 transition-all duration-300 ${isDark ? 'bg-white/[0.03] border-white/[0.06] hover:border-white/[0.10]' : 'bg-[var(--d-card)] border-[var(--d-card-border)] shadow-sm hover:shadow-md'}`;
+  const sHdr = `flex items-center gap-3 font-bold uppercase text-xs tracking-widest border-b pb-4 ${isDark ? 'text-white/80 border-white/[0.06]' : 'text-[var(--d-text-80)] border-[var(--d-divider)]'}`;
 
   return (
-    <div className="flex h-screen bg-[#070c1a] font-sans text-white overflow-hidden">
+    <div
+      className={`flex h-screen font-sans overflow-hidden transition-colors duration-300 ${isDark ? 'dash-dark text-white bg-[#070c1a]' : 'dash-light text-slate-900 bg-slate-100'}`}
+    >
 
       {/* SIDEBAR — glass morphism */}
-      <aside className="w-72 flex-shrink-0 bg-[#0d1528]/70 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col">
+      <aside className={`w-72 flex-shrink-0 backdrop-blur-2xl flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#0d1528]/70 border-r border-white/[0.06]' : 'bg-white border-r border-slate-200 shadow-sm'}`}>
         <div className="p-6 border-b border-white/[0.05]">
           <div className="flex justify-between items-center mb-5">
-            <button
-              onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.06] border border-white/[0.06] rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-white/[0.10] transition-all text-white/50"
-            >
-              <Languages size={11} /> {lang.toUpperCase()}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.06] border border-white/[0.06] rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-white/[0.10] transition-all text-white/50"
+              >
+                <Languages size={11} /> {lang.toUpperCase()}
+              </button>
+              <button
+                onClick={() => setIsDark(v => !v)}
+                title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+                className="p-1.5 rounded-lg bg-white/[0.06] border border-white/[0.06] hover:bg-white/[0.10] transition-all text-white/50"
+              >
+                {isDark ? <Sun size={13} /> : <Moon size={13} />}
+              </button>
+            </div>
             <button onClick={() => setShowCreateModal(true)} className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/30 active:scale-95">
               <Plus size={16} />
             </button>
