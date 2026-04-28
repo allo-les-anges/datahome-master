@@ -11,8 +11,9 @@ import {
   BedDouble, Bath, Maximize2, MapPin, Image as ImageIcon,
   ArrowLeft, Building2, Euro, Waves, LayoutGrid, AlignLeft,
   Camera, Info, ChevronDown, TrendingUp, Globe, BarChart3,
-  Lock, Zap, Clock, ChevronRight, Star,
+  Lock, Zap, Clock, ChevronRight, Star, Settings,
 } from "lucide-react";
+import ClientDashboard from "@/components/ClientDashboard";
 
 import fr from "@/dictionaries/fr.json";
 import en from "@/dictionaries/en.json";
@@ -392,7 +393,7 @@ export default function MonEspacePage() {
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [propLoading, setPropLoading] = useState(false);
-  const [view, setView] = useState<"dashboard" | "list" | "form">("dashboard");
+  const [view, setView] = useState<"dashboard" | "list" | "form" | "settings">("dashboard");
   const [editing, setEditing] = useState<Partial<Property> | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -595,6 +596,18 @@ export default function MonEspacePage() {
     </div>
   );
 
+  // ── Settings ──
+  if (view === "settings") return (
+    <ClientDashboard
+      agency={agency}
+      slug={slug as string}
+      agencyId={session!.agencyId}
+      locale={locale as string}
+      onBack={() => setView("dashboard")}
+      onSaved={(updated) => { setAgency(updated); setView("dashboard"); }}
+    />
+  );
+
   // ── Dashboard ──
   return (
     <div className="min-h-screen bg-[#0d0d0d]" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
@@ -759,11 +772,31 @@ export default function MonEspacePage() {
                 <p className="text-sm text-white/30">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
               </motion.a>
 
+              {/* ── Paramètres ── */}
+              <motion.button
+                type="button"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                onClick={() => setView("settings")}
+                className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-800/60">
+                    <Settings size={22} className="text-slate-400" />
+                  </div>
+                  <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
+                </div>
+                <p className="text-lg font-bold text-white mb-1">Paramètres</p>
+                <p className="text-sm text-white/30">Identité, couleurs, équipe…</p>
+              </motion.button>
+
               {/* ── Statistiques ── */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.25 }}
                 className="relative rounded-3xl p-7 overflow-hidden"
                 style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)", opacity: 0.6 }}
               >
