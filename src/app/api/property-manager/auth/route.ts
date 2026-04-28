@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     // Récupère l'agence
     const { data: agency, error: agencyError } = await supabase
       .from('agency_settings')
-      .select('id, property_manager_enabled, property_manager_password')
+      .select('id, property_manager_enabled, property_manager_password, footer_config')
       .eq('subdomain', slug)
       .maybeSingle();
 
@@ -29,7 +29,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Agence introuvable' }, { status: 404 });
     }
 
-    if (!agency.property_manager_enabled) {
+    const pmEnabled = agency.property_manager_enabled || agency.footer_config?.integrations?.property_manager_enabled;
+    if (!pmEnabled) {
       return NextResponse.json({ success: false, error: 'Module non activé' }, { status: 403 });
     }
 

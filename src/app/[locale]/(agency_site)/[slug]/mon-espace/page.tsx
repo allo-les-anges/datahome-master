@@ -517,7 +517,8 @@ export default function MonEspacePage() {
   );
 
   // ── Module non activé ──
-  if (!agency.property_manager_enabled) return (
+  const pmEnabled = agency.property_manager_enabled || agency.footer_config?.integrations?.property_manager_enabled;
+  if (!pmEnabled) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d] px-6" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
       <div className="text-center max-w-sm">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-black font-bold text-2xl" style={{ backgroundColor: brandColor }}>
