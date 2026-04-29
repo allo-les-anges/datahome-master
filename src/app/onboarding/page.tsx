@@ -126,55 +126,55 @@ const successText = {
     title: "Félicitations !",
     subtitle: "Votre demande a bien été reçue.",
     body: "Notre équipe configure votre espace sous 24h. Vous recevrez un email à {email} dès que votre site {company} sera en ligne.",
-    back: "← Retour à l'accueil",
+    close_instruction: "Vous pouvez maintenant fermer cette page",
   },
   nl: {
     title: "Gefeliciteerd !",
     subtitle: "Uw aanvraag is goed ontvangen.",
     body: "Ons team configureert uw ruimte binnen 24 uur. U ontvangt een e-mail op {email} zodra uw site {company} online is.",
-    back: "← Terug naar home",
+    close_instruction: "U kunt deze pagina nu sluiten",
   },
   en: {
     title: "Congratulations!",
     subtitle: "Your request has been received.",
     body: "Our team will set up your space within 24 hours. You will receive an email at {email} once your {company} site is live.",
-    back: "← Back to home",
+    close_instruction: "You can now close this page",
   },
   es: {
     title: "¡Felicidades!",
     subtitle: "Su solicitud ha sido recibida.",
     body: "Nuestro equipo configurará su espacio en 24 horas. Recibirá un correo en {email} cuando su sitio {company} esté en línea.",
-    back: "← Volver al inicio",
+    close_instruction: "Ahora puede cerrar esta página",
   },
   de: {
     title: "Herzlichen Glückwunsch!",
     subtitle: "Ihre Anfrage wurde erfolgreich übermittelt.",
     body: "Unser Team richtet Ihren Bereich innerhalb von 24 Stunden ein. Sie erhalten eine E-Mail an {email}, sobald Ihre Website {company} online ist.",
-    back: "← Zurück zur Startseite",
+    close_instruction: "Sie können diese Seite jetzt schließen",
   },
   pl: {
     title: "Gratulacje!",
     subtitle: "Twoje zgłoszenie zostało przyjęte.",
     body: "Nasz zespół skonfiguruje Twoją przestrzeń w ciągu 24 godzin. Otrzymasz e-mail na {email}, gdy Twoja strona {company} będzie online.",
-    back: "← Powrót do strony głównej",
+    close_instruction: "Możesz teraz zamknąć tę stronę",
   },
   ru: {
     title: "Поздравляем!",
     subtitle: "Ваша заявка успешно получена.",
     body: "Наша команда настроит ваше пространство в течение 24 часов. Вы получите письмо на {email}, когда сайт {company} будет запущен.",
-    back: "← Вернуться на главную",
+    close_instruction: "Теперь вы можете закрыть эту страницу",
   },
   no: {
     title: "Gratulerer!",
     subtitle: "Din forespørsel er mottatt.",
     body: "Teamet vårt setter opp plassen din innen 24 timer. Du vil motta en e-post på {email} når nettstedet ditt {company} er live.",
-    back: "← Tilbake til forsiden",
+    close_instruction: "Du kan nå lukke denne siden",
   },
   da: {
     title: "Tillykke!",
     subtitle: "Din anmodning er modtaget.",
     body: "Vores team opsætter dit område inden for 24 timer. Du modtager en e-mail på {email}, når dit websted {company} er live.",
-    back: "← Tilbage til forsiden",
+    close_instruction: "Du kan nu lukke denne side",
   },
 } as const;
 
@@ -512,9 +512,9 @@ function OnboardingContent() {
                           .replace('{company}', config.agency_name || params.company)}
                       </p>
                     </div>
-                    <a href="/" className="text-[10px] text-white/25 hover:text-white/50 transition-colors mt-2">
-                      {successText[successLang].back}
-                    </a>
+                    <p className="text-[11px] text-white/30 font-mono mt-4 tracking-wide">
+                      {successText[successLang].close_instruction}
+                    </p>
                   </motion.div>
                 )}
 
