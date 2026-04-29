@@ -383,9 +383,9 @@ html[data-package="light"] .theme-toggle-component {
 .dash-light .text-white\/20      { color: var(--d-text-20) !important; }
 
 /* Background overrides */
-.dash-light .bg-\[#070c1a\]        { background-color: var(--d-root)    !important; }
-.dash-light .bg-\[#0d0d0d\]        { background-color: var(--d-root)    !important; }
-.dash-light .bg-\[#0d1528\]        { background-color: var(--d-sidebar) !important; }
+.dash-light .bg-dark-primary   { background-color: var(--d-root)    !important; }
+.dash-light .bg-dark-secondary { background-color: var(--d-root)    !important; }
+.dash-light .bg-dark-tertiary  { background-color: var(--d-sidebar) !important; }
 .dash-light .bg-white\/\[0\.02\]   { background-color: rgba(0,0,0,0.02) !important; }
 .dash-light .bg-white\/\[0\.03\]   { background-color: rgba(0,0,0,0.03) !important; }
 .dash-light .bg-white\/\[0\.04\]   { background-color: rgba(0,0,0,0.04) !important; }
