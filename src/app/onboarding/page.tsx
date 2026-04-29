@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import React, { Suspense, useState, useEffect, useRef, useReducer, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
