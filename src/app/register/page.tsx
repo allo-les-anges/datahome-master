@@ -29,6 +29,7 @@ const i18n = {
     success_title: "Vérifiez votre email",
     success_body: "Un code de validation a été envoyé à",
     success_hint: "Cliquez sur le bouton dans l'email pour continuer.",
+    close_instruction: "Vous pouvez maintenant fermer cette page",
   },
   en: {
     badge: 'Premium Access',
@@ -54,6 +55,7 @@ const i18n = {
     success_title: "Check your email",
     success_body: "A validation code has been sent to",
     success_hint: "Click the button in the email to continue.",
+    close_instruction: "You can now close this page",
   },
   nl: {
     badge: 'Premium toegang',
@@ -79,6 +81,7 @@ const i18n = {
     success_title: "Controleer uw e-mail",
     success_body: "Een validatiecode is verzonden naar",
     success_hint: "Klik op de knop in de e-mail om door te gaan.",
+    close_instruction: "U kunt deze pagina nu sluiten",
   },
   es: {
     badge: 'Acceso Premium',
@@ -104,6 +107,7 @@ const i18n = {
     success_title: "Revise su email",
     success_body: "Un código de validación ha sido enviado a",
     success_hint: "Haga clic en el botón del email para continuar.",
+    close_instruction: "Ahora puede cerrar esta página",
   },
   de: {
     badge: 'Premium-Zugang',
@@ -129,6 +133,7 @@ const i18n = {
     success_title: "Prüfen Sie Ihre E-Mail",
     success_body: "Ein Bestätigungscode wurde gesendet an",
     success_hint: "Klicken Sie auf die Schaltfläche in der E-Mail, um fortzufahren.",
+    close_instruction: "Sie können diese Seite jetzt schließen",
   },
   pl: {
     badge: 'Dostęp Premium',
@@ -154,6 +159,7 @@ const i18n = {
     success_title: "Sprawdź swój e-mail",
     success_body: "Kod weryfikacyjny został wysłany na",
     success_hint: "Kliknij przycisk w e-mailu, aby kontynuować.",
+    close_instruction: "Możesz teraz zamknąć tę stronę",
   },
   ru: {
     badge: 'Премиум доступ',
@@ -179,6 +185,7 @@ const i18n = {
     success_title: "Проверьте вашу почту",
     success_body: "Код подтверждения был отправлен на",
     success_hint: "Нажмите кнопку в письме, чтобы продолжить.",
+    close_instruction: "Теперь вы можете закрыть эту страницу",
   },
   no: {
     badge: 'Premium tilgang',
@@ -204,6 +211,7 @@ const i18n = {
     success_title: "Sjekk e-posten din",
     success_body: "En bekreftelseskode er sendt til",
     success_hint: "Klikk på knappen i e-posten for å fortsette.",
+    close_instruction: "Du kan nå lukke denne siden",
   },
   da: {
     badge: 'Premium adgang',
@@ -229,6 +237,7 @@ const i18n = {
     success_title: "Tjek din e-mail",
     success_body: "En bekræftelseskode er sendt til",
     success_hint: "Klik på knappen i e-mailen for at fortsætte.",
+    close_instruction: "Du kan nu lukke denne side",
   },
 } as const;
 
@@ -318,8 +327,8 @@ export default function RegisterPage() {
             <Mail size={18} className="text-blue-400 shrink-0" />
             <p className="text-slate-400 text-sm">{form.email}</p>
           </div>
-          <p className="text-[10px] text-slate-600 uppercase tracking-[0.3em] font-bold">
-            DATA-HOME Premium Onboarding
+          <p className="text-[10px] text-slate-400 uppercase tracking-[0.3em] font-bold">
+            {t.close_instruction}
           </p>
         </div>
       </div>
