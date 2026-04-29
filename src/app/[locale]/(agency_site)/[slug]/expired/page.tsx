@@ -192,7 +192,7 @@ export default function ExpiredPage({ params }: ExpiredPageProps) {
 
         {/* Footer */}
         <p className="text-center text-[9px] text-white/15 uppercase tracking-[0.3em] font-black mt-10">
-          {agency?.agency_name} · HabiHub Platform
+          {agency?.agency_name} · DATA-HOME Platform
         </p>
       </div>
     </div>

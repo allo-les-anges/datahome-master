@@ -104,7 +104,7 @@ export default function CrmSettingsPage() {
         </div>
         <h1 className="text-lg font-bold text-slate-900 mb-2">Module CRM non activé</h1>
         <p className="text-sm text-slate-400 max-w-sm">
-          Le module CRM doit être activé par votre administrateur HabiHub avant que vous puissiez configurer vos identifiants.
+          Le module CRM doit être activé par votre administrateur DATA-HOME avant que vous puissiez configurer vos identifiants.
         </p>
       </div>
     );
