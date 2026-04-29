@@ -11,7 +11,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-serif"
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat", weight: ["100", "200", "300", "400"], display: 'swap' });
 
 export const metadata: Metadata = {
-  title: "HabiHub",
+  title: "DATA-HOME — Votre agence immobilière intelligente",
   description: "Solution immobilière intelligente",
 };
 
