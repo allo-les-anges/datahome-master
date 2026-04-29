@@ -524,7 +524,7 @@ export default function App() {
       </div>
 
       <p className="mt-8 text-slate-400 text-[10px] uppercase tracking-[0.3em] font-bold">
-        HabiHub Premium Onboarding • {lang.toUpperCase()}
+        DATA-HOME Premium Onboarding • {lang.toUpperCase()}
       </p>
     </div>
   );

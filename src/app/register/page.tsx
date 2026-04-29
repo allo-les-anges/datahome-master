@@ -319,7 +319,7 @@ export default function RegisterPage() {
             <p className="text-slate-400 text-sm">{form.email}</p>
           </div>
           <p className="text-[10px] text-slate-600 uppercase tracking-[0.3em] font-bold">
-            HabiHub Premium Onboarding
+            DATA-HOME Premium Onboarding
           </p>
         </div>
       </div>
