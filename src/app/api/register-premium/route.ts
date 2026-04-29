@@ -33,7 +33,6 @@ function otpExpiresAt(): string {
 function baseHtml(p: {
   otp: string; greeting: string; intro: string;
   label: string; note: string; cta: string; footer: string;
-  btn_label: string; link: string;
 }): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -66,16 +65,6 @@ function baseHtml(p: {
               </tr>
             </table>
             <p style="margin:0 0 28px;font-size:13px;color:#94a3b8;text-align:center;">${p.note}</p>
-
-            <!-- CTA BUTTON -->
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center" style="padding:0 0 32px;">
-                  <a href="${p.link}" target="_blank" style="display:inline-block;padding:16px 40px;background:#2563eb;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:50px;letter-spacing:0.5px;">${p.btn_label}</a>
-                </td>
-              </tr>
-            </table>
-
             <p style="margin:0;font-size:14px;color:#475569;line-height:1.7;">${p.cta}</p>
           </td>
         </tr>
@@ -93,16 +82,16 @@ function baseHtml(p: {
 
 type Template = { subject: string; html: string };
 
-const TEMPLATES: Record<Lang, (otp: string, prenom: string, link: string) => Template> = {
-  fr: (otp, p, link) => ({ subject: 'Votre code de validation Premium — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Accéder à mon espace Premium', greeting: `Bonjour ${p},`, intro: `Merci pour votre inscription à l'offre <strong>Premium</strong> de Data-Home. Cliquez sur le bouton ci-dessous pour accéder à votre espace et saisir votre code de validation.`, label: 'Votre code de validation', note: '⏱ Ce code expire dans 15 minutes.', cta: `Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.`, footer: '© Data-Home · noreply@data-home.app · Ne pas répondre à cet e-mail.' }) }),
-  en: (otp, p, link) => ({ subject: 'Your Premium Validation Code — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Access my Premium space', greeting: `Dear ${p},`, intro: `Thank you for registering for the <strong>Premium</strong> plan at Data-Home. Click the button below to access your space and enter your validation code.`, label: 'Your validation code', note: '⏱ This code expires in 15 minutes.', cta: `If you did not initiate this request, you can safely ignore this e-mail.`, footer: '© Data-Home · noreply@data-home.app · Please do not reply to this e-mail.' }) }),
-  nl: (otp, p, link) => ({ subject: 'Uw Premium-validatiecode — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Toegang tot mijn Premium ruimte', greeting: `Beste ${p},`, intro: `Bedankt voor uw inschrijving voor het <strong>Premium</strong>-abonnement bij Data-Home. Klik op de knop hieronder om uw ruimte te openen en uw validatiecode in te voeren.`, label: 'Uw validatiecode', note: '⏱ Deze code verloopt over 15 minuten.', cta: `Als u dit verzoek niet heeft ingediend, kunt u deze e-mail veilig negeren.`, footer: '© Data-Home · noreply@data-home.app · Beantwoord deze e-mail niet.' }) }),
-  es: (otp, p, link) => ({ subject: 'Su código de validación Premium — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Acceder a mi espacio Premium', greeting: `Estimado/a ${p},`, intro: `Gracias por registrarse en el plan <strong>Premium</strong> de Data-Home. Haga clic en el botón de abajo para acceder a su espacio e ingresar su código de validación.`, label: 'Su código de validación', note: '⏱ Este código expira en 15 minutos.', cta: `Si no realizó esta solicitud, puede ignorar este correo electrónico con total seguridad.`, footer: '© Data-Home · noreply@data-home.app · No responda a este correo.' }) }),
-  pl: (otp, p, link) => ({ subject: 'Twój kod weryfikacyjny Premium — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Dostęp do mojej przestrzeni Premium', greeting: `Szanowny/a ${p},`, intro: `Dziękujemy za rejestrację w planie <strong>Premium</strong> Data-Home. Kliknij przycisk poniżej, aby uzyskać dostęp do swojej przestrzeni i wprowadzić kod weryfikacyjny.`, label: 'Twój kod weryfikacyjny', note: '⏱ Kod wygaśnie za 15 minut.', cta: `Jeśli nie składałeś/aś tej prośby, możesz bezpiecznie zignorować tę wiadomość.`, footer: '© Data-Home · noreply@data-home.app · Prosimy nie odpowiadać na tę wiadomość.' }) }),
-  ru: (otp, p, link) => ({ subject: 'Ваш код подтверждения Premium — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Войти в мой Premium-кабинет', greeting: `Уважаемый/ая ${p},`, intro: `Благодарим вас за регистрацию в тарифе <strong>Premium</strong> на платформе Data-Home. Нажмите кнопку ниже, чтобы перейти в свой кабинет и ввести код подтверждения.`, label: 'Ваш код подтверждения', note: '⏱ Код действителен в течение 15 минут.', cta: `Если вы не инициировали этот запрос, просто проигнорируйте данное письмо.`, footer: '© Data-Home · noreply@data-home.app · Пожалуйста, не отвечайте на это письмо.' }) }),
-  no: (otp, p, link) => ({ subject: 'Din Premium-bekreftelseskode — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Tilgang til mitt Premium-område', greeting: `Kjære ${p},`, intro: `Takk for at du registrerte deg for <strong>Premium</strong>-planen hos Data-Home. Klikk på knappen nedenfor for å få tilgang til ditt område og angi bekreftelseskoden.`, label: 'Din bekreftelseskode', note: '⏱ Denne koden utløper om 15 minutter.', cta: `Hvis du ikke ba om dette, kan du trygt ignorere denne e-posten.`, footer: '© Data-Home · noreply@data-home.app · Ikke svar på denne e-posten.' }) }),
-  da: (otp, p, link) => ({ subject: 'Din Premium-bekræftelseskode — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Adgang til mit Premium-område', greeting: `Kære ${p},`, intro: `Tak fordi du tilmeldte dig <strong>Premium</strong>-planen hos Data-Home. Klik på knappen nedenfor for at få adgang til dit område og indtaste din bekræftelseskode.`, label: 'Din bekræftelseskode', note: '⏱ Denne kode udløber om 15 minutter.', cta: `Hvis du ikke anmodede om dette, kan du roligt ignorere denne e-mail.`, footer: '© Data-Home · noreply@data-home.app · Besvar venligst ikke denne e-mail.' }) }),
-  de: (otp, p, link) => ({ subject: 'Ihr Premium-Bestätigungscode — Data-Home', html: baseHtml({ otp, link, btn_label: '→ Zugang zu meinem Premium-Bereich', greeting: `Sehr geehrte/r ${p},`, intro: `Vielen Dank für Ihre Registrierung beim <strong>Premium</strong>-Plan von Data-Home. Klicken Sie auf die Schaltfläche unten, um Ihren Bereich aufzurufen und den Bestätigungscode einzugeben.`, label: 'Ihr Bestätigungscode', note: '⏱ Dieser Code läuft in 15 Minuten ab.', cta: `Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail bedenkenlos ignorieren.`, footer: '© Data-Home · noreply@data-home.app · Bitte antworten Sie nicht auf diese E-Mail.' }) }),
+const TEMPLATES: Record<Lang, (otp: string, prenom: string) => Template> = {
+  fr: (otp, p) => ({ subject: 'Votre code de validation Premium — Data-Home', html: baseHtml({ otp, greeting: `Bonjour ${p},`, intro: `Merci pour votre inscription à l'offre <strong>Premium</strong> de Data-Home. Utilisez le code ci-dessous pour finaliser votre inscription.`, label: 'Votre code de validation', note: '⏱ Ce code expire dans 15 minutes.', cta: `Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.`, footer: '© Data-Home · noreply@data-home.app · Ne pas répondre à cet e-mail.' }) }),
+  en: (otp, p) => ({ subject: 'Your Premium Validation Code — Data-Home', html: baseHtml({ otp, greeting: `Dear ${p},`, intro: `Thank you for registering for the <strong>Premium</strong> plan at Data-Home. Use the code below to complete your registration.`, label: 'Your validation code', note: '⏱ This code expires in 15 minutes.', cta: `If you did not initiate this request, you can safely ignore this e-mail.`, footer: '© Data-Home · noreply@data-home.app · Please do not reply to this e-mail.' }) }),
+  nl: (otp, p) => ({ subject: 'Uw Premium-validatiecode — Data-Home', html: baseHtml({ otp, greeting: `Beste ${p},`, intro: `Bedankt voor uw inschrijving voor het <strong>Premium</strong>-abonnement bij Data-Home. Gebruik de onderstaande code om uw registratie te voltooien.`, label: 'Uw validatiecode', note: '⏱ Deze code verloopt over 15 minuten.', cta: `Als u dit verzoek niet heeft ingediend, kunt u deze e-mail veilig negeren.`, footer: '© Data-Home · noreply@data-home.app · Beantwoord deze e-mail niet.' }) }),
+  es: (otp, p) => ({ subject: 'Su código de validación Premium — Data-Home', html: baseHtml({ otp, greeting: `Estimado/a ${p},`, intro: `Gracias por registrarse en el plan <strong>Premium</strong> de Data-Home. Utilice el código a continuación para completar su registro.`, label: 'Su código de validación', note: '⏱ Este código expira en 15 minutos.', cta: `Si no realizó esta solicitud, puede ignorar este correo electrónico con total seguridad.`, footer: '© Data-Home · noreply@data-home.app · No responda a este correo.' }) }),
+  pl: (otp, p) => ({ subject: 'Twój kod weryfikacyjny Premium — Data-Home', html: baseHtml({ otp, greeting: `Szanowny/a ${p},`, intro: `Dziękujemy za rejestrację w planie <strong>Premium</strong> Data-Home. Użyj poniższego kodu, aby dokończyć rejestrację.`, label: 'Twój kod weryfikacyjny', note: '⏱ Kod wygaśnie za 15 minut.', cta: `Jeśli nie składałeś/aś tej prośby, możesz bezpiecznie zignorować tę wiadomość.`, footer: '© Data-Home · noreply@data-home.app · Prosimy nie odpowiadać na tę wiadomość.' }) }),
+  ru: (otp, p) => ({ subject: 'Ваш код подтверждения Premium — Data-Home', html: baseHtml({ otp, greeting: `Уважаемый/ая ${p},`, intro: `Благодарим вас за регистрацию в тарифе <strong>Premium</strong> на платформе Data-Home. Используйте код ниже для завершения регистрации.`, label: 'Ваш код подтверждения', note: '⏱ Код действителен в течение 15 минут.', cta: `Если вы не инициировали этот запрос, просто проигнорируйте данное письмо.`, footer: '© Data-Home · noreply@data-home.app · Пожалуйста, не отвечайте на это письмо.' }) }),
+  no: (otp, p) => ({ subject: 'Din Premium-bekreftelseskode — Data-Home', html: baseHtml({ otp, greeting: `Kjære ${p},`, intro: `Takk for at du registrerte deg for <strong>Premium</strong>-planen hos Data-Home. Bruk koden nedenfor for å fullføre registreringen.`, label: 'Din bekreftelseskode', note: '⏱ Denne koden utløper om 15 minutter.', cta: `Hvis du ikke ba om dette, kan du trygt ignorere denne e-posten.`, footer: '© Data-Home · noreply@data-home.app · Ikke svar på denne e-posten.' }) }),
+  da: (otp, p) => ({ subject: 'Din Premium-bekræftelseskode — Data-Home', html: baseHtml({ otp, greeting: `Kære ${p},`, intro: `Tak fordi du tilmeldte dig <strong>Premium</strong>-planen hos Data-Home. Brug koden nedenfor til at fuldføre din registrering.`, label: 'Din bekræftelseskode', note: '⏱ Denne kode udløber om 15 minutter.', cta: `Hvis du ikke anmodede om dette, kan du roligt ignorere denne e-mail.`, footer: '© Data-Home · noreply@data-home.app · Besvar venligst ikke denne e-mail.' }) }),
+  de: (otp, p) => ({ subject: 'Ihr Premium-Bestätigungscode — Data-Home', html: baseHtml({ otp, greeting: `Sehr geehrte/r ${p},`, intro: `Vielen Dank für Ihre Registrierung beim <strong>Premium</strong>-Plan von Data-Home. Verwenden Sie den untenstehenden Code, um Ihre Registrierung abzuschließen.`, label: 'Ihr Bestätigungscode', note: '⏱ Dieser Code läuft in 15 Minuten ab.', cta: `Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail bedenkenlos ignorieren.`, footer: '© Data-Home · noreply@data-home.app · Bitte antworten Sie nicht auf diese E-Mail.' }) }),
 };
 
 // ─── Supabase insert ───────────────────────────────────────────────────────────
@@ -126,16 +115,8 @@ async function insertToSupabase(payload: object): Promise<void> {
 // ─── Resend email ──────────────────────────────────────────────────────────────
 async function sendEmail(
   to: string, lang: Lang, otp: string, prenom: string,
-  nom: string, company: string,
 ): Promise<void> {
-  const onboardingLink =
-    `${SITE_URL}/onboarding` +
-    `?email=${encodeURIComponent(to)}` +
-    `&name=${encodeURIComponent(prenom)}` +
-    `&company=${encodeURIComponent(company)}` +
-    `&lang=${lang}`;
-
-  const { subject, html } = TEMPLATES[lang](otp, prenom, onboardingLink);
+  const { subject, html } = TEMPLATES[lang](otp, prenom);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -189,7 +170,7 @@ export async function POST(req: NextRequest) {
       preferred_language: lang,
     });
 
-    await sendEmail(email, lang, otp_code, prenom, nom, entreprise || '');
+    await sendEmail(email, lang, otp_code, prenom);
 
     return NextResponse.json(
       { success: true, message: 'Inscription enregistrée. Code OTP envoyé par e-mail.' },
