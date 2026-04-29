@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import React, { Suspense, useState, useEffect, useRef, useReducer, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -676,6 +677,19 @@ function SuccessScreen({ lang, params, company, onClose }: {
 
 // ─── MAIN CONTENT COMPLET ──────────────────────────────────────────────────────
 function OnboardingContent() {
+  useEffect(() => {
+    // Ignorer silencieusement l'erreur de contexte
+    const originalError = console.error;
+    console.error = (...args) => {
+      if (args[0]?.includes?.('Agence non trouvée')) {
+        return;
+      }
+      originalError.apply(console, args);
+    };
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
   const searchParams = useSearchParams();
   const [state, dispatch] = useReducer(onboardingReducer, {
     step: 1,

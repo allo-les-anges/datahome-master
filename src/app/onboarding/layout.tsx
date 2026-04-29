@@ -11,8 +11,5 @@ export default function OnboardingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Ce layout remplace le layout parent pour la route /onboarding
-  // Il n'inclut PAS AgencyProvider, ce qui évite l'erreur
-  // "Agence non trouvée pour: onboarding"
-  return <>{children}</>;
+  return children;
 }
