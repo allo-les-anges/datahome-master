@@ -4,11 +4,31 @@ import React, { Suspense, useState, useEffect, useRef, useReducer, useCallback }
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  CheckCircle2, Palette, Globe, Rocket,
-  ShieldCheck, ArrowRight, Loader2, AlertCircle,
-  Upload, Lock, Eye, EyeOff, Check, X,
-  Globe2, Facebook, WhatsApp, Link2, Brush,
-  Home, Sparkles, Zap, Award, Crown
+  CheckCircle2,
+  Palette,
+  Globe,
+  Rocket,
+  ShieldCheck,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  Upload,
+  Lock,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+  Globe2,
+  Facebook,
+  Link2,
+  Brush,
+  Home,
+  Sparkles,
+  Zap,
+  Award,
+  Crown,
+  MessageCircle,  // ← Remplace WhatsApp
+  Phone
 } from 'lucide-react';
 
 // ─── i18n CONFIGURATION COMPLÈTE ────────────────────────────────────────────────
