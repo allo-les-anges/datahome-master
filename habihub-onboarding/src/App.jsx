@@ -31,10 +31,11 @@ const i18n = {
     field_facebook: "Lien Facebook",
     next: "Étape suivante",
     back: "Retour",
-    launch: "Lancer mon Dashboard",
+    launch: "Lancer mon essai gratuit",
     congrats: "Félicitations !",
     success_msg: "Votre site est en cours de création.",
     success_sub: "Toutes les informations utiles vous seront communiquées par email dans les 24 heures.",
+    close_instruction: "Vous pouvez maintenant fermer cette page",
   },
   nl: {
     title: "Beveiligingscontrole",
@@ -56,10 +57,11 @@ const i18n = {
     field_facebook: "Facebook-link",
     next: "Volgende stap",
     back: "Terug",
-    launch: "Start mijn Dashboard",
+    launch: "Start mijn gratis proefperiode",
     congrats: "Gefeliciteerd!",
     success_msg: "Uw site wordt aangemaakt.",
     success_sub: "Alle nuttige informatie wordt u binnen 24 uur per e-mail meegedeeld.",
+    close_instruction: "U kunt deze pagina nu sluiten",
   },
   en: {
     title: "Security Verification",
@@ -81,10 +83,11 @@ const i18n = {
     field_facebook: "Facebook Link",
     next: "Next Step",
     back: "Back",
-    launch: "Launch my Dashboard",
+    launch: "Start my free trial",
     congrats: "Congratulations!",
     success_msg: "Your site is being created.",
     success_sub: "All useful information will be sent to you by email within 24 hours.",
+    close_instruction: "You can now close this page",
   },
   es: {
     title: "Verificación de seguridad",
@@ -106,10 +109,11 @@ const i18n = {
     field_facebook: "Enlace de Facebook",
     next: "Siguiente paso",
     back: "Atrás",
-    launch: "Lanzar mi Dashboard",
+    launch: "Iniciar mi prueba gratuita",
     congrats: "¡Felicidades!",
     success_msg: "Su sitio está siendo creado.",
     success_sub: "Toda la información necesaria le será comunicada por correo electrónico en las próximas 24 horas.",
+    close_instruction: "Ahora puede cerrar esta página",
   },
   de: {
     title: "Sicherheitsüberprüfung",
@@ -131,10 +135,11 @@ const i18n = {
     field_facebook: "Facebook-Link",
     next: "Nächster Schritt",
     back: "Zurück",
-    launch: "Mein Dashboard starten",
+    launch: "Meine kostenlose Testversion starten",
     congrats: "Herzlichen Glückwunsch!",
     success_msg: "Ihre Website wird gerade erstellt.",
     success_sub: "Alle nützlichen Informationen werden Ihnen innerhalb von 24 Stunden per E-Mail mitgeteilt.",
+    close_instruction: "Sie können diese Seite jetzt schließen",
   },
   pl: {
     title: "Weryfikacja bezpieczeństwa",
@@ -156,10 +161,11 @@ const i18n = {
     field_facebook: "Link do Facebooka",
     next: "Następny krok",
     back: "Wstecz",
-    launch: "Uruchom mój Panel",
+    launch: "Rozpocznij bezpłatny okres próbny",
     congrats: "Gratulacje!",
     success_msg: "Twoja strona jest w trakcie tworzenia.",
     success_sub: "Wszystkie przydatne informacje zostaną przesłane na Twój adres e-mail w ciągu 24 godzin.",
+    close_instruction: "Możesz teraz zamknąć tę stronę",
   },
   ru: {
     title: "Проверка безопасности",
@@ -181,10 +187,11 @@ const i18n = {
     field_facebook: "Ссылка на Facebook",
     next: "Следующий шаг",
     back: "Назад",
-    launch: "Запустить панель управления",
+    launch: "Начать бесплатный пробный период",
     congrats: "Поздравляем!",
     success_msg: "Ваш сайт создаётся.",
     success_sub: "Вся полезная информация будет отправлена вам по электронной почте в течение 24 часов.",
+    close_instruction: "Теперь вы можете закрыть эту страницу",
   },
   no: {
     title: "Sikkerhetsverifisering",
@@ -206,10 +213,11 @@ const i18n = {
     field_facebook: "Facebook-lenke",
     next: "Neste steg",
     back: "Tilbake",
-    launch: "Start mitt Dashboard",
+    launch: "Start min gratis prøveperiode",
     congrats: "Gratulerer!",
     success_msg: "Nettstedet ditt opprettes.",
     success_sub: "All nyttig informasjon vil bli sendt til deg på e-post innen 24 timer.",
+    close_instruction: "Du kan nå lukke denne siden",
   },
   da: {
     title: "Sikkerhedsbekræftelse",
@@ -231,10 +239,11 @@ const i18n = {
     field_facebook: "Facebook link",
     next: "Næste trin",
     back: "Tilbage",
-    launch: "Start mit Dashboard",
+    launch: "Start min gratis prøveperiode",
     congrats: "Tillykke!",
     success_msg: "Dit websted er ved at blive oprettet.",
     success_sub: "Alle nyttige oplysninger vil blive sendt til dig via e-mail inden for 24 timer.",
+    close_instruction: "Du kan nu lukke denne side",
   },
 };
 
@@ -505,6 +514,9 @@ export default function App() {
                 <Mail size={18} className="text-blue-500 mt-0.5 shrink-0" />
                 <p className="text-sm text-blue-700">{t.success_sub}</p>
               </div>
+              <p className="text-xs text-slate-400 font-mono tracking-wide">
+                {t.close_instruction}
+              </p>
             </div>
           )}
 
