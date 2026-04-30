@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 const RESEND_KEY  = process.env.RESEND_KEY  || 're_FF7fBpoX_3VCWrP4FkF5HvdCxLf5uRCR8';
 const FROM_EMAIL  = process.env.FROM_EMAIL  || 'noreply@data-home.app';
-const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL || 'https://habihub-light-template.vercel.app';
+const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL || 'https://datahome.vercel.app';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
