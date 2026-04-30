@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Body JSON invalide' }, { status: 400 });
   }
 
-  const { email, agency_name, subdomain, primary_color, hero_title, default_lang, xml_url, whatsapp, facebook, package_level } = body;
+  const { email, agency_name, subdomain, primary_color, hero_title, default_lang, xml_url, whatsapp, facebook, package_level, logo, logo_url } = body;
 
   if (!email || !agency_name || !subdomain) {
     return NextResponse.json({ success: false, error: 'email, agency_name et subdomain sont requis' }, { status: 400 });
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
     button_animation: 'none',
     hero_type:        'image',
     hero_title:       hero_title || '',
+    logo_url:         logo_url || logo || null,
     whatsapp_number:  whatsapp || null,
     default_lang:     default_lang || 'en',
     package_level:    (['silver', 'gold', 'platinum'].includes(package_level) ? package_level : 'silver'),
