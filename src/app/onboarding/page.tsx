@@ -519,7 +519,7 @@ function ShimmerButton({ onClick, disabled, loading, children, color = '#c5a059'
 }) {
   return (
     <button 
-      type="button" 
+      type={onClick ? "button" : "submit"} 
       onClick={onClick} 
       disabled={disabled || loading}
       className={`
