@@ -228,7 +228,7 @@ const onboardingReducer = (state: OnboardingState, action: OnboardingAction): On
     case 'SET_LOGO_PREVIEW':
       return { ...state, logoPreview: action.payload };
     case 'SET_SUBDOMAIN_AVAILABLE':
-      return { ...state, subdomainAvailable: action.payload };
+      return state.subdomainAvailable === action.payload ? state : { ...state, subdomainAvailable: action.payload };
     case 'SET_CHECKING_SUBDOMAIN':
       return { ...state, checkingSubdomain: action.payload };
     case 'SET_FORM_ERRORS':
@@ -476,7 +476,8 @@ function SubdomainChecker({
     const checkAvailability = async () => {
       setStatus('checking');
       try {
-        const res = await fetch(`/api/check-subdomain?subdomain=${subdomain}`);
+        const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(subdomain)}`);
+        if (!res.ok) throw new Error('Subdomain check failed');
         const data = await res.json();
         const isAvailable = data.available;
         setStatus(isAvailable ? 'available' : 'unavailable');
@@ -774,6 +775,9 @@ function OnboardingContent() {
   const setLoading = (loading: boolean) => dispatch({ type: 'SET_LOADING', payload: loading });
   const setError = (error: string) => dispatch({ type: 'SET_ERROR', payload: error });
   const setOtp = (otp: string) => dispatch({ type: 'SET_OTP', payload: otp });
+  const handleSubdomainAvailabilityChange = useCallback((available: boolean | null) => {
+    dispatch({ type: 'SET_SUBDOMAIN_AVAILABLE', payload: available });
+  }, []);
 
   const validateStep = useCallback((step: number): boolean => {
     const errors: Record<string, string> = {};
@@ -1003,7 +1007,7 @@ function OnboardingContent() {
                       />
                       <SubdomainChecker 
                         subdomain={config.subdomain} 
-                        onAvailabilityChange={(available) => dispatch({ type: 'SET_SUBDOMAIN_AVAILABLE', payload: available })}
+                        onAvailabilityChange={handleSubdomainAvailabilityChange}
                         lang={lang}
                       />
                     </div>
