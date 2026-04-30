@@ -46,6 +46,7 @@ const i18n = {
     field_color: "Couleur primaire",
     field_lang: "Langue par défaut", 
     field_logo: "Logo (optionnel)",
+    field_hero_image: "Image hero (homepage)",
     step_content: "Contenu & Flux", 
     step_content_title: "Détails de l'Agence",
     field_hero: "Slogan (Hero Title)", 
@@ -85,6 +86,7 @@ const i18n = {
     field_color: "Primary color",
     field_lang: "Default language", 
     field_logo: "Logo (optional)",
+    field_hero_image: "Hero image (homepage)",
     step_content: "Content & Feeds", 
     step_content_title: "Agency Details",
     field_hero: "Tagline (Hero Title)", 
@@ -124,6 +126,7 @@ const i18n = {
     field_color: "Color primario",
     field_lang: "Idioma predeterminado", 
     field_logo: "Logo (opcional)",
+    field_hero_image: "Imagen hero (homepage)",
     step_content: "Contenido y Feeds", 
     step_content_title: "Detalles de la Agencia",
     field_hero: "Eslogan (Hero Title)", 
@@ -193,6 +196,7 @@ interface OnboardingState {
   error: string;
   otp: string;
   logoPreview: string;
+  heroPreview: string;
   subdomainAvailable: boolean | null;
   checkingSubdomain: boolean;
   formErrors: Record<string, string>;
@@ -207,6 +211,7 @@ type OnboardingAction =
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'SET_OTP'; payload: string }
   | { type: 'SET_LOGO_PREVIEW'; payload: string }
+  | { type: 'SET_HERO_PREVIEW'; payload: string }
   | { type: 'SET_SUBDOMAIN_AVAILABLE'; payload: boolean | null }
   | { type: 'SET_CHECKING_SUBDOMAIN'; payload: boolean }
   | { type: 'SET_FORM_ERRORS'; payload: Record<string, string> }
@@ -227,6 +232,8 @@ const onboardingReducer = (state: OnboardingState, action: OnboardingAction): On
       return { ...state, otp: action.payload };
     case 'SET_LOGO_PREVIEW':
       return { ...state, logoPreview: action.payload };
+    case 'SET_HERO_PREVIEW':
+      return { ...state, heroPreview: action.payload };
     case 'SET_SUBDOMAIN_AVAILABLE':
       return state.subdomainAvailable === action.payload ? state : { ...state, subdomainAvailable: action.payload };
     case 'SET_CHECKING_SUBDOMAIN':
@@ -320,12 +327,14 @@ function LogoUploader({
   onUpload, 
   preview, 
   onRemove,
-  lang 
+  lang,
+  label 
 }: { 
   onUpload: (file: File) => void; 
   preview: string; 
   onRemove: () => void;
   lang: Lang;
+  label?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -405,7 +414,7 @@ function LogoUploader({
   return (
     <div className="space-y-2">
       <label className="text-[10px] font-bold tracking-wider text-white/40 uppercase flex items-center gap-2">
-        <Upload size={10} /> {t.field_logo}
+        <Upload size={10} /> {label || t.field_logo}
       </label>
       
       {preview ? (
@@ -697,6 +706,7 @@ function OnboardingContent() {
     error: '',
     otp: '',
     logoPreview: '',
+    heroPreview: '',
     subdomainAvailable: null,
     checkingSubdomain: false,
     formErrors: {},
@@ -849,6 +859,7 @@ function OnboardingContent() {
           ...config, 
           email: params.email,
           logo: state.logoPreview,
+          hero_url: state.heroPreview,
         }),
       });
       const json = await res.json();
@@ -1085,6 +1096,18 @@ function OnboardingContent() {
                       label={t.field_hero} 
                       value={config.hero_title} 
                       onChange={(v) => setConfig({...config, hero_title: v})}
+                    />
+
+                    <LogoUploader 
+                      onUpload={(file) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => dispatch({ type: 'SET_HERO_PREVIEW', payload: reader.result as string });
+                        reader.readAsDataURL(file);
+                      }}
+                      preview={state.heroPreview}
+                      onRemove={() => dispatch({ type: 'SET_HERO_PREVIEW', payload: '' })}
+                      lang={lang}
+                      label={t.field_hero_image}
                     />
                     
                     <FloatInput 
