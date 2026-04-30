@@ -723,7 +723,14 @@ function OnboardingContent() {
   // Auto-save progress
   const { status: autoSaveStatus, clearSaved } = useAutoSave({ step: state.step, config, params }, 5000);
 
-  // Load saved progress on mount
+  const urlLang = (searchParams.get('lang') || 'fr') as Lang;
+  const urlEmail = searchParams.get('email') || '';
+  const urlName = searchParams.get('name') || '';
+  const urlCompany = (searchParams.get('company') || '').trim();
+  const urlSubdomain = urlCompany.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const safeLang: Lang = LANGS.includes(urlLang) ? urlLang : 'fr';
+
+  // Load saved progress on mount, but never let an old agency draft override URL branding.
   useEffect(() => {
     const saved = localStorage.getItem('onboarding_progress');
     if (saved) {
@@ -732,39 +739,34 @@ function OnboardingContent() {
         const savedTime = new Date(savedAt);
         const now = new Date();
         const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
+        const savedCompany = (savedParams?.company || savedConfig?.agency_name || '').trim();
         
-        // Only restore if less than 24 hours old
-        if (hoursDiff < 24) {
+        // Only restore if less than 24 hours old and it belongs to the same agency context.
+        if (hoursDiff < 24 && (!urlCompany || savedCompany === urlCompany)) {
           setStep(step);
           if (savedConfig) setConfig(savedConfig);
           if (savedParams) setParams(savedParams);
           dispatch({ type: 'SET_AUTOSAVE_STATUS', payload: 'saved' });
         } else {
-          clearSaved();
+          localStorage.removeItem('onboarding_progress');
         }
       } catch (e) {
         console.error('Failed to load saved progress:', e);
       }
     }
-  }, []);
+  }, [urlCompany]);
 
   useEffect(() => {
-    const urlLang = (searchParams.get('lang') || 'fr') as Lang;
-    const email = searchParams.get('email') || '';
-    const name = searchParams.get('name') || '';
-    const company = searchParams.get('company') || '';
-    
-    const safeLang: Lang = LANGS.includes(urlLang) ? urlLang : 'fr';
     setLang(safeLang);
     setSuccessLang(safeLang as SuccessLang);
-    setParams({ email, name, company });
+    setParams({ email: urlEmail, name: urlName, company: urlCompany });
     setConfig((prev) => ({
       ...prev, 
-      agency_name: company,
-      subdomain: company.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      agency_name: urlCompany || prev.agency_name,
+      subdomain: urlSubdomain || prev.subdomain,
       default_lang: safeLang,
     }));
-  }, [searchParams]);
+  }, [safeLang, urlEmail, urlName, urlCompany, urlSubdomain]);
 
   const t = i18n[lang];
   
