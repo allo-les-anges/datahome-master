@@ -136,8 +136,8 @@ const i18n = {
     error_otp: "Código inválido o expirado.", 
     error_subdomain: "Este subdominio ya está en uso.",
     error_generic: "Se produjo un error.",
-    error_required: "Este campo es obligatorio.",
-    error_invalid_url: "URL inválida.",
+    error_required: "Ce champ est requis.",
+    error_invalid_url: "URL invalide.",
     step_of: "Paso {current} de {total}",
     validating: "Verificando...",
     available: "¡Disponible!",
@@ -174,10 +174,10 @@ const successText = {
   es: {
     title: "¡Felicidades!",
     subtitle: "Su solicitud ha sido recibida.",
-    body: "Nuestro équipe configurará su espacio en 24 horas. Recibirá un correo en {email} cuando su sitio {company} esté en línea.",
-    close_instruction: "Ahora puede cerrar esta página",
+    body: "Nuestro equipo configurará su espacio en 24 horas. Recibirá un correo en {email} cuando su sitio {company} esté en línea.",
+    close_instruction: "Ahora puede cerrar esta page",
     what_now: "¿Y ahora qué?",
-    next_steps: "Recibirá un correo de confirmación con sus credenciales",
+    next_steps: "Recibirá un correo de confirmation con sus credenciales",
     support: "¿Necesita ayuda? Contacte a nuestro soporte",
   }
 } as const;
@@ -275,6 +275,7 @@ const useAutoSave = (data: any, delay: number = 3000) => {
     const timeoutId = setTimeout(async () => {
       setStatus('saving');
       try {
+        // Sauvegarde dans localStorage
         localStorage.setItem('onboarding_progress', JSON.stringify({
           ...data,
           savedAt: new Date().toISOString()
@@ -676,6 +677,7 @@ function SuccessScreen({ lang, params, company, onClose }: {
 // ─── MAIN CONTENT COMPLET ──────────────────────────────────────────────────────
 function OnboardingContent() {
   useEffect(() => {
+    // Ignorer silencieusement l'erreur de contexte
     const originalError = console.error;
     console.error = (...args) => {
       if (args[0]?.includes?.('Agence non trouvée')) {
@@ -687,7 +689,6 @@ function OnboardingContent() {
       console.error = originalError;
     };
   }, []);
-
   const searchParams = useSearchParams();
   const [state, dispatch] = useReducer(onboardingReducer, {
     step: 1,
@@ -718,8 +719,11 @@ function OnboardingContent() {
   });
 
   const isMobile = useMediaQuery('(max-width: 640px)');
+  
+  // Auto-save progress
   const { status: autoSaveStatus, clearSaved } = useAutoSave({ step: state.step, config, params }, 5000);
 
+  // Load saved progress on mount
   useEffect(() => {
     const saved = localStorage.getItem('onboarding_progress');
     if (saved) {
@@ -729,6 +733,7 @@ function OnboardingContent() {
         const now = new Date();
         const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
         
+        // Only restore if less than 24 hours old
         if (hoursDiff < 24) {
           setStep(step);
           if (savedConfig) setConfig(savedConfig);
@@ -830,7 +835,7 @@ function OnboardingContent() {
         setError(json.error || t.error_generic); 
         return; 
       }
-      clearSaved();
+      clearSaved(); // Clear saved progress on success
       setStep(4);
     } catch { 
       setError(t.error_generic); 
@@ -844,6 +849,7 @@ function OnboardingContent() {
       setStep(state.step + 1);
       dispatch({ type: 'SET_TOUCHED', payload: {} });
     } else {
+      // Mark all fields as touched to show errors
       const allTouched: Record<string, boolean> = {};
       if (state.step === 2) {
         allTouched.agency_name = true;
@@ -867,11 +873,13 @@ function OnboardingContent() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ background: '#0a0a0a' }}>
       
+      {/* Background ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-[0.07] blur-3xl"
           style={{ background: `radial-gradient(circle, ${config.primary_color} 0%, transparent 70%)` }} />
       </div>
 
+      {/* Auto-save indicator */}
       {autoSaveStatus !== 'idle' && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -894,6 +902,7 @@ function OnboardingContent() {
           style={{ background: `linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))`, boxShadow: `0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)` }}>
           <div className="rounded-[3rem] overflow-hidden" style={{ background: '#111' }}>
 
+            {/* Notch & Header */}
             <div className="flex justify-center pt-4 pb-1">
               <div className="w-28 h-7 rounded-full bg-black flex items-center justify-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-white/10" />
@@ -1100,6 +1109,7 @@ function OnboardingContent() {
               </AnimatePresence>
             </div>
 
+            {/* Home indicator */}
             <div className="flex justify-center pb-3">
               <div className="w-28 h-1 rounded-full bg-white/10" />
             </div>
