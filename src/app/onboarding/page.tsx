@@ -813,6 +813,21 @@ function OnboardingContent() {
         setError(t.error_otp); 
         return; 
       }
+
+      const verifiedLang = json.data?.preferred_language as Lang | undefined;
+      const nextLang: Lang = verifiedLang && LANGS.includes(verifiedLang) ? verifiedLang : lang;
+      const verifiedCompany = json.data?.company_name?.trim?.() || params.company;
+      const verifiedName = json.data?.first_name?.trim?.() || params.name;
+
+      setLang(nextLang);
+      setSuccessLang(nextLang as SuccessLang);
+      setParams((prev) => ({ ...prev, name: verifiedName, company: verifiedCompany }));
+      setConfig((prev) => ({
+        ...prev,
+        agency_name: verifiedCompany || prev.agency_name,
+        subdomain: (verifiedCompany || prev.agency_name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || prev.subdomain,
+        default_lang: nextLang,
+      }));
       setStep(2);
     } catch { 
       setError(t.error_generic); 
@@ -1022,7 +1037,12 @@ function OnboardingContent() {
                     <FloatInput 
                       label={t.field_lang} 
                       value={config.default_lang} 
-                      onChange={(v) => setConfig({...config, default_lang: v as Lang})}
+                      onChange={(v) => {
+                        const nextLang = LANGS.includes(v as Lang) ? (v as Lang) : config.default_lang;
+                        setLang(nextLang);
+                        setSuccessLang(nextLang as SuccessLang);
+                        setConfig({...config, default_lang: nextLang});
+                      }}
                     />
                     
                     <LogoUploader 
