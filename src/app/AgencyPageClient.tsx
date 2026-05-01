@@ -16,7 +16,7 @@ import { useAgency } from "@/contexts/AgencyContext";
 import { Villa, Filters } from '@/types';
 
 // Cache key pour sessionStorage
-const CACHE_KEY = (slug: string, locale: string) => `properties_cache_${slug}_${locale}`;
+const CACHE_KEY = (slug: string, locale: string) => `properties_cache_v2_${slug}_${locale}`;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 interface CachedData {
