@@ -35,7 +35,11 @@
     "allRegions": "جميع المناطق",
     "city": "المدينة",
     "allCities": "جميع المدن",
-    "allTypes": "جميع الأنواع"
+    "allTypes": "جميع الأنواع",
+    "propertiesSingular": "عقار",
+    "propertiesPlural": "عقارات",
+    "propertiesAvailable": "{count} عقارات متاحة",
+    "propertiesPerPage": "العقارات لكل صفحة"
   },
   "propertyCard": {
     "ref": "المرجع: {ref}",

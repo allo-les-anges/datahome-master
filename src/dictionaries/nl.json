@@ -35,7 +35,11 @@
     "allRegions": "Alle regio's",
     "city": "Stad",
     "allCities": "Alle steden",
-    "allTypes": "Alle types"
+    "allTypes": "Alle types",
+    "propertiesSingular": "eigendom",
+    "propertiesPlural": "eigendommen",
+    "propertiesAvailable": "{count} eigendommen beschikbaar",
+    "propertiesPerPage": "Eigendommen per pagina"
   },
   "propertyCard": {
     "ref": "REF: {ref}",

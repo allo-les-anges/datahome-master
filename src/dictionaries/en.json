@@ -35,7 +35,11 @@
     "allRegions": "All regions",
     "city": "City",
     "allCities": "All cities",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "propertiesSingular": "property",
+    "propertiesPlural": "properties",
+    "propertiesAvailable": "{count} properties available",
+    "propertiesPerPage": "Properties per page"
   },
   "propertyCard": {
     "ref": "REF: {ref}",

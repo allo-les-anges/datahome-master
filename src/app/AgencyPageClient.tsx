@@ -70,7 +70,6 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   }, []);
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
-
   useEffect(() => {
     if (routeLocale && routeLocale !== locale) {
       setLocale(routeLocale);
@@ -416,6 +415,11 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   const displayedPropertyCount = hasActiveFilters
     ? localizedProperties.length
     : propertyTotal ?? localizedProperties.length;
+  const propertyCountLabel = displayedPropertyCount > 1
+    ? (t('home.propertiesPlural') || 'properties')
+    : (t('home.propertiesSingular') || 'property');
+  const propertiesAvailableLabel = (t('home.propertiesAvailable') || '{count} properties available')
+    .replace('{count}', String(displayedPropertyCount));
 
   const primaryColor = agency?.primary_color || '#FF8C00';
   const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
@@ -494,9 +498,9 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                       <h2 className="text-5xl italic text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results') || 'Nos Biens'}</h2>
                       <span
                         className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm"
-                        aria-label={`${displayedPropertyCount} biens disponibles`}
+                        aria-label={propertiesAvailableLabel}
                       >
-                        {displayedPropertyCount} {displayedPropertyCount > 1 ? 'biens' : 'bien'}
+                        {displayedPropertyCount} {propertyCountLabel}
                       </span>
                     </div>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
@@ -504,7 +508,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
 
                   <div className="mb-10 flex flex-wrap items-center justify-center gap-3">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Biens par page
+                      {t('home.propertiesPerPage') || 'Properties per page'}
                     </span>
                     {[12, 24].map((size) => (
                       <button
