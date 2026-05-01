@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
   const footer_config = {
     allowed_langs:  default_lang ? [default_lang, 'en'].filter((v, i, a) => a.indexOf(v) === i) : ['en'],
     xml_urls:       [],
+    client_email:   email.trim().toLowerCase(),
     socials:        { facebook: facebook || '', whatsapp: whatsapp || '' },
     integrations:   {
       crm_enabled: false,
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
   console.log('[create-agency-premium] ④ INSERT agency_settings:', insertPayload);
 
   // ④ Crée l'agence dans agency_settings
-  const insertRes = await fetch(
+  let insertRes = await fetch(
     sb('agency_settings'),
     {
       method:  'POST',
@@ -127,6 +128,29 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(insertPayload),
     },
   );
+
+  if (insertRes.status >= 400) {
+    const errBody = await insertRes.text();
+    if (errBody.toLowerCase().includes('email')) {
+      console.warn('[create-agency-premium] email column rejected, retrying with footer_config.client_email fallback');
+      const { email: _email, ...payloadWithoutEmail } = insertPayload;
+      insertRes = await fetch(
+        sb('agency_settings'),
+        {
+          method:  'POST',
+          headers: { ...BASE_HEADERS, Prefer: 'return=representation' },
+          body: JSON.stringify(payloadWithoutEmail),
+        },
+      );
+    } else {
+      console.error('[create-agency-premium] â‘£ INSERT agency_settings FAILED:', insertRes.status, errBody);
+      return NextResponse.json({
+        success: false,
+        error:   errBody,
+        details: { status: insertRes.status, payload_keys: Object.keys(insertPayload) },
+      }, { status: 502 });
+    }
+  }
 
   if (insertRes.status >= 400) {
     const errBody = await insertRes.text();

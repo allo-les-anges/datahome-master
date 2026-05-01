@@ -906,20 +906,21 @@ export default function AgencyDashboard() {
   };
 
   const sendWelcomeEmailForAgency = async (agency: any) => {
-    if (!agency?.email) {
-      throw new Error("Email client manquant sur la fiche agence");
-    }
-
     const footerConfig = typeof agency.footer_config === 'string'
       ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
       : (agency.footer_config || {});
+    const clientEmail = agency?.email || footerConfig.client_email || footerConfig.contact_email;
+
+    if (!clientEmail) {
+      throw new Error("Email client manquant sur la fiche agence");
+    }
 
     const res = await fetch('/api/admin/send-welcome-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         agency_id:        agency.id,
-        email:            agency.email,
+        email:            clientEmail,
         first_name:       agency.contact_first_name || agency.agency_name,
         company_name:     agency.agency_name,
         subdomain:        agency.subdomain,
