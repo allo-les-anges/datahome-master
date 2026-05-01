@@ -778,7 +778,7 @@ export default function AgencyDashboard() {
         setTeam(json.agency.team_data || []);
         setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? json.agency : a));
       } else {
-        setMessage({ type: 'error', text: "Erreur: agence non renvoyée après sauvegarde" });
+        setMessage({ type: 'error', text: "Erreur: agence non renvoyÃ©e aprÃ¨s sauvegarde" });
       }
     } catch (err: any) {
       console.error('Save error:', err);
