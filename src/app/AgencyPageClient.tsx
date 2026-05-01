@@ -34,6 +34,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const { t, locale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency();
   const initialLoadDone = useRef(false);
+  const fullLoadRequested = useRef(false);
   
   const agency = useMemo(() => initialAgency || contextAgency, [initialAgency, contextAgency]);
 
@@ -222,6 +223,30 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     } catch (e) { /* silently ignore */ }
   }, []);
 
+  const fetchAllAgencyProperties = useCallback(async (currentAgency: any) => {
+    if (!currentAgency?.id) return [];
+
+    let allowedXmlUrls: string[] = [];
+    if (currentAgency?.footer_config) {
+      try {
+        const config = typeof currentAgency.footer_config === 'string'
+          ? JSON.parse(currentAgency.footer_config)
+          : currentAgency.footer_config;
+        allowedXmlUrls = config?.xml_urls || [];
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000' });
+    allowedXmlUrls.forEach(url => params.append('xmlSource', url));
+
+    const res = await fetch(`/api/properties?${params.toString()}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Properties API ${res.status}`);
+    const json = await res.json();
+    return json.properties || [];
+  }, []);
+
   // Chargement des données - Version avec les bonnes colonnes
   const loadData = useCallback(async (currentAgency: any) => {
     if (!currentAgency?.id) return;
@@ -231,7 +256,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     // 1. Vérifier le cache — ignoré si le SSR a retourné plus de biens (données plus fraîches)
     const cached = loadFromCache();
     const ssrCount = initialProperties?.length || 0;
-    if (cached && cached.length > 0 && cached.length >= ssrCount) {
+    if (cached && cached.length > 0 && cached.length > ssrCount) {
       setAllProperties(cached);
       setFilteredProperties(cached);
       setLoadingProperties(false);
@@ -244,9 +269,24 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       const formatted = formatVillaData(initialProperties);
       setAllProperties(formatted);
       setFilteredProperties(formatted);
-      saveToCache(formatted);
       setLoadingProperties(false);
       initialLoadDone.current = true;
+      if (!fullLoadRequested.current) {
+        fullLoadRequested.current = true;
+        window.setTimeout(async () => {
+          try {
+            const allData = await fetchAllAgencyProperties(currentAgency);
+            const fullFormatted = formatVillaData(allData);
+            if (fullFormatted.length >= formatted.length) {
+              setAllProperties(fullFormatted);
+              setFilteredProperties(fullFormatted);
+              saveToCache(fullFormatted);
+            }
+          } catch {
+            // keep the fast initial batch
+          }
+        }, 0);
+      }
       return;
     }
 
@@ -254,24 +294,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     try {
       setLoadingProperties(true);
 
-      let allowedXmlUrls: string[] = [];
-      if (currentAgency?.footer_config) {
-        try {
-          const config = typeof currentAgency.footer_config === 'string'
-            ? JSON.parse(currentAgency.footer_config)
-            : currentAgency.footer_config;
-          allowedXmlUrls = config?.xml_urls || [];
-        } catch (e) {
-          // ignore
-        }
-      }
-      const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000' });
-      allowedXmlUrls.forEach(url => params.append('xmlSource', url));
-
-      const res = await fetch(`/api/properties?${params.toString()}`, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`Properties API ${res.status}`);
-      const json = await res.json();
-      const allData = json.properties || [];
+      const allData = await fetchAllAgencyProperties(currentAgency);
 
       const formatted = formatVillaData(allData);
       setAllProperties(formatted);
@@ -288,7 +311,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setLoadingProperties(false);
       initialLoadDone.current = true;
     }
-  }, [initialProperties, formatVillaData, saveToCache, loadFromCache, allProperties.length]);
+  }, [initialProperties, formatVillaData, saveToCache, loadFromCache, fetchAllAgencyProperties, allProperties.length]);
 
   // Synchronisation de l'agence
   useEffect(() => {

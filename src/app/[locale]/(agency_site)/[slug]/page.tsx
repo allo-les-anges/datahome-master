@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 // ISR : régénère la page au plus toutes les 60s, sert depuis le cache entre-temps
 export const revalidate = 60;
+const INITIAL_PROPERTIES_LIMIT = 24;
 
 export default async function DynamicAgencyPage({
   params
@@ -96,7 +97,8 @@ export default async function DynamicAgencyPage({
     .select(selectColumns)
     .eq('agency_id', agency.id)
     .or('is_excluded.eq.false,is_excluded.is.null')
-    .limit(10000);
+    .order('price', { ascending: true })
+    .limit(INITIAL_PROPERTIES_LIMIT);
 
   const byXmlQuery = xmlUrls.length > 0
     ? supabase
@@ -104,7 +106,8 @@ export default async function DynamicAgencyPage({
         .select(selectColumns)
         .in('xml_source', xmlUrls)
         .or('is_excluded.eq.false,is_excluded.is.null')
-        .limit(10000)
+        .order('price', { ascending: true })
+        .limit(INITIAL_PROPERTIES_LIMIT)
     : Promise.resolve({ data: [] as any[] });
 
   const [{ data: byAgency }, { data: byXml }] = await Promise.all([byAgencyQuery, byXmlQuery]);
