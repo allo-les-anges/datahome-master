@@ -263,6 +263,7 @@ export default function RegisterPage() {
   const [lang, setLang]     = useState<Lang>('fr');
   const [loading, setLoading] = useState(false);
   const [done, setDone]     = useState(false);
+  const [onboardingUrl, setOnboardingUrl] = useState('');
   const [error, setError]   = useState('');
 
   const [form, setForm] = useState({
@@ -303,7 +304,8 @@ export default function RegisterPage() {
         company: form.entreprise.trim(),
         lang: form.preferred_language,
       });
-      router.push(`/onboarding?${onboardingParams.toString()}`);
+      setOnboardingUrl(`/onboarding?${onboardingParams.toString()}`);
+      setDone(true);
     } catch {
       setError(t.error_generic);
     } finally {
@@ -335,6 +337,14 @@ export default function RegisterPage() {
             <Mail size={18} className="text-blue-400 shrink-0" />
             <p className="text-slate-400 text-sm">{form.email}</p>
           </div>
+          <button
+            type="button"
+            onClick={() => router.push(onboardingUrl)}
+            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.25em] transition-all active:scale-[0.99] flex items-center justify-center gap-3"
+          >
+            Introduire mon code OTP
+            <ArrowRight size={16} />
+          </button>
           <p className="text-[10px] text-slate-400 uppercase tracking-[0.3em] font-bold">
             {t.close_instruction}
           </p>
