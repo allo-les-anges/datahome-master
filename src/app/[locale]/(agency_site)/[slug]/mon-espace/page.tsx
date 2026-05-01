@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
@@ -12,6 +12,7 @@ import {
   ArrowLeft, Building2, Euro, Waves, LayoutGrid, AlignLeft,
   Camera, Info, ChevronDown, TrendingUp, Globe, BarChart3,
   Lock, Zap, Clock, ChevronRight, Star, Settings,
+  Bot, Languages, Search, Video,
 } from "lucide-react";
 import ClientDashboard from "@/components/ClientDashboard";
 
@@ -55,7 +56,7 @@ const emptyForm = {
   pool: "Non", description_fr: "", description_en: "",
 };
 
-// ─── Skeleton Loader ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Skeleton Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SkeletonCard() {
   return (
     <div
@@ -76,7 +77,7 @@ function SkeletonCard() {
   );
 }
 
-// ─── Form components ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Form components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SectionHeader({ icon, label, color }: { icon: React.ReactNode; label: string; color: string }) {
   return (
     <div className="flex items-center gap-3 mb-5">
@@ -182,7 +183,7 @@ function PropertyForm({
               <div className="relative">
                 <input type="number" placeholder="350 000" value={form.price}
                   onChange={(e) => set("price", e.target.value)} className={`${inputCls} pr-8`} />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/20 font-bold">€</span>
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/20 font-bold">â‚¬</span>
               </div>
             </FieldInput>
             <FieldInput label={dict.type}>
@@ -213,7 +214,7 @@ function PropertyForm({
       </div>
 
       <div>
-        <SectionHeader icon={<LayoutGrid size={15} />} label="Caractéristiques" color={brandColor} />
+        <SectionHeader icon={<LayoutGrid size={15} />} label="CaractÃ©ristiques" color={brandColor} />
         <div className="grid grid-cols-3 gap-4 mb-5">
           <FieldInput label={dict.beds} icon={<BedDouble size={11} />}>
             <input type="number" placeholder="3" value={form.beds}
@@ -227,7 +228,7 @@ function PropertyForm({
             <div className="relative">
               <input type="number" placeholder="180" value={form.surface_built}
                 onChange={(e) => set("surface_built", e.target.value)} className={`${inputCls} pr-9`} />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-bold">m²</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-bold">mÂ²</span>
             </div>
           </FieldInput>
         </div>
@@ -324,7 +325,7 @@ function PropertyForm({
   );
 }
 
-// ─── Trial helpers ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Trial helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getTrialInfo(agency: any): { isExpired: boolean; daysLeft: number; expiresAt: Date | null } {
   const sub = agency?.footer_config?.subscription;
   if (!sub?.trial_expires_at) return { isExpired: false, daysLeft: 15, expiresAt: null };
@@ -334,7 +335,7 @@ function getTrialInfo(agency: any): { isExpired: boolean; daysLeft: number; expi
   return { isExpired: daysLeft <= 0, daysLeft: Math.max(0, daysLeft), expiresAt };
 }
 
-// ─── Trial Banner ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Trial Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TrialBanner({ daysLeft, brandColor, dict }: { daysLeft: number; brandColor: string; dict: any }) {
   const pct = Math.min(100, Math.round((daysLeft / 15) * 100));
   const urgent = daysLeft <= 3;
@@ -369,7 +370,7 @@ function TrialBanner({ daysLeft, brandColor, dict }: { daysLeft: number; brandCo
   );
 }
 
-// ─── Page principale ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Page principale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function MonEspacePage() {
   const params = useParams();
   const router = useRouter();
@@ -397,6 +398,7 @@ export default function MonEspacePage() {
   const [editing, setEditing] = useState<Partial<Property> | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showModules, setShowModules] = useState(false);
 
   const [showChangePw, setShowChangePw] = useState(false);
   const [cpCurrent, setCpCurrent] = useState("");
@@ -503,8 +505,76 @@ export default function MonEspacePage() {
   };
 
   const inputCls = "w-full px-4 py-3.5 rounded-2xl border text-sm text-white placeholder:text-white/20 focus:outline-none transition-all bg-white/[0.04] border-white/[0.07] focus:border-white/20";
+  const integrations = agency?.footer_config?.integrations || {};
+  const allowedLangs = agency?.footer_config?.allowed_langs || [];
+  const extraLangCount = Array.isArray(allowedLangs) ? Math.max(0, allowedLangs.length - 1) : 0;
+  const moduleCatalog = [
+    {
+      id: "chatbot",
+      name: "Chatbot IA",
+      price: "39 EUR / mois",
+      description: "Assistant IA pour qualifier les demandes et repondre aux visiteurs.",
+      active: integrations.chatbot_enabled === true,
+      status: "Disponible",
+      icon: Bot,
+      color: "#a855f7",
+    },
+    {
+      id: "mini-crm",
+      name: "Mini CRM Leads",
+      price: "Gratuit",
+      description: "Suivi simple des leads recus depuis le site de l'agence.",
+      active: integrations.leads_enabled === true,
+      status: "Inclus",
+      icon: TrendingUp,
+      color: "#22c55e",
+    },
+    {
+      id: "languages",
+      name: "Langues supplementaires",
+      price: "2 EUR / langue / mois",
+      description: extraLangCount > 0
+        ? `${extraLangCount} langue${extraLangCount > 1 ? "s" : ""} supplementaire${extraLangCount > 1 ? "s" : ""} active${extraLangCount > 1 ? "s" : ""}.`
+        : "Ajoutez EN, NL, ES, DE, PL ou d'autres langues selon vos besoins.",
+      active: extraLangCount > 0,
+      status: "Disponible",
+      icon: Languages,
+      color: "#38bdf8",
+    },
+    {
+      id: "seo",
+      name: "Module SEO",
+      price: "19 EUR / mois",
+      description: "Optimisations SEO, metas et structure de pages. Developpement prevu plus tard.",
+      active: false,
+      status: "Bientot",
+      icon: Search,
+      color: "#f59e0b",
+      comingSoon: true,
+    },
+    {
+      id: "hero-video",
+      name: "Video hero",
+      price: "9 EUR / mois",
+      description: "Remplacez l'image de couverture par une video sur la homepage.",
+      active: integrations.hero_video_enabled === true,
+      status: "Disponible",
+      icon: Video,
+      color: "#ec4899",
+    },
+    {
+      id: "crm-sync",
+      name: "Sync CRM externe",
+      price: "29 EUR / mois",
+      description: "Connexion future vers Zoho, HubSpot ou autre CRM externe.",
+      active: integrations.crm_enabled === true,
+      status: "Disponible",
+      icon: Zap,
+      color: "#6366f1",
+    },
+  ];
 
-  // ── Loading ──
+  // â”€â”€ Loading â”€â”€
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]">
       <Loader2 size={32} className="animate-spin text-white/20" />
@@ -517,7 +587,7 @@ export default function MonEspacePage() {
     </div>
   );
 
-  // ── Module non activé ──
+  // â”€â”€ Module non activÃ© â”€â”€
   const pmEnabled = agency.property_manager_enabled || agency.footer_config?.integrations?.property_manager_enabled;
   if (!pmEnabled) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d] px-6" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
@@ -532,7 +602,7 @@ export default function MonEspacePage() {
     </div>
   );
 
-  // ── Auth ──
+  // â”€â”€ Auth â”€â”€
   if (!session) return (
     <div
       className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden"
@@ -559,7 +629,7 @@ export default function MonEspacePage() {
               <input type={showPw ? "text" : "password"} value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 className={inputCls} />
               <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
                 {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -573,7 +643,7 @@ export default function MonEspacePage() {
               <input type="password" value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 className={inputCls} />
             </div>
           )}
@@ -596,7 +666,7 @@ export default function MonEspacePage() {
     </div>
   );
 
-  // ── Settings ──
+  // â”€â”€ Settings â”€â”€
   if (view === "settings") return (
     <ClientDashboard
       agency={agency}
@@ -608,7 +678,7 @@ export default function MonEspacePage() {
     />
   );
 
-  // ── Dashboard ──
+  // â”€â”€ Dashboard â”€â”€
   return (
     <div className="min-h-screen bg-[#0d0d0d]" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
 
@@ -651,7 +721,7 @@ export default function MonEspacePage() {
         </div>
       </div>
 
-      {/* Trial Banner — shown in dashboard and list views */}
+      {/* Trial Banner â€” shown in dashboard and list views */}
       {view !== "form" && (() => {
         const { daysLeft } = getTrialInfo(agency);
         return <TrialBanner daysLeft={daysLeft} brandColor={brandColor} dict={trialDict} />;
@@ -678,7 +748,7 @@ export default function MonEspacePage() {
             {/* Module Bento Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* ── Propriétés ── */}
+              {/* â”€â”€ PropriÃ©tÃ©s â”€â”€ */}
               <motion.button
                 type="button"
                 initial={{ opacity: 0, y: 20 }}
@@ -694,8 +764,8 @@ export default function MonEspacePage() {
                   </div>
                   <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">{upsellDict?.propertiesTitle || "Mes Propriétés"}</p>
-                <p className="text-sm text-white/30 mb-4">{upsellDict?.propertiesSubtitle || "Gérez votre catalogue"}</p>
+                <p className="text-lg font-bold text-white mb-1">{upsellDict?.propertiesTitle || "Mes PropriÃ©tÃ©s"}</p>
+                <p className="text-sm text-white/30 mb-4">{upsellDict?.propertiesSubtitle || "GÃ©rez votre catalogue"}</p>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
                   <span className="text-xs font-bold text-white/40">
@@ -704,54 +774,39 @@ export default function MonEspacePage() {
                 </div>
               </motion.button>
 
-              {/* ── Mini CRM ── */}
-              {(() => {
-                const crmEnabled = agency?.footer_config?.integrations?.crm_enabled;
-                return (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="relative rounded-3xl p-7 overflow-hidden"
-                    style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
-                  >
-                    {/* Card content (blurred when locked) */}
-                    <div style={{ filter: crmEnabled ? "none" : "blur(3px)", pointerEvents: crmEnabled ? "auto" : "none", opacity: crmEnabled ? 1 : 0.5 }}>
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-purple-900/20">
-                          <TrendingUp size={22} className="text-purple-400" />
-                        </div>
-                      </div>
-                      <p className="text-lg font-bold text-white mb-1">{upsellDict?.crmTitle || "Mini CRM"}</p>
-                      <p className="text-sm text-white/30">{upsellDict?.crmSubtitle || "Gérez vos leads et contacts"}</p>
+              {/* â”€â”€ Mini CRM â”€â”€ */}
+              <motion.button
+                type="button"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={() => setShowModules(true)}
+                className="group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+              >
+                <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(circle at 20% 15%, ${brandColor}33, transparent 32%)` }} />
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                      <Zap size={22} style={{ color: brandColor }} />
                     </div>
+                    <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: brandColor }}>
+                    <Lock size={12} /> Catalogue premium
+                  </span>
+                  <p className="text-lg font-bold text-white mb-1">Modules disponibles</p>
+                  <p className="text-sm text-white/30 mb-4">Chatbot, langues, SEO, video hero et integrations.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/5 text-white/45">Chatbot 39 EUR</span>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/5 text-white/45">Mini CRM gratuit</span>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/5 text-white/45">Langue +2 EUR</span>
+                  </div>
+                </div>
+              </motion.button>
 
-                    {/* Lock overlay */}
-                    {!crmEnabled && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-3xl"
-                        style={{ background: "rgba(13,13,13,0.6)", backdropFilter: "blur(4px)" }}>
-                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10">
-                          <Lock size={18} className="text-white/40" />
-                        </div>
-                        <div className="text-center px-4">
-                          <span className="block text-[9px] font-black uppercase tracking-[0.25em] mb-1"
-                            style={{ color: brandColor }}>{upsellDict?.crmBadge || "Premium"}</span>
-                          <p className="text-xs text-white/40">{upsellDict?.locked || "Module non activé"}</p>
-                        </div>
-                        <a
-                          href={`mailto:${agency?.email || "contact@habihub.com"}?subject=Activer CRM — ${agency?.agency_name || ""}`}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-black transition-all hover:opacity-90"
-                          style={{ backgroundColor: brandColor }}
-                        >
-                          <Zap size={12} /> {upsellDict?.crmBtn || "Activer"}
-                        </a>
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })()}
 
-              {/* ── Site Vitrine — masqué tant que le site n'est pas activé ── */}
+              {/* â”€â”€ Site Vitrine â€” masquÃ© tant que le site n'est pas activÃ© â”€â”€ */}
               {agency?.footer_config?.subscription?.website_active === true && (
                 <motion.a
                   initial={{ opacity: 0, y: 20 }}
@@ -774,7 +829,7 @@ export default function MonEspacePage() {
                 </motion.a>
               )}
 
-              {/* ── Paramètres ── */}
+              {/* â”€â”€ ParamÃ¨tres â”€â”€ */}
               <motion.button
                 type="button"
                 initial={{ opacity: 0, y: 20 }}
@@ -790,11 +845,11 @@ export default function MonEspacePage() {
                   </div>
                   <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">Paramètres</p>
-                <p className="text-sm text-white/30">Identité, couleurs, équipe…</p>
+                <p className="text-lg font-bold text-white mb-1">ParamÃ¨tres</p>
+                <p className="text-sm text-white/30">IdentitÃ©, couleurs, Ã©quipeâ€¦</p>
               </motion.button>
 
-              {/* ── Statistiques ── */}
+              {/* â”€â”€ Statistiques â”€â”€ */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -808,7 +863,7 @@ export default function MonEspacePage() {
                   </div>
                   <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
                     style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>
-                    {upsellDict?.statsBadge || "Bientôt"}
+                    {upsellDict?.statsBadge || "BientÃ´t"}
                   </span>
                 </div>
                 <p className="text-lg font-bold text-white mb-1">{upsellDict?.statsTitle || "Statistiques"}</p>
@@ -890,15 +945,15 @@ export default function MonEspacePage() {
                       <p className="font-bold text-white text-sm leading-tight line-clamp-1 mb-1">{p.titre_fr || "(Sans titre)"}</p>
                       <div className="flex items-center gap-1 mb-3">
                         <MapPin size={11} className="text-white/20 shrink-0" />
-                        <p className="text-xs text-white/30 truncate">{[p.town, p.region].filter(Boolean).join(", ") || "—"}</p>
+                        <p className="text-xs text-white/30 truncate">{[p.town, p.region].filter(Boolean).join(", ") || "â€”"}</p>
                       </div>
                       <p className="text-xl font-black" style={{ color: brandColor }}>
-                        {p.price ? Number(p.price).toLocaleString("fr-FR") + " €" : "—"}
+                        {p.price ? Number(p.price).toLocaleString("fr-FR") + " â‚¬" : "â€”"}
                       </p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-white/30 font-medium">
                         {p.beds > 0 && <span className="flex items-center gap-1"><BedDouble size={12} /> {p.beds}</span>}
                         {p.baths > 0 && <span className="flex items-center gap-1"><Bath size={12} /> {p.baths}</span>}
-                        {p.surface_built && <span className="flex items-center gap-1"><Maximize2 size={12} /> {p.surface_built} m²</span>}
+                        {p.surface_built && <span className="flex items-center gap-1"><Maximize2 size={12} /> {p.surface_built} mÂ²</span>}
                       </div>
                       <div className="flex gap-2 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                         <button type="button" onClick={() => { setEditing(p); setView("form"); }}
@@ -936,6 +991,87 @@ export default function MonEspacePage() {
           </div>
         )}
       </div>
+
+      {/* Modale modules disponibles */}
+      {showModules && (
+        <div className="fixed inset-0 z-[210] flex items-center justify-center px-4 py-8" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}>
+          <div className="rounded-3xl p-6 md:p-8 max-w-5xl w-full max-h-[88vh] overflow-y-auto" style={{ ...glassCard, boxShadow: "0 40px 90px rgba(0,0,0,0.65)" }}>
+            <div className="flex items-start justify-between gap-4 mb-7">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: brandColor }}>
+                  Catalogue premium
+                </p>
+                <h3 className="text-2xl font-bold text-white">Modules disponibles</h3>
+                <p className="text-sm text-white/35 mt-2 max-w-2xl">
+                  Selectionnez les options a activer pour faire evoluer votre espace DataHome.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowModules(false)}
+                className="p-2.5 hover:bg-white/5 rounded-xl transition-all shrink-0"
+                aria-label="Fermer"
+              >
+                <X size={18} className="text-white/40" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {moduleCatalog.map((module) => {
+                const Icon = module.icon;
+                const subject = encodeURIComponent(`Activation module ${module.name} - ${agency?.agency_name || slug}`);
+                const body = encodeURIComponent(`Bonjour,\n\nJe souhaite activer le module "${module.name}" pour l'agence ${agency?.agency_name || slug}.\n\nPrix indique: ${module.price}\n\nMerci.`);
+                const href = `mailto:gaetan@amaru-homes.com?subject=${subject}&body=${body}`;
+                return (
+                  <div
+                    key={module.id}
+                    className="rounded-3xl p-5 border transition-all"
+                    style={{ background: "rgba(255,255,255,0.035)", borderColor: "rgba(255,255,255,0.08)" }}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-5">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${module.color}18` }}>
+                        <Icon size={22} style={{ color: module.color }} />
+                      </div>
+                      <span
+                        className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest"
+                        style={{
+                          background: module.active ? "rgba(34,197,94,0.12)" : module.comingSoon ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.06)",
+                          color: module.active ? "#22c55e" : module.comingSoon ? "#f59e0b" : "rgba(255,255,255,0.45)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        {module.active ? "Actif" : module.status}
+                      </span>
+                    </div>
+                    <h4 className="text-white font-bold text-lg mb-1">{module.name}</h4>
+                    <p className="text-white/35 text-sm leading-relaxed min-h-[44px]">{module.description}</p>
+                    <div className="flex items-center justify-between gap-3 mt-5 pt-5 border-t border-white/5">
+                      <p className="text-white font-black">{module.price}</p>
+                      {module.active ? (
+                        <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10">
+                          Deja actif
+                        </span>
+                      ) : module.comingSoon ? (
+                        <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10">
+                          Bientot
+                        </span>
+                      ) : (
+                        <a
+                          href={href}
+                          className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-black transition-all hover:opacity-90"
+                          style={{ backgroundColor: brandColor }}
+                        >
+                          Demander
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modale suppression */}
       {deleteId !== null && (
