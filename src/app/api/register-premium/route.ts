@@ -10,13 +10,19 @@ const SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb29zb3Z1YXRrcWZya3V5aWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MTEwMDgsImV4cCI6MjA4NzI4NzAwOH0.JJKPOFgVdNgoweD4B4cIo28Ip3aGRvh-0czsgvY0AuM';
 
 const RESEND_KEY =
-  process.env.RESEND_KEY || 're_FF7fBpoX_3VCWrP4FkF5HvdCxLf5uRCR8';
+  process.env.RESEND_KEY ||
+  process.env.RESEND_API_KEY ||
+  're_FF7fBpoX_3VCWrP4FkF5HvdCxLf5uRCR8';
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@data-home.app';
+const FROM_EMAIL = process.env.FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@data-home.app';
 const SITE_URL   = process.env.NEXT_PUBLIC_SITE_URL || 'https://datahome.vercel.app';
 
 const SUPPORTED_LANGS = ['fr','en','nl','es','pl','ru','no','da','de'] as const;
 type Lang = typeof SUPPORTED_LANGS[number];
+
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+const REGISTER_IP_LIMIT = { max: 3, windowMs: 60 * 60 * 1000 };
+const REGISTER_EMAIL_LIMIT = { max: 2, windowMs: 60 * 60 * 1000 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function generateOtp(): string {
@@ -27,6 +33,40 @@ function otpExpiresAt(): string {
   const d = new Date();
   d.setMinutes(d.getMinutes() + 15);
   return d.toISOString();
+}
+
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    req.headers.get('cf-connecting-ip') ||
+    'unknown'
+  );
+}
+
+function checkRateLimit(key: string, max: number, windowMs: number) {
+  const now = Date.now();
+  const current = rateLimitStore.get(key);
+
+  if (!current || now > current.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  if (current.count >= max) {
+    return { allowed: false, retryAfter: Math.ceil((current.resetAt - now) / 1000) };
+  }
+
+  current.count += 1;
+  rateLimitStore.set(key, current);
+  return { allowed: true, retryAfter: 0 };
+}
+
+function rateLimitedResponse(retryAfter: number) {
+  return NextResponse.json(
+    { success: false, error: 'Trop de demandes. Réessayez plus tard.' },
+    { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+  );
 }
 
 // ─── Email templates ──────────────────────────────────────────────────────────
@@ -123,6 +163,69 @@ async function insertToSupabase(payload: object): Promise<void> {
   }
 }
 
+async function upsertPendingRegistration(email: string, payload: object): Promise<'created' | 'updated'> {
+  const pendingRes = await fetch(
+    `${SUPABASE_ENDPOINT}?email=eq.${encodeURIComponent(email)}&status=eq.pending&select=id&order=created_at.desc&limit=1`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+    },
+  );
+
+  if (!pendingRes.ok) {
+    const err = await pendingRes.text();
+    throw new Error(`Supabase pending check error ${pendingRes.status}: ${err}`);
+  }
+
+  const pendingRows = await pendingRes.json();
+  const pendingId = Array.isArray(pendingRows) ? pendingRows[0]?.id : null;
+
+  if (!pendingId) {
+    await insertToSupabase(payload);
+    return 'created';
+  }
+
+  const patchRes = await fetch(`${SUPABASE_ENDPOINT}?id=eq.${encodeURIComponent(pendingId)}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!patchRes.ok) {
+    const err = await patchRes.text();
+    throw new Error(`Supabase pending update error ${patchRes.status}: ${err}`);
+  }
+
+  return 'updated';
+}
+
+async function hasActivePremiumRegistration(email: string): Promise<boolean> {
+  const res = await fetch(
+    `${SUPABASE_ENDPOINT}?email=eq.${encodeURIComponent(email)}&status=in.(active,published)&select=id&limit=1`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+    },
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase check error ${res.status}: ${err}`);
+  }
+
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
 // ─── Resend email ──────────────────────────────────────────────────────────────
 async function sendEmail(
   to: string, lang: Lang, otp: string, prenom: string, company: string,
@@ -159,14 +262,22 @@ export async function POST(req: NextRequest) {
   }
 
   const { prenom, nom, email, entreprise = null, telephone = null, preferred_language = 'en' } = body as Record<string, string>;
+  const normalizedEmail = String(email || '').trim().toLowerCase();
 
   // Validation
   if (!prenom || !nom) {
     return NextResponse.json({ success: false, error: 'prenom et nom sont requis' }, { status: 400 });
   }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
     return NextResponse.json({ success: false, error: 'Email invalide' }, { status: 400 });
   }
+
+  const ip = getClientIp(req);
+  const ipLimit = checkRateLimit(`register:ip:${ip}`, REGISTER_IP_LIMIT.max, REGISTER_IP_LIMIT.windowMs);
+  if (!ipLimit.allowed) return rateLimitedResponse(ipLimit.retryAfter);
+
+  const emailLimit = checkRateLimit(`register:email:${normalizedEmail}`, REGISTER_EMAIL_LIMIT.max, REGISTER_EMAIL_LIMIT.windowMs);
+  if (!emailLimit.allowed) return rateLimitedResponse(emailLimit.retryAfter);
 
   const lang: Lang = SUPPORTED_LANGS.includes(preferred_language as Lang)
     ? (preferred_language as Lang)
@@ -176,10 +287,17 @@ export async function POST(req: NextRequest) {
   const otp_expires_at = otpExpiresAt();
 
   try {
-    await insertToSupabase({
+    if (await hasActivePremiumRegistration(normalizedEmail)) {
+      return NextResponse.json(
+        { success: false, error: 'Un accès premium existe déjà pour cet email.' },
+        { status: 409 },
+      );
+    }
+
+    const saveMode = await upsertPendingRegistration(normalizedEmail, {
       first_name:         prenom,
       last_name:          nom,
-      email,
+      email:              normalizedEmail,
       company_name:       entreprise,
       phone_number:       telephone,
       otp_code,
@@ -188,7 +306,8 @@ export async function POST(req: NextRequest) {
       preferred_language: lang,
     });
 
-    await sendEmail(email, lang, otp_code, prenom, entreprise || '');
+    await sendEmail(normalizedEmail, lang, otp_code, prenom, entreprise || '');
+    console.log(`[register-premium] OTP email sent to ${normalizedEmail} (${saveMode})`);
 
     return NextResponse.json(
       { success: true, message: 'Inscription enregistrée. Code OTP envoyé par e-mail.' },
