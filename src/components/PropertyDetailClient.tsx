@@ -1,4 +1,3 @@
-// src/components/PropertyDetailClient.tsx
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
@@ -34,7 +33,36 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
 
   const fontFamily = agency?.font_family || 'Montserrat';
 
-  // Récupérer la vidéo (peut être une URL ou un objet)
+  // --- LOGIQUE MULTILINGUE : TITRE ---
+  const displayTitle = useMemo(() => {
+    if (!property) return "Propriété Exclusive";
+    return property[`titre_${locale}`] || 
+           property.titre_fr || 
+           property.titre || 
+           property.title || 
+           "Propriété Exclusive";
+  }, [property, locale]);
+
+  // --- LOGIQUE MULTILINGUE : DESCRIPTION ---
+  const description = useMemo(() => {
+    if (!property) return "";
+    
+    if (property[`description_${locale}`]) {
+      return property[`description_${locale}`];
+    }
+    if (property.description_fr) {
+      return property.description_fr;
+    }
+    if (property.description) {
+      return property.description;
+    }
+    if (property.details) {
+      return property.details;
+    }
+    return "";
+  }, [property, locale]);
+
+  // --- LOGIQUE VIDÉO ---
   const videoUrl = useMemo(() => {
     if (!property) return null;
     
@@ -65,35 +93,17 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
     }
   };
 
-  const description = useMemo(() => {
-    if (!property) return "";
-    
-    if (property[`description_${locale}`]) {
-      return property[`description_${locale}`];
-    }
-    if (property.description_fr) {
-      return property.description_fr;
-    }
-    if (property.description) {
-      return property.description;
-    }
-    if (property.details) {
-      return property.details;
-    }
-    return "";
-  }, [property, locale]);
-
   useEffect(() => {
     if (property && mounted) {
-      console.log("📦 [PropertyDetailClient] Propriété reçue:", {
+      console.log("📦 [PropertyDetailClient] Sync Multilingue:", {
         id: property.id,
-        titre: property.titre,
-        hasDescriptionFr: !!property.description_fr,
-        localeActuelle: locale,
+        langue: locale,
+        titre: displayTitle,
+        hasDescLocale: !!property[`description_${locale}`],
         videoUrl: videoUrl
       });
     }
-  }, [property, mounted, locale, videoUrl]);
+  }, [property, mounted, locale, displayTitle, videoUrl]);
 
   const images = property?.images || [];
   const numericPrice = Number(property?.price || property?.prix || 0);
@@ -262,7 +272,6 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
             </div>
           </section>
 
-          {/* RESTE DU CODE INCHANGÉ... */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-16">
             <div className="lg:col-span-2">
               <h1 
@@ -274,7 +283,7 @@ export default function PropertyDetailClient({ property, agency }: PropertyDetai
                   letterSpacing: '-0.02em'
                 }}
               >
-                {property.titre || property.title || "Propriété Exclusive"}
+                {displayTitle}
               </h1>
 
               <div className="flex items-center gap-2 md:gap-3 text-slate-500 mb-8 md:mb-12 text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-bold">
