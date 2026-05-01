@@ -12,13 +12,15 @@ interface PropertyDetailClientProps {
   property: any;
   agency: any;
   locale?: string;
+  onBack?: () => void;
 }
 
-export default function PropertyDetailClient({ property, agency, locale: localeProp }: PropertyDetailClientProps) {
+export default function PropertyDetailClient({ property, agency, locale: localeProp, onBack }: PropertyDetailClientProps) {
   const { t, locale: contextLocale } = useTranslation() as any;
   const locale = localeProp || contextLocale || 'fr';
   const searchParams = useSearchParams();
   const router = useRouter();
+  const handleBack = onBack ?? (() => router.back());
   const [activeImage, setActiveImage] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -158,7 +160,7 @@ export default function PropertyDetailClient({ property, agency, locale: localeP
       {/* Back button */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 mb-4">
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors"
           style={{
             borderColor: isLight ? "#e2e8f0" : "#374151",

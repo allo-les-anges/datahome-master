@@ -10,7 +10,7 @@ import AdvancedSearch from '@/components/AdvancedSearch';
 import dynamic from 'next/dynamic';
 const PropertyDetailClient = dynamic(() => import('@/components/PropertyDetailClient'), { ssr: false });
 const QualifiedChatbot = dynamic(() => import('@/components/QualifiedChatbot'), { ssr: false });
-import { Search, X, ArrowLeft, Loader2 } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
@@ -519,18 +519,11 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
         <AnimatePresence mode="wait">
           {selectedProperty ? (
             <motion.div key="detail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-20 bg-white">
-              <div className="max-w-7xl mx-auto px-6 pt-32 pb-8">
-                <button 
-                  onClick={() => { setSelectedProperty(null); window.scrollTo(0, 0); }} 
-                  className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
-                >
-                  <ArrowLeft size={14} /> {t('nav.back') || 'Retour'}
-                </button>
-              </div>
-              <PropertyDetailClient 
-                property={getLocalizedProperty(selectedProperty)} 
-                agency={agency} 
+              <PropertyDetailClient
+                property={getLocalizedProperty(selectedProperty)}
+                agency={agency}
                 locale={effectiveLocale}
+                onBack={() => { setSelectedProperty(null); window.scrollTo(0, 0); }}
               />
             </motion.div>
           ) : (
