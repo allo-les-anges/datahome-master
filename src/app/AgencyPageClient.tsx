@@ -46,6 +46,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Villa | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [pageSize, setPageSize] = useState<12 | 24>(12);
   const [displayLimit, setDisplayLimit] = useState(12);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -416,14 +417,14 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
     });
 
     setFilteredProperties(results);
-    setDisplayLimit(12);
+    setDisplayLimit(pageSize);
     setIsSearchOpen(false);
     
     setTimeout(() => {
       const element = document.getElementById('results-section');
       if (element) element.scrollIntoView({ behavior: 'smooth' });
     }, 150);
-  }, [allProperties, sortOrder]);
+  }, [allProperties, sortOrder, pageSize]);
 
   const resetFilters = useCallback(() => {
     const defaultFilters = {
@@ -539,6 +540,30 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                     </div>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
+
+                  <div className="mb-10 flex flex-wrap items-center justify-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      Biens par page
+                    </span>
+                    {[12, 24].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          const nextSize = size as 12 | 24;
+                          setPageSize(nextSize);
+                          setDisplayLimit(nextSize);
+                        }}
+                        className={`h-10 min-w-14 rounded-full border px-5 text-[10px] font-black uppercase tracking-widest transition-all ${
+                          pageSize === size
+                            ? 'border-slate-900 bg-slate-900 text-white shadow-lg'
+                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
                   
                   <AnimatePresence mode="popLayout">
                     {localizedProperties.length > 0 ? (
@@ -573,7 +598,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                   {!loadingProperties && localizedProperties.length > displayLimit && (
                     <div className="mt-20 flex justify-center">
                       <button 
-                        onClick={() => setDisplayLimit(prev => prev + 12)} 
+                        onClick={() => setDisplayLimit(prev => prev + pageSize)} 
                         className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
                         style={{ backgroundColor: primaryColor }}
                       >
