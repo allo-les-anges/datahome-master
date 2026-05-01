@@ -63,6 +63,25 @@ export default async function AgencyLayout({
   };
 
   const footerConfig = getFooterData(agency.footer_config);
+  const trialExpiresAt = footerConfig?.subscription?.trial_expires_at || agency.trial_expires_at;
+  const trialExpired = trialExpiresAt ? new Date(trialExpiresAt).getTime() < Date.now() : false;
+
+  if (trialExpired && footerConfig?.subscription?.plan === 'trial') {
+    return (
+      <div style={dynamicStyles} className="min-h-screen flex flex-col items-center justify-center bg-slate-950 px-6 text-center">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-white font-bold text-2xl shadow-inner"
+          style={{ backgroundColor: agency.primary_color || '#0f172a' }}
+        >
+          {agency.agency_name?.charAt(0)}
+        </div>
+        <h1 className="text-2xl font-serif italic text-white mb-3">{agency.agency_name}</h1>
+        <p className="max-w-md text-sm text-white/55 leading-7">
+          La période d'essai premium de 15 jours est terminée. Contactez DATA-HOME pour réactiver votre espace.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={dynamicStyles} className="min-h-screen flex flex-col">

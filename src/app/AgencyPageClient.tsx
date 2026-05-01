@@ -249,7 +249,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
       }
     }
 
-    const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000', lang: effectiveLocale });
+    const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000', lang: effectiveLocale, mode: 'listing' });
     allowedXmlUrls.forEach(url => params.append('xmlSource', url));
 
     const res = await fetch(`/api/properties?${params.toString()}`, { cache: 'no-store' });
@@ -367,26 +367,28 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     });
   };
 
-  // Ouvre une fiche détail en enrichissant les descriptions à la demande
+  // Ouvre une fiche détail immédiatement, puis enrichit images complètes + descriptions en arrière-plan
   const openPropertyDetail = useCallback(async (property: Villa) => {
-    const localizedDescription = property[`description_${effectiveLocale}` as keyof Villa] || property.description;
-    if (localizedDescription) {
-      setSelectedProperty(property);
-      window.scrollTo({ top: 0 });
-      return;
-    }
+    setSelectedProperty(property);
+    window.scrollTo({ top: 0 });
     try {
       const { data } = await supabase
         .from('villas')
-        .select('description,description_fr,description_en,description_es,description_nl,description_pl,description_ar')
+        .select('images,description,description_fr,description_en,description_es,description_nl,description_pl,description_ar')
         .eq('id', property.id)
         .single();
-      setSelectedProperty(data ? { ...property, ...data } : property);
-    } catch {
-      setSelectedProperty(property);
-    }
-    window.scrollTo({ top: 0 });
-  }, [effectiveLocale]);
+      if (data) {
+        let fullImages: string[] = property.images || [];
+        try {
+          if (Array.isArray(data.images)) fullImages = data.images;
+          else if (typeof data.images === 'string') fullImages = JSON.parse(data.images || '[]');
+        } catch { /* garder les images existantes */ }
+        setSelectedProperty(prev =>
+          prev?.id === property.id ? { ...prev, ...data, images: fullImages } : prev
+        );
+      }
+    } catch { /* garder les données initiales */ }
+  }, []);
 
   // Filtrage
   const handleSearch = useCallback((newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {

@@ -6,10 +6,90 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const DEFAULT_DAILY_LIMIT = 20;
+const memoryUsage = new Map<string, { count: number; resetAt: number }>();
+
 interface SearchCriteria {
   budget_max?: number;
   town?: string;
   beds?: number;
+}
+
+async function getChatbotLimit(agencyId: string): Promise<number> {
+  const { data } = await supabase
+    .from('agency_settings')
+    .select('footer_config')
+    .eq('id', agencyId)
+    .maybeSingle();
+
+  let footerConfig = data?.footer_config;
+  if (typeof footerConfig === 'string') {
+    try {
+      footerConfig = JSON.parse(footerConfig);
+    } catch {
+      footerConfig = {};
+    }
+  }
+
+  return Number(footerConfig?.integrations?.chatbot_daily_limit || DEFAULT_DAILY_LIMIT);
+}
+
+function memoryLimitFallback(agencyId: string, limit: number) {
+  const day = new Date().toISOString().slice(0, 10);
+  const key = `${agencyId}:${day}`;
+  const resetAt = new Date(`${day}T23:59:59.999Z`).getTime();
+  const current = memoryUsage.get(key);
+
+  if (!current || Date.now() > current.resetAt) {
+    memoryUsage.set(key, { count: 1, resetAt });
+    return { allowed: true, remaining: Math.max(limit - 1, 0), limit };
+  }
+
+  if (current.count >= limit) {
+    return { allowed: false, remaining: 0, limit };
+  }
+
+  current.count += 1;
+  memoryUsage.set(key, current);
+  return { allowed: true, remaining: Math.max(limit - current.count, 0), limit };
+}
+
+async function enforceChatbotDailyLimit(agencyId?: string) {
+  if (!agencyId) return { allowed: true, remaining: DEFAULT_DAILY_LIMIT, limit: DEFAULT_DAILY_LIMIT };
+
+  const limit = await getChatbotLimit(agencyId);
+  const usageDate = new Date().toISOString().slice(0, 10);
+
+  try {
+    const { data, error } = await supabase
+      .from('chatbot_daily_usage')
+      .select('usage_count')
+      .eq('agency_id', agencyId)
+      .eq('usage_date', usageDate)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    const currentCount = Number(data?.usage_count || 0);
+    if (currentCount >= limit) {
+      return { allowed: false, remaining: 0, limit };
+    }
+
+    const nextCount = currentCount + 1;
+    const { error: upsertError } = await supabase
+      .from('chatbot_daily_usage')
+      .upsert({
+        agency_id: agencyId,
+        usage_date: usageDate,
+        usage_count: nextCount,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'agency_id,usage_date' });
+
+    if (upsertError) throw upsertError;
+    return { allowed: true, remaining: Math.max(limit - nextCount, 0), limit };
+  } catch {
+    return memoryLimitFallback(agencyId, limit);
+  }
 }
 
 interface PropertyResult {
@@ -115,6 +195,15 @@ export async function POST(req: NextRequest) {
   try {
     const { messages, systemPrompt, agencyId, locale } = await req.json();
 
+    const usage = await enforceChatbotDailyLimit(agencyId);
+    if (!usage.allowed) {
+      return NextResponse.json({
+        error: 'Limite quotidienne du chatbot atteinte',
+        limit: usage.limit,
+        remaining: 0,
+      }, { status: 429 });
+    }
+
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 });
@@ -147,7 +236,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ content, properties });
+    return NextResponse.json({ content, properties, remaining: usage.remaining, limit: usage.limit });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

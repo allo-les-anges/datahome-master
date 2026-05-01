@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     const lang = searchParams.get('lang') || 'fr';
     const limit = parseInt(searchParams.get('limit') || '24');
     const offset = parseInt(searchParams.get('offset') || '0');
+    const isListing = searchParams.get('mode') === 'listing';
 
     const type = searchParams.get('type');
     const region = searchParams.get('region');
@@ -146,13 +147,12 @@ export async function GET(request: Request) {
     }
     if (error) throw error;
 
-    const parseImages = (images: any) => {
-      if (Array.isArray(images)) return images.slice(0, 5);
+    const parseImages = (images: any, max = 5) => {
+      if (Array.isArray(images)) return images.slice(0, max);
       if (typeof images !== 'string') return [];
-
       try {
         const parsed = JSON.parse(images);
-        return Array.isArray(parsed) ? parsed.slice(0, 5) : [];
+        return Array.isArray(parsed) ? parsed.slice(0, max) : [];
       } catch {
         return [];
       }
@@ -173,7 +173,7 @@ export async function GET(request: Request) {
       surface_useful: p.surface_useful,
       pool: p.pool,
       type: p.type,
-      images: parseImages(p.images),
+      images: parseImages(p.images, isListing ? 1 : 5),
       titre: p[`titre_${lang}`] || p.titre_fr || p.ref,
       titre_fr: p.titre_fr || null,
       titre_en: p.titre_en || null,
@@ -181,13 +181,16 @@ export async function GET(request: Request) {
       titre_nl: p.titre_nl || null,
       titre_pl: p.titre_pl || null,
       titre_ar: p.titre_ar || null,
-      description: p[`description_${lang}`] || p.description_fr || "",
-      description_fr: p.description_fr || null,
-      description_en: p.description_en || null,
-      description_es: p.description_es || null,
-      description_nl: p.description_nl || null,
-      description_pl: p.description_pl || null,
-      description_ar: p.description_ar || null,
+      // En mode listing, les descriptions sont omises du payload et chargées à la demande au clic
+      ...(isListing ? {} : {
+        description: p[`description_${lang}`] || p.description_fr || "",
+        description_fr: p.description_fr || null,
+        description_en: p.description_en || null,
+        description_es: p.description_es || null,
+        description_nl: p.description_nl || null,
+        description_pl: p.description_pl || null,
+        description_ar: p.description_ar || null,
+      }),
       agency_id: p.agency_id,
       xml_source: p.xml_source,
       development_name: p.development_name || null,
