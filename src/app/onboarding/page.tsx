@@ -66,7 +66,7 @@ const i18n = {
     available: "Disponible !",
     not_available: "Déjà utilisé",
     drag_drop: "Glissez-déposez ou cliquez",
-    supported_formats: "PNG, JPG, SVG max 2MB",
+    supported_formats: "PNG, JPG, SVG max 10MB",
     preview: "Aperçu",
     remove: "Supprimer",
     save_progress: "Progression sauvegardée",
@@ -106,7 +106,7 @@ const i18n = {
     available: "Available!",
     not_available: "Already taken",
     drag_drop: "Drag & drop or click",
-    supported_formats: "PNG, JPG, SVG max 2MB",
+    supported_formats: "PNG, JPG, SVG max 10MB",
     preview: "Preview",
     remove: "Remove",
     save_progress: "Progress saved",
@@ -328,16 +328,19 @@ function LogoUploader({
   preview, 
   onRemove,
   lang,
-  label 
+  label,
+  uploadPathPrefix,
 }: { 
-  onUpload: (file: File) => void; 
+  onUpload: (url: string) => void; 
   preview: string; 
   onRemove: () => void;
   lang: Lang;
   label?: string;
+  uploadPathPrefix: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const t = i18n[lang];
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -354,11 +357,15 @@ function LogoUploader({
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file && (file.type.startsWith('image/'))) {
-      onUpload(file);
+      handleFileSelect(file);
     }
   };
 
+  const sanitizeFileName = (name: string) => name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').replace(/^-+|-+$/g, '');
+
   const compressImage = (file: File): Promise<File> => {
+    if (file.type === 'image/svg+xml') return Promise.resolve(file);
+
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -366,8 +373,8 @@ function LogoUploader({
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          const maxWidth = 400;
-          const maxHeight = 400;
+          const maxWidth = 1920;
+          const maxHeight = 1080;
           let width = img.width;
           let height = img.height;
           
@@ -402,13 +409,42 @@ function LogoUploader({
     });
   };
 
+  const uploadToStorage = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filePath = `${uploadPathPrefix}/${Date.now()}_${sanitizeFileName(file.name || `image.${ext}`)}`;
+    const res = await fetch('/api/admin/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath }),
+    });
+    if (!res.ok) throw new Error('Impossible de préparer l’upload');
+
+    const { signedUrl, publicUrl } = await res.json();
+    const uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'image/jpeg' },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error('Upload échoué');
+    return publicUrl;
+  };
+
   const handleFileSelect = async (file: File) => {
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File too large, max 2MB');
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Fichier trop volumineux, maximum 10 Mo');
       return;
     }
-    const compressed = await compressImage(file);
-    onUpload(compressed);
+    try {
+      setIsUploading(true);
+      const compressed = await compressImage(file);
+      const url = await uploadToStorage(compressed);
+      onUpload(url);
+    } catch (error) {
+      console.error('[onboarding-upload]', error);
+      alert("Erreur lors de l'upload de l'image");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -446,8 +482,8 @@ function LogoUploader({
           `}
         >
           <Upload size={20} className="mx-auto mb-2 text-white/40" />
-          <p className="text-xs text-white/40">{t.drag_drop}</p>
-          <p className="text-[10px] text-white/20 mt-1">{t.supported_formats}</p>
+          <p className="text-xs text-white/40">{isUploading ? 'Upload en cours...' : t.drag_drop}</p>
+          <p className="text-[10px] text-white/20 mt-1">PNG, JPG, SVG max 10 Mo</p>
         </div>
       )}
       
@@ -1056,14 +1092,11 @@ function OnboardingContent() {
                     />
                     
                     <LogoUploader 
-                      onUpload={(file) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => dispatch({ type: 'SET_LOGO_PREVIEW', payload: reader.result as string });
-                        reader.readAsDataURL(file);
-                      }}
+                      onUpload={(url) => dispatch({ type: 'SET_LOGO_PREVIEW', payload: url })}
                       preview={state.logoPreview}
                       onRemove={() => dispatch({ type: 'SET_LOGO_PREVIEW', payload: '' })}
                       lang={lang}
+                      uploadPathPrefix={`${config.subdomain || 'pending'}/branding`}
                     />
                     
                     <ShimmerButton onClick={handleNextStep} color={config.primary_color}>
@@ -1098,15 +1131,12 @@ function OnboardingContent() {
                     />
 
                     <LogoUploader 
-                      onUpload={(file) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => dispatch({ type: 'SET_HERO_PREVIEW', payload: reader.result as string });
-                        reader.readAsDataURL(file);
-                      }}
+                      onUpload={(url) => dispatch({ type: 'SET_HERO_PREVIEW', payload: url })}
                       preview={state.heroPreview}
                       onRemove={() => dispatch({ type: 'SET_HERO_PREVIEW', payload: '' })}
                       lang={lang}
                       label={t.field_hero_image}
+                      uploadPathPrefix={`${config.subdomain || 'pending'}/hero`}
                     />
                     <FloatInput 
                       label={t.field_whatsapp} 
