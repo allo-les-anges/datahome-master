@@ -829,6 +829,7 @@ function OnboardingContent() {
   }, [safeLang, urlEmail, urlName, urlCompany, urlSubdomain]);
 
   const t = i18n[lang];
+  const lockedSubdomain = slugify(params.company || config.agency_name);
   
   const setStep = (step: number) => dispatch({ type: 'SET_STEP', payload: step });
   const setLoading = (loading: boolean) => dispatch({ type: 'SET_LOADING', payload: loading });
@@ -843,7 +844,7 @@ function OnboardingContent() {
     
     if (step === 2) {
       if (!config.agency_name.trim()) errors.agency_name = t.error_required;
-      if (!config.subdomain.trim()) errors.subdomain = t.error_required;
+      if (!lockedSubdomain.trim()) errors.subdomain = t.error_required;
       if (state.subdomainAvailable === false) errors.subdomain = t.error_subdomain;
     }
     
@@ -854,7 +855,7 @@ function OnboardingContent() {
     
     dispatch({ type: 'SET_FORM_ERRORS', payload: errors });
     return Object.keys(errors).length === 0;
-  }, [config, state.subdomainAvailable, t]);
+  }, [config, lockedSubdomain, state.subdomainAvailable, t]);
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -905,6 +906,7 @@ function OnboardingContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           ...config,
+          subdomain: lockedSubdomain,
           xml_url: undefined,
           email: params.email,
           logo: state.logoPreview,
@@ -1074,10 +1076,10 @@ function OnboardingContent() {
                         {t.field_subdomain}
                       </label>
                       <div className="w-full rounded-2xl bg-white/[0.03] border border-white/10 px-4 py-3 text-white/60 font-mono text-sm">
-                        {config.subdomain || 'nom-agence'}
+                        {lockedSubdomain || 'nom-agence'}
                       </div>
                       <SubdomainChecker 
-                        subdomain={config.subdomain} 
+                        subdomain={lockedSubdomain} 
                         onAvailabilityChange={handleSubdomainAvailabilityChange}
                         lang={lang}
                       />
@@ -1106,7 +1108,7 @@ function OnboardingContent() {
                       preview={state.logoPreview}
                       onRemove={() => dispatch({ type: 'SET_LOGO_PREVIEW', payload: '' })}
                       lang={lang}
-                      uploadPathPrefix={`${config.subdomain || 'pending'}/branding`}
+                      uploadPathPrefix={`${lockedSubdomain || 'pending'}/branding`}
                     />
                     
                     <ShimmerButton onClick={handleNextStep} color={config.primary_color}>
@@ -1146,7 +1148,7 @@ function OnboardingContent() {
                       onRemove={() => dispatch({ type: 'SET_HERO_PREVIEW', payload: '' })}
                       lang={lang}
                       label={t.field_hero_image}
-                      uploadPathPrefix={`${config.subdomain || 'pending'}/hero`}
+                      uploadPathPrefix={`${lockedSubdomain || 'pending'}/hero`}
                     />
                     <FloatInput 
                       label={t.field_whatsapp} 
