@@ -51,9 +51,19 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
           
           {/* Identité & Copyrighting */}
           <div className="col-span-1 md:col-span-1 space-y-6">
-            <h3 className={`text-xl font-serif italic ${textColor}`}>
-              {agency?.agency_name || t('footer.excellence')}
-            </h3>
+            {agency?.logo_url ? (
+              <Link href={`/${locale}/${slug}`} className="inline-flex items-center">
+                <img
+                  src={agency.logo_url}
+                  alt={agency?.agency_name || "Agency logo"}
+                  className="max-h-20 max-w-[180px] object-contain"
+                />
+              </Link>
+            ) : (
+              <h3 className={`text-xl font-serif italic ${textColor}`}>
+                {agency?.agency_name || t('footer.excellence')}
+              </h3>
+            )}
             <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
             <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
               {t('footer.description')}
