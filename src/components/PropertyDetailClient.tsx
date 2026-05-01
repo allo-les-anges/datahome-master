@@ -11,10 +11,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 interface PropertyDetailClientProps {
   property: any;
   agency: any;
+  locale?: string;
 }
 
-export default function PropertyDetailClient({ property, agency }: PropertyDetailClientProps) {
-  const { t, locale } = useTranslation() as any;
+export default function PropertyDetailClient({ property, agency, locale: localeProp }: PropertyDetailClientProps) {
+  const { t, locale: contextLocale } = useTranslation() as any;
+  const locale = localeProp || contextLocale || 'fr';
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeImage, setActiveImage] = useState(0);

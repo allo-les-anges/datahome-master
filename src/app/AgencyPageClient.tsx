@@ -26,15 +26,17 @@ interface CachedData {
 
 interface AgencyPageClientProps {
   slug: string;
+  routeLocale?: string;
   initialAgency?: any;
   initialProperties?: any[];
 }
 
-export default function AgencyPageClient({ slug, initialAgency, initialProperties }: AgencyPageClientProps) {
-  const { t, locale } = useTranslation() as any;
+export default function AgencyPageClient({ slug, routeLocale, initialAgency, initialProperties }: AgencyPageClientProps) {
+  const { t, locale, setLocale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency();
   const initialLoadDone = useRef(false);
   const fullLoadRequested = useRef(false);
+  const effectiveLocale = routeLocale || locale || 'fr';
   
   const agency = useMemo(() => initialAgency || contextAgency, [initialAgency, contextAgency]);
 
@@ -72,6 +74,12 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   }, []);
 
   const selectedFont = useMemo(() => getFontVariable(agency?.font_family || 'Inter'), [agency?.font_family, getFontVariable]);
+
+  useEffect(() => {
+    if (routeLocale && routeLocale !== locale) {
+      setLocale(routeLocale);
+    }
+  }, [routeLocale, locale, setLocale]);
 
   // Formatage des villas - version adaptée à la structure réelle
   const formatVillaData = useCallback((villas: any[]): Villa[] => {
@@ -142,10 +150,10 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
   const getLocalizedProperty = useCallback((property: Villa): Villa => {
     return {
       ...property,
-      titre: property[`titre_${locale}` as keyof Villa] as string || property.titre_fr || property.titre || "Propriété",
-      description: property[`description_${locale}` as keyof Villa] as string || property.description_fr || property.description || "",
+      titre: property[`titre_${effectiveLocale}` as keyof Villa] as string || property.titre_fr || property.titre || "Propriété",
+      description: property[`description_${effectiveLocale}` as keyof Villa] as string || property.description_fr || property.description || "",
     };
-  }, [locale]);
+  }, [effectiveLocale]);
 
   const saveToCache = useCallback((properties: Villa[]) => {
     if (typeof window === 'undefined') return;
@@ -354,7 +362,8 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
   // Ouvre une fiche détail en enrichissant les descriptions à la demande
   const openPropertyDetail = useCallback(async (property: Villa) => {
-    if (property.description_fr || property.description) {
+    const localizedDescription = property[`description_${effectiveLocale}` as keyof Villa] || property.description;
+    if (localizedDescription) {
       setSelectedProperty(property);
       window.scrollTo({ top: 0 });
       return;
@@ -370,7 +379,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
       setSelectedProperty(property);
     }
     window.scrollTo({ top: 0 });
-  }, []);
+  }, [effectiveLocale]);
 
   // Filtrage
   const handleSearch = useCallback((newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {
@@ -500,6 +509,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
               <PropertyDetailClient 
                 property={getLocalizedProperty(selectedProperty)} 
                 agency={agency} 
+                locale={effectiveLocale}
               />
             </motion.div>
           ) : (
@@ -615,7 +625,7 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
 
       <QualifiedChatbot
         enabled={chatbotEnabled}
-        locale={locale}
+        locale={effectiveLocale}
         config={{
           primaryColor: agency?.primary_color || '#0f172a',
           agencyName: agency?.agency_name,

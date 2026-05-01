@@ -48,13 +48,11 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html lang={locale} className="scroll-smooth">
-      <body 
-        suppressHydrationWarning={true}
-        className={`${inter.variable} ${montserrat.variable} ${playfair.variable} ${poppins.variable} ${robotoMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <div
+      lang={locale}
+      className={`${inter.variable} ${montserrat.variable} ${playfair.variable} ${poppins.variable} ${robotoMono.variable} scroll-smooth antialiased`}
+    >
+      {children}
+    </div>
   );
 }

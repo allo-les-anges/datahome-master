@@ -11,7 +11,7 @@ export default async function DynamicAgencyPage({
 }: {
   params: Promise<{ slug: string, locale: string }>
 }) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
 
   const { data: agencies, error: agencyError } = await supabase
     .from('agency_settings')
@@ -87,7 +87,14 @@ export default async function DynamicAgencyPage({
     distance_town,
     currency,
     commission_percentage,
-    xml_source
+    xml_source,
+    description,
+    description_fr,
+    description_en,
+    description_es,
+    description_nl,
+    description_pl,
+    description_ar
   `;
 
   // Deux requêtes parallèles : par agency_id ET par xml_source (union)
@@ -123,6 +130,7 @@ export default async function DynamicAgencyPage({
   return (
     <AgencyPageClient
       slug={slug}
+      routeLocale={locale}
       initialAgency={agency}
       initialProperties={villas || []}
     />
