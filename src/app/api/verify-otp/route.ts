@@ -16,6 +16,45 @@ const HEADERS = {
   Prefer:          'return=representation',
 };
 
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+const VERIFY_IP_LIMIT = { max: 20, windowMs: 15 * 60 * 1000 };
+const VERIFY_EMAIL_LIMIT = { max: 5, windowMs: 15 * 60 * 1000 };
+const ONBOARDING_RATE_LIMIT_ENABLED = process.env.ONBOARDING_RATE_LIMIT_ENABLED === 'true';
+
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    req.headers.get('cf-connecting-ip') ||
+    'unknown'
+  );
+}
+
+function checkRateLimit(key: string, max: number, windowMs: number) {
+  const now = Date.now();
+  const current = rateLimitStore.get(key);
+
+  if (!current || now > current.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  if (current.count >= max) {
+    return { allowed: false, retryAfter: Math.ceil((current.resetAt - now) / 1000) };
+  }
+
+  current.count += 1;
+  rateLimitStore.set(key, current);
+  return { allowed: true, retryAfter: 0 };
+}
+
+function rateLimitedResponse(retryAfter: number) {
+  return NextResponse.json(
+    { success: false, error: 'Trop de tentatives. Réessayez plus tard.' },
+    { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+  );
+}
+
 export async function POST(req: NextRequest) {
   let email: string, otp_code: string;
   try {
@@ -26,6 +65,17 @@ export async function POST(req: NextRequest) {
 
   if (!email || !otp_code) {
     return NextResponse.json({ success: false, error: 'email et otp_code requis' }, { status: 400 });
+  }
+
+  email = email.trim().toLowerCase();
+
+  if (ONBOARDING_RATE_LIMIT_ENABLED) {
+    const ip = getClientIp(req);
+    const ipLimit = checkRateLimit(`verify:ip:${ip}`, VERIFY_IP_LIMIT.max, VERIFY_IP_LIMIT.windowMs);
+    if (!ipLimit.allowed) return rateLimitedResponse(ipLimit.retryAfter);
+
+    const emailLimit = checkRateLimit(`verify:email:${email}`, VERIFY_EMAIL_LIMIT.max, VERIFY_EMAIL_LIMIT.windowMs);
+    if (!emailLimit.allowed) return rateLimitedResponse(emailLimit.retryAfter);
   }
 
   const now = encodeURIComponent(new Date().toISOString());

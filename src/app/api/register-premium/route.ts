@@ -23,6 +23,7 @@ type Lang = typeof SUPPORTED_LANGS[number];
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const REGISTER_IP_LIMIT = { max: 3, windowMs: 60 * 60 * 1000 };
 const REGISTER_EMAIL_LIMIT = { max: 2, windowMs: 60 * 60 * 1000 };
+const ONBOARDING_RATE_LIMIT_ENABLED = process.env.ONBOARDING_RATE_LIMIT_ENABLED === 'true';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function generateOtp(): string {
@@ -272,12 +273,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Email invalide' }, { status: 400 });
   }
 
-  const ip = getClientIp(req);
-  const ipLimit = checkRateLimit(`register:ip:${ip}`, REGISTER_IP_LIMIT.max, REGISTER_IP_LIMIT.windowMs);
-  if (!ipLimit.allowed) return rateLimitedResponse(ipLimit.retryAfter);
+  if (ONBOARDING_RATE_LIMIT_ENABLED) {
+    const ip = getClientIp(req);
+    const ipLimit = checkRateLimit(`register:ip:${ip}`, REGISTER_IP_LIMIT.max, REGISTER_IP_LIMIT.windowMs);
+    if (!ipLimit.allowed) return rateLimitedResponse(ipLimit.retryAfter);
 
-  const emailLimit = checkRateLimit(`register:email:${normalizedEmail}`, REGISTER_EMAIL_LIMIT.max, REGISTER_EMAIL_LIMIT.windowMs);
-  if (!emailLimit.allowed) return rateLimitedResponse(emailLimit.retryAfter);
+    const emailLimit = checkRateLimit(`register:email:${normalizedEmail}`, REGISTER_EMAIL_LIMIT.max, REGISTER_EMAIL_LIMIT.windowMs);
+    if (!emailLimit.allowed) return rateLimitedResponse(emailLimit.retryAfter);
+  }
 
   const lang: Lang = SUPPORTED_LANGS.includes(preferred_language as Lang)
     ? (preferred_language as Lang)
