@@ -152,10 +152,13 @@ const PropertyGrid = memo(function PropertyGrid({
   blurAfter6 = false,
 }: PropertyGridProps) {
   const { t } = useTranslation() as any;
+  const visiblePerPage = 6;
+  const cardsPerPage = 12;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {properties.map((property: Villa, index: number) => {
-        const shouldBlur = blurAfter6 && index >= 6;
+        const shouldBlur = blurAfter6 && index % cardsPerPage >= visiblePerPage;
         return (
           <div key={property.id} className="relative">
             <div className={shouldBlur ? 'pointer-events-none select-none' : ''} style={shouldBlur ? { filter: 'blur(6px)', opacity: 0.6 } : undefined}>
