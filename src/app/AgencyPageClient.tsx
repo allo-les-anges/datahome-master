@@ -367,28 +367,24 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     });
   };
 
-  // Ouvre une fiche détail immédiatement, puis enrichit images complètes + descriptions en arrière-plan
+  // Ouvre une fiche détail immédiatement, puis enrichit images complètes + descriptions via l'API (service role key)
   const openPropertyDetail = useCallback(async (property: Villa) => {
     setSelectedProperty(property);
     window.scrollTo({ top: 0 });
     try {
-      const { data } = await supabase
-        .from('villas')
-        .select('images,description,description_fr,description_en,description_es,description_nl,description_pl,description_ar')
-        .eq('id', property.id)
-        .single();
-      if (data) {
-        let fullImages: string[] = property.images || [];
-        try {
-          if (Array.isArray(data.images)) fullImages = data.images;
-          else if (typeof data.images === 'string') fullImages = JSON.parse(data.images || '[]');
-        } catch { /* garder les images existantes */ }
-        setSelectedProperty(prev =>
-          prev?.id === property.id ? { ...prev, ...data, images: fullImages } : prev
-        );
+      const params = new URLSearchParams({ lang: effectiveLocale });
+      if (agency?.id) params.set('agencyId', String(agency.id));
+      const res = await fetch(`/api/property/${property.id}?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && !data.error) {
+          setSelectedProperty(prev =>
+            prev?.id === property.id ? { ...prev, ...data } : prev
+          );
+        }
       }
     } catch { /* garder les données initiales */ }
-  }, []);
+  }, [effectiveLocale, agency?.id]);
 
   // Filtrage
   const handleSearch = useCallback((newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {
