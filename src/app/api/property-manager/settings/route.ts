@@ -13,7 +13,7 @@ const ALLOWED_FIELDS = [
   'font_family', 'logo_url', 'hero_title', 'hero_type', 'hero_url',
   'default_lang', 'whatsapp_number', 'habihub_agent_id',
   'about_title', 'about_text', 'cookie_consent_enabled', 'privacy_policy',
-  'team_data', 'footer_config', 'updated_at',
+  'team_data', 'footer_config', 'website_status', 'updated_at',
 ];
 
 export async function POST(request: Request) {

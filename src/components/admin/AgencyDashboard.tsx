@@ -415,7 +415,21 @@ export default function AgencyDashboard() {
           .order('created_at', { ascending: false }),
       ]);
       if (agenciesRes.error) throw agenciesRes.error;
-      setPendingAgencies(agenciesRes.data || []);
+      const rows = agenciesRes.data || [];
+      const trulyPending = rows.filter((agency: any) => {
+        const footer = typeof agency.footer_config === 'string'
+          ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
+          : (agency.footer_config || {});
+        return footer?.subscription?.website_active !== true;
+      });
+      const alreadyActive = rows.filter((agency: any) => !trulyPending.some((pending: any) => pending.id === agency.id));
+      if (alreadyActive.length > 0) {
+        await supabase
+          .from('agency_settings')
+          .update({ website_status: 'active', updated_at: new Date().toISOString() })
+          .in('id', alreadyActive.map((agency: any) => agency.id));
+      }
+      setPendingAgencies(trulyPending);
       setPreRegistrations(preRegsRes.data || []);
       if (regsRes.ok) {
         const regs = await regsRes.json();
@@ -854,6 +868,7 @@ export default function AgencyDashboard() {
         habihub_agent_id: selectedAgency.habihub_agent_id || null,
         team_data: teamDataToSave,
         updated_at: new Date().toISOString(),
+        website_status: footerConfig?.subscription?.website_active === true ? 'active' : selectedAgency.website_status,
       };
 
       const res = await fetch('/api/property-manager/settings', {
