@@ -737,43 +737,48 @@ export default function AgencyDashboard() {
         try { footerConfig = JSON.parse(footerConfig); } catch { footerConfig = {}; }
       }
       
-      const { data, error } = await supabase
-        .from('agency_settings')
-        .update({
-          agency_name: selectedAgency.agency_name,
-          subdomain: selectedAgency.subdomain,
-          primary_color: selectedAgency.primary_color,
-          button_color: selectedAgency.button_color,
-          button_style: selectedAgency.button_style || 'rounded-full',
-          button_animation: selectedAgency.button_animation || 'none',
-          font_family: selectedAgency.font_family,
-          hero_title: selectedAgency.hero_title,
-          hero_type: selectedAgency.hero_type || 'image',
-          hero_url: selectedAgency.hero_url,
-          logo_url: selectedAgency.logo_url,
-          default_lang: selectedAgency.default_lang,
-          cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
-          privacy_policy: selectedAgency.privacy_policy,
-          about_title: selectedAgency.about_title,
-          about_text: selectedAgency.about_text,
-          whatsapp_number: selectedAgency.whatsapp_number,
-          footer_config: footerConfig,
-          habihub_agent_id: selectedAgency.habihub_agent_id || null,
-          team_data: teamDataToSave,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedAgency.id)
-        .select();
+      const savePayload = {
+        agency_name: selectedAgency.agency_name,
+        subdomain: selectedAgency.subdomain,
+        primary_color: selectedAgency.primary_color,
+        button_color: selectedAgency.button_color,
+        button_style: selectedAgency.button_style || 'rounded-full',
+        button_animation: selectedAgency.button_animation || 'none',
+        font_family: selectedAgency.font_family,
+        hero_title: selectedAgency.hero_title,
+        hero_type: selectedAgency.hero_type || 'image',
+        hero_url: selectedAgency.hero_url,
+        logo_url: selectedAgency.logo_url,
+        default_lang: selectedAgency.default_lang,
+        cookie_consent_enabled: selectedAgency.cookie_consent_enabled,
+        privacy_policy: selectedAgency.privacy_policy,
+        about_title: selectedAgency.about_title,
+        about_text: selectedAgency.about_text,
+        whatsapp_number: selectedAgency.whatsapp_number,
+        footer_config: footerConfig,
+        habihub_agent_id: selectedAgency.habihub_agent_id || null,
+        team_data: teamDataToSave,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      const res = await fetch('/api/property-manager/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agencyId: selectedAgency.id,
+          data: savePayload,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || t.error_save);
 
-      if (data && data.length > 0) {
+      if (json.agency) {
         setMessage({ type: 'success', text: t.success_save });
-        setSelectedAgency(data[0]);
-        setTeam(data[0].team_data || []);
-        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? data[0] : a));
+        setSelectedAgency(json.agency);
+        setTeam(json.agency.team_data || []);
+        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? json.agency : a));
       } else {
-        setMessage({ type: 'error', text: "Erreur: Agence non trouvÃ©e avec cet ID" });
+        setMessage({ type: 'error', text: "Erreur: agence non renvoyée après sauvegarde" });
       }
     } catch (err: any) {
       console.error('Save error:', err);

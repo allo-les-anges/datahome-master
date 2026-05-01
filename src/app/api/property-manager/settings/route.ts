@@ -9,25 +9,24 @@ const supabase = createClient(
 );
 
 const ALLOWED_FIELDS = [
-  'agency_name', 'primary_color', 'button_color', 'button_style', 'button_animation',
+  'agency_name', 'subdomain', 'primary_color', 'button_color', 'button_style', 'button_animation',
   'font_family', 'logo_url', 'hero_title', 'hero_type', 'hero_url',
+  'default_lang', 'whatsapp_number', 'habihub_agent_id',
   'about_title', 'about_text', 'cookie_consent_enabled', 'privacy_policy',
   'team_data', 'footer_config', 'updated_at',
 ];
 
 export async function POST(request: Request) {
   try {
-    const { slug, agencyId, data } = await request.json();
+    const { agencyId, data } = await request.json();
 
-    if (!slug || !agencyId || !data) {
+    if (!agencyId || !data) {
       return NextResponse.json({ success: false, error: 'Paramètres manquants' }, { status: 400 });
     }
 
-    // Verify agencyId matches slug
     const { data: agency, error: lookupError } = await supabase
       .from('agency_settings')
       .select('id')
-      .eq('subdomain', slug)
       .eq('id', agencyId)
       .maybeSingle();
 
