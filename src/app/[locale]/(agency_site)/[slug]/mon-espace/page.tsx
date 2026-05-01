@@ -764,8 +764,8 @@ export default function MonEspacePage() {
                   </div>
                   <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">{upsellDict?.propertiesTitle || "Mes PropriÃ©tÃ©s"}</p>
-                <p className="text-sm text-white/30 mb-4">{upsellDict?.propertiesSubtitle || "GÃ©rez votre catalogue"}</p>
+                <p className="text-lg font-bold text-white mb-1">{upsellDict?.propertiesTitle || "Mes Proprietes"}</p>
+                <p className="text-sm text-white/30 mb-4">{upsellDict?.propertiesSubtitle || "Gerez votre catalogue"}</p>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
                   <span className="text-xs font-bold text-white/40">
@@ -845,8 +845,8 @@ export default function MonEspacePage() {
                   </div>
                   <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">ParamÃ¨tres</p>
-                <p className="text-sm text-white/30">IdentitÃ©, couleurs, Ã©quipeâ€¦</p>
+                <p className="text-lg font-bold text-white mb-1">Parametres</p>
+                <p className="text-sm text-white/30">Identite, couleurs, equipe...</p>
               </motion.button>
 
               {/* â”€â”€ Statistiques â”€â”€ */}
@@ -863,7 +863,7 @@ export default function MonEspacePage() {
                   </div>
                   <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
                     style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>
-                    {upsellDict?.statsBadge || "BientÃ´t"}
+                    {upsellDict?.statsBadge || "Bientot"}
                   </span>
                 </div>
                 <p className="text-lg font-bold text-white mb-1">{upsellDict?.statsTitle || "Statistiques"}</p>
