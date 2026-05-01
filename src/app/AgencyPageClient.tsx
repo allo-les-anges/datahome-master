@@ -15,14 +15,7 @@ import { useTranslation } from "@/contexts/I18nContext";
 import { useAgency } from "@/contexts/AgencyContext"; 
 import { Villa, Filters } from '@/types';
 
-// Cache key pour sessionStorage
-const CACHE_KEY = (slug: string) => `properties_cache_v2_${slug}`;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-interface CachedData {
-  properties: Villa[];
-  timestamp: number;
-}
+const PAGE_SIZE_DEFAULT = 24;
 
 interface AgencyPageClientProps {
   slug: string;
@@ -36,7 +29,6 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   const { t, locale, setLocale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency();
   const initialLoadDone = useRef(false);
-  const fullLoadRequested = useRef(false);
   const effectiveLocale = routeLocale || locale || 'fr';
   
   const agency = useMemo(() => initialAgency || contextAgency, [initialAgency, contextAgency]);
@@ -45,6 +37,8 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
   const [propertyTotal, setPropertyTotal] = useState<number | null>(initialPropertyTotal ?? null);
   const [loadingProperties, setLoadingProperties] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -157,38 +151,16 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     };
   }, [effectiveLocale]);
 
-  const saveToCache = useCallback((properties: Villa[]) => {
-    if (typeof window === 'undefined') return;
+  // Extrait les URLs XML autorisées depuis la config agence
+  const getXmlUrls = useCallback((currentAgency: any): string[] => {
+    if (!currentAgency?.footer_config) return [];
     try {
-      const cacheData: CachedData = {
-        properties,
-        timestamp: Date.now()
-      };
-      sessionStorage.setItem(CACHE_KEY(slug), JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn('Cache save failed:', e);
-    }
-  }, [slug]);
-
-  const loadFromCache = useCallback((): Villa[] | null => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY(slug));
-      if (!cached) return null;
-
-      const data: CachedData = JSON.parse(cached);
-      const isExpired = Date.now() - data.timestamp > CACHE_DURATION;
-
-      if (isExpired) {
-        sessionStorage.removeItem(CACHE_KEY(slug));
-        return null;
-      }
-
-      return data.properties;
-    } catch (e) {
-      return null;
-    }
-  }, [slug]);
+      const config = typeof currentAgency.footer_config === 'string'
+        ? JSON.parse(currentAgency.footer_config)
+        : currentAgency.footer_config;
+      return config?.xml_urls || [];
+    } catch { return []; }
+  }, []);
 
   // Requête légère pour récupérer tous les types distincts sans limite de pagination
   const loadAvailableTypes = useCallback(async (currentAgency: any) => {
@@ -234,100 +206,73 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     } catch (e) { /* silently ignore */ }
   }, []);
 
-  const fetchAllAgencyProperties = useCallback(async (currentAgency: any) => {
-    if (!currentAgency?.id) return { properties: [], total: 0 };
-
-    let allowedXmlUrls: string[] = [];
-    if (currentAgency?.footer_config) {
-      try {
-        const config = typeof currentAgency.footer_config === 'string'
-          ? JSON.parse(currentAgency.footer_config)
-          : currentAgency.footer_config;
-        allowedXmlUrls = config?.xml_urls || [];
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000', lang: 'fr', mode: 'listing' });
-    allowedXmlUrls.forEach(url => params.append('xmlSource', url));
-
-    const res = await fetch(`/api/properties?${params.toString()}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Properties API ${res.status}`);
-    const json = await res.json();
-    return {
-      properties: json.properties || [],
-      total: typeof json.total === 'number' ? json.total : null,
-    };
-  }, []);
-
-  // Chargement des données - Version avec les bonnes colonnes
+  // Chargement initial : utilise les données SSR immédiatement, pas de fetch massif
   const loadData = useCallback(async (currentAgency: any) => {
-    if (!currentAgency?.id) return;
-    
-    if (initialLoadDone.current && allProperties.length > 0) return;
-    
-    // 1. Vérifier le cache — ignoré si le SSR a retourné plus de biens (données plus fraîches)
-    const cached = loadFromCache();
-    const ssrCount = initialProperties?.length || 0;
-    if (cached && cached.length > 0 && cached.length > ssrCount) {
-      setAllProperties(cached);
-      setFilteredProperties(cached);
-      setLoadingProperties(false);
-      initialLoadDone.current = true;
-      return;
-    }
+    if (!currentAgency?.id || initialLoadDone.current) return;
+    initialLoadDone.current = true;
 
-    // 2. Utiliser les propriétés initiales du SSR (priorité si plus complètes que le cache)
-    if (initialProperties && initialProperties.length > 0 && !initialLoadDone.current) {
+    if (initialProperties && initialProperties.length > 0) {
       const formatted = formatVillaData(initialProperties);
       setAllProperties(formatted);
       setFilteredProperties(formatted);
+      setHasMore((initialPropertyTotal ?? 0) > formatted.length);
       setLoadingProperties(false);
-      initialLoadDone.current = true;
-      if (!fullLoadRequested.current) {
-        fullLoadRequested.current = true;
-        window.setTimeout(async () => {
-          try {
-            const { properties: allData, total } = await fetchAllAgencyProperties(currentAgency);
-            const fullFormatted = formatVillaData(allData);
-            if (fullFormatted.length >= formatted.length) {
-              setAllProperties(fullFormatted);
-              setFilteredProperties(fullFormatted);
-              setPropertyTotal(total ?? fullFormatted.length);
-              saveToCache(fullFormatted);
-            }
-          } catch {
-            // keep the fast initial batch
-          }
-        }, 0);
-      }
       return;
     }
 
-    // 3. Fallback client
+    // Fallback si pas de données SSR : première page
     try {
       setLoadingProperties(true);
-
-      const { properties: allData, total } = await fetchAllAgencyProperties(currentAgency);
-
-      const formatted = formatVillaData(allData);
+      const xmlUrls = getXmlUrls(currentAgency);
+      const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: String(PAGE_SIZE_DEFAULT), lang: 'fr', mode: 'listing' });
+      xmlUrls.forEach((url: string) => params.append('xmlSource', url));
+      const res = await fetch(`/api/properties?${params.toString()}`);
+      const json = await res.json();
+      const formatted = formatVillaData(json.properties || []);
       setAllProperties(formatted);
       setFilteredProperties(formatted);
-      setPropertyTotal(total ?? formatted.length);
-      saveToCache(formatted);
-
-    } catch (err) {
-      if (initialProperties && initialProperties.length > 0) {
-        const formatted = formatVillaData(initialProperties);
-        setAllProperties(formatted);
-        setFilteredProperties(formatted);
-      }
+      setPropertyTotal(json.total ?? null);
+      setHasMore((json.properties || []).length === PAGE_SIZE_DEFAULT);
+    } catch {
+      /* silently keep empty state */
     } finally {
       setLoadingProperties(false);
-      initialLoadDone.current = true;
     }
-  }, [initialProperties, formatVillaData, saveToCache, loadFromCache, fetchAllAgencyProperties, allProperties.length]);
+  }, [initialProperties, initialPropertyTotal, formatVillaData, getXmlUrls]);
+
+  // Charge la page suivante et l'ajoute à la liste affichée
+  const loadMore = useCallback(async () => {
+    if (!agency?.id || loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const xmlUrls = getXmlUrls(agency);
+      const offset = filteredProperties.length;
+      const params = new URLSearchParams({
+        agencyId: String(agency.id),
+        limit: String(pageSize),
+        offset: String(offset),
+        lang: 'fr',
+        mode: 'listing',
+      });
+      if (filters.type) params.set('type', filters.type);
+      if (filters.town) params.set('town', filters.town);
+      if (filters.region) params.set('region', filters.region);
+      if (filters.beds) params.set('beds', String(filters.beds));
+      if (filters.minPrice) params.set('minPrice', String(filters.minPrice));
+      if (filters.maxPrice && filters.maxPrice < 20000000) params.set('maxPrice', String(filters.maxPrice));
+      if (filters.reference) params.set('reference', filters.reference);
+      xmlUrls.forEach((url: string) => params.append('xmlSource', url));
+
+      const res = await fetch(`/api/properties?${params.toString()}`);
+      const json = await res.json();
+      const newProps = json.properties || [];
+      const formatted = formatVillaData(newProps);
+      setAllProperties(prev => [...prev, ...formatted]);
+      setFilteredProperties(prev => [...prev, ...formatted]);
+      setHasMore(newProps.length === pageSize);
+    } catch { /* garder l'état actuel */ }
+    finally { setLoadingMore(false); }
+  }, [agency, filteredProperties.length, loadingMore, hasMore, pageSize, filters, getXmlUrls, formatVillaData]);
 
   // Synchronisation de l'agence
   useEffect(() => {
@@ -386,79 +331,71 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     } catch { /* garder les données initiales */ }
   }, [effectiveLocale, agency?.id]);
 
-  // Filtrage
-  const handleSearch = useCallback((newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {
+  // Recherche côté serveur (couvre tout le catalogue, pas seulement la page chargée)
+  const handleSearch = useCallback(async (newFilters: Filters & { sortOrder?: 'asc' | 'desc' }) => {
     const { sortOrder: newSortOrder, ...filterValues } = newFilters;
-    
-    if (newSortOrder) {
-      setSortOrder(newSortOrder);
-    }
-    
+    if (newSortOrder) setSortOrder(newSortOrder);
     setFilters(filterValues);
-    
-    const MIN_UNLIMITED = 0;
-    const MAX_UNLIMITED = 20000000;
-    const min = Number(filterValues.minPrice) || MIN_UNLIMITED;
-    const max = Number(filterValues.maxPrice);
-    const isUnlimited = !max || max >= MAX_UNLIMITED;
-    const requiredBeds = Number(filterValues.beds) || 0;
-    const searchLocation = (filterValues.town || filterValues.region || "").toLowerCase().trim();
-    const searchRef = (filterValues.reference || "").toLowerCase().trim();
-    const searchType = (filterValues.type || "").toLowerCase().trim();
-
-    let results = allProperties.filter((p) => {
-      const pPrice = Number(p.price) || 0;
-
-      const matchPrice = pPrice >= min && (isUnlimited || pPrice <= max);
-      const matchType = !searchType || searchType === "all" || 
-        (p.type && p.type.toLowerCase().includes(searchType));
-      const matchBeds = (Number(p.beds) || 0) >= requiredBeds;
-      const matchLocation = !searchLocation || 
-        (p.town && p.town.toLowerCase().includes(searchLocation)) || 
-        (p.region && p.region.toLowerCase().includes(searchLocation));
-      const matchRef = !searchRef || 
-        (p.ref && p.ref.toLowerCase().includes(searchRef)) ||
-        (p.id_externe && p.id_externe.toLowerCase().includes(searchRef));
-
-      return matchPrice && matchType && matchBeds && matchLocation && matchRef;
-    });
-
-    const currentSortOrder = newSortOrder || sortOrder;
-    results = [...results].sort((a, b) => {
-      const priceA = Number(a.price) || 0;
-      const priceB = Number(b.price) || 0;
-      return currentSortOrder === 'asc' ? priceA - priceB : priceB - priceA;
-    });
-
-    setFilteredProperties(results);
-    setDisplayLimit(pageSize);
     setIsSearchOpen(false);
-    
-    setTimeout(() => {
-      const element = document.getElementById('results-section');
-      if (element) element.scrollIntoView({ behavior: 'smooth' });
-    }, 150);
-  }, [allProperties, sortOrder, pageSize]);
+
+    const hasFilter = Boolean(
+      filterValues.type || filterValues.town || filterValues.region ||
+      filterValues.beds || filterValues.minPrice ||
+      (filterValues.maxPrice && filterValues.maxPrice < 20000000) || filterValues.reference
+    );
+
+    if (!hasFilter) {
+      // Réinitialiser : revenir aux données initiales sans refetch
+      const sorted = [...allProperties].sort((a, b) =>
+        (newSortOrder || sortOrder) === 'asc'
+          ? Number(a.price || 0) - Number(b.price || 0)
+          : Number(b.price || 0) - Number(a.price || 0)
+      );
+      setFilteredProperties(sorted);
+      setHasMore((propertyTotal ?? 0) > allProperties.length);
+      setDisplayLimit(pageSize);
+      setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 150);
+      return;
+    }
+
+    setLoadingProperties(true);
+    try {
+      const xmlUrls = getXmlUrls(agency);
+      const params = new URLSearchParams({ agencyId: String(agency.id), limit: '200', lang: 'fr', mode: 'listing' });
+      if (filterValues.type) params.set('type', filterValues.type);
+      if (filterValues.town) params.set('town', filterValues.town);
+      if (filterValues.region) params.set('region', filterValues.region);
+      if (filterValues.beds) params.set('beds', String(filterValues.beds));
+      if (filterValues.minPrice) params.set('minPrice', String(filterValues.minPrice));
+      if (filterValues.maxPrice && filterValues.maxPrice < 20000000) params.set('maxPrice', String(filterValues.maxPrice));
+      if (filterValues.reference) params.set('reference', filterValues.reference);
+      xmlUrls.forEach((url: string) => params.append('xmlSource', url));
+
+      const res = await fetch(`/api/properties?${params.toString()}`);
+      const json = await res.json();
+      let results = formatVillaData(json.properties || []);
+      const ord = newSortOrder || sortOrder;
+      results.sort((a, b) => ord === 'asc'
+        ? Number(a.price || 0) - Number(b.price || 0)
+        : Number(b.price || 0) - Number(a.price || 0)
+      );
+      setFilteredProperties(results);
+      setHasMore(false);
+      setDisplayLimit(pageSize);
+    } catch { /* garder l'état actuel */ }
+    finally {
+      setLoadingProperties(false);
+      setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 150);
+    }
+  }, [agency, allProperties, propertyTotal, sortOrder, pageSize, getXmlUrls, formatVillaData]);
 
   const resetFilters = useCallback(() => {
-    const defaultFilters = {
-      type: "",
-      town: "",
-      region: "",
-      beds: 0,
-      minPrice: 0,
-      maxPrice: 20000000,
-      reference: "",
-    };
+    const defaultFilters = { type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 20000000, reference: "" };
     setFilters(defaultFilters);
     setSortOrder('asc');
-    const sorted = [...allProperties].sort((a, b) => {
-      const priceA = Number(a.price) || 0;
-      const priceB = Number(b.price) || 0;
-      return priceA - priceB;
-    });
-    setFilteredProperties(sorted);
-  }, [allProperties]);
+    setFilteredProperties([...allProperties].sort((a, b) => Number(a.price || 0) - Number(b.price || 0)));
+    setHasMore((propertyTotal ?? 0) > allProperties.length);
+  }, [allProperties, propertyTotal]);
 
   const localizedProperties = useMemo(() => {
     return filteredProperties.map(getLocalizedProperty);
@@ -619,14 +556,23 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                     )}
                   </AnimatePresence>
 
-                  {!loadingProperties && localizedProperties.length > displayLimit && (
+                  {!loadingProperties && (localizedProperties.length > displayLimit || hasMore) && (
                     <div className="mt-20 flex justify-center">
-                      <button 
-                        onClick={() => setDisplayLimit(prev => prev + pageSize)} 
-                        className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 ${radius}`} 
+                      <button
+                        onClick={() => {
+                          if (localizedProperties.length > displayLimit) {
+                            setDisplayLimit(prev => prev + pageSize);
+                          } else {
+                            loadMore();
+                          }
+                        }}
+                        disabled={loadingMore}
+                        className={`px-14 py-7 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-60 ${radius}`}
                         style={{ backgroundColor: primaryColor }}
                       >
-                        <span className="text-[11px] font-black uppercase tracking-widest">{t('common.showMore') || 'Afficher plus'}</span>
+                        <span className="text-[11px] font-black uppercase tracking-widest">
+                          {loadingMore ? '...' : (t('common.showMore') || 'Afficher plus')}
+                        </span>
                       </button>
                     </div>
                   )}
