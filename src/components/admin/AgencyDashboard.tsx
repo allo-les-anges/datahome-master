@@ -1096,12 +1096,12 @@ export default function AgencyDashboard() {
 
   return (
     <div
-      className={`flex h-screen font-sans overflow-hidden transition-colors duration-300 ${isDark ? 'dash-dark text-white bg-[#070c1a]' : 'dash-light text-slate-900 bg-slate-100'}`}
+      className={`flex flex-col lg:flex-row h-screen font-sans overflow-hidden transition-colors duration-300 ${isDark ? 'dash-dark text-white bg-[#070c1a]' : 'dash-light text-slate-900 bg-slate-100'}`}
     >
 
       {/* SIDEBAR — glass morphism */}
-      <aside className={`w-72 flex-shrink-0 backdrop-blur-2xl flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#0d1528]/70 border-r border-white/[0.06]' : 'bg-white border-r border-slate-200 shadow-sm'}`}>
-        <div className="p-6 border-b border-white/[0.05]">
+      <aside className={`w-full lg:w-72 lg:flex-shrink-0 max-h-[46vh] lg:max-h-none overflow-y-auto backdrop-blur-2xl flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#0d1528]/70 border-b lg:border-b-0 lg:border-r border-white/[0.06]' : 'bg-white border-b lg:border-b-0 lg:border-r border-slate-200 shadow-sm'}`}>
+        <div className="p-4 sm:p-6 border-b border-white/[0.05]">
           <div className="flex justify-between items-center mb-5">
             <div className="flex items-center gap-1.5">
               <button
@@ -1338,13 +1338,13 @@ export default function AgencyDashboard() {
       </aside>
 
       {/* MAIN */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 min-w-0 overflow-y-auto">
         {activePanel === 'preregistration' && selectedPreRegistration ? (
-          <div className="max-w-4xl mx-auto px-8 py-6 space-y-6">
+          <div className="max-w-4xl mx-auto px-4 sm:px-8 py-4 sm:py-6 space-y-6">
             {/* STICKY HEADER */}
-            <div className="sticky top-0 z-20 -mx-8 px-8 pb-5 pt-5 bg-[#070c1a]/90 backdrop-blur-xl border-b border-white/[0.04]">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
+            <div className="sticky top-0 z-20 -mx-4 sm:-mx-8 px-4 sm:px-8 pb-5 pt-5 bg-[#070c1a]/90 backdrop-blur-xl border-b border-white/[0.04]">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div className="flex items-center gap-4 min-w-0">
                   <div
                     className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg"
                     style={{ backgroundColor: '#D4AF37' }}
@@ -1457,7 +1457,7 @@ export default function AgencyDashboard() {
             <div className={cardCls}>
               <h3 className={sHdr}><Globe size={15} className="text-orange-400" /> Configuration du Site</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <label className={lbl}>Sous-domaine *</label>
                   <div className="relative">
                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
@@ -1511,12 +1511,12 @@ export default function AgencyDashboard() {
             </div>
           </div>
         ) : selectedAgency ? (
-          <form onSubmit={handleSave} className="max-w-5xl mx-auto px-8 py-6 space-y-6">
+          <form onSubmit={handleSave} className="max-w-5xl mx-auto px-4 sm:px-8 py-4 sm:py-6 space-y-6">
 
             {/* STICKY HEADER + KPI STRIP */}
-            <div className="sticky top-0 z-20 -mx-8 px-8 pb-5 pt-5 bg-[#070c1a]/90 backdrop-blur-xl border-b border-white/[0.04]">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-4">
+            <div className="sticky top-0 z-20 -mx-4 sm:-mx-8 px-4 sm:px-8 pb-5 pt-5 bg-[#070c1a]/90 backdrop-blur-xl border-b border-white/[0.04]">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 min-w-0">
                   {selectedAgency.logo_url ? (
                     <img src={selectedAgency.logo_url} className="w-11 h-11 rounded-xl object-contain bg-white/[0.04] border border-white/[0.08] p-1" alt="Logo" />
                   ) : (
@@ -1524,18 +1524,18 @@ export default function AgencyDashboard() {
                       {selectedAgency.agency_name?.charAt(0)}
                     </div>
                   )}
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <input
                       value={selectedAgency.agency_name || ''}
                       onChange={(e) => setSelectedAgency({...selectedAgency, agency_name: e.target.value})}
-                      className="text-xl font-bold text-white bg-transparent border-b border-white/[0.08] focus:border-indigo-500 outline-none transition-colors"
+                      className="w-full min-w-0 text-xl font-bold text-white bg-transparent border-b border-white/[0.08] focus:border-indigo-500 outline-none transition-colors"
                     />
                     <div className="mt-1">
                       <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-md text-[9px] font-bold uppercase tracking-wider border border-indigo-500/20">{selectedAgency.package_level} plan</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
                   <AnimatePresence>
                     {message && (
                       <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
@@ -1545,14 +1545,14 @@ export default function AgencyDashboard() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <button type="submit" disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 active:scale-95">
+                  <button type="submit" disabled={isSaving} className="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 active:scale-95">
                     {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
                     {isSaving ? t.saving : t.save}
                   </button>
                 </div>
               </div>
               {/* KPI Strip */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
                 {[
                   { label: "Agences", value: agencies.length, icon: <Users size={12} />, accent: "text-indigo-400" },
                   { label: "Modules actifs", value: `${activeModulesCount}/7`, icon: <Zap size={12} />, accent: "text-emerald-400" },
@@ -1570,7 +1570,7 @@ export default function AgencyDashboard() {
             {/* DEFAULT LANG */}
             <div className="space-y-3">
               <label className={lbl}>Langue par défaut du site</label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {selectedAgency.footer_config?.allowed_langs?.map((code: string) => (
                   <button key={code} type="button" onClick={() => setDefaultLang(code)}
                     className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${selectedAgency.default_lang === code ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-white/[0.04] text-white/40 border-white/[0.06] hover:bg-white/[0.07]'}`}>
@@ -1666,9 +1666,9 @@ export default function AgencyDashboard() {
                   <div className="space-y-5">
                     <div>
                       <label className={lbl}>Image hero</label>
-                      <div className="flex p-1 bg-white/[0.04] border border-white/[0.06] rounded-xl w-fit">
-                        <button type="button" disabled className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"><ImageIcon size={13} /> Image</button>
-                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><Video size={13} /> Vidéo</button>
+                      <div className="flex p-1 bg-white/[0.04] border border-white/[0.06] rounded-xl w-full sm:w-fit">
+                        <button type="button" disabled className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"><ImageIcon size={13} /> Image</button>
+                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><Video size={13} /> Vidéo</button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1962,9 +1962,9 @@ export default function AgencyDashboard() {
                           </div>
                         </div>
                         {enabled && slug && (
-                          <div className="px-4 py-3 bg-green-500/[0.07] border-t border-green-500/20 flex items-center justify-between gap-3">
+                          <div className="px-4 py-3 bg-green-500/[0.07] border-t border-green-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <p className="text-[9px] text-green-400/80 font-bold uppercase tracking-wide">L'agence peut gérer ses biens manuellement depuis son espace dédié</p>
-                            <a href={`/fr/${slug}/mon-espace`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-green-500 transition-all"><Globe size={9} /> Ouvrir →</a>
+                            <a href={`/fr/${slug}/mon-espace`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-green-500 transition-all"><Globe size={9} /> Ouvrir →</a>
                           </div>
                         )}
                       </div>
@@ -2076,9 +2076,9 @@ export default function AgencyDashboard() {
                           </div>
                         </div>
                         {intOpen.crm && enabled && slug && (
-                          <div className="px-4 py-3 bg-blue-500/[0.07] border-t border-blue-500/20 flex items-center justify-between gap-3">
+                          <div className="px-4 py-3 bg-blue-500/[0.07] border-t border-blue-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <p className="text-[9px] text-blue-400/80 font-bold uppercase tracking-wide">Les identifiants CRM sont configurés par l'agence depuis sa page de paramétrage</p>
-                            <a href={`/fr/${slug}/parametres/crm`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-500 transition-all"><Globe size={9} /> Ouvrir</a>
+                            <a href={`/fr/${slug}/parametres/crm`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-500 transition-all"><Globe size={9} /> Ouvrir</a>
                           </div>
                         )}
                       </div>
@@ -2107,9 +2107,9 @@ export default function AgencyDashboard() {
                           </div>
                         </div>
                         {enabled && slug && (
-                          <div className="px-4 py-3 bg-orange-500/[0.07] border-t border-orange-500/20 flex items-center justify-between gap-3">
+                          <div className="px-4 py-3 bg-orange-500/[0.07] border-t border-orange-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <p className="text-[9px] text-orange-400/80 font-bold uppercase tracking-wide">Accès protégé par mot de passe — défini par l'agence à la première connexion</p>
-                            <a href={`/fr/${slug}/mes-leads`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-500 transition-all"><TrendingUp size={9} /> Ouvrir le CRM</a>
+                            <a href={`/fr/${slug}/mes-leads`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-500 transition-all"><TrendingUp size={9} /> Ouvrir le CRM</a>
                           </div>
                         )}
                       </div>
@@ -2150,7 +2150,7 @@ export default function AgencyDashboard() {
 
               {/* LIVE PREVIEW — browser chrome mockup */}
               <div className="lg:col-span-1">
-                <div className="sticky top-52">
+                <div className="lg:sticky lg:top-52">
                   <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
                     <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05] bg-white/[0.02]">
                       <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />

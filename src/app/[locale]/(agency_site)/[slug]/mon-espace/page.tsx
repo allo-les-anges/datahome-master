@@ -178,7 +178,7 @@ function PropertyForm({
             <input type="text" placeholder="Stunning sea view villa..." value={form.titre_en}
               onChange={(e) => set("titre_en", e.target.value)} className={inputCls} />
           </FieldInput>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FieldInput label={dict.price} icon={<Euro size={11} />}>
               <div className="relative">
                 <input type="number" placeholder="350 000" value={form.price}
@@ -201,7 +201,7 @@ function PropertyForm({
 
       <div>
         <SectionHeader icon={<MapPin size={15} />} label="Localisation" color={brandColor} />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FieldInput label={dict.city}>
             <input type="text" placeholder="Marbella" value={form.town}
               onChange={(e) => set("town", e.target.value)} className={inputCls} />
@@ -215,7 +215,7 @@ function PropertyForm({
 
       <div>
         <SectionHeader icon={<LayoutGrid size={15} />} label="CaractÃ©ristiques" color={brandColor} />
-        <div className="grid grid-cols-3 gap-4 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
           <FieldInput label={dict.beds} icon={<BedDouble size={11} />}>
             <input type="number" placeholder="3" value={form.beds}
               onChange={(e) => set("beds", e.target.value)} className={inputCls} />
@@ -270,7 +270,7 @@ function PropertyForm({
       <div>
         <SectionHeader icon={<Camera size={15} />} label={dict.photos} color={brandColor} />
         {images.length > 0 && (
-          <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-3">
             {images.map((url, i) => (
               <div key={i} className={`relative group rounded-2xl overflow-hidden bg-white/5 ${i === 0 ? "col-span-2 row-span-2 aspect-[4/3]" : "aspect-square"}`}>
                 <img src={url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
@@ -308,7 +308,7 @@ function PropertyForm({
         </div>
       )}
 
-      <div className="sticky bottom-0 -mx-8 px-8 py-5 border-t border-white/[0.06] flex gap-3 rounded-b-3xl"
+      <div className="sticky bottom-0 -mx-4 sm:-mx-8 px-4 sm:px-8 py-5 border-t border-white/[0.06] flex flex-col sm:flex-row gap-3 rounded-b-3xl"
         style={{ background: "rgba(17,17,17,0.95)", backdropFilter: "blur(12px)" }}>
         <button type="button" onClick={onCancel}
           className="px-6 py-3.5 rounded-2xl border border-white/10 text-sm font-bold text-white/40 hover:bg-white/5 transition-all whitespace-nowrap">
@@ -348,7 +348,7 @@ function TrialBanner({ daysLeft, brandColor, dict }: { daysLeft: number; brandCo
     : (dict?.daysLeft || "{days} jours restants").replace("{days}", String(daysLeft));
 
   return (
-    <div className="mx-6 my-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-4"
+    <div className="mx-4 sm:mx-6 my-3 rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
       style={{ background: `${color}10`, border: `1px solid ${color}30` }}>
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <Clock size={14} style={{ color }} className="shrink-0" />
@@ -362,7 +362,7 @@ function TrialBanner({ daysLeft, brandColor, dict }: { daysLeft: number; brandCo
           </div>
         </div>
       </div>
-      <button className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl transition-all hover:opacity-80 shrink-0 text-black"
+      <button className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl transition-all hover:opacity-80 shrink-0 text-black self-start sm:self-auto"
         style={{ backgroundColor: color }}>
         {dict?.upgradeBtn || "Upgrade"}
       </button>
@@ -684,10 +684,10 @@ export default function MonEspacePage() {
 
       {/* Header */}
       <div
-        className="sticky top-0 z-50 px-6 py-4 flex items-center justify-between"
+        className="sticky top-0 z-50 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
         style={{ background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
           {(view === "list" || view === "form") && (
             <button
               type="button"
@@ -704,19 +704,19 @@ export default function MonEspacePage() {
             ? <img src={agency.logo_url} alt={agency.agency_name} className="h-8 object-contain" />
             : <div className="w-9 h-9 rounded-xl flex items-center justify-center text-black font-bold" style={{ backgroundColor: brandColor }}>{agency.agency_name?.charAt(0)}</div>
           }
-          <div>
-            <p className="text-sm font-bold text-white">{agency.agency_name}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-white truncate">{agency.agency_name}</p>
             <p className="text-[10px] text-white/25 uppercase tracking-widest font-bold">{dict.badge}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button type="button" onClick={() => setShowChangePw(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-white/5 transition-all">
-            <Key size={13} /> {dict.changePwBtn}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-white/5 transition-all">
+            <Key size={13} /> <span className="truncate">{dict.changePwBtn}</span>
           </button>
           <button type="button" onClick={handleLogout}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-red-900/20 hover:border-red-900/40 hover:text-red-400 transition-all">
-            <LogOut size={13} /> {dict.logout}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-red-900/20 hover:border-red-900/40 hover:text-red-400 transition-all">
+            <LogOut size={13} /> <span className="truncate">{dict.logout}</span>
           </button>
         </div>
       </div>
@@ -727,7 +727,7 @@ export default function MonEspacePage() {
         return <TrialBanner daysLeft={daysLeft} brandColor={brandColor} dict={trialDict} />;
       })()}
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {view === "dashboard" ? (
           <>
             {/* Welcome header */}
@@ -875,7 +875,7 @@ export default function MonEspacePage() {
         ) : view === "list" ? (
           <>
             {/* Header liste */}
-            <div className="flex items-end justify-between mb-10">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
               <div>
                 <h2 className="text-3xl font-bold text-white">{dict.myProperties}</h2>
                 <div className="flex items-center gap-2 mt-1.5">
@@ -887,7 +887,7 @@ export default function MonEspacePage() {
               </div>
               <button type="button"
                 onClick={() => { setEditing(null); setView("form"); }}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.97]"
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.97] w-full sm:w-auto"
                 style={{ backgroundColor: brandColor, boxShadow: `0 8px 24px ${brandColor}40` }}>
                 <Plus size={18} strokeWidth={2.5} /> {dict.addProperty}
               </button>
@@ -918,13 +918,13 @@ export default function MonEspacePage() {
                 {properties.map((p, idx) => (
                   <div
                     key={p.id}
-                    className={`group rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${idx === 0 ? "md:col-span-2" : ""}`}
+                    className={`group rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${idx === 0 ? "lg:col-span-2" : ""}`}
                     style={{
                       ...glassCard,
                       boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
                     }}
                   >
-                    <div className={`relative overflow-hidden ${idx === 0 ? "aspect-[16/7]" : "aspect-[4/3]"} bg-white/5`}>
+                    <div className={`relative overflow-hidden ${idx === 0 ? "aspect-[4/3] sm:aspect-[16/7]" : "aspect-[4/3]"} bg-white/5`}>
                       {p.images?.[0]
                         ? <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.titre_fr} />
                         : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -977,7 +977,7 @@ export default function MonEspacePage() {
               <h2 className="text-2xl font-bold text-white">{editing?.id ? dict.editProperty : dict.newProperty}</h2>
               <p className="text-sm text-white/30 mt-1">{dict.fillInfo}</p>
             </div>
-            <div className="rounded-3xl p-8" style={glassCard}>
+            <div className="rounded-3xl p-4 sm:p-8" style={glassCard}>
               <PropertyForm
                 initial={editing}
                 agencyId={session.agencyId}
