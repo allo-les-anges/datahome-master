@@ -505,7 +505,15 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
-                    <h2 className="text-5xl italic mb-8 text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results') || 'Nos Biens'}</h2>
+                    <div className="mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                      <h2 className="text-5xl italic text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results') || 'Nos Biens'}</h2>
+                      <span
+                        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm"
+                        aria-label={`${localizedProperties.length} biens disponibles`}
+                      >
+                        {localizedProperties.length} {localizedProperties.length > 1 ? 'biens' : 'bien'}
+                      </span>
+                    </div>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
                   </header>
                   
