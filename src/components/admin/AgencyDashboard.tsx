@@ -411,7 +411,7 @@ export default function AgencyDashboard() {
         supabase
           .from('register_premium')
           .select('*')
-          .neq('status', 'published')
+          .eq('status', 'verified')
           .order('created_at', { ascending: false }),
       ]);
       if (agenciesRes.error) throw agenciesRes.error;
