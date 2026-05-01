@@ -791,6 +791,13 @@ function OnboardingContent() {
         const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
         const savedCompany = (savedParams?.company || savedConfig?.agency_name || '').trim();
         
+        // Only restore unfinished drafts. A completed onboarding must never reopen
+        // directly on the success screen from a fresh OTP email link.
+        if (step >= 4) {
+          localStorage.removeItem('onboarding_progress');
+          return;
+        }
+
         // Only restore if less than 24 hours old and it belongs to the same agency context.
         if (hoursDiff < 24 && (!urlCompany || savedCompany === urlCompany)) {
           setStep(step);
@@ -810,6 +817,9 @@ function OnboardingContent() {
     setLang(safeLang);
     setSuccessLang(safeLang as SuccessLang);
     setParams({ email: urlEmail, name: urlName, company: urlCompany });
+    if (urlEmail) {
+      setStep(1);
+    }
     setConfig((prev) => ({
       ...prev, 
       agency_name: urlCompany || prev.agency_name,
