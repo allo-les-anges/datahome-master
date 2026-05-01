@@ -373,6 +373,7 @@ export default function AgencyDashboard() {
   const [activePanel, setActivePanel] = useState<'agency' | 'preregistration'>('agency');
   const [preRegForm, setPreRegForm] = useState({ subdomain: '', packageLevel: 'silver', defaultLang: 'fr', whatsapp: '' });
   const [customXmlUrl, setCustomXmlUrl] = useState('');
+  const [isSyncingXml, setIsSyncingXml] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [selectedAgency, setSelectedAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -545,6 +546,69 @@ export default function AgencyDashboard() {
       return { ...prev, footer_config: { ...currentFooterConfig, xml_urls: [...currentXmlUrls, url] } };
     });
     setCustomXmlUrl('');
+  };
+
+  const syncSelectedXmlSources = async () => {
+    if (!selectedAgency?.id) return;
+
+    const footerConfig = typeof selectedAgency.footer_config === 'string'
+      ? (() => { try { return JSON.parse(selectedAgency.footer_config); } catch { return {}; } })()
+      : (selectedAgency.footer_config || {});
+    const xmlUrls = Array.from(new Set((footerConfig.xml_urls || []).filter(Boolean))) as string[];
+
+    if (xmlUrls.length === 0) {
+      setMessage({ type: 'error', text: 'Ajoutez au moins un flux XML avant de synchroniser.' });
+      setTimeout(() => setMessage(null), 4000);
+      return;
+    }
+
+    setIsSyncingXml(true);
+    setMessage(null);
+
+    try {
+      const saveRes = await fetch('/api/property-manager/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agencyId: selectedAgency.id,
+          data: {
+            footer_config: { ...footerConfig, xml_urls: xmlUrls },
+            updated_at: new Date().toISOString(),
+          },
+        }),
+      });
+      const saveJson = await saveRes.json();
+      if (!saveRes.ok || !saveJson.success) throw new Error(saveJson.error || 'Erreur sauvegarde XML');
+
+      const results = await Promise.allSettled(xmlUrls.map((xmlUrl) =>
+        fetch('/api/sync-villas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agencyId: selectedAgency.id, xmlUrl }),
+        }).then(async (res) => {
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.error || `Erreur synchro ${xmlUrl}`);
+          return json;
+        })
+      ));
+
+      const failed = results.filter((r) => r.status === 'rejected').length;
+      const synced = results
+        .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+        .reduce((total, r) => total + Number(r.value.count || 0), 0);
+
+      if (failed > 0) {
+        setMessage({ type: 'error', text: `${synced} biens synchronisés, ${failed} flux en erreur.` });
+      } else {
+        setMessage({ type: 'success', text: `${synced} biens synchronisés depuis ${xmlUrls.length} flux XML.` });
+      }
+      setTimeout(() => setMessage(null), 5000);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Erreur lors de la synchronisation XML.' });
+      setTimeout(() => setMessage(null), 5000);
+    } finally {
+      setIsSyncingXml(false);
+    }
   };
 
   const toggleLanguage = (code: string) => {
@@ -1645,6 +1709,15 @@ export default function AgencyDashboard() {
                         <X size={13} className="text-white/35" />
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={syncSelectedXmlSources}
+                      disabled={isSyncingXml || !(selectedAgency?.footer_config?.xml_urls || []).length}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600/85 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      {isSyncingXml ? <Loader2 size={13} className="animate-spin" /> : <Activity size={13} />}
+                      Synchroniser les biens XML
+                    </button>
                   </div>
                   <div className="space-y-2 pt-3 border-t border-white/[0.05]">
                     <label className={`${lbl} flex items-center gap-2`}><FileCode size={11} /> HabiHub Agent ID <span className="text-white/20 font-normal normal-case tracking-normal">(fourni par HabiHub)</span></label>
