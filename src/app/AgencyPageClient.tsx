@@ -16,7 +16,7 @@ import { useAgency } from "@/contexts/AgencyContext";
 import { Villa, Filters } from '@/types';
 
 // Cache key pour sessionStorage
-const CACHE_KEY = (slug: string) => `properties_cache_${slug}`;
+const CACHE_KEY = (slug: string, locale: string) => `properties_cache_${slug}_${locale}`;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 interface CachedData {
@@ -164,23 +164,23 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
         properties,
         timestamp: Date.now()
       };
-      sessionStorage.setItem(CACHE_KEY(slug), JSON.stringify(cacheData));
+      sessionStorage.setItem(CACHE_KEY(slug, effectiveLocale), JSON.stringify(cacheData));
     } catch (e) {
       console.warn('Cache save failed:', e);
     }
-  }, [slug]);
+  }, [slug, effectiveLocale]);
 
   const loadFromCache = useCallback((): Villa[] | null => {
     if (typeof window === 'undefined') return null;
     try {
-      const cached = sessionStorage.getItem(CACHE_KEY(slug));
+      const cached = sessionStorage.getItem(CACHE_KEY(slug, effectiveLocale));
       if (!cached) return null;
       
       const data: CachedData = JSON.parse(cached);
       const isExpired = Date.now() - data.timestamp > CACHE_DURATION;
       
       if (isExpired) {
-        sessionStorage.removeItem(CACHE_KEY(slug));
+        sessionStorage.removeItem(CACHE_KEY(slug, effectiveLocale));
         return null;
       }
       
@@ -188,7 +188,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     } catch (e) {
       return null;
     }
-  }, [slug]);
+  }, [slug, effectiveLocale]);
 
   // Requête légère pour récupérer tous les types distincts sans limite de pagination
   const loadAvailableTypes = useCallback(async (currentAgency: any) => {
@@ -249,7 +249,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
       }
     }
 
-    const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000' });
+    const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000', lang: effectiveLocale });
     allowedXmlUrls.forEach(url => params.append('xmlSource', url));
 
     const res = await fetch(`/api/properties?${params.toString()}`, { cache: 'no-store' });
@@ -259,7 +259,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
       properties: json.properties || [],
       total: typeof json.total === 'number' ? json.total : null,
     };
-  }, []);
+  }, [effectiveLocale]);
 
   // Chargement des données - Version avec les bonnes colonnes
   const loadData = useCallback(async (currentAgency: any) => {
