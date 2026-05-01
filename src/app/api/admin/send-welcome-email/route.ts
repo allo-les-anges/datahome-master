@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 const RESEND_KEY  = process.env.RESEND_KEY  || 're_FF7fBpoX_3VCWrP4FkF5HvdCxLf5uRCR8';
 const FROM_EMAIL  = process.env.FROM_EMAIL  || 'noreply@data-home.app';
 const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL || 'https://datahome.vercel.app';
+const INTERNAL_PREMIUM_RECIPIENTS = ['gillian@habihub-soft.com', 'gaetan@amaru-homes.com'];
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -226,6 +227,71 @@ function buildEmail(p: EmailParams): { subject: string; html: string } {
   return { subject, html };
 }
 
+function buildInternalNotification(p: EmailParams): { subject: string; html: string } {
+  const subject = `New premium client registered - ${p.companyName}`;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,.10);">
+  <tr>
+    <td style="background:#0f172a;padding:28px 36px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:1px;">DATA-HOME</div>
+      <div style="margin-top:8px;color:#cbd5e1;font-size:13px;">Premium onboarding notification</div>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:32px 36px;color:#0f172a;">
+      <p style="margin:0 0 18px;font-size:18px;font-weight:700;">A new premium client has just been published.</p>
+      <p style="margin:0 0 24px;font-size:14px;color:#475569;line-height:1.7;">
+        The client welcome email has been sent. Please finalize the setup and check that all premium settings are ready.
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+        <tr>
+          <td style="padding:16px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Agency</td>
+          <td style="padding:16px 20px;text-align:right;font-size:13px;font-weight:700;color:#0f172a;border-bottom:1px solid #e2e8f0;">${p.companyName}</td>
+        </tr>
+        <tr>
+          <td style="padding:16px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Client email</td>
+          <td style="padding:16px 20px;text-align:right;font-size:13px;font-weight:700;color:#0f172a;border-bottom:1px solid #e2e8f0;">${p.email}</td>
+        </tr>
+        <tr>
+          <td style="padding:16px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Subdomain</td>
+          <td style="padding:16px 20px;text-align:right;font-size:13px;font-weight:700;color:#0f172a;border-bottom:1px solid #e2e8f0;">${p.subdomain}</td>
+        </tr>
+        <tr>
+          <td style="padding:16px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Package</td>
+          <td style="padding:16px 20px;text-align:right;font-size:13px;font-weight:700;color:#0f172a;border-bottom:1px solid #e2e8f0;">${p.packageLevel}</td>
+        </tr>
+        <tr>
+          <td style="padding:16px 20px;font-size:13px;color:#64748b;">Trial ends</td>
+          <td style="padding:16px 20px;text-align:right;font-size:13px;font-weight:700;color:#0f172a;">${new Date(p.trialExpiresAt).toLocaleDateString('en-GB')}</td>
+        </tr>
+      </table>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+        <tr>
+          <td align="center">
+            <a href="${p.dashboardUrl}" target="_blank" style="display:inline-block;padding:14px 34px;background:#2563eb;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:50px;">Open client dashboard</a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:24px 0 0;font-size:12px;color:#94a3b8;line-height:1.6;">
+        Website: <a href="${p.agencyUrl}" style="color:#2563eb;">${p.agencyUrl}</a><br/>
+        Leads CRM: <a href="${p.leadsUrl}" style="color:#2563eb;">${p.leadsUrl}</a>
+      </p>
+    </td>
+  </tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  return { subject, html };
+}
+
 export async function POST(req: NextRequest) {
   let body: Record<string, string>;
   try {
@@ -297,5 +363,43 @@ export async function POST(req: NextRequest) {
   }
 
   console.log(`[send-welcome-email] ✅ Email envoyé à ${email} pour l'agence ${subdomain}`);
+  const internalEmail = buildInternalNotification({
+    firstName:      first_name  || email,
+    companyName:    company_name || subdomain,
+    agencyUrl,
+    dashboardUrl:   dashUrl,
+    leadsUrl,
+    email,
+    tempPassword:   '',
+    trialExpiresAt: trialTs,
+    subdomain,
+    packageLevel:   package_level || 'silver',
+    lang,
+  });
+
+  const internalRes = await fetch('https://api.resend.com/emails', {
+    method:  'POST',
+    headers: {
+      Authorization:  `Bearer ${RESEND_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: FROM_EMAIL,
+      to: INTERNAL_PREMIUM_RECIPIENTS,
+      subject: internalEmail.subject,
+      html: internalEmail.html,
+    }),
+  });
+
+  if (!internalRes.ok) {
+    const err = await internalRes.text();
+    console.error('[send-welcome-email] Internal notification:', err);
+    return NextResponse.json(
+      { success: true, warning: `Client email sent, but internal notification failed: ${err}` },
+      { status: 200 },
+    );
+  }
+
+  console.log(`[send-welcome-email] Internal notification sent for agency ${subdomain}`);
   return NextResponse.json({ success: true });
 }
