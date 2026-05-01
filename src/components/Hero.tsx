@@ -19,8 +19,12 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
 
   const brandColor = agency?.primary_color || "#D4AF37";
   const displayTitle = agency?.hero_title || title || t('footer.excellence') || "Luxury Real Estate";
+  const footerConfig = typeof agency?.footer_config === 'string'
+    ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
+    : (agency?.footer_config || {});
+  const heroVideoEnabled = footerConfig?.integrations?.hero_video_enabled === true;
 
-  const isVideo = agency?.hero_type === 'video';
+  const isVideo = heroVideoEnabled && agency?.hero_type === 'video';
   const rawBgUrl = agency?.hero_url || backgroundImage;
   const cleanBgUrl = rawBgUrl ? rawBgUrl.replace(/['"]+/g, '').trim() : null;
   const isValidUrl = cleanBgUrl && (cleanBgUrl.startsWith('http') || cleanBgUrl.startsWith('/'));

@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
       property_manager_enabled: true,
       chatbot_enabled: true,
       chatbot_daily_limit: 20,
+      hero_video_enabled: false,
     },
     subscription:   {
       website_active: false,

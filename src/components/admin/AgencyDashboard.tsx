@@ -736,11 +736,21 @@ export default function AgencyDashboard() {
       const filePath = `${selectedAgency.subdomain}/${folder}/${timestamp}_${randomId}.${fileExt}`;
 
       const publicUrl = await uploadToStorage(file, filePath);
+      const nextFooterConfig = isVideo
+        ? {
+            ...(selectedAgency.footer_config || {}),
+            integrations: {
+              ...(selectedAgency.footer_config?.integrations || {}),
+              hero_video_enabled: true,
+            },
+          }
+        : selectedAgency.footer_config;
 
       setSelectedAgency({
         ...selectedAgency,
         hero_url: publicUrl,
-        hero_type: isVideo ? 'video' : 'image'
+        hero_type: isVideo ? 'video' : 'image',
+        footer_config: nextFooterConfig,
       });
 
       setMessage({ type: 'success', text: isVideo ? "Vidéo téléchargée avec succès !" : "Image téléchargée avec succès !" });
@@ -1042,6 +1052,7 @@ export default function AgencyDashboard() {
   const activeModulesCount = selectedAgency ? [
     getSub('website_active') !== false,
     getSub('blur_listings') === true,
+    !!getInt('hero_video_enabled'),
     !!getInt('property_manager_enabled'),
     !!getInt('whatsapp_enabled'),
     !!getInt('chatbot_enabled'),
@@ -1639,9 +1650,9 @@ export default function AgencyDashboard() {
                   <h3 className={sHdr}><Layout size={15} className="text-indigo-400" /> {t.sections.hero}</h3>
                   <div className="space-y-5">
                     <div>
-                      <label className={lbl}>{t.fields.hero_type}</label>
+                      <label className={lbl}>Image hero</label>
                       <div className="flex p-1 bg-white/[0.04] border border-white/[0.06] rounded-xl w-fit">
-                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'image'})} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type !== 'video' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><ImageIcon size={13} /> Image</button>
+                        <button type="button" disabled className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"><ImageIcon size={13} /> Image</button>
                         <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><Video size={13} /> Vidéo</button>
                       </div>
                     </div>
@@ -1649,14 +1660,14 @@ export default function AgencyDashboard() {
                       <div className="space-y-2">
                         <label className={lbl}>{t.fields.hero_file}</label>
                         <div className="relative group">
-                          <input type="file" accept="image/*,video/*,.mp4,.mov,.webm,.avi" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                          <input type="file" accept="image/*" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                           <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-indigo-500/30 transition-all">
                             <UploadCloud className="text-white/20 group-hover:text-indigo-400 transition-colors" size={20} />
                             <span className="text-xs text-white/30">{selectedAgency?.hero_url ? (selectedAgency.hero_type === 'video' ? "Changer la vidéo" : "Changer l'image") : t.placeholders.media_upload}</span>
                             <span className="text-[9px] text-white/20">Image ou vidéo MP4 · max 50 Mo</span>
                           </div>
                         </div>
-                        {selectedAgency?.hero_url && (
+                        {selectedAgency?.hero_url && selectedAgency.hero_type !== 'video' && (
                           <div className="mt-2 rounded-xl overflow-hidden relative group border border-white/[0.06]">
                             {selectedAgency.hero_type === 'video' ? (
                               <video src={selectedAgency.hero_url} className="w-full h-28 object-cover" controls />
@@ -1862,6 +1873,52 @@ export default function AgencyDashboard() {
                           <div className="px-4 py-2.5 bg-cyan-500/[0.07] border-t border-cyan-500/20 flex items-center gap-2">
                             <AlertCircle size={12} className="text-cyan-400 shrink-0" />
                             <p className="text-[9px] text-cyan-400/80 font-bold uppercase tracking-wide">Les vignettes au-delà de la 6ème apparaissent floutées avec un message &quot;Contactez-nous&quot;.</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* MODULE: Video Hero */}
+                  {(() => {
+                    const enabled = !!getInt('hero_video_enabled');
+                    const hasVideo = selectedAgency?.hero_url && selectedAgency.hero_type === 'video';
+                    return (
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-fuchsia-500/30 bg-fuchsia-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-fuchsia-500/20' : 'bg-white/[0.05]'}`}>
+                              <Video size={17} className={enabled ? 'text-fuchsia-400' : 'text-white/30'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Vidéo Hero</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/20">Module</span></div>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Remplace l'image hero par une vidéo MP4 sur la homepage</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-fuchsia-500/15 text-fuchsia-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <ToggleSwitch checked={enabled} checkedColor="#d946ef" onChange={(v) => updateNestedConfig('integrations', 'hero_video_enabled', v)} />
+                          </div>
+                        </div>
+                        {enabled && (
+                          <div className="p-4 border-t border-white/[0.05] bg-white/[0.02] space-y-3">
+                            <div className="relative group">
+                              <input type="file" accept="video/mp4,.mp4" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                              <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-fuchsia-500/30 transition-all">
+                                <UploadCloud className="text-white/20 group-hover:text-fuchsia-400 transition-colors" size={20} />
+                                <span className="text-xs text-white/30">{hasVideo ? 'Changer la vidéo hero' : 'Uploader une vidéo hero'}</span>
+                                <span className="text-[9px] text-white/20">MP4 uniquement · max 50 Mo</span>
+                              </div>
+                            </div>
+                            {hasVideo && (
+                              <div className="rounded-xl overflow-hidden relative group border border-white/[0.06]">
+                                <video src={selectedAgency.hero_url} className="w-full h-36 object-cover" controls />
+                                <button type="button" onClick={handleRemoveHero} className="absolute top-2 right-2 p-1.5 bg-red-500/90 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"><Trash2 size={12} /></button>
+                              </div>
+                            )}
+                            {!hasVideo && (
+                              <p className="text-[9px] text-fuchsia-300/70 font-bold uppercase tracking-wide">Si aucune vidéo n'est uploadée, l'image hero standard reste utilisée.</p>
+                            )}
                           </div>
                         )}
                       </div>
@@ -2090,7 +2147,7 @@ export default function AgencyDashboard() {
                     </div>
                     <div className="p-1">
                       <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-slate-900" style={{ fontFamily: selectedAgency.font_family || 'Montserrat, sans-serif' }}>
-                        {selectedAgency.hero_url && selectedAgency.hero_type === 'video' && (
+                        {selectedAgency.hero_url && selectedAgency.hero_type === 'video' && !!getInt('hero_video_enabled') && (
                           <video key={selectedAgency.hero_url} src={selectedAgency.hero_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-60" />
                         )}
                         {selectedAgency.hero_url && selectedAgency.hero_type !== 'video' && (
