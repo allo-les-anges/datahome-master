@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Loader2, CheckCircle2, ArrowRight, Globe, Shield, Zap, BarChart3, Mail } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 // ─── i18n ─────────────────────────────────────────────────────────────────────
 const i18n = {
@@ -258,6 +259,7 @@ const FEATURE_ICONS = [Globe, Shield, BarChart3, Zap];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function RegisterPage() {
+  const router = useRouter();
   const [lang, setLang]     = useState<Lang>('fr');
   const [loading, setLoading] = useState(false);
   const [done, setDone]     = useState(false);
@@ -295,7 +297,13 @@ export default function RegisterPage() {
         setError(json.error || t.error_generic);
         return;
       }
-      setDone(true);
+      const onboardingParams = new URLSearchParams({
+        email: form.email.trim().toLowerCase(),
+        name: form.prenom.trim(),
+        company: form.entreprise.trim(),
+        lang: form.preferred_language,
+      });
+      router.push(`/onboarding?${onboardingParams.toString()}`);
     } catch {
       setError(t.error_generic);
     } finally {
