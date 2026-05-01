@@ -128,37 +128,15 @@ export default async function DynamicAgencyPage({
     return true;
   });
 
-  const countIds = async (scope: 'agency' | 'xml') => {
-    const ids = new Set<string>();
-    const PAGE_SIZE = 1000;
-    let page = 0;
-
-    while (true) {
-      let query = supabase
-        .from('villas')
-        .select('id')
-        .or('is_excluded.eq.false,is_excluded.is.null')
-        .order('id', { ascending: true });
-
-      query = scope === 'agency'
-        ? query.eq('agency_id', agency.id)
-        : query.in('xml_source', xmlUrls);
-
-      const { data } = await query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-      if (!data || data.length === 0) break;
-      for (const row of data) ids.add(String(row.id));
-      if (data.length < PAGE_SIZE) break;
-      page++;
-    }
-
-    return ids;
-  };
-
-  const [agencyIds, xmlIds] = await Promise.all([
-    countIds('agency'),
-    xmlUrls.length > 0 ? countIds('xml') : Promise.resolve(new Set<string>()),
+  const [{ count: agencyCount }, { count: xmlCount }] = await Promise.all([
+    supabase.from('villas').select('*', { count: 'exact', head: true })
+      .eq('agency_id', agency.id).or('is_excluded.eq.false,is_excluded.is.null'),
+    xmlUrls.length > 0
+      ? supabase.from('villas').select('*', { count: 'exact', head: true })
+          .in('xml_source', xmlUrls).or('is_excluded.eq.false,is_excluded.is.null')
+      : Promise.resolve({ count: 0 }),
   ]);
-  const totalIds = new Set([...agencyIds, ...xmlIds]);
+  const totalCount = (agencyCount || 0) + (xmlCount || 0);
 
   return (
     <AgencyPageClient
@@ -166,7 +144,7 @@ export default async function DynamicAgencyPage({
       routeLocale={locale}
       initialAgency={agency}
       initialProperties={villas || []}
-      initialPropertyTotal={totalIds.size}
+      initialPropertyTotal={totalCount}
     />
   );
 }
