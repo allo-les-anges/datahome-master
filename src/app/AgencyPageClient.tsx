@@ -265,64 +265,13 @@ export default function AgencyPageClient({ slug, initialAgency, initialPropertie
           // ignore
         }
       }
+      const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: '10000' });
+      allowedXmlUrls.forEach(url => params.append('xmlSource', url));
 
-      const COLS = `
-        id, id_externe, ref, titre, titre_fr, titre_en, titre_es, titre_nl,
-        titre_pl, titre_ar, price, prix, town, ville, region, province, beds,
-        baths, surface_built, surface_plot, surface_useful, type, pool,
-        is_excluded, agency_id, images, latitude, longitude, adresse,
-        xml_source, commission_percentage, currency, development_name,
-        promoteur_name, distance_beach, distance_golf, distance_town
-      `;
-
-      // Fonction de pagination générique
-      const fetchAllPages = async (baseQuery: any): Promise<any[]> => {
-        const PAGE_SIZE = 1000;
-        const results: any[] = [];
-        let page = 0;
-        while (true) {
-          const { data: pageData, error } = await baseQuery.range(
-            page * PAGE_SIZE,
-            (page + 1) * PAGE_SIZE - 1
-          );
-          if (error) throw error;
-          if (!pageData || pageData.length === 0) break;
-          results.push(...pageData);
-          if (pageData.length < PAGE_SIZE) break;
-          page++;
-        }
-        return results;
-      };
-
-      // Deux requêtes parallèles : agency_id ET xml_source (union = tous les biens de l'agence)
-      const byAgencyQuery = supabase
-        .from('villas')
-        .select(COLS)
-        .eq('agency_id', currentAgency.id)
-        .or('is_excluded.eq.false,is_excluded.is.null');
-
-      const byXmlPromise = allowedXmlUrls.length > 0
-        ? fetchAllPages(
-            supabase
-              .from('villas')
-              .select(COLS)
-              .in('xml_source', allowedXmlUrls)
-              .or('is_excluded.eq.false,is_excluded.is.null')
-          )
-        : Promise.resolve([] as any[]);
-
-      const [byAgency, byXml] = await Promise.all([
-        fetchAllPages(byAgencyQuery),
-        byXmlPromise,
-      ]);
-
-      // Fusion et déduplication par id
-      const seen = new Set<number>();
-      const allData = [...byAgency, ...byXml].filter(v => {
-        if (seen.has(v.id)) return false;
-        seen.add(v.id);
-        return true;
-      });
+      const res = await fetch(`/api/properties?${params.toString()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Properties API ${res.status}`);
+      const json = await res.json();
+      const allData = json.properties || [];
 
       const formatted = formatVillaData(allData);
       setAllProperties(formatted);

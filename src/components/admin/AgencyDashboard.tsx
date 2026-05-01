@@ -371,7 +371,8 @@ export default function AgencyDashboard() {
   const [preRegistrations, setPreRegistrations] = useState<any[]>([]);
   const [selectedPreRegistration, setSelectedPreRegistration] = useState<any>(null);
   const [activePanel, setActivePanel] = useState<'agency' | 'preregistration'>('agency');
-  const [preRegForm, setPreRegForm] = useState({ subdomain: '', packageLevel: 'silver', defaultLang: 'fr', xmlUrl: '', whatsapp: '' });
+  const [preRegForm, setPreRegForm] = useState({ subdomain: '', packageLevel: 'silver', defaultLang: 'fr', whatsapp: '' });
+  const [customXmlUrl, setCustomXmlUrl] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
   const [selectedAgency, setSelectedAgency] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -471,7 +472,6 @@ export default function AgencyDashboard() {
         subdomain: selectedPreRegistration.company_name?.toLowerCase().replace(/\s+/g, '-') || '',
         packageLevel: 'silver',
         defaultLang: selectedPreRegistration.preferred_language || 'fr',
-        xmlUrl: '',
         whatsapp: '',
       });
     }
@@ -517,13 +517,34 @@ export default function AgencyDashboard() {
   const toggleXmlSource = (url: string) => {
     if (!selectedAgency) return;
     setSelectedAgency((prev: any) => {
-      const currentFooterConfig = prev.footer_config || {};
+      const currentFooterConfig = typeof prev.footer_config === 'string'
+        ? (() => { try { return JSON.parse(prev.footer_config); } catch { return {}; } })()
+        : (prev.footer_config || {});
       const currentXmlUrls = currentFooterConfig.xml_urls || [];
       const newXmlUrls = currentXmlUrls.includes(url)
         ? currentXmlUrls.filter((u: string) => u !== url)
         : [...currentXmlUrls, url];
       return { ...prev, footer_config: { ...currentFooterConfig, xml_urls: newXmlUrls } };
     });
+  };
+
+  const addCustomXmlSource = () => {
+    const url = customXmlUrl.trim();
+    if (!url || !/^https?:\/\/.+/.test(url)) {
+      setMessage({ type: 'error', text: 'URL XML invalide' });
+      setTimeout(() => setMessage(null), 4000);
+      return;
+    }
+    if (!selectedAgency) return;
+    setSelectedAgency((prev: any) => {
+      const currentFooterConfig = typeof prev.footer_config === 'string'
+        ? (() => { try { return JSON.parse(prev.footer_config); } catch { return {}; } })()
+        : (prev.footer_config || {});
+      const currentXmlUrls = currentFooterConfig.xml_urls || [];
+      if (currentXmlUrls.includes(url)) return prev;
+      return { ...prev, footer_config: { ...currentFooterConfig, xml_urls: [...currentXmlUrls, url] } };
+    });
+    setCustomXmlUrl('');
   };
 
   const toggleLanguage = (code: string) => {
@@ -878,7 +899,6 @@ export default function AgencyDashboard() {
           primary_color: primaryColor,
           logo_url: selectedPreRegistration.logo_url || '',
           default_lang: preRegForm.defaultLang,
-          xml_url: preRegForm.xmlUrl,
           whatsapp: preRegForm.whatsapp,
           package_level: preRegForm.packageLevel,
         }),
@@ -1372,16 +1392,6 @@ export default function AgencyDashboard() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className={lbl}>Flux XML</label>
-                  <input
-                    type="url"
-                    value={preRegForm.xmlUrl}
-                    onChange={(e) => setPreRegForm(f => ({ ...f, xmlUrl: e.target.value }))}
-                    className={inp}
-                    placeholder="https://..."
-                  />
-                </div>
-                <div className="space-y-2">
                   <label className={lbl}>WhatsApp</label>
                   <input
                     type="text"
@@ -1613,6 +1623,28 @@ export default function AgencyDashboard() {
                         </button>
                       ))}
                     </div>
+                    <div className="flex gap-2 pt-2">
+                      <input
+                        type="url"
+                        className={`${inp} font-mono text-[11px]`}
+                        value={customXmlUrl}
+                        onChange={(e) => setCustomXmlUrl(e.target.value)}
+                        placeholder="Coller une URL XML HabiHub"
+                      />
+                      <button
+                        type="button"
+                        onClick={addCustomXmlSource}
+                        className="shrink-0 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+                      >
+                        Ajouter
+                      </button>
+                    </div>
+                    {(selectedAgency?.footer_config?.xml_urls || []).filter((url: string) => !DISPONIBLE_XML_SOURCES.some((s) => s.url === url)).map((url: string) => (
+                      <button key={url} type="button" onClick={() => toggleXmlSource(url)} className="w-full flex items-center justify-between p-3 rounded-xl border border-indigo-500/25 bg-indigo-500/[0.04] text-left">
+                        <span className="text-[10px] font-mono text-white/45 truncate">{url}</span>
+                        <X size={13} className="text-white/35" />
+                      </button>
+                    ))}
                   </div>
                   <div className="space-y-2 pt-3 border-t border-white/[0.05]">
                     <label className={`${lbl} flex items-center gap-2`}><FileCode size={11} /> HabiHub Agent ID <span className="text-white/20 font-normal normal-case tracking-normal">(fourni par HabiHub)</span></label>

@@ -685,6 +685,9 @@ function SuccessScreen({ lang, params, company, onClose }: {
 }
 
 // ─── MAIN CONTENT COMPLET ──────────────────────────────────────────────────────
+const slugify = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
 function OnboardingContent() {
   useEffect(() => {
     // Ignorer silencieusement l'erreur de contexte
@@ -799,7 +802,6 @@ function OnboardingContent() {
     }
     
     if (step === 3) {
-      if (config.xml_url && !config.xml_url.match(/^https?:\/\/.+/)) errors.xml_url = t.error_invalid_url;
       if (config.facebook && !config.facebook.match(/^https?:\/\/(www\.)?facebook\.com\/.+/)) errors.facebook = t.error_invalid_url;
       if (config.whatsapp && !config.whatsapp.match(/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/)) errors.whatsapp = 'Numéro invalide';
     }
@@ -835,7 +837,7 @@ function OnboardingContent() {
       setConfig((prev) => ({
         ...prev,
         agency_name: verifiedCompany || prev.agency_name,
-        subdomain: (verifiedCompany || prev.agency_name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || prev.subdomain,
+        subdomain: slugify(verifiedCompany || prev.agency_name) || prev.subdomain,
         default_lang: nextLang,
       }));
       setStep(2);
@@ -856,7 +858,8 @@ function OnboardingContent() {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          ...config, 
+          ...config,
+          xml_url: undefined,
           email: params.email,
           logo: state.logoPreview,
           hero_url: state.heroPreview,
@@ -888,7 +891,6 @@ function OnboardingContent() {
         allTouched.subdomain = true;
       }
       if (state.step === 3) {
-        allTouched.xml_url = true;
         allTouched.facebook = true;
         allTouched.whatsapp = true;
       }
@@ -1022,15 +1024,12 @@ function OnboardingContent() {
                     />
                     
                     <div>
-                      <FloatInput 
-                        label={t.field_subdomain} 
-                        value={config.subdomain} 
-                        onChange={(v) => setConfig({...config, subdomain: v.toLowerCase().replace(/[^a-z0-9-]/g, '-')})}
-                        error={state.formErrors.subdomain}
-                        touched={state.touched.subdomain}
-                        required
-                        mono
-                      />
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-white/30 mb-2">
+                        {t.field_subdomain}
+                      </label>
+                      <div className="w-full rounded-2xl bg-white/[0.03] border border-white/10 px-4 py-3 text-white/60 font-mono text-sm">
+                        {config.subdomain || 'nom-agence'}
+                      </div>
                       <SubdomainChecker 
                         subdomain={config.subdomain} 
                         onAvailabilityChange={handleSubdomainAvailabilityChange}
@@ -1109,16 +1108,6 @@ function OnboardingContent() {
                       lang={lang}
                       label={t.field_hero_image}
                     />
-                    
-                    <FloatInput 
-                      label={t.field_xml} 
-                      value={config.xml_url} 
-                      onChange={(v) => setConfig({...config, xml_url: v})}
-                      error={state.formErrors.xml_url}
-                      touched={state.touched.xml_url}
-                      placeholder="https://..."
-                    />
-                    
                     <FloatInput 
                       label={t.field_whatsapp} 
                       value={config.whatsapp} 

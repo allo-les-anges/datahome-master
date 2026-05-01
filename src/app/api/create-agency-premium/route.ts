@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Body JSON invalide' }, { status: 400 });
   }
 
-  const { email, agency_name, subdomain, primary_color, hero_title, default_lang, xml_url, whatsapp, facebook, package_level, logo, logo_url, hero_url } = body;
+  const { email, agency_name, subdomain, primary_color, hero_title, default_lang, whatsapp, facebook, package_level, logo, logo_url, hero_url } = body;
 
   if (!email || !agency_name || !subdomain) {
     return NextResponse.json({ success: false, error: 'email, agency_name et subdomain sont requis' }, { status: 400 });
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   const trialExpiresAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
   const footer_config = {
     allowed_langs:  default_lang ? [default_lang, 'en'].filter((v, i, a) => a.indexOf(v) === i) : ['en'],
-    xml_urls:       xml_url ? [xml_url] : [],
+    xml_urls:       [],
     socials:        { facebook: facebook || '', whatsapp: whatsapp || '' },
     integrations:   { crm_enabled: false, leads_enabled: false, property_manager_enabled: true },
     subscription:   { website_active: false, plan: 'trial', trial_expires_at: trialExpiresAt },
