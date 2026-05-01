@@ -621,7 +621,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 bg-slate-900/95 backdrop-blur-xl"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-3 md:p-6 bg-slate-950/90 backdrop-blur-2xl"
             style={{ fontFamily: fontFamily }}
           >
             <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
@@ -629,16 +629,20 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
               initial={{ scale: 0.9, y: 20 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.9, y: 20 }} 
-              className="relative w-full max-w-5xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
-              style={{ backgroundColor: '#ffffff' }}
+              className="relative w-full max-w-6xl rounded-[28px] md:rounded-[34px] shadow-2xl overflow-hidden flex flex-col max-h-[94vh] border"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.94))',
+                borderColor: 'rgba(255,255,255,0.35)',
+                boxShadow: `0 40px 120px rgba(0,0,0,0.55), 0 0 0 1px ${primaryColor}18`,
+              }}
             >
               <button 
                 onClick={() => setIsSearchOpen(false)} 
-                className="absolute top-6 right-6 p-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors z-[220]"
+                className="absolute top-4 right-4 md:top-6 md:right-6 p-3 bg-slate-900/5 hover:bg-slate-900/10 rounded-2xl text-slate-500 transition-colors z-[220] border border-slate-200/70"
               >
                 <X size={20} />
               </button>
-              <div className="flex-grow overflow-y-auto p-6 md:p-12">
+              <div className="flex-grow overflow-y-auto p-4 md:p-8">
                 <AdvancedSearch
                   agency={agency}
                   onSearch={handleSearch}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Map, Home, Hash, Bed, RotateCcw, ArrowUpDown } from "lucide-react";
+import { Search, Map, Home, Hash, Bed, RotateCcw, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
 
 interface AdvancedSearchProps {
@@ -31,6 +31,11 @@ export default function AdvancedSearch({
   const buttonStyle = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
   const buttonAnimation = agency?.button_animation || 'scale';
   const localeCode = typeof locale === 'string' ? locale : 'fr';
+  const panelBg = isLight ? 'rgba(248,250,252,0.82)' : 'rgba(255,255,255,0.035)';
+  const panelBorder = isLight ? 'rgba(203,213,225,0.72)' : 'rgba(255,255,255,0.08)';
+  const fieldBg = isLight ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.05)';
+  const labelColor = isLight ? '#64748b' : '#94a3b8';
+  const textColor = isLight ? '#0f172a' : '#ffffff';
 
   const MIN_VAL = 0;
   const MAX_VAL = 20000000;
@@ -208,32 +213,53 @@ export default function AdvancedSearch({
         }
       `}</style>
       
-      <div className="flex justify-between items-center mb-8 pb-4" style={{ borderBottom: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}` }}>
-        <h3 
-          className="text-2xl md:text-3xl font-serif italic"
-          style={{ color: isLight ? '#0f172a' : '#ffffff' }}
-        >
-          {t('common.search') || "Search"}
-        </h3>
+      <div
+        className="relative mb-6 overflow-hidden rounded-3xl border p-5 md:p-6"
+        style={{
+          background: `linear-gradient(135deg, ${panelBg}, rgba(255,255,255,0.52))`,
+          borderColor: panelBorder,
+          boxShadow: '0 18px 60px rgba(15,23,42,0.08)',
+        }}
+      >
+        <div className="absolute inset-y-0 right-0 w-1/3 opacity-20" style={{ background: `radial-gradient(circle at 80% 20%, ${brandColor}, transparent 52%)` }} />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border" style={{ backgroundColor: `${brandColor}16`, borderColor: `${brandColor}28` }}>
+              <SlidersHorizontal size={20} style={{ color: brandColor }} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.28em]" style={{ color: brandColor }}>
+                {t('nav.results') || 'Properties'}
+              </p>
+              <h3
+                className="text-2xl md:text-3xl font-serif italic leading-tight"
+                style={{ color: textColor }}
+              >
+                {t('common.search') || "Search"}
+              </h3>
+            </div>
+          </div>
         <button 
           onClick={handleReset}
-          className="group flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors"
-          style={{ color: isLight ? '#94a3b8' : '#64748b' }}
+          className="group flex items-center justify-center gap-2.5 rounded-2xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all hover:-translate-y-0.5"
+          style={{ color: labelColor, borderColor: panelBorder, backgroundColor: fieldBg }}
         >
           <RotateCcw size={14} className="group-hover:rotate-[-90deg] transition-transform" /> 
           {t('home.reset') || "Reset filters"}
         </button>
+        </div>
       </div>
 
-      <form className="space-y-8 md:space-y-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
+      <form className="space-y-5 md:space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* CHAMP RÉFÉRENCE (corrigé) */}
-          <div className="md:col-span-2 space-y-3 p-5 rounded-2xl" style={{ 
-            backgroundColor: isLight ? '#f8fafc' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}`
+          <div className="md:col-span-2 space-y-3 p-5 rounded-3xl border" style={{ 
+            backgroundColor: panelBg,
+            borderColor: panelBorder,
+            boxShadow: '0 12px 40px rgba(15,23,42,0.05)',
           }}>
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.2em]" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.2em]" style={{ color: labelColor }}>
               <Hash size={14} className="text-primary" /> {t('propertyCard.ref')?.replace('{ref}', '') || "Reference"}
             </label>
             <input 
@@ -241,29 +267,29 @@ export default function AdvancedSearch({
               placeholder="REF-1234"
               value={localFilters.reference}
               onChange={(e) => setLocalFilters({ ...localFilters, reference: e.target.value })}
-              className="w-full rounded-xl p-3 text-sm font-medium outline-none transition-all shadow-inner"
+              className="w-full rounded-2xl p-4 text-sm font-semibold outline-none transition-all shadow-sm focus:ring-4"
               style={{
-                backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-                color: isLight ? '#0f172a' : '#ffffff',
+                backgroundColor: fieldBg,
+                border: `1px solid ${panelBorder}`,
+                color: textColor,
               }}
             />
           </div>
 
           {/* RÉGION */}
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+          <div className="space-y-3 rounded-3xl border p-5" style={{ backgroundColor: panelBg, borderColor: panelBorder }}>
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.18em]" style={{ color: labelColor }}>
               <Map size={14} className="text-primary" /> {t('home.region') || "Region"}
             </label>
             <div className="relative">
               <select 
                 value={localFilters.region}
                 onChange={(e) => setLocalFilters({ ...localFilters, region: e.target.value, town: "" })}
-                className="w-full p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
+                className="w-full p-4 rounded-2xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
                 style={{
-                  backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-                  color: isLight ? '#0f172a' : '#ffffff',
+                  backgroundColor: fieldBg,
+                  border: `1px solid ${panelBorder}`,
+                  color: textColor,
                 }}
               >
                 <option value="">{t('home.allRegions') || "All regions"}</option>
@@ -278,19 +304,19 @@ export default function AdvancedSearch({
           </div>
 
           {/* VILLE (NOUVEAU - dynamique basé sur la région) */}
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+          <div className="space-y-3 rounded-3xl border p-5" style={{ backgroundColor: panelBg, borderColor: panelBorder }}>
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.18em]" style={{ color: labelColor }}>
               <Map size={14} className="text-primary" /> {t('home.city') || "City"}
             </label>
             <div className="relative">
               <select 
                 value={localFilters.town}
                 onChange={(e) => setLocalFilters({ ...localFilters, town: e.target.value })}
-                className="w-full p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
+                className="w-full p-4 rounded-2xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm disabled:opacity-50"
                 style={{
-                  backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-                  color: isLight ? '#0f172a' : '#ffffff',
+                  backgroundColor: fieldBg,
+                  border: `1px solid ${panelBorder}`,
+                  color: textColor,
                 }}
                 disabled={!localFilters.region}
               >
@@ -306,19 +332,19 @@ export default function AdvancedSearch({
           </div>
 
           {/* TYPE */}
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+          <div className="space-y-3 rounded-3xl border p-5" style={{ backgroundColor: panelBg, borderColor: panelBorder }}>
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.18em]" style={{ color: labelColor }}>
               <Home size={14} className="text-primary" /> {t('propertyCard.type') || "Type"}
             </label>
             <div className="relative">
               <select 
                 value={localFilters.type}
                 onChange={(e) => setLocalFilters({ ...localFilters, type: e.target.value })}
-                className="w-full p-3 rounded-xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
+                className="w-full p-4 rounded-2xl text-[13px] font-semibold outline-none cursor-pointer appearance-none transition-all shadow-sm"
                 style={{
-                  backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`,
-                  color: isLight ? '#0f172a' : '#ffffff',
+                  backgroundColor: fieldBg,
+                  border: `1px solid ${panelBorder}`,
+                  color: textColor,
                 }}
               >
                 <option value="">{t('home.allTypes') || "All types"}</option>
@@ -333,20 +359,20 @@ export default function AdvancedSearch({
           </div>
 
           {/* CHAMBRES */}
-          <div className="space-y-3 md:col-span-2 lg:col-span-2">
-            <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+          <div className="space-y-3 md:col-span-2 lg:col-span-2 rounded-3xl border p-5" style={{ backgroundColor: panelBg, borderColor: panelBorder }}>
+            <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.18em]" style={{ color: labelColor }}>
               <Bed size={14} className="text-primary" /> {t('propertyDetail.bedrooms') || "Bedrooms"}
             </label>
-            <div className="flex p-1 rounded-full shadow-sm" style={{ 
-              backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)'}`
+            <div className="flex p-1.5 rounded-2xl shadow-sm" style={{ 
+              backgroundColor: fieldBg,
+              border: `1px solid ${panelBorder}`
             }}>
               {[0, 2, 3, 4, 5].map((n) => (
                 <button
                   key={`beds-${n}`}
                   type="button"
                   onClick={() => setLocalFilters({ ...localFilters, beds: n.toString() })}
-                  className={`flex-1 h-10 rounded-full text-[12px] font-extrabold transition-all duration-300 ${
+                  className={`flex-1 h-11 rounded-xl text-[12px] font-extrabold transition-all duration-300 ${
                     (localFilters.beds === n.toString() || (n === 0 && !localFilters.beds)) 
                       ? "bg-primary text-white shadow-md scale-105" 
                       : "hover:bg-slate-100 dark:hover:bg-white/10"
@@ -360,17 +386,18 @@ export default function AdvancedSearch({
           </div>
 
           {/* SECTION PRIX */}
-          <div className="md:col-span-2 lg:col-span-4 space-y-8 p-6 md:p-8 rounded-3xl" style={{ 
-            backgroundColor: isLight ? '#f8fafc' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}`
+          <div className="md:col-span-2 lg:col-span-4 space-y-8 p-6 md:p-8 rounded-3xl border" style={{ 
+            backgroundColor: panelBg,
+            borderColor: panelBorder,
+            boxShadow: '0 16px 50px rgba(15,23,42,0.06)',
           }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-4">
-                  <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+                  <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: labelColor }}>
                     {t('propertyDetail.minPrice') || "Minimum price"}
                   </label>
-                  <span className="text-xl font-serif italic" style={{ color: isLight ? '#0f172a' : '#ffffff' }}>
+                  <span className="text-xl font-serif italic" style={{ color: textColor }}>
                     {formatPrice(Number(localFilters.minPrice))}
                   </span>
                 </div>
@@ -388,10 +415,10 @@ export default function AdvancedSearch({
 
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-4">
-                  <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+                  <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: labelColor }}>
                     {t('propertyDetail.maxPrice') || "Maximum price"}
                   </label>
-                  <span className="text-xl font-serif italic" style={{ color: isLight ? '#0f172a' : '#ffffff' }}>
+                  <span className="text-xl font-serif italic" style={{ color: textColor }}>
                     {Number(localFilters.maxPrice) >= MAX_VAL - STEP ? (t('home.unlimited') || 'Unlimited') : formatPrice(Number(localFilters.maxPrice))}
                   </span>
                 </div>
@@ -411,16 +438,16 @@ export default function AdvancedSearch({
         </div>
 
         {/* SECTION TRI PAR PRIX */}
-        <div className="flex justify-between items-center pt-4">
-          <div className="flex items-center gap-4">
-            <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
+        <div className="rounded-3xl border p-4 md:p-5" style={{ backgroundColor: panelBg, borderColor: panelBorder }}>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: labelColor }}>
               {t('propertyDetail.sortByPrice') || "Sort by price"}
             </label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2 md:flex">
               <button
                 type="button"
                 onClick={() => setSortOrder('asc')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-[10px] font-bold uppercase transition-all ${
                   sortOrder === 'asc' 
                     ? 'bg-primary text-black shadow-md' 
                     : 'bg-transparent hover:bg-white/10'
@@ -436,7 +463,7 @@ export default function AdvancedSearch({
               <button
                 type="button"
                 onClick={() => setSortOrder('desc')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-all ${
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-[10px] font-bold uppercase transition-all ${
                   sortOrder === 'desc' 
                     ? 'bg-primary text-black shadow-md' 
                     : 'bg-transparent hover:bg-white/10'
@@ -453,11 +480,11 @@ export default function AdvancedSearch({
           </div>
         </div>
 
-        <div className="flex justify-center pt-4 pb-6 md:pb-0">
+        <div className="sticky bottom-0 -mx-4 md:-mx-8 mt-2 flex justify-center border-t border-slate-200/70 bg-white/85 px-4 py-4 backdrop-blur-xl md:px-8">
           <button 
             type="button"
             onClick={handleSearchClick}
-            className={`group flex items-center justify-center gap-5 w-full md:w-auto md:px-16 py-5 bg-primary text-black rounded-xl transition-all duration-300 shadow-xl shadow-primary/30 ${getButtonAnimationClass()} ${buttonStyle}`}
+            className={`group flex items-center justify-center gap-5 w-full md:w-auto md:px-16 py-5 bg-primary text-black rounded-2xl transition-all duration-300 shadow-xl shadow-primary/30 ${getButtonAnimationClass()} ${buttonStyle}`}
           >
             <Search size={20} strokeWidth={3} className="group-hover:rotate-6 transition-transform" />
             <span className="text-[11px] font-black uppercase tracking-[0.4em]">{buttonText}</span>
