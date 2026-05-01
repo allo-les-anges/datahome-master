@@ -905,6 +905,36 @@ export default function AgencyDashboard() {
     } finally { setIsCreating(false); }
   };
 
+  const sendWelcomeEmailForAgency = async (agency: any) => {
+    if (!agency?.email) {
+      throw new Error("Email client manquant sur la fiche agence");
+    }
+
+    const footerConfig = typeof agency.footer_config === 'string'
+      ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
+      : (agency.footer_config || {});
+
+    const res = await fetch('/api/admin/send-welcome-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agency_id:        agency.id,
+        email:            agency.email,
+        first_name:       agency.contact_first_name || agency.agency_name,
+        company_name:     agency.agency_name,
+        subdomain:        agency.subdomain,
+        default_lang:     agency.default_lang || footerConfig.allowed_langs?.[0] || 'fr',
+        package_level:    agency.package_level || 'silver',
+        trial_expires_at: agency.trial_expires_at || footerConfig.subscription?.trial_expires_at || new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+      }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json.success === false) {
+      throw new Error(json.error || "Erreur lors de l'envoi du mail client");
+    }
+  };
+
   const handlePublish = async (agency: any) => {
     if (!confirm(`Publier le site de "${agency.agency_name}" ?`)) return;
     setPublishingId(agency.id);
@@ -921,9 +951,10 @@ export default function AgencyDashboard() {
         .update({ website_status: 'active', footer_config: updatedFooter, updated_at: new Date().toISOString() })
         .eq('id', agency.id);
       if (error) throw error;
+      await sendWelcomeEmailForAgency({ ...agency, footer_config: updatedFooter, website_status: 'active' });
       setPendingAgencies((prev) => prev.filter((a) => a.id !== agency.id));
       setAgencies((prev) => prev.map((a) => a.id === agency.id ? { ...a, website_status: 'active', footer_config: updatedFooter } : a));
-      setMessage({ type: 'success', text: `${agency.agency_name} est maintenant en ligne !` });
+      setMessage({ type: 'success', text: `${agency.agency_name} est maintenant en ligne. Email client envoyé !` });
       setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
       console.error('Publish error:', err);
@@ -969,22 +1000,6 @@ export default function AgencyDashboard() {
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Erreur création agence');
-
-      // Envoyer l'email de bienvenue avec les identifiants provisoires (non bloquant)
-      fetch('/api/admin/send-welcome-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          agency_id:       json.agency_id,
-          email:           selectedPreRegistration.email,
-          first_name:      selectedPreRegistration.first_name,
-          company_name:    selectedPreRegistration.company_name,
-          subdomain:       preRegForm.subdomain,
-          default_lang:    preRegForm.defaultLang,
-          package_level:   preRegForm.packageLevel,
-          trial_expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-        }),
-      }).catch(err => console.error('[welcome-email]', err));
 
       // Mark pre-registration as converted (removed from DEMANDES)
       await supabase

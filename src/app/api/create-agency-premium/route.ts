@@ -78,12 +78,24 @@ export async function POST(req: NextRequest) {
     allowed_langs:  default_lang ? [default_lang, 'en'].filter((v, i, a) => a.indexOf(v) === i) : ['en'],
     xml_urls:       [],
     socials:        { facebook: facebook || '', whatsapp: whatsapp || '' },
-    integrations:   { crm_enabled: false, leads_enabled: false, property_manager_enabled: true },
-    subscription:   { website_active: false, plan: 'trial', trial_expires_at: trialExpiresAt },
+    integrations:   {
+      crm_enabled: false,
+      leads_enabled: true,
+      property_manager_enabled: true,
+      chatbot_enabled: true,
+      chatbot_daily_limit: 20,
+    },
+    subscription:   {
+      website_active: false,
+      blur_listings: true,
+      plan: 'trial',
+      trial_expires_at: trialExpiresAt,
+    },
   };
 
   const insertPayload = {
     agency_name:      agency_name.trim(),
+    email:            email.trim().toLowerCase(),
     subdomain:        subdomain.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
     primary_color:    primary_color || '#e5992e',
     button_color:     primary_color || '#e5992e',
