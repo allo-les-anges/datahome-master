@@ -39,7 +39,9 @@
     "propertiesSingular": "eigendom",
     "propertiesPlural": "eigendommen",
     "propertiesAvailable": "{count} eigendommen beschikbaar",
-    "propertiesPerPage": "Eigendommen per pagina"
+    "propertiesPerPage": "Eigendommen per pagina",
+    "allBedrooms": "Alle",
+    "unlimited": "Onbeperkt"
   },
   "propertyCard": {
     "ref": "REF: {ref}",

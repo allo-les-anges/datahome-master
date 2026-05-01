@@ -39,7 +39,9 @@
     "propertiesSingular": "propiedad",
     "propertiesPlural": "propiedades",
     "propertiesAvailable": "{count} propiedades disponibles",
-    "propertiesPerPage": "Propiedades por página"
+    "propertiesPerPage": "Propiedades por página",
+    "allBedrooms": "Todos",
+    "unlimited": "Ilimitado"
   },
   "propertyCard": {
     "ref": "REF: {ref}",

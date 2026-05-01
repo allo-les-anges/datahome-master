@@ -39,7 +39,9 @@
     "propertiesSingular": "عقار",
     "propertiesPlural": "عقارات",
     "propertiesAvailable": "{count} عقارات متاحة",
-    "propertiesPerPage": "العقارات لكل صفحة"
+    "propertiesPerPage": "العقارات لكل صفحة",
+    "allBedrooms": "الكل",
+    "unlimited": "غير محدود"
   },
   "propertyCard": {
     "ref": "المرجع: {ref}",

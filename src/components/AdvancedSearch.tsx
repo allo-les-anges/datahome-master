@@ -30,6 +30,7 @@ export default function AdvancedSearch({
   const fontFamily = agency?.font_family || 'Montserrat';
   const buttonStyle = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
   const buttonAnimation = agency?.button_animation || 'scale';
+  const localeCode = typeof locale === 'string' ? locale : 'fr';
 
   const MIN_VAL = 0;
   const MAX_VAL = 20000000;
@@ -92,6 +93,16 @@ export default function AdvancedSearch({
 
     // Priorité à availableTypes (requête dédiée sans limite de pagination)
     // Sinon on dérive depuis les biens déjà chargés en mémoire
+    const localizedTypeLabels: Record<string, Record<string, string>> = {
+      fr: translation,
+      en: { villa: "Villa", apartment: "Apartment", penthouse: "Penthouse", bungalow: "Bungalow", townhouse: "Townhouse", house: "House", maison: "House", terrain: "Land", land: "Land", commercial: "Commercial", plot: "Plot", studio: "Studio", duplex: "Duplex", chalet: "Chalet", farmhouse: "Farmhouse", property: "Property" },
+      es: { villa: "Villa", apartment: "Apartamento", penthouse: "Atico", bungalow: "Bungalow", townhouse: "Adosado", house: "Casa", maison: "Casa", terrain: "Terreno", land: "Terreno", commercial: "Comercial", plot: "Parcela", studio: "Studio", duplex: "Duplex", chalet: "Chalet", farmhouse: "Finca", property: "Propiedad" },
+      nl: { villa: "Villa", apartment: "Appartement", penthouse: "Penthouse", bungalow: "Bungalow", townhouse: "Rijwoning", house: "Huis", maison: "Huis", terrain: "Grond", land: "Grond", commercial: "Commercieel", plot: "Perceel", studio: "Studio", duplex: "Duplex", chalet: "Chalet", farmhouse: "Hoeve", property: "Eigendom" },
+      pl: { villa: "Willa", apartment: "Apartament", penthouse: "Penthouse", bungalow: "Bungalow", townhouse: "Dom szeregowy", house: "Dom", maison: "Dom", terrain: "Dzialka", land: "Dzialka", commercial: "Lokal komercyjny", plot: "Dzialka", studio: "Studio", duplex: "Duplex", chalet: "Chalet", farmhouse: "Dom wiejski", property: "Nieruchomosc" },
+      ar: { villa: "فيلا", apartment: "شقة", penthouse: "بنتهاوس", bungalow: "بنغل", townhouse: "تاون هاوس", house: "منزل", maison: "منزل", terrain: "أرض", land: "أرض", commercial: "تجاري", plot: "قطعة أرض", studio: "استوديو", duplex: "دوبلكس", chalet: "شاليه", farmhouse: "مزرعة", property: "عقار" },
+    };
+    const labels = localizedTypeLabels[localeCode] || localizedTypeLabels.fr;
+
     const source: string[] = availableTypes && availableTypes.length > 0
       ? availableTypes
       : (Array.isArray(properties) ? properties : []).map((p) => p.type);
@@ -102,10 +113,10 @@ export default function AdvancedSearch({
     return distinctTypes
       .map((t) => ({
         id: t,
-        label: translation[t] || t.charAt(0).toUpperCase() + t.slice(1),
+        label: labels[t] || t.charAt(0).toUpperCase() + t.slice(1),
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [properties, availableTypes]);
+  }, [properties, availableTypes, localeCode]);
 
   // Extraction dynamique des Villes UNIQUES (basé sur la région sélectionnée)
   const uniqueTowns = useMemo(() => {
@@ -135,7 +146,7 @@ export default function AdvancedSearch({
   };
 
   const formatPrice = (price: number) => {
-    return price.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+    return price.toLocaleString(localeCode === 'en' ? 'en-US' : localeCode, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
   };
 
   const getSliderBackground = (value: number) => {
@@ -154,7 +165,7 @@ export default function AdvancedSearch({
   };
 
   // Texte du bouton traduit
-  const buttonText = t('common.search') || "Voir les résultats";
+  const buttonText = t('common.search') || "Search";
 
   return (
     <div 
@@ -202,7 +213,7 @@ export default function AdvancedSearch({
           className="text-2xl md:text-3xl font-serif italic"
           style={{ color: isLight ? '#0f172a' : '#ffffff' }}
         >
-          {t('common.search') || "Recherche"}
+          {t('common.search') || "Search"}
         </h3>
         <button 
           onClick={handleReset}
@@ -210,7 +221,7 @@ export default function AdvancedSearch({
           style={{ color: isLight ? '#94a3b8' : '#64748b' }}
         >
           <RotateCcw size={14} className="group-hover:rotate-[-90deg] transition-transform" /> 
-          {t('home.reset') || "Réinitialiser"}
+          {t('home.reset') || "Reset filters"}
         </button>
       </div>
 
@@ -223,7 +234,7 @@ export default function AdvancedSearch({
             border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255,255,255,0.05)'}`
           }}>
             <label className="flex items-center gap-3 text-[9px] uppercase font-black tracking-[0.2em]" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
-              <Hash size={14} className="text-primary" /> {t('propertyCard.ref')?.replace('{ref}', '') || "Référence"}
+              <Hash size={14} className="text-primary" /> {t('propertyCard.ref')?.replace('{ref}', '') || "Reference"}
             </label>
             <input 
               type="text"
@@ -242,7 +253,7 @@ export default function AdvancedSearch({
           {/* RÉGION */}
           <div className="space-y-3">
             <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
-              <Map size={14} className="text-primary" /> {t('home.region') || "Région"}
+              <Map size={14} className="text-primary" /> {t('home.region') || "Region"}
             </label>
             <div className="relative">
               <select 
@@ -255,7 +266,7 @@ export default function AdvancedSearch({
                   color: isLight ? '#0f172a' : '#ffffff',
                 }}
               >
-                <option value="">{t('home.allRegions') || "Toutes les régions"}</option>
+                <option value="">{t('home.allRegions') || "All regions"}</option>
                 {uniqueRegions.map(r => (
                   <option key={`reg-${r}`} value={r}>{r}</option>
                 ))}
@@ -269,7 +280,7 @@ export default function AdvancedSearch({
           {/* VILLE (NOUVEAU - dynamique basé sur la région) */}
           <div className="space-y-3">
             <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
-              <Map size={14} className="text-primary" /> {t('home.city') || "Ville"}
+              <Map size={14} className="text-primary" /> {t('home.city') || "City"}
             </label>
             <div className="relative">
               <select 
@@ -283,7 +294,7 @@ export default function AdvancedSearch({
                 }}
                 disabled={!localFilters.region}
               >
-                <option value="">{t('home.allCities') || "Toutes les villes"}</option>
+                <option value="">{t('home.allCities') || "All cities"}</option>
                 {uniqueTowns.map(t => (
                   <option key={`town-${t}`} value={t}>{t}</option>
                 ))}
@@ -310,7 +321,7 @@ export default function AdvancedSearch({
                   color: isLight ? '#0f172a' : '#ffffff',
                 }}
               >
-                <option value="">{t('home.allTypes') || "Tous types"}</option>
+                <option value="">{t('home.allTypes') || "All types"}</option>
                 {uniqueTypes.map(t => (
                   <option key={`type-${t.id}`} value={t.id}>{t.label}</option>
                 ))}
@@ -324,7 +335,7 @@ export default function AdvancedSearch({
           {/* CHAMBRES */}
           <div className="space-y-3 md:col-span-2 lg:col-span-2">
             <label className="flex items-center gap-3 text-[9px] uppercase font-black" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
-              <Bed size={14} className="text-primary" /> {t('propertyCard.beds') || "Chambres min."}
+              <Bed size={14} className="text-primary" /> {t('propertyDetail.bedrooms') || "Bedrooms"}
             </label>
             <div className="flex p-1 rounded-full shadow-sm" style={{ 
               backgroundColor: isLight ? '#ffffff' : 'rgba(255,255,255,0.03)',
@@ -342,7 +353,7 @@ export default function AdvancedSearch({
                   }`}
                   style={{ color: (localFilters.beds === n.toString() || (n === 0 && !localFilters.beds)) ? '#000000' : (isLight ? '#64748b' : '#94a3b8') }}
                 >
-                  {n === 0 ? "Tous" : `${n}+`}
+                  {n === 0 ? (t('home.allBedrooms') || 'All') : `${n}+`}
                 </button>
               ))}
             </div>
@@ -357,7 +368,7 @@ export default function AdvancedSearch({
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-4">
                   <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
-                    {t('propertyDetail.minPrice') || "Prix Minimum"}
+                    {t('propertyDetail.minPrice') || "Minimum price"}
                   </label>
                   <span className="text-xl font-serif italic" style={{ color: isLight ? '#0f172a' : '#ffffff' }}>
                     {formatPrice(Number(localFilters.minPrice))}
@@ -378,10 +389,10 @@ export default function AdvancedSearch({
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline gap-4">
                   <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
-                    {t('propertyDetail.maxPrice') || "Prix Maximum"}
+                    {t('propertyDetail.maxPrice') || "Maximum price"}
                   </label>
                   <span className="text-xl font-serif italic" style={{ color: isLight ? '#0f172a' : '#ffffff' }}>
-                    {Number(localFilters.maxPrice) >= MAX_VAL - STEP ? "Illimité" : formatPrice(Number(localFilters.maxPrice))}
+                    {Number(localFilters.maxPrice) >= MAX_VAL - STEP ? (t('home.unlimited') || 'Unlimited') : formatPrice(Number(localFilters.maxPrice))}
                   </span>
                 </div>
                 <input 
@@ -403,7 +414,7 @@ export default function AdvancedSearch({
         <div className="flex justify-between items-center pt-4">
           <div className="flex items-center gap-4">
             <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: isLight ? '#64748b' : '#94a3b8' }}>
-              {t('propertyDetail.sortByPrice') || "Trier par prix :"}
+              {t('propertyDetail.sortByPrice') || "Sort by price"}
             </label>
             <div className="flex gap-2">
               <button
@@ -420,7 +431,7 @@ export default function AdvancedSearch({
                   border: `1px solid ${sortOrder === 'asc' ? 'transparent' : (isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)')}`
                 }}
               >
-                <ArrowUpDown size={12} /> Croissant
+                <ArrowUpDown size={12} /> {t('propertyDetail.sortAsc') || 'Ascending'}
               </button>
               <button
                 type="button"
@@ -436,7 +447,7 @@ export default function AdvancedSearch({
                   border: `1px solid ${sortOrder === 'desc' ? 'transparent' : (isLight ? '#e2e8f0' : 'rgba(255,255,255,0.1)')}`
                 }}
               >
-                <ArrowUpDown size={12} className="rotate-180" /> Décroissant
+                <ArrowUpDown size={12} className="rotate-180" /> {t('propertyDetail.sortDesc') || 'Descending'}
               </button>
             </div>
           </div>

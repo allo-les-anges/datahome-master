@@ -39,7 +39,9 @@
     "propertiesSingular": "nieruchomość",
     "propertiesPlural": "nieruchomości",
     "propertiesAvailable": "{count} dostępnych nieruchomości",
-    "propertiesPerPage": "Nieruchomości na stronę"
+    "propertiesPerPage": "Nieruchomości na stronę",
+    "allBedrooms": "Wszystkie",
+    "unlimited": "Bez limitu"
   },
   "propertyCard": {
     "ref": "REF: {ref}",
