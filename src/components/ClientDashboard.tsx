@@ -223,6 +223,7 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <img src="/logo-data-home.jpeg" alt="DataHome" className="h-9 w-9 rounded-xl object-cover" />
           <button
             type="button"
             onClick={() => setIsDark(v => !v)}

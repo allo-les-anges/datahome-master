@@ -104,6 +104,7 @@ export default function LeadsDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <form onSubmit={handleLogin} className="bg-white p-8 rounded-2xl shadow-lg w-96">
+          <img src="/logo-data-home.jpeg" alt="DataHome" className="h-20 w-auto object-contain mx-auto mb-5 rounded-xl" />
           <h1 className="text-2xl font-bold mb-2 text-center">Accès Leads</h1>
           <p className="text-slate-500 text-sm text-center mb-6">Dashboard leads qualifiés</p>
           <input
@@ -128,7 +129,10 @@ export default function LeadsDashboard() {
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-6">
-          <h1 className="text-lg font-black uppercase tracking-widest text-slate-900">Leads Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <img src="/logo-data-home.jpeg" alt="DataHome" className="h-9 w-9 rounded-xl object-cover" />
+            <h1 className="text-lg font-black uppercase tracking-widest text-slate-900">Leads Dashboard</h1>
+          </div>
           <nav className="flex items-center gap-1">
             <Link href="/admin/agencies" className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all flex items-center gap-2">
               <Building2 size={14} /> Agences

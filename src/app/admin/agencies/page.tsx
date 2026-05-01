@@ -25,6 +25,7 @@ export default function AgenciesPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <form onSubmit={handleLogin} className="bg-white p-8 rounded-2xl shadow-lg w-96">
+          <img src="/logo-data-home.jpeg" alt="DataHome" className="h-20 w-auto object-contain mx-auto mb-5 rounded-xl" />
           <h1 className="text-2xl font-bold mb-2 text-center">Accès Administration</h1>
           <p className="text-slate-500 text-sm text-center mb-6">Configuration des agences</p>
           

@@ -48,8 +48,9 @@ export default function AdminRoot() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <form onSubmit={handleLogin} className="bg-white p-8 rounded-2xl shadow-lg w-96">
+          <img src="/logo-data-home.jpeg" alt="DataHome" className="h-20 w-auto object-contain mx-auto mb-5 rounded-xl" />
           <h1 className="text-2xl font-bold mb-2 text-center">Accès Administration</h1>
-          <p className="text-slate-500 text-sm text-center mb-6">Espace sécurisé HabiHub</p>
+          <p className="text-slate-500 text-sm text-center mb-6">Espace sécurisé DataHome</p>
           
           <input
             type="password"
@@ -78,7 +79,10 @@ export default function AdminRoot() {
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Tableau de bord Administration</h1>
+        <div className="flex items-center gap-3">
+          <img src="/logo-data-home.jpeg" alt="DataHome" className="h-10 w-10 rounded-xl object-cover" />
+          <h1 className="text-2xl font-bold">Tableau de bord Administration</h1>
+        </div>
         <button
           onClick={() => {
             sessionStorage.removeItem('admin_auth');
@@ -90,7 +94,7 @@ export default function AdminRoot() {
           Se déconnecter
         </button>
       </div>
-      <p className="text-slate-600">Bienvenue dans votre espace de gestion HabiHub.</p>
+      <p className="text-slate-600">Bienvenue dans votre espace de gestion DataHome.</p>
     </div>
   );
 }

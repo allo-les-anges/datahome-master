@@ -992,11 +992,9 @@ export default function AgencyDashboard() {
             </button>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <Sparkles size={14} className="text-white" />
-            </div>
+            <img src="/logo-data-home.jpeg" alt="DataHome" className="w-11 h-11 rounded-xl object-cover border border-white/[0.08] shadow-lg shadow-black/30" />
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/25">{t.admin}</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/25">DataHome</p>
               <p className="font-bold text-sm text-white leading-tight">{t.saas_title}</p>
             </div>
           </div>
