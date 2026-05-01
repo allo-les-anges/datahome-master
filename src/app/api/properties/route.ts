@@ -59,6 +59,50 @@ export async function GET(request: Request) {
       return q;
     };
 
+    const applyFilters = (q: any) => {
+      if (type) q = q.ilike('type', `%${type}%`);
+      if (region) q = q.eq('region', region);
+      if (town) q = q.ilike('town', `%${town}%`);
+      if (ref) q = q.ilike('ref', `%${ref}%`);
+      if (beds) q = q.gte('beds', parseInt(beds));
+      if (minPrice) q = q.gte('price', parseInt(minPrice));
+      if (maxPrice) q = q.lte('price', parseInt(maxPrice));
+      return q;
+    };
+
+    const countUniqueUnion = async () => {
+      if (!agencyId || xmlSources.length === 0) return null;
+      const ids = new Set<string>();
+      const PAGE_SIZE = 1000;
+
+      const collectIds = async (scope: 'agency' | 'xml') => {
+        let page = 0;
+        while (true) {
+          let q = supabase
+            .from('villas')
+            .select('id')
+            .or('is_excluded.eq.false,is_excluded.is.null')
+            .order('id', { ascending: true });
+
+          q = scope === 'agency'
+            ? q.eq('agency_id', agencyId)
+            : q.in('xml_source', xmlSources);
+
+          const { data, error: idsError } = await applyFilters(q)
+            .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+          if (idsError) throw idsError;
+          if (!data || data.length === 0) break;
+          for (const row of data) ids.add(String(row.id));
+          if (data.length < PAGE_SIZE) break;
+          page++;
+        }
+      };
+
+      await Promise.all([collectIds('agency'), collectIds('xml')]);
+      return ids.size;
+    };
+
     let result: any = await buildQuery()
       .select(`${BASE_FIELDS}, delivery_date, start_date`)
       .order('price', { ascending: true })
@@ -97,7 +141,7 @@ export async function GET(request: Request) {
         for (const row of properties || []) byId.set(String(row.id), row);
         for (const row of xmlResult.data || []) byId.set(String(row.id), row);
         properties = Array.from(byId.values()).sort((a, b) => Number(a.price || a.prix || 0) - Number(b.price || b.prix || 0));
-        count = properties.length;
+        count = await countUniqueUnion() ?? properties.length;
       }
     }
     if (error) throw error;

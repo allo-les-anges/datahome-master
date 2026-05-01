@@ -29,9 +29,10 @@ interface AgencyPageClientProps {
   routeLocale?: string;
   initialAgency?: any;
   initialProperties?: any[];
+  initialPropertyTotal?: number;
 }
 
-export default function AgencyPageClient({ slug, routeLocale, initialAgency, initialProperties }: AgencyPageClientProps) {
+export default function AgencyPageClient({ slug, routeLocale, initialAgency, initialProperties, initialPropertyTotal }: AgencyPageClientProps) {
   const { t, locale, setLocale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency();
   const initialLoadDone = useRef(false);
@@ -42,6 +43,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
 
   const [allProperties, setAllProperties] = useState<Villa[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Villa[]>([]);
+  const [propertyTotal, setPropertyTotal] = useState<number | null>(initialPropertyTotal ?? null);
   const [loadingProperties, setLoadingProperties] = useState(true);
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   
@@ -233,7 +235,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   }, []);
 
   const fetchAllAgencyProperties = useCallback(async (currentAgency: any) => {
-    if (!currentAgency?.id) return [];
+    if (!currentAgency?.id) return { properties: [], total: 0 };
 
     let allowedXmlUrls: string[] = [];
     if (currentAgency?.footer_config) {
@@ -253,7 +255,10 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     const res = await fetch(`/api/properties?${params.toString()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`Properties API ${res.status}`);
     const json = await res.json();
-    return json.properties || [];
+    return {
+      properties: json.properties || [],
+      total: typeof json.total === 'number' ? json.total : null,
+    };
   }, []);
 
   // Chargement des données - Version avec les bonnes colonnes
@@ -284,11 +289,12 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
         fullLoadRequested.current = true;
         window.setTimeout(async () => {
           try {
-            const allData = await fetchAllAgencyProperties(currentAgency);
+            const { properties: allData, total } = await fetchAllAgencyProperties(currentAgency);
             const fullFormatted = formatVillaData(allData);
             if (fullFormatted.length >= formatted.length) {
               setAllProperties(fullFormatted);
               setFilteredProperties(fullFormatted);
+              setPropertyTotal(total ?? fullFormatted.length);
               saveToCache(fullFormatted);
             }
           } catch {
@@ -303,11 +309,12 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     try {
       setLoadingProperties(true);
 
-      const allData = await fetchAllAgencyProperties(currentAgency);
+      const { properties: allData, total } = await fetchAllAgencyProperties(currentAgency);
 
       const formatted = formatVillaData(allData);
       setAllProperties(formatted);
       setFilteredProperties(formatted);
+      setPropertyTotal(total ?? formatted.length);
       saveToCache(formatted);
 
     } catch (err) {
@@ -459,6 +466,22 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     return filteredProperties.map(getLocalizedProperty);
   }, [filteredProperties, getLocalizedProperty]);
 
+  const hasActiveFilters = useMemo(() => {
+    return Boolean(
+      filters.type ||
+      filters.town ||
+      filters.region ||
+      filters.beds ||
+      filters.minPrice ||
+      (filters.maxPrice && filters.maxPrice < 20000000) ||
+      filters.reference
+    );
+  }, [filters]);
+
+  const displayedPropertyCount = hasActiveFilters
+    ? localizedProperties.length
+    : propertyTotal ?? localizedProperties.length;
+
   const primaryColor = agency?.primary_color || '#FF8C00';
   const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
   const fontFamily = agency?.font_family || 'Montserrat';
@@ -543,9 +566,9 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                       <h2 className="text-5xl italic text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results') || 'Nos Biens'}</h2>
                       <span
                         className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm"
-                        aria-label={`${localizedProperties.length} biens disponibles`}
+                        aria-label={`${displayedPropertyCount} biens disponibles`}
                       >
-                        {localizedProperties.length} {localizedProperties.length > 1 ? 'biens' : 'bien'}
+                        {displayedPropertyCount} {displayedPropertyCount > 1 ? 'biens' : 'bien'}
                       </span>
                     </div>
                     <div className="w-24 h-[1px] mx-auto bg-slate-300"></div>
