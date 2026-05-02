@@ -5,7 +5,7 @@ import {
   ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle,
   Palette, Layout, Share2, Users, Type, ShieldCheck,
   UploadCloud, Trash2, UserPlus, Image as ImageIcon, Mail, Phone,
-  Facebook, Instagram, Linkedin, Briefcase, FileText, Sun, Moon,
+  Facebook, Instagram, Linkedin, Briefcase, FileText, Sun, Moon, Globe,
 } from "lucide-react";
 
 function TikTokIcon({ size = 15, className = "" }: { size?: number; className?: string }) {
@@ -42,10 +42,11 @@ interface Props {
   onSaved: (updated: any) => void;
 }
 
-export default function ClientDashboard({ agency, slug, agencyId, onBack, onSaved }: Props) {
+export default function ClientDashboard({ agency, slug, agencyId, locale, onBack, onSaved }: Props) {
   const [form, setForm] = useState<any>({ ...agency });
   const [team, setTeam] = useState<Member[]>(agency.team_data || []);
   const [isSaving, setIsSaving] = useState(false);
+  const [isConfiguringDomain, setIsConfiguringDomain] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [isDark, setIsDark] = useState(true);
 
@@ -150,6 +151,42 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
     setForm((p: any) => ({ ...p, team_data: newTeam }));
   };
 
+  const normalizeCustomDomain = (value: string) => value
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+
+  const configureVercelDomain = async () => {
+    const domain = normalizeCustomDomain(form.custom_domain || "");
+    if (!domain) {
+      setMessage({ type: "err", text: "Ajoutez d'abord un domaine." });
+      setTimeout(() => setMessage(null), 4000);
+      return;
+    }
+
+    setIsConfiguringDomain(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/vercel-domain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agency_id: agencyId, domain, lang: locale }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || "Erreur Vercel");
+      setForm((prev: any) => ({ ...prev, ...json.agency }));
+      onSaved(json.agency);
+      setMessage({ type: "ok", text: "Domaine ajoute. Les instructions DNS ont ete envoyees par e-mail." });
+      setTimeout(() => setMessage(null), 6000);
+    } catch (err: any) {
+      setMessage({ type: "err", text: err.message || "Erreur configuration domaine" });
+      setTimeout(() => setMessage(null), 6000);
+    } finally {
+      setIsConfiguringDomain(false);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     setMessage(null);
@@ -177,6 +214,11 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
             about_text: form.about_text,
             cookie_consent_enabled: form.cookie_consent_enabled,
             privacy_policy: form.privacy_policy,
+            custom_domain: normalizeCustomDomain(form.custom_domain || "") || null,
+            custom_domain_status: form.custom_domain ? "pending" : "not_configured",
+            custom_domain_verified_at: form.custom_domain_verified_at || null,
+            custom_domain_verification: form.custom_domain_verification || null,
+            custom_domain_dns: form.custom_domain_dns || null,
             team_data: team,
             footer_config: fc,
             updated_at: new Date().toISOString(),
@@ -384,6 +426,70 @@ export default function ClientDashboard({ agency, slug, agencyId, onBack, onSave
             </div>
 
             {/* ④ Équipe */}
+            <div className="rounded-2xl p-7 space-y-5" style={card}>
+              <h3 className={sHdr}><Globe size={15} style={{ color: brandColor }} /> Domaine personnalise</h3>
+              <div className="space-y-2">
+                <label className={lbl}>Nom de domaine</label>
+                <div className="relative">
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} />
+                  <input
+                    type="text"
+                    className={`${inp} pl-11 font-mono`}
+                    placeholder="www.votre-agence.com"
+                    value={form.custom_domain || ""}
+                    onChange={(e) => setForm((p: any) => ({
+                      ...p,
+                      custom_domain: normalizeCustomDomain(e.target.value),
+                      custom_domain_status: e.target.value.trim() ? "pending" : "not_configured",
+                    }))}
+                  />
+                </div>
+              </div>
+              <div className={`rounded-2xl border p-4 text-xs leading-relaxed ${isDark ? "bg-white/[0.03] border-white/[0.06] text-white/40" : "bg-slate-50 border-slate-200 text-slate-500"}`}>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest">Statut</span>
+                  <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${form.custom_domain_status === "verified" ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20" : form.custom_domain ? "bg-amber-500/15 text-amber-300 border border-amber-500/20" : "bg-white/[0.05] text-white/35 border border-white/[0.08]"}`}>
+                    {form.custom_domain_status === "verified" ? "Verifie" : form.custom_domain ? "DNS a configurer" : "Non configure"}
+                  </span>
+                </div>
+                <p>Ajoutez votre domaine, puis lancez la configuration Vercel. Vous recevrez aussi les instructions DNS par e-mail.</p>
+                <button
+                  type="button"
+                  onClick={configureVercelDomain}
+                  disabled={isConfiguringDomain || !form.custom_domain}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-black transition hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: brandColor }}
+                >
+                  {isConfiguringDomain ? <Loader2 size={13} className="animate-spin" /> : <Globe size={13} />}
+                  Configurer mon domaine
+                </button>
+                {form.custom_domain_dns?.records?.length > 0 && (
+                  <div className="mt-5 space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/45">DNS a configurer</p>
+                    {form.custom_domain_dns.records.map((record: any, idx: number) => (
+                      <div key={`${record.type}-${idx}`} className="grid grid-cols-1 md:grid-cols-3 gap-2 rounded-xl border border-white/[0.06] bg-black/20 p-3 font-mono text-[10px] text-white/55">
+                        <span>{record.type}</span>
+                        <span>{record.name}</span>
+                        <span className="break-all">{record.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {form.custom_domain_dns?.verificationRecords?.length > 0 && (
+                  <div className="mt-5 space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-300/80">Verification Vercel</p>
+                    {form.custom_domain_dns.verificationRecords.map((record: any, idx: number) => (
+                      <div key={`${record.type}-verify-${idx}`} className="grid grid-cols-1 md:grid-cols-3 gap-2 rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 font-mono text-[10px] text-amber-100/70">
+                        <span>{record.type}</span>
+                        <span className="break-all">{record.name}</span>
+                        <span className="break-all">{record.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="rounded-2xl p-7 space-y-5" style={card}>
               <div className="flex justify-between items-center border-b border-white/[0.06] pb-4">
                 <h3 className="flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest"><Users size={15} style={{ color: brandColor }} /> Gestion de l'Équipe</h3>
