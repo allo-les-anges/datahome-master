@@ -57,6 +57,9 @@ export interface Villa {
 export interface Agency {
     id: string;
     subdomain: string;
+    custom_domain?: string | null;
+    custom_domain_status?: 'not_configured' | 'pending' | 'verified' | 'error' | null;
+    custom_domain_verified_at?: string | null;
     agency_name: string;
     primary_color?: string;
     secondary_color?: string;

@@ -562,6 +562,13 @@ export default function AgencyDashboard() {
     setCustomXmlUrl('');
   };
 
+  const normalizeCustomDomain = (value: string) => value
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/.*$/, '');
+
   const syncSelectedXmlSources = async () => {
     if (!selectedAgency?.id) return;
 
@@ -846,6 +853,7 @@ export default function AgencyDashboard() {
       if (typeof footerConfig === 'string') {
         try { footerConfig = JSON.parse(footerConfig); } catch { footerConfig = {}; }
       }
+      const normalizedCustomDomain = normalizeCustomDomain(selectedAgency.custom_domain || '');
       const willPublishFromSave =
         selectedAgency.website_status !== 'active' &&
         footerConfig?.subscription?.website_active === true;
@@ -870,6 +878,9 @@ export default function AgencyDashboard() {
         whatsapp_number: selectedAgency.whatsapp_number,
         footer_config: footerConfig,
         habihub_agent_id: selectedAgency.habihub_agent_id || null,
+        custom_domain: normalizedCustomDomain || null,
+        custom_domain_status: normalizedCustomDomain ? 'pending' : 'not_configured',
+        custom_domain_verified_at: selectedAgency.custom_domain_verified_at || null,
         team_data: teamDataToSave,
         updated_at: new Date().toISOString(),
         website_status: footerConfig?.subscription?.website_active === true ? 'active' : selectedAgency.website_status,
@@ -1613,6 +1624,39 @@ export default function AgencyDashboard() {
                       <div className="relative">
                         <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
                         <input type="text" value={selectedAgency?.subdomain || ''} onChange={(e) => setSelectedAgency({...selectedAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} className={`${inp} pl-11 font-mono`} placeholder={t.placeholders.slug} />
+                      </div>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className={lbl}>Domaine personnalise</label>
+                      <div className="relative">
+                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
+                        <input
+                          type="text"
+                          value={selectedAgency?.custom_domain || ''}
+                          onChange={(e) => setSelectedAgency({
+                            ...selectedAgency,
+                            custom_domain: normalizeCustomDomain(e.target.value),
+                            custom_domain_status: e.target.value.trim() ? 'pending' : 'not_configured',
+                          })}
+                          className={`${inp} pl-11 font-mono`}
+                          placeholder="marina-tobridoni.com"
+                        />
+                      </div>
+                      <div className={`rounded-xl border p-4 text-[11px] leading-relaxed ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/35' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold uppercase tracking-widest">Statut</span>
+                          <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${selectedAgency?.custom_domain ? 'bg-amber-500/15 text-amber-300 border border-amber-500/20' : 'bg-white/[0.05] text-white/35 border border-white/[0.08]'}`}>
+                            {selectedAgency?.custom_domain ? 'DNS a configurer' : 'Non configure'}
+                          </span>
+                        </div>
+                        {selectedAgency?.custom_domain ? (
+                          <p className="mt-2">
+                            Ajoutez ce domaine au projet Vercel puis pointez ses DNS vers Vercel. Une fois actif, il servira automatiquement le site
+                            <span className="font-mono text-white/60"> /{selectedAgency.default_lang || 'fr'}/{selectedAgency.subdomain}</span>.
+                          </p>
+                        ) : (
+                          <p className="mt-2">Renseignez le domaine achete par l'agence, sans https:// ni www.</p>
+                        )}
                       </div>
                     </div>
                     <div className="space-y-2">
