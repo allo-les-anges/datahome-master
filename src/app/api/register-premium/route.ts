@@ -23,9 +23,7 @@ type Lang = typeof SUPPORTED_LANGS[number];
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const REGISTER_IP_LIMIT = { max: 3, windowMs: 60 * 60 * 1000 };
 const REGISTER_EMAIL_LIMIT = { max: 2, windowMs: 60 * 60 * 1000 };
-const ONBOARDING_ANTISPAM_ENABLED =
-  process.env.ONBOARDING_ANTISPAM_ENABLED === 'true' ||
-  process.env.ONBOARDING_RATE_LIMIT_ENABLED === 'true';
+const ONBOARDING_ANTISPAM_ENABLED = process.env.ONBOARDING_ANTISPAM_ENABLED === 'true';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function generateOtp(): string {
