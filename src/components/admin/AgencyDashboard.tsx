@@ -838,6 +838,7 @@ export default function AgencyDashboard() {
       return;
     }
     setIsSaving(true);
+    let messageDuration = 3000;
     try {
       const teamDataToSave = JSON.parse(JSON.stringify(team));
       
@@ -845,6 +846,9 @@ export default function AgencyDashboard() {
       if (typeof footerConfig === 'string') {
         try { footerConfig = JSON.parse(footerConfig); } catch { footerConfig = {}; }
       }
+      const willPublishFromSave =
+        selectedAgency.website_status !== 'active' &&
+        footerConfig?.subscription?.website_active === true;
       
       const savePayload = {
         agency_name: selectedAgency.agency_name,
@@ -883,10 +887,17 @@ export default function AgencyDashboard() {
       if (!res.ok || !json.success) throw new Error(json.error || t.error_save);
 
       if (json.agency) {
-        setMessage({ type: 'success', text: t.success_save });
         setSelectedAgency(json.agency);
         setTeam(json.agency.team_data || []);
         setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? json.agency : a));
+        if (willPublishFromSave) {
+          await sendWelcomeEmailForAgency(json.agency);
+          await fetchPendingAgencies();
+          messageDuration = 6000;
+          setMessage({ type: 'success', text: `${t.success_save} Email client et notification interne envoyés.` });
+        } else {
+          setMessage({ type: 'success', text: t.success_save });
+        }
       } else {
         setMessage({ type: 'error', text: "Erreur: agence non renvoyée après sauvegarde" });
       }
@@ -895,7 +906,7 @@ export default function AgencyDashboard() {
       setMessage({ type: 'error', text: t.error_save + " : " + err.message });
     } finally {
       setIsSaving(false);
-      setTimeout(() => setMessage(null), 3000);
+      setTimeout(() => setMessage(null), messageDuration);
     }
   };
 
