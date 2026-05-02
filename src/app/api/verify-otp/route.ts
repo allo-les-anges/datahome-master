@@ -19,7 +19,9 @@ const HEADERS = {
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const VERIFY_IP_LIMIT = { max: 20, windowMs: 15 * 60 * 1000 };
 const VERIFY_EMAIL_LIMIT = { max: 5, windowMs: 15 * 60 * 1000 };
-const ONBOARDING_RATE_LIMIT_ENABLED = process.env.ONBOARDING_RATE_LIMIT_ENABLED === 'true';
+const ONBOARDING_ANTISPAM_ENABLED =
+  process.env.ONBOARDING_ANTISPAM_ENABLED === 'true' ||
+  process.env.ONBOARDING_RATE_LIMIT_ENABLED === 'true';
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   email = email.trim().toLowerCase();
 
-  if (ONBOARDING_RATE_LIMIT_ENABLED) {
+  if (ONBOARDING_ANTISPAM_ENABLED) {
     const ip = getClientIp(req);
     const ipLimit = checkRateLimit(`verify:ip:${ip}`, VERIFY_IP_LIMIT.max, VERIFY_IP_LIMIT.windowMs);
     if (!ipLimit.allowed) return rateLimitedResponse(ipLimit.retryAfter);

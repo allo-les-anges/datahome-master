@@ -23,7 +23,9 @@ type Lang = typeof SUPPORTED_LANGS[number];
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const REGISTER_IP_LIMIT = { max: 3, windowMs: 60 * 60 * 1000 };
 const REGISTER_EMAIL_LIMIT = { max: 2, windowMs: 60 * 60 * 1000 };
-const ONBOARDING_RATE_LIMIT_ENABLED = process.env.ONBOARDING_RATE_LIMIT_ENABLED === 'true';
+const ONBOARDING_ANTISPAM_ENABLED =
+  process.env.ONBOARDING_ANTISPAM_ENABLED === 'true' ||
+  process.env.ONBOARDING_RATE_LIMIT_ENABLED === 'true';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function generateOtp(): string {
@@ -273,7 +275,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Email invalide' }, { status: 400 });
   }
 
-  if (ONBOARDING_RATE_LIMIT_ENABLED) {
+  if (ONBOARDING_ANTISPAM_ENABLED) {
     const ip = getClientIp(req);
     const ipLimit = checkRateLimit(`register:ip:${ip}`, REGISTER_IP_LIMIT.max, REGISTER_IP_LIMIT.windowMs);
     if (!ipLimit.allowed) return rateLimitedResponse(ipLimit.retryAfter);
@@ -290,7 +292,7 @@ export async function POST(req: NextRequest) {
   const otp_expires_at = otpExpiresAt();
 
   try {
-    if (await hasActivePremiumRegistration(normalizedEmail)) {
+    if (ONBOARDING_ANTISPAM_ENABLED && await hasActivePremiumRegistration(normalizedEmail)) {
       return NextResponse.json(
         { success: false, error: 'Un accès premium existe déjà pour cet email.' },
         { status: 409 },
