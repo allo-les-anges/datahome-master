@@ -42,11 +42,11 @@ async function findAgencyByDomain(host: string): Promise<DomainAgency | null> {
 
   const normalizedHost = normalizeDomain(host);
   const candidates = Array.from(new Set([host, normalizedHost, `www.${normalizedHost}`]));
-  const orFilter = candidates.map((domain) => `custom_domain.eq.${domain}`).join(',');
+  const orFilter = candidates.map((domain) => `custom_domain.eq.${encodeURIComponent(domain)}`).join(',');
   const url =
     `${supabaseUrl}/rest/v1/agency_settings` +
     `?select=subdomain,default_lang,website_status` +
-    `&or=(${encodeURIComponent(orFilter)})` +
+    `&or=(${orFilter})` +
     `&limit=1`;
 
   const res = await fetch(url, {

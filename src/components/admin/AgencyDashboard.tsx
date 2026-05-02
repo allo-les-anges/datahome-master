@@ -385,6 +385,7 @@ export default function AgencyDashboard() {
   const [team, setTeam] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'agencies' | 'pending'>('agencies');
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [isConfiguringDomain, setIsConfiguringDomain] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [loadingPending, setLoadingPending] = useState(false);
@@ -566,8 +567,37 @@ export default function AgencyDashboard() {
     .trim()
     .toLowerCase()
     .replace(/^https?:\/\//, '')
-    .replace(/^www\./, '')
     .replace(/\/.*$/, '');
+
+  const configureVercelDomain = async () => {
+    if (!selectedAgency?.id) return;
+    const domain = normalizeCustomDomain(selectedAgency.custom_domain || '');
+    if (!domain) {
+      setMessage({ type: 'error', text: 'Ajoutez d abord un domaine.' });
+      setTimeout(() => setMessage(null), 4000);
+      return;
+    }
+
+    setIsConfiguringDomain(true);
+    try {
+      const res = await fetch('/api/admin/vercel-domain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agency_id: selectedAgency.id, domain }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur Vercel');
+      setSelectedAgency(json.agency);
+      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? json.agency : a));
+      setMessage({ type: 'success', text: 'Domaine ajoute dans Vercel. Les instructions DNS sont disponibles.' });
+      setTimeout(() => setMessage(null), 6000);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: `Domaine non configure : ${err.message}` });
+      setTimeout(() => setMessage(null), 6000);
+    } finally {
+      setIsConfiguringDomain(false);
+    }
+  };
 
   const syncSelectedXmlSources = async () => {
     if (!selectedAgency?.id) return;
@@ -881,6 +911,8 @@ export default function AgencyDashboard() {
         custom_domain: normalizedCustomDomain || null,
         custom_domain_status: normalizedCustomDomain ? 'pending' : 'not_configured',
         custom_domain_verified_at: selectedAgency.custom_domain_verified_at || null,
+        custom_domain_verification: selectedAgency.custom_domain_verification || null,
+        custom_domain_dns: selectedAgency.custom_domain_dns || null,
         team_data: teamDataToSave,
         updated_at: new Date().toISOString(),
         website_status: footerConfig?.subscription?.website_active === true ? 'active' : selectedAgency.website_status,
@@ -1646,16 +1678,51 @@ export default function AgencyDashboard() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-bold uppercase tracking-widest">Statut</span>
                           <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${selectedAgency?.custom_domain ? 'bg-amber-500/15 text-amber-300 border border-amber-500/20' : 'bg-white/[0.05] text-white/35 border border-white/[0.08]'}`}>
-                            {selectedAgency?.custom_domain ? 'DNS a configurer' : 'Non configure'}
+                            {selectedAgency?.custom_domain_status === 'verified' ? 'Verifie' : selectedAgency?.custom_domain ? 'DNS a configurer' : 'Non configure'}
                           </span>
                         </div>
                         {selectedAgency?.custom_domain ? (
-                          <p className="mt-2">
-                            Ajoutez ce domaine au projet Vercel puis pointez ses DNS vers Vercel. Une fois actif, il servira automatiquement le site
-                            <span className="font-mono text-white/60"> /{selectedAgency.default_lang || 'fr'}/{selectedAgency.subdomain}</span>.
-                          </p>
+                          <div className="mt-3 space-y-3">
+                            <p>
+                              Cliquez sur le bouton ci-dessous pour ajouter le domaine au projet Vercel. Une fois les DNS actifs, il servira automatiquement le site
+                              <span className="font-mono text-white/60"> /{selectedAgency.default_lang || 'fr'}/{selectedAgency.subdomain}</span>.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={configureVercelDomain}
+                              disabled={isConfiguringDomain}
+                              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-indigo-500 disabled:opacity-50"
+                            >
+                              {isConfiguringDomain ? <Loader2 size={13} className="animate-spin" /> : <Globe size={13} />}
+                              Configurer dans Vercel
+                            </button>
+                            {selectedAgency?.custom_domain_dns?.records?.length > 0 && (
+                              <div className="space-y-2 pt-2">
+                                <p className="font-bold uppercase tracking-widest text-white/50">DNS a transmettre au client</p>
+                                {selectedAgency.custom_domain_dns.records.map((record: any, idx: number) => (
+                                  <div key={`${record.type}-${idx}`} className="grid grid-cols-1 md:grid-cols-3 gap-2 rounded-lg border border-white/[0.06] bg-black/20 p-3 font-mono text-[10px] text-white/55">
+                                    <span>{record.type}</span>
+                                    <span>{record.name}</span>
+                                    <span className="break-all">{record.value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {selectedAgency?.custom_domain_dns?.verificationRecords?.length > 0 && (
+                              <div className="space-y-2 pt-2">
+                                <p className="font-bold uppercase tracking-widest text-amber-300/80">Verification Vercel</p>
+                                {selectedAgency.custom_domain_dns.verificationRecords.map((record: any, idx: number) => (
+                                  <div key={`${record.type}-verify-${idx}`} className="grid grid-cols-1 md:grid-cols-3 gap-2 rounded-lg border border-amber-500/15 bg-amber-500/5 p-3 font-mono text-[10px] text-amber-100/70">
+                                    <span>{record.type}</span>
+                                    <span className="break-all">{record.name}</span>
+                                    <span className="break-all">{record.value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         ) : (
-                          <p className="mt-2">Renseignez le domaine achete par l'agence, sans https:// ni www.</p>
+                          <p className="mt-2">Renseignez le domaine achete par l'agence, sans https://.</p>
                         )}
                       </div>
                     </div>

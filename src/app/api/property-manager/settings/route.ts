@@ -13,6 +13,7 @@ const ALLOWED_FIELDS = [
   'font_family', 'logo_url', 'hero_title', 'hero_type', 'hero_url',
   'default_lang', 'whatsapp_number', 'habihub_agent_id',
   'custom_domain', 'custom_domain_status', 'custom_domain_verified_at',
+  'custom_domain_verification', 'custom_domain_dns',
   'about_title', 'about_text', 'cookie_consent_enabled', 'privacy_policy',
   'team_data', 'footer_config', 'website_status', 'updated_at',
 ];
