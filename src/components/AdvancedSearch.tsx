@@ -232,7 +232,7 @@ export default function AdvancedSearch({
                 {t('nav.results') || 'Properties'}
               </p>
               <h3
-                className="text-2xl md:text-3xl font-serif italic leading-tight"
+                className="text-2xl md:text-3xl font-bold leading-tight tracking-tight"
                 style={{ color: textColor }}
               >
                 {t('common.search') || "Search"}
@@ -397,7 +397,7 @@ export default function AdvancedSearch({
                   <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: labelColor }}>
                     {t('propertyDetail.minPrice') || "Minimum price"}
                   </label>
-                  <span className="text-xl font-serif italic" style={{ color: textColor }}>
+                  <span className="text-xl font-bold tracking-tight" style={{ color: textColor }}>
                     {formatPrice(Number(localFilters.minPrice))}
                   </span>
                 </div>
@@ -418,7 +418,7 @@ export default function AdvancedSearch({
                   <label className="text-[9px] uppercase font-black tracking-wider" style={{ color: labelColor }}>
                     {t('propertyDetail.maxPrice') || "Maximum price"}
                   </label>
-                  <span className="text-xl font-serif italic" style={{ color: textColor }}>
+                  <span className="text-xl font-bold tracking-tight" style={{ color: textColor }}>
                     {Number(localFilters.maxPrice) >= MAX_VAL - STEP ? (t('home.unlimited') || 'Unlimited') : formatPrice(Number(localFilters.maxPrice))}
                   </span>
                 </div>
