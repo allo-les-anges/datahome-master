@@ -17,10 +17,11 @@ interface PropertyGridProps {
   locale?: string;
   blurAfter6?: boolean;
   propertiesPerRow?: 3 | 4;
+  cardCorners?: "rounded" | "square";
 }
 
 // Composant memoizé pour éviter les re-rendus inutiles
-const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
+const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "rounded" }: any) => {
   const { t, locale } = useTranslation() as any;
   const price = Number(property.price || 0);
   const EUR_TO_AED = 3.97;
@@ -30,11 +31,12 @@ const PropertyCard = memo(({ property, isLight, onClick, agency }: any) => {
   const brandColor = agency?.primary_color || "#10b981";
   const fontFamily = agency?.font_family || 'Montserrat';
   const showDark = !isLight;
+  const cardRadiusClass = cardCorners === "square" ? "rounded-none" : "rounded-[2.5rem]";
 
   return (
     <div 
       onClick={() => onClick(property)}
-      className={`group cursor-pointer rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
+      className={`group cursor-pointer ${cardRadiusClass} overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
         showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
       }`}
       style={{ 
@@ -152,6 +154,7 @@ const PropertyGrid = memo(function PropertyGrid({
   locale,
   blurAfter6 = false,
   propertiesPerRow = 3,
+  cardCorners = "rounded",
 }: PropertyGridProps) {
   const { t } = useTranslation() as any;
   const visiblePerPage = 6;
@@ -173,10 +176,11 @@ const PropertyGrid = memo(function PropertyGrid({
                 onClick={onPropertyClick}
                 isLight={isLight}
                 locale={locale}
+                cardCorners={cardCorners}
               />
             </div>
             {shouldBlur && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[2.5rem] bg-white/30 backdrop-blur-[2px]">
+              <div className={`absolute inset-0 flex flex-col items-center justify-center ${cardCorners === "square" ? "rounded-none" : "rounded-[2.5rem]"} bg-white/30 backdrop-blur-[2px]`}>
                 <div className="px-6 py-4 bg-white/90 rounded-2xl shadow-xl text-center border border-slate-100">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 text-slate-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">{t('contact.title').toUpperCase()}</p>

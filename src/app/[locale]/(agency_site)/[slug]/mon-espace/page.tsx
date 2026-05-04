@@ -561,6 +561,7 @@ export default function MonEspacePage() {
   const integrations = footerConfig?.integrations || {};
   const allowedLangs = footerConfig?.allowed_langs || [];
   const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
+  const propertyCardCorners = footerConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
 
   const updatePropertiesPerRow = async (value: 3 | 4) => {
     if (!session || !agency?.id || layoutSaving || value === propertiesPerRow) return;
@@ -571,6 +572,42 @@ export default function MonEspacePage() {
       layout: {
         ...(footerConfig.layout || {}),
         properties_per_row: value,
+      },
+    };
+    try {
+      const res = await fetch("/api/property-manager/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-pm-session": session.token || "" },
+        body: JSON.stringify({
+          slug,
+          agencyId: session.agencyId,
+          data: {
+            footer_config: nextFooterConfig,
+            updated_at: new Date().toISOString(),
+          },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || "Erreur sauvegarde");
+      setAgency(json.agency || { ...agency, footer_config: nextFooterConfig });
+      setLayoutMsg({ type: "ok", text: locale === "fr" ? "Affichage mis a jour." : "Display updated." });
+    } catch (err: any) {
+      setLayoutMsg({ type: "err", text: err.message || (locale === "fr" ? "Sauvegarde impossible." : "Could not save.") });
+    } finally {
+      setLayoutSaving(false);
+      setTimeout(() => setLayoutMsg(null), 3000);
+    }
+  };
+
+  const updatePropertyCardCorners = async (value: "rounded" | "square") => {
+    if (!session || !agency?.id || layoutSaving || value === propertyCardCorners) return;
+    setLayoutSaving(true);
+    setLayoutMsg(null);
+    const nextFooterConfig = {
+      ...footerConfig,
+      layout: {
+        ...(footerConfig.layout || {}),
+        property_card_corners: value,
       },
     };
     try {
@@ -906,6 +943,31 @@ export default function MonEspacePage() {
                       {option.label}
                     </button>
                   ))}
+                </div>
+                <div className="mt-5 border-t border-white/[0.06] pt-4">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-white/30">
+                    {locale === "fr" ? "Forme des vignettes" : "Card shape"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: "rounded" as const, label: locale === "fr" ? "Bords ronds" : "Rounded" },
+                      { value: "square" as const, label: locale === "fr" ? "Bords carres" : "Square" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        disabled={layoutSaving}
+                        onClick={() => updatePropertyCardCorners(option.value)}
+                        className={`rounded-2xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-60 ${
+                          propertyCardCorners === option.value
+                            ? "border-white/20 bg-white/15 text-white"
+                            : "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12] hover:text-white/70"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {layoutMsg && (
                   <p className={`mt-4 text-[10px] font-bold uppercase tracking-widest ${layoutMsg.type === "ok" ? "text-emerald-300" : "text-red-300"}`}>

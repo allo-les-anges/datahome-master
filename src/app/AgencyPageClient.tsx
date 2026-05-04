@@ -436,6 +436,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   const chatbotEnabled = parsedFooterConfig?.integrations?.chatbot_enabled === true;
   const blurAfter6 = parsedFooterConfig?.subscription?.blur_listings === true;
   const propertiesPerRow = parsedFooterConfig?.layout?.properties_per_row === 4 ? 4 : 3;
+  const propertyCardCorners = parsedFooterConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
 
   // Loader
   if (loadingProperties && allProperties.length === 0) {
@@ -540,6 +541,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                         onToggleFavorite={toggleFavorite}
                         blurAfter6={blurAfter6}
                         propertiesPerRow={propertiesPerRow}
+                        cardCorners={propertyCardCorners}
                         onPropertyClick={(p: Villa) => {
                           const originalProperty = allProperties.find(prop => prop.id === p.id);
                           openPropertyDetail(originalProperty || p);

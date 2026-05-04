@@ -69,6 +69,9 @@ const dashboardText: Record<string, Record<string, string>> = {
     villasPerRow: "Villas par ligne",
     threePerRow: "3 par ligne",
     fourPerRow: "4 par ligne",
+    cardCorners: "Forme des vignettes",
+    roundedCards: "Bords ronds",
+    squareCards: "Bords carres",
     hero: "Affichage du site & Hero",
     mediaType: "Type de media",
     image: "Image",
@@ -142,6 +145,9 @@ const dashboardText: Record<string, Record<string, string>> = {
     villasPerRow: "Properties per row",
     threePerRow: "3 per row",
     fourPerRow: "4 per row",
+    cardCorners: "Card shape",
+    roundedCards: "Rounded corners",
+    squareCards: "Square corners",
     hero: "Site display & hero",
     mediaType: "Media type",
     image: "Image",
@@ -208,6 +214,7 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
     try { footerConfig = JSON.parse(footerConfig); } catch { footerConfig = {}; }
   }
   const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
+  const propertyCardCorners = footerConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
 
   const inp = `w-full px-4 py-3.5 rounded-2xl border text-sm focus:outline-none transition-all ${isDark ? "text-white placeholder:text-white/20 bg-white/[0.04] border-white/[0.07] focus:border-white/20" : "text-slate-900 placeholder:text-slate-400 bg-slate-50 border-slate-200 focus:border-slate-400"}`;
   const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? "text-white/40" : "text-slate-500"}`;
@@ -558,6 +565,32 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                         {opt.label}
                       </button>
                     ))}
+                  </div>
+                  <div className="mt-5 border-t border-white/[0.06] pt-4">
+                    <div className="mb-3 flex items-center justify-between gap-4">
+                      <span className={`text-sm font-semibold ${isDark ? "text-white/80" : "text-slate-800"}`}>{ui.cardCorners}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { value: "rounded", label: ui.roundedCards },
+                        { value: "square", label: ui.squareCards },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => updateNested("layout", "property_card_corners", opt.value)}
+                          className={`rounded-xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+                            propertyCardCorners === opt.value
+                              ? "border-white/20 bg-white/15 text-white"
+                              : isDark
+                                ? "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]"
+                                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
