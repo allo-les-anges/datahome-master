@@ -437,6 +437,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   const blurAfter6 = parsedFooterConfig?.subscription?.blur_listings === true;
   const propertiesPerRow = parsedFooterConfig?.layout?.properties_per_row === 4 ? 4 : 3;
   const propertyCardCorners = parsedFooterConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
+  const propertyCardIconColor = parsedFooterConfig?.layout?.property_card_icon_color || primaryColor;
 
   // Loader
   if (loadingProperties && allProperties.length === 0) {
@@ -542,6 +543,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                         blurAfter6={blurAfter6}
                         propertiesPerRow={propertiesPerRow}
                         cardCorners={propertyCardCorners}
+                        iconColor={propertyCardIconColor}
                         onPropertyClick={(p: Villa) => {
                           const originalProperty = allProperties.find(prop => prop.id === p.id);
                           openPropertyDetail(originalProperty || p);

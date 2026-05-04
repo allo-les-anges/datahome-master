@@ -18,10 +18,11 @@ interface PropertyGridProps {
   blurAfter6?: boolean;
   propertiesPerRow?: 3 | 4;
   cardCorners?: "rounded" | "square";
+  iconColor?: string;
 }
 
 // Composant memoizé pour éviter les re-rendus inutiles
-const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "rounded" }: any) => {
+const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "rounded", iconColor }: any) => {
   const { t, locale } = useTranslation() as any;
   const price = Number(property.price || 0);
   const EUR_TO_AED = 3.97;
@@ -29,6 +30,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
   const eurFormatted = `${price.toLocaleString()} €`;
   const aedFormatted = `${new Intl.NumberFormat('ar-AE').format(Math.round(price * EUR_TO_AED))} د.إ`;
   const brandColor = agency?.primary_color || "#10b981";
+  const cardIconColor = iconColor || brandColor;
   const fontFamily = agency?.font_family || 'Montserrat';
   const showDark = !isLight;
   const cardRadiusClass = cardCorners === "square" ? "rounded-none" : "rounded-[2.5rem]";
@@ -80,7 +82,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
           {property.titre}
         </h3>
         <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-          <MapPin size={14} style={{ color: brandColor }} />
+          <MapPin size={14} style={{ color: cardIconColor }} />
           <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town}</span>
           <span className="opacity-30">|</span>
           <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span>
@@ -123,7 +125,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
           }
         ].map((item, idx) => (
           <div key={idx} className="flex flex-col items-center gap-1">
-            <item.icon size={16} className="text-slate-400" />
+            <item.icon size={16} style={{ color: cardIconColor }} />
             <span 
               className="text-[10px] font-medium text-slate-400"
               style={{ fontFamily: `${fontFamily}, sans-serif` }}
@@ -155,6 +157,7 @@ const PropertyGrid = memo(function PropertyGrid({
   blurAfter6 = false,
   propertiesPerRow = 3,
   cardCorners = "rounded",
+  iconColor,
 }: PropertyGridProps) {
   const { t } = useTranslation() as any;
   const visiblePerPage = 6;
@@ -177,6 +180,7 @@ const PropertyGrid = memo(function PropertyGrid({
                 isLight={isLight}
                 locale={locale}
                 cardCorners={cardCorners}
+                iconColor={iconColor}
               />
             </div>
             {shouldBlur && (

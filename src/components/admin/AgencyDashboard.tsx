@@ -513,6 +513,12 @@ export default function AgencyDashboard() {
 
   const getInt = (field: string) => selectedAgency?.footer_config?.integrations?.[field];
   const getSub = (field: string) => selectedAgency?.footer_config?.subscription?.[field];
+  const getLayout = (field: string) => {
+    const footer = typeof selectedAgency?.footer_config === 'string'
+      ? (() => { try { return JSON.parse(selectedAgency.footer_config); } catch { return {}; } })()
+      : (selectedAgency?.footer_config || {});
+    return footer?.layout?.[field];
+  };
 
   const updateNestedConfig = (section: string, field: string, value: any) => {
     if (!selectedAgency) return;
@@ -1845,6 +1851,72 @@ export default function AgencyDashboard() {
                           {opt.label}
                         </button>
                       ))}
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* 2 AFFICHAGE DES BIENS */}
+                <motion.div variants={fadeUp} className={cardCls}>
+                  <h3 className={sHdr}><Layout size={15} className="text-cyan-400" /> Affichage des biens</h3>
+                  <div className="space-y-5">
+                    <div className="space-y-3">
+                      <label className={lbl}>Villas par ligne</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { value: 3, label: '3 par ligne' },
+                          { value: 4, label: '4 par ligne' },
+                        ].map((opt) => {
+                          const current = getLayout('properties_per_row') === 4 ? 4 : 3;
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => updateNestedConfig('layout', 'properties_per_row', opt.value)}
+                              className={`rounded-xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${current === opt.value ?'border-cyan-500/40 bg-cyan-500/10 text-cyan-300' : 'border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]'}`}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="space-y-3 pt-4 border-t border-white/[0.05]">
+                      <label className={lbl}>Forme des vignettes</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { value: 'rounded', label: 'Bords ronds' },
+                          { value: 'square', label: 'Bords carres' },
+                        ].map((opt) => {
+                          const current = getLayout('property_card_corners') === 'square' ? 'square' : 'rounded';
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => updateNestedConfig('layout', 'property_card_corners', opt.value)}
+                              className={`rounded-xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${current === opt.value ?'border-cyan-500/40 bg-cyan-500/10 text-cyan-300' : 'border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]'}`}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="space-y-3 pt-4 border-t border-white/[0.05]">
+                      <label className={lbl}>Couleur des icones des vignettes</label>
+                      <div className="flex gap-3">
+                        <input
+                          type="color"
+                          value={getLayout('property_card_icon_color') || selectedAgency?.primary_color || '#D4AF37'}
+                          onChange={(e) => updateNestedConfig('layout', 'property_card_icon_color', e.target.value)}
+                          className="h-[52px] w-16 rounded-xl cursor-pointer bg-white/[0.05] border border-white/[0.08] p-1"
+                        />
+                        <input
+                          type="text"
+                          value={getLayout('property_card_icon_color') || selectedAgency?.primary_color || '#D4AF37'}
+                          onChange={(e) => updateNestedConfig('layout', 'property_card_icon_color', e.target.value)}
+                          className={`${inp} flex-1 font-mono uppercase`}
+                        />
+                      </div>
                     </div>
                   </div>
                 </motion.div>

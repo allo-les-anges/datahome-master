@@ -562,6 +562,7 @@ export default function MonEspacePage() {
   const allowedLangs = footerConfig?.allowed_langs || [];
   const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
   const propertyCardCorners = footerConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
+  const propertyCardIconColor = footerConfig?.layout?.property_card_icon_color || brandColor;
 
   const updatePropertiesPerRow = async (value: 3 | 4) => {
     if (!session || !agency?.id || layoutSaving || value === propertiesPerRow) return;
@@ -608,6 +609,42 @@ export default function MonEspacePage() {
       layout: {
         ...(footerConfig.layout || {}),
         property_card_corners: value,
+      },
+    };
+    try {
+      const res = await fetch("/api/property-manager/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-pm-session": session.token || "" },
+        body: JSON.stringify({
+          slug,
+          agencyId: session.agencyId,
+          data: {
+            footer_config: nextFooterConfig,
+            updated_at: new Date().toISOString(),
+          },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || "Erreur sauvegarde");
+      setAgency(json.agency || { ...agency, footer_config: nextFooterConfig });
+      setLayoutMsg({ type: "ok", text: locale === "fr" ? "Affichage mis a jour." : "Display updated." });
+    } catch (err: any) {
+      setLayoutMsg({ type: "err", text: err.message || (locale === "fr" ? "Sauvegarde impossible." : "Could not save.") });
+    } finally {
+      setLayoutSaving(false);
+      setTimeout(() => setLayoutMsg(null), 3000);
+    }
+  };
+
+  const updatePropertyCardIconColor = async (value: string) => {
+    if (!session || !agency?.id || layoutSaving || value === propertyCardIconColor) return;
+    setLayoutSaving(true);
+    setLayoutMsg(null);
+    const nextFooterConfig = {
+      ...footerConfig,
+      layout: {
+        ...(footerConfig.layout || {}),
+        property_card_icon_color: value,
       },
     };
     try {
@@ -967,6 +1004,27 @@ export default function MonEspacePage() {
                         {option.label}
                       </button>
                     ))}
+                  </div>
+                </div>
+                <div className="mt-5 border-t border-white/[0.06] pt-4">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-white/30">
+                    {locale === "fr" ? "Couleur des icones" : "Icon color"}
+                  </p>
+                  <div className="flex gap-3">
+                    <input
+                      type="color"
+                      value={propertyCardIconColor}
+                      disabled={layoutSaving}
+                      onChange={(e) => updatePropertyCardIconColor(e.target.value)}
+                      className="h-[48px] w-16 rounded-2xl cursor-pointer bg-white/[0.05] border border-white/[0.08] p-1 disabled:opacity-60"
+                    />
+                    <input
+                      type="text"
+                      value={propertyCardIconColor}
+                      disabled={layoutSaving}
+                      onChange={(e) => updatePropertyCardIconColor(e.target.value)}
+                      className="flex-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest text-white/60 outline-none transition-all focus:border-white/20 disabled:opacity-60"
+                    />
                   </div>
                 </div>
                 {layoutMsg && (

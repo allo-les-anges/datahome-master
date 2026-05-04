@@ -73,6 +73,7 @@ const dashboardText: Record<string, Record<string, string>> = {
     cardCorners: "Forme des vignettes",
     roundedCards: "Bords ronds",
     squareCards: "Bords carres",
+    cardIconColor: "Couleur des icones",
     hero: "Affichage du site & Hero",
     mediaType: "Type de media",
     image: "Image",
@@ -149,6 +150,7 @@ const dashboardText: Record<string, Record<string, string>> = {
     cardCorners: "Card shape",
     roundedCards: "Rounded corners",
     squareCards: "Square corners",
+    cardIconColor: "Icon color",
     hero: "Site display & hero",
     mediaType: "Media type",
     image: "Image",
@@ -216,6 +218,7 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
   }
   const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
   const propertyCardCorners = footerConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
+  const propertyCardIconColor = footerConfig?.layout?.property_card_icon_color || form.primary_color || "#D4AF37";
 
   const inp = `w-full px-4 py-3.5 rounded-2xl border text-sm focus:outline-none transition-all ${isDark ? "text-white placeholder:text-white/20 bg-white/[0.04] border-white/[0.07] focus:border-white/20" : "text-slate-900 placeholder:text-slate-400 bg-slate-50 border-slate-200 focus:border-slate-400"}`;
   const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? "text-white/40" : "text-slate-500"}`;
@@ -591,6 +594,23 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                           {opt.label}
                         </button>
                       ))}
+                    </div>
+                  </div>
+                  <div className="mt-5 border-t border-white/[0.06] pt-4">
+                    <label className={lbl}>{ui.cardIconColor}</label>
+                    <div className="flex gap-3">
+                      <input
+                        type="color"
+                        value={propertyCardIconColor}
+                        onChange={(e) => updateNested("layout", "property_card_icon_color", e.target.value)}
+                        className="h-[52px] w-16 rounded-xl cursor-pointer bg-white/[0.05] border border-white/[0.08] p-1"
+                      />
+                      <input
+                        type="text"
+                        value={propertyCardIconColor}
+                        onChange={(e) => updateNested("layout", "property_card_icon_color", e.target.value)}
+                        className={`${inp} flex-1 font-mono uppercase`}
+                      />
                     </div>
                   </div>
                 </div>
