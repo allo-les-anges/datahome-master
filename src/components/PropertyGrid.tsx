@@ -19,10 +19,11 @@ interface PropertyGridProps {
   propertiesPerRow?: 3 | 4;
   cardCorners?: "rounded" | "square";
   iconColor?: string;
+  cardStyle?: "classic" | "compact" | "editorial" | "minimal";
 }
 
 // Composant memoizé pour éviter les re-rendus inutiles
-const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "rounded", iconColor }: any) => {
+const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "rounded", iconColor, cardStyle = "classic" }: any) => {
   const { t, locale } = useTranslation() as any;
   const price = Number(property.price || 0);
   const EUR_TO_AED = 3.97;
@@ -34,18 +35,28 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
   const fontFamily = agency?.font_family || 'Montserrat';
   const showDark = !isLight;
   const cardRadiusClass = cardCorners === "square" ? "rounded-none" : "rounded-[2.5rem]";
+  const isCompact = cardStyle === "compact";
+  const isMinimal = cardStyle === "minimal";
+  const isEditorial = cardStyle === "editorial";
+  const imageAspectClass = isEditorial ? "aspect-[16/10]" : "aspect-[4/3]";
+  const bodyPaddingClass = isCompact ? "p-5" : isMinimal ? "p-6" : "p-8";
+  const statsPaddingClass = isCompact ? "p-5 pt-5" : "p-8 pt-6";
+  const titleClass = isEditorial ? "text-xl italic" : isCompact ? "text-base" : "text-lg";
+  const priceClass = isCompact ? "text-xl" : isEditorial ? "text-3xl" : "text-2xl";
 
   return (
     <div 
       onClick={() => onClick(property)}
       className={`group cursor-pointer ${cardRadiusClass} overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
-        showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
+        isMinimal
+          ? showDark ? 'bg-transparent border-white/10' : 'bg-transparent border-slate-200'
+          : showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
       }`}
       style={{ 
         fontFamily: `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`
       }}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className={`relative ${imageAspectClass} overflow-hidden bg-slate-100`}>
         <img 
           src={property.images?.[0] || '/placeholder-villa.jpg'} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -58,10 +69,10 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
         </div>
       </div>
 
-      <div className="p-8 space-y-4">
+      <div className={`${bodyPaddingClass} space-y-4`}>
         <div className="flex justify-between items-start">
           <div 
-            className="text-2xl font-normal"
+            className={`${priceClass} font-normal`}
             style={{ 
               fontFamily: `${fontFamily}, 'Playfair Display', serif`,
               color: showDark ? 'white' : '#0f172a',
@@ -73,7 +84,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
           </div>
         </div>
         <h3 
-          className={`text-lg leading-tight line-clamp-2 font-normal ${showDark ? 'text-white/90' : 'text-slate-800'}`}
+          className={`${titleClass} leading-tight line-clamp-2 font-normal ${showDark ? 'text-white/90' : 'text-slate-800'}`}
           style={{ 
             fontFamily: `${fontFamily}, 'Playfair Display', serif`,
             fontWeight: 400
@@ -89,7 +100,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-y-6 pt-6 border-t p-8" style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
+      <div className={`grid grid-cols-3 gap-y-6 border-t ${statsPaddingClass}`} style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
         {[
           { 
             icon: Maximize, 
@@ -158,6 +169,7 @@ const PropertyGrid = memo(function PropertyGrid({
   propertiesPerRow = 3,
   cardCorners = "rounded",
   iconColor,
+  cardStyle = "classic",
 }: PropertyGridProps) {
   const { t } = useTranslation() as any;
   const visiblePerPage = 6;
@@ -181,6 +193,7 @@ const PropertyGrid = memo(function PropertyGrid({
                 locale={locale}
                 cardCorners={cardCorners}
                 iconColor={iconColor}
+                cardStyle={cardStyle}
               />
             </div>
             {shouldBlur && (

@@ -23,6 +23,20 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
     ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
     : (agency?.footer_config || {});
   const heroVideoEnabled = footerConfig?.integrations?.hero_video_enabled === true;
+  const heroConfig = footerConfig?.hero || {};
+  const heroAlignment = heroConfig.alignment === 'left' || heroConfig.alignment === 'right' ? heroConfig.alignment : 'center';
+  const overlayOpacity = typeof heroConfig.overlay_opacity === 'number' ? heroConfig.overlay_opacity : 30;
+  const subtitleText = heroConfig.subtitle || subtitle || t('nav.subtitle');
+  const contentAlignmentClass = heroAlignment === 'left'
+    ? 'items-start text-left ml-0 mr-auto'
+    : heroAlignment === 'right'
+      ? 'items-end text-right ml-auto mr-0'
+      : 'items-center text-center mx-auto';
+  const lineAlignmentClass = heroAlignment === 'left'
+    ? 'mr-auto'
+    : heroAlignment === 'right'
+      ? 'ml-auto'
+      : 'mx-auto';
 
   const isVideo = heroVideoEnabled && agency?.hero_type === 'video';
   const rawBgUrl = agency?.hero_url || backgroundImage;
@@ -65,10 +79,10 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
             />
           </>
         )}
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-black" style={{ opacity: Math.min(80, Math.max(0, overlayOpacity)) / 100 }} />
       </div>
 
-      <div className="relative z-10 text-center px-6 max-w-4xl">
+      <div className={`relative z-10 px-6 max-w-4xl flex flex-col ${contentAlignmentClass}`}>
         <span className="inline-block text-[10px] md:text-[11px] font-black uppercase tracking-[0.6em] text-white/70 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           {agency?.agency_name || agencyName || t('footer.excellence') || "EXCELLENCE"}
         </span>
@@ -78,11 +92,11 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
         </h1>
         
         <p className="text-white/80 text-[10px] md:text-[12px] uppercase tracking-[0.4em] font-medium max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 mb-8">
-          {subtitle || t('nav.subtitle')}
+          {subtitleText}
         </p>
 
         <div 
-          className="w-24 h-[2px] mx-auto animate-in fade-in zoom-in duration-1000 delay-700"
+          className={`w-24 h-[2px] animate-in fade-in zoom-in duration-1000 delay-700 ${lineAlignmentClass}`}
           style={{ backgroundColor: brandColor }}
         />
       </div>

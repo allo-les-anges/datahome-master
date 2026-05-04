@@ -74,6 +74,12 @@ const dashboardText: Record<string, Record<string, string>> = {
     roundedCards: "Bords ronds",
     squareCards: "Bords carres",
     cardIconColor: "Couleur des icones",
+    cardStyle: "Style des vignettes",
+    resultsBg: "Fond section biens",
+    heroSubtitle: "Sous-titre hero",
+    heroCta: "Texte du bouton principal",
+    heroAlign: "Alignement hero",
+    heroOverlay: "Opacite overlay",
     hero: "Affichage du site & Hero",
     mediaType: "Type de media",
     image: "Image",
@@ -151,6 +157,12 @@ const dashboardText: Record<string, Record<string, string>> = {
     roundedCards: "Rounded corners",
     squareCards: "Square corners",
     cardIconColor: "Icon color",
+    cardStyle: "Card style",
+    resultsBg: "Property section background",
+    heroSubtitle: "Hero subtitle",
+    heroCta: "Main button text",
+    heroAlign: "Hero alignment",
+    heroOverlay: "Overlay opacity",
     hero: "Site display & hero",
     mediaType: "Media type",
     image: "Image",
@@ -219,6 +231,10 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
   const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
   const propertyCardCorners = footerConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
   const propertyCardIconColor = footerConfig?.layout?.property_card_icon_color || form.primary_color || "#D4AF37";
+  const propertyCardStyle = ["compact", "editorial", "minimal"].includes(footerConfig?.layout?.property_card_style) ? footerConfig.layout.property_card_style : "classic";
+  const resultsBgColor = footerConfig?.layout?.results_bg_color || "#f8fafc";
+  const heroAlignment = ["left", "center", "right"].includes(footerConfig?.hero?.alignment) ? footerConfig.hero.alignment : "center";
+  const heroOverlayOpacity = typeof footerConfig?.hero?.overlay_opacity === "number" ? footerConfig.hero.overlay_opacity : 30;
 
   const inp = `w-full px-4 py-3.5 rounded-2xl border text-sm focus:outline-none transition-all ${isDark ? "text-white placeholder:text-white/20 bg-white/[0.04] border-white/[0.07] focus:border-white/20" : "text-slate-900 placeholder:text-slate-400 bg-slate-50 border-slate-200 focus:border-slate-400"}`;
   const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? "text-white/40" : "text-slate-500"}`;
@@ -611,6 +627,69 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                         onChange={(e) => updateNested("layout", "property_card_icon_color", e.target.value)}
                         className={`${inp} flex-1 font-mono uppercase`}
                       />
+                    </div>
+                  </div>
+                  <div className="mt-5 border-t border-white/[0.06] pt-4">
+                    <label className={lbl}>{ui.cardStyle}</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { value: "classic", label: "Classique" },
+                        { value: "compact", label: "Compact" },
+                        { value: "editorial", label: "Editorial" },
+                        { value: "minimal", label: "Minimal" },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => updateNested("layout", "property_card_style", opt.value)}
+                          className={`rounded-xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+                            propertyCardStyle === opt.value
+                              ? "border-white/20 bg-white/15 text-white"
+                              : isDark
+                                ? "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]"
+                                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-5 border-t border-white/[0.06] pt-4">
+                    <label className={lbl}>{ui.resultsBg}</label>
+                    <div className="flex gap-3">
+                      <input type="color" value={resultsBgColor} onChange={(e) => updateNested("layout", "results_bg_color", e.target.value)} className="h-[52px] w-16 rounded-xl cursor-pointer bg-white/[0.05] border border-white/[0.08] p-1" />
+                      <input type="text" value={resultsBgColor} onChange={(e) => updateNested("layout", "results_bg_color", e.target.value)} className={`${inp} flex-1 font-mono uppercase`} />
+                    </div>
+                  </div>
+                  <div className="mt-5 border-t border-white/[0.06] pt-4 space-y-3">
+                    <label className={lbl}>Hero</label>
+                    <input className={inp} placeholder={ui.heroSubtitle} value={footerConfig?.hero?.subtitle || ""} onChange={(e) => updateNested("hero", "subtitle", e.target.value)} />
+                    <input className={inp} placeholder={ui.heroCta} value={footerConfig?.hero?.cta_text || ""} onChange={(e) => updateNested("hero", "cta_text", e.target.value)} />
+                    <div>
+                      <label className={lbl}>{ui.heroAlign}</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {["left", "center", "right"].map((align) => (
+                          <button
+                            key={align}
+                            type="button"
+                            onClick={() => updateNested("hero", "alignment", align)}
+                            className={`rounded-xl border px-3 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${
+                              heroAlignment === align
+                                ? "border-white/20 bg-white/15 text-white"
+                                : isDark
+                                  ? "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]"
+                                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                            }`}
+                          >
+                            {align}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className={lbl}>{ui.heroOverlay}: {heroOverlayOpacity}%</label>
+                      <input type="range" min="0" max="80" step="5" value={heroOverlayOpacity} onChange={(e) => updateNested("hero", "overlay_opacity", Number(e.target.value))} className="w-full accent-white" />
                     </div>
                   </div>
                 </div>

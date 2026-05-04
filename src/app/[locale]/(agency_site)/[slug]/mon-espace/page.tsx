@@ -583,6 +583,50 @@ export default function MonEspacePage() {
   const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
   const propertyCardCorners = footerConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
   const propertyCardIconColor = footerConfig?.layout?.property_card_icon_color || brandColor;
+  const propertyCardStyle = ["compact", "editorial", "minimal"].includes(footerConfig?.layout?.property_card_style)
+    ? footerConfig.layout.property_card_style
+    : "classic";
+  const resultsBgColor = footerConfig?.layout?.results_bg_color || "#f8fafc";
+  const heroSubtitle = footerConfig?.hero?.subtitle || "";
+  const heroCtaText = footerConfig?.hero?.cta_text || "";
+  const heroAlignment = ["left", "center", "right"].includes(footerConfig?.hero?.alignment) ? footerConfig.hero.alignment : "center";
+  const heroOverlayOpacity = typeof footerConfig?.hero?.overlay_opacity === "number" ? footerConfig.hero.overlay_opacity : 30;
+
+  const updateFooterSectionSetting = async (section: "layout" | "hero", field: string, value: any) => {
+    if (!session || !agency?.id || layoutSaving) return;
+    setLayoutSaving(true);
+    setLayoutMsg(null);
+    const nextFooterConfig = {
+      ...footerConfig,
+      [section]: {
+        ...(footerConfig[section] || {}),
+        [field]: value,
+      },
+    };
+    try {
+      const res = await fetch("/api/property-manager/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-pm-session": session.token || "" },
+        body: JSON.stringify({
+          slug,
+          agencyId: session.agencyId,
+          data: {
+            footer_config: nextFooterConfig,
+            updated_at: new Date().toISOString(),
+          },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || "Erreur sauvegarde");
+      setAgency(json.agency || { ...agency, footer_config: nextFooterConfig });
+      setLayoutMsg({ type: "ok", text: locale === "fr" ? "Affichage mis a jour." : "Display updated." });
+    } catch (err: any) {
+      setLayoutMsg({ type: "err", text: err.message || (locale === "fr" ? "Sauvegarde impossible." : "Could not save.") });
+    } finally {
+      setLayoutSaving(false);
+      setTimeout(() => setLayoutMsg(null), 3000);
+    }
+  };
 
   const updatePropertiesPerRow = async (value: 3 | 4) => {
     if (!session || !agency?.id || layoutSaving || value === propertiesPerRow) return;
@@ -1054,6 +1098,111 @@ export default function MonEspacePage() {
                       disabled={layoutSaving}
                       onChange={(e) => updatePropertyCardIconColor(e.target.value)}
                       className="flex-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest text-white/60 outline-none transition-all focus:border-white/20 disabled:opacity-60"
+                    />
+                  </div>
+                </div>
+                <div className="mt-5 border-t border-white/[0.06] pt-4">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-white/30">
+                    {locale === "fr" ? "Style des vignettes" : "Card style"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: "classic", label: locale === "fr" ? "Classique" : "Classic" },
+                      { value: "compact", label: "Compact" },
+                      { value: "editorial", label: locale === "fr" ? "Editorial" : "Editorial" },
+                      { value: "minimal", label: "Minimal" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        disabled={layoutSaving}
+                        onClick={() => updateFooterSectionSetting("layout", "property_card_style", option.value)}
+                        className={`rounded-2xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-60 ${
+                          propertyCardStyle === option.value
+                            ? "border-white/20 bg-white/15 text-white"
+                            : "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12] hover:text-white/70"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-5 border-t border-white/[0.06] pt-4">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-white/30">
+                    {locale === "fr" ? "Fond de la section biens" : "Property section background"}
+                  </p>
+                  <div className="flex gap-3">
+                    <input
+                      type="color"
+                      value={resultsBgColor}
+                      disabled={layoutSaving}
+                      onChange={(e) => updateFooterSectionSetting("layout", "results_bg_color", e.target.value)}
+                      className="h-[48px] w-16 rounded-2xl cursor-pointer bg-white/[0.05] border border-white/[0.08] p-1 disabled:opacity-60"
+                    />
+                    <input
+                      type="text"
+                      value={resultsBgColor}
+                      disabled={layoutSaving}
+                      onChange={(e) => updateFooterSectionSetting("layout", "results_bg_color", e.target.value)}
+                      className="flex-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest text-white/60 outline-none transition-all focus:border-white/20 disabled:opacity-60"
+                    />
+                  </div>
+                </div>
+                <div className="mt-5 border-t border-white/[0.06] pt-4">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-white/30">
+                    Hero
+                  </p>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={heroSubtitle}
+                      disabled={layoutSaving}
+                      onChange={(e) => updateFooterSectionSetting("hero", "subtitle", e.target.value)}
+                      placeholder={locale === "fr" ? "Sous-titre du hero" : "Hero subtitle"}
+                      className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white/70 outline-none transition-all focus:border-white/20 disabled:opacity-60"
+                    />
+                    <input
+                      type="text"
+                      value={heroCtaText}
+                      disabled={layoutSaving}
+                      onChange={(e) => updateFooterSectionSetting("hero", "cta_text", e.target.value)}
+                      placeholder={locale === "fr" ? "Texte du bouton principal" : "Main button text"}
+                      className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-white/70 outline-none transition-all focus:border-white/20 disabled:opacity-60"
+                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: "left", label: locale === "fr" ? "Gauche" : "Left" },
+                        { value: "center", label: locale === "fr" ? "Centre" : "Center" },
+                        { value: "right", label: locale === "fr" ? "Droite" : "Right" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          disabled={layoutSaving}
+                          onClick={() => updateFooterSectionSetting("hero", "alignment", option.value)}
+                          className={`rounded-2xl border px-3 py-3 text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-60 ${
+                            heroAlignment === option.value
+                              ? "border-white/20 bg-white/15 text-white"
+                              : "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12] hover:text-white/70"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/30">
+                      {locale === "fr" ? `Opacite overlay ${heroOverlayOpacity}%` : `Overlay opacity ${heroOverlayOpacity}%`}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="80"
+                      step="5"
+                      value={heroOverlayOpacity}
+                      disabled={layoutSaving}
+                      onChange={(e) => updateFooterSectionSetting("hero", "overlay_opacity", Number(e.target.value))}
+                      className="w-full accent-white"
                     />
                   </div>
                 </div>

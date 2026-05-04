@@ -519,6 +519,12 @@ export default function AgencyDashboard() {
       : (selectedAgency?.footer_config || {});
     return footer?.layout?.[field];
   };
+  const getHero = (field: string) => {
+    const footer = typeof selectedAgency?.footer_config === 'string'
+      ? (() => { try { return JSON.parse(selectedAgency.footer_config); } catch { return {}; } })()
+      : (selectedAgency?.footer_config || {});
+    return footer?.hero?.[field];
+  };
 
   const updateNestedConfig = (section: string, field: string, value: any) => {
     if (!selectedAgency) return;
@@ -1918,6 +1924,46 @@ export default function AgencyDashboard() {
                         />
                       </div>
                     </div>
+                    <div className="space-y-3 pt-4 border-t border-white/[0.05]">
+                      <label className={lbl}>Style des vignettes</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { value: 'classic', label: 'Classique' },
+                          { value: 'compact', label: 'Compact' },
+                          { value: 'editorial', label: 'Editorial' },
+                          { value: 'minimal', label: 'Minimal' },
+                        ].map((opt) => {
+                          const current = ['compact', 'editorial', 'minimal'].includes(getLayout('property_card_style')) ? getLayout('property_card_style') : 'classic';
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => updateNestedConfig('layout', 'property_card_style', opt.value)}
+                              className={`rounded-xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${current === opt.value ?'border-cyan-500/40 bg-cyan-500/10 text-cyan-300' : 'border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]'}`}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="space-y-3 pt-4 border-t border-white/[0.05]">
+                      <label className={lbl}>Fond de la section biens</label>
+                      <div className="flex gap-3">
+                        <input
+                          type="color"
+                          value={getLayout('results_bg_color') || '#f8fafc'}
+                          onChange={(e) => updateNestedConfig('layout', 'results_bg_color', e.target.value)}
+                          className="h-[52px] w-16 rounded-xl cursor-pointer bg-white/[0.05] border border-white/[0.08] p-1"
+                        />
+                        <input
+                          type="text"
+                          value={getLayout('results_bg_color') || '#f8fafc'}
+                          onChange={(e) => updateNestedConfig('layout', 'results_bg_color', e.target.value)}
+                          className={`${inp} flex-1 font-mono uppercase`}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
 
@@ -1957,6 +2003,65 @@ export default function AgencyDashboard() {
                       <div className="space-y-2">
                         <label className={lbl}>{t.fields.hero_title}</label>
                         <textarea rows={4} value={selectedAgency.hero_title || ''} onChange={(e) => setSelectedAgency({...selectedAgency, hero_title: e.target.value})} placeholder={t.placeholders.hero_text} className={`${inp} resize-none font-serif italic text-base`} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/[0.05]">
+                      <div className="space-y-2">
+                        <label className={lbl}>Sous-titre hero</label>
+                        <input
+                          className={inp}
+                          value={getHero('subtitle') || ''}
+                          onChange={(e) => updateNestedConfig('hero', 'subtitle', e.target.value)}
+                          placeholder="Votre partenaire immobilier de confiance"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className={lbl}>Texte du bouton hero</label>
+                        <input
+                          className={inp}
+                          value={getHero('cta_text') || ''}
+                          onChange={(e) => updateNestedConfig('hero', 'cta_text', e.target.value)}
+                          placeholder="Rechercher"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <label className={lbl}>Alignement du hero</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { value: 'left', label: 'Gauche' },
+                            { value: 'center', label: 'Centre' },
+                            { value: 'right', label: 'Droite' },
+                          ].map((opt) => {
+                            const current = ['left', 'right'].includes(getHero('alignment')) ? getHero('alignment') : 'center';
+                            return (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => updateNestedConfig('hero', 'alignment', opt.value)}
+                                className={`rounded-xl border px-3 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${current === opt.value ?'border-indigo-500/40 bg-indigo-500/10 text-indigo-300' : 'border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]'}`}
+                              >
+                                {opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className={lbl}>Opacite du voile</label>
+                          <span className="text-[10px] font-black text-white/40">{typeof getHero('overlay_opacity') === 'number' ? getHero('overlay_opacity') : 30}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="80"
+                          step="5"
+                          value={typeof getHero('overlay_opacity') === 'number' ? getHero('overlay_opacity') : 30}
+                          onChange={(e) => updateNestedConfig('hero', 'overlay_opacity', Number(e.target.value))}
+                          className="w-full accent-indigo-500"
+                        />
                       </div>
                     </div>
                   </div>

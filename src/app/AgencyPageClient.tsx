@@ -438,6 +438,12 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
   const propertiesPerRow = parsedFooterConfig?.layout?.properties_per_row === 4 ? 4 : 3;
   const propertyCardCorners = parsedFooterConfig?.layout?.property_card_corners === "square" ? "square" : "rounded";
   const propertyCardIconColor = parsedFooterConfig?.layout?.property_card_icon_color || primaryColor;
+  const propertyCardStyle = ['compact', 'editorial', 'minimal'].includes(parsedFooterConfig?.layout?.property_card_style)
+    ? parsedFooterConfig.layout.property_card_style
+    : 'classic';
+  const resultsBgColor = parsedFooterConfig?.layout?.results_bg_color || '#f8fafc';
+  const searchButtonText = parsedFooterConfig?.hero?.cta_text || t('common.search') || 'Rechercher';
+  const heroSubtitle = parsedFooterConfig?.hero?.subtitle || agency?.hero_subtitle || "Votre partenaire immobilier de confiance";
 
   // Loader
   if (loadingProperties && allProperties.length === 0) {
@@ -476,7 +482,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                 <Hero 
                   agency={agency} 
                   title={agency?.hero_title || "Des professionnels à votre écoute"} 
-                  subtitle={agency?.hero_subtitle || "Votre partenaire immobilier de confiance"}
+                  subtitle={heroSubtitle}
                   backgroundImage={agency?.hero_url || "/hero_network.jpg"} 
                   agencyName={agency?.agency_name} 
                 />
@@ -489,11 +495,11 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                   style={{ backgroundColor: primaryColor }}
                 >
                   <Search size={20} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">{t('common.search') || 'Rechercher'}</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">{searchButtonText}</span>
                 </button>
               </div>
 
-              <section id="results-section" className="py-24 bg-slate-50 relative z-10 min-h-[600px]">
+              <section id="results-section" className="py-24 relative z-10 min-h-[600px]" style={{ backgroundColor: resultsBgColor }}>
                 <div className="max-w-7xl mx-auto px-6">
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
@@ -544,6 +550,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                         propertiesPerRow={propertiesPerRow}
                         cardCorners={propertyCardCorners}
                         iconColor={propertyCardIconColor}
+                        cardStyle={propertyCardStyle}
                         onPropertyClick={(p: Villa) => {
                           const originalProperty = allProperties.find(prop => prop.id === p.id);
                           openPropertyDetail(originalProperty || p);
