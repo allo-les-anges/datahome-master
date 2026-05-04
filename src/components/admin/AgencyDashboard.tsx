@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,27 +22,27 @@ const translations = {
     admin: "Administration",
     saas_title: "SaaS Agences",
     new_agency: "Nouvelle Agence",
-    select_agency: "Sélectionnez une agence pour configurer son branding.",
+    select_agency: "SÃ©lectionnez une agence pour configurer son branding.",
     save: "Enregistrer les modifications",
     saving: "Enregistrement en cours...",
-    success_save: "Configuration enregistrée avec succès !",
+    success_save: "Configuration enregistrÃ©e avec succÃ¨s !",
     error_save: "Erreur lors de la sauvegarde.",
-    generate: "Générer l'agence",
-    upload_video_error: "Erreur lors de l'upload vidéo. La vidéo doit être au format MP4 et ne pas dépasser 50 Mo.",
-    upload_image_error: "Erreur lors de l'upload image. L'image ne doit pas dépasser 5 Mo.",
+    generate: "GÃ©nÃ©rer l'agence",
+    upload_video_error: "Erreur lors de l'upload vidÃ©o. La vidÃ©o doit Ãªtre au format MP4 et ne pas dÃ©passer 50 Mo.",
+    upload_image_error: "Erreur lors de l'upload image. L'image ne doit pas dÃ©passer 5 Mo.",
     sections: {
       lang_xml: "Langues & Flux XML",
-      socials: "Réseaux Sociaux & Contact",
-      integrations: "Intégrations",
-      branding: "Identité Visuelle & Couleurs",
+      socials: "RÃ©seaux Sociaux & Contact",
+      integrations: "IntÃ©grations",
+      branding: "IdentitÃ© Visuelle & Couleurs",
       hero: "Configuration du Hero Header",
-      preview: "Aperçu en temps réel",
-      legal: "Conformité & Légal",
+      preview: "AperÃ§u en temps rÃ©el",
+      legal: "ConformitÃ© & LÃ©gal",
       about: "Pages Statiques (About)",
-      team: "Gestion de l'Équipe"
+      team: "Gestion de l'Ã‰quipe"
     },
     fields: {
-      allowed_langs: "Langues autorisées sur le site",
+      allowed_langs: "Langues autorisÃ©es sur le site",
       xml_sources: "Flux Immobilier (XML)",
       facebook: "Lien Facebook",
       instagram: "Lien Instagram",
@@ -53,33 +53,33 @@ const translations = {
       agency_name: "Nom de l'enseigne",
       subdomain: "URL du site (Slug)",
       logo: "Logo de l'agence",
-      font: "Police de caractères",
-      font_family: "Police de caractères",
+      font: "Police de caractÃ¨res",
+      font_family: "Police de caractÃ¨res",
       primary_color: "Couleur Principale (Accents)",
       button_color: "Couleur des Boutons (CTA)",
       button_style: "Style des boutons",
       button_animation: "Animation des boutons",
       hero_title: "Titre d'accroche (Hero)",
-      hero_type: "Type de média",
-      hero_file: "Fichier Média (Image/Vidéo)",
+      hero_type: "Type de mÃ©dia",
+      hero_file: "Fichier MÃ©dia (Image/VidÃ©o)",
       email: "Email de contact",
-      phone: "Téléphone Fixe",
-      whatsapp: "Numéro WhatsApp (GSM)",
-      about_title: "Titre Page À Propos",
-      about_text: "Contenu Page À Propos",
-      privacy_policy: "Politique de confidentialité",
+      phone: "TÃ©lÃ©phone Fixe",
+      whatsapp: "NumÃ©ro WhatsApp (GSM)",
+      about_title: "Titre Page Ã€ Propos",
+      about_text: "Contenu Page Ã€ Propos",
+      privacy_policy: "Politique de confidentialitÃ©",
       member_name: "Nom complet",
-      member_role: "Poste / Rôle",
+      member_role: "Poste / RÃ´le",
       member_bio: "Biographie",
       member_photo: "Photo du membre"
     },
     placeholders: {
       slug: "nom-de-lagence",
-      hero_text: "Découvrez nos biens d'exception...",
+      hero_text: "DÃ©couvrez nos biens d'exception...",
       about_title: "L'art de vivre l'exceptionnel...",
-      about_text: "Décrivez votre agence...",
+      about_text: "DÃ©crivez votre agence...",
       click_upload: "Cliquer pour uploader",
-      media_upload: "Charger le média",
+      media_upload: "Charger le mÃ©dia",
       button: "Bouton",
       whatsapp: "Ex: 33600000000 (sans +)",
       member_name: "Jean Dupont",
@@ -165,13 +165,13 @@ const translations = {
     }
   },
   es: {
-    admin: "Administración",
+    admin: "AdministraciÃ³n",
     saas_title: "SaaS Agencias",
     new_agency: "Nueva Agencia",
     select_agency: "Seleccione una agencia para configurar su branding.",
     save: "Guardar cambios",
     saving: "Guardando...",
-    success_save: "¡Configuración guardada con éxito!",
+    success_save: "Â¡ConfiguraciÃ³n guardada con Ã©xito!",
     error_save: "Error al guardar.",
     generate: "Generar Agencia",
     upload_video_error: "Error al subir el video. El video debe ser MP4 y no superar los 50 MB.",
@@ -181,11 +181,11 @@ const translations = {
       socials: "Redes Sociales y Contacto",
       integrations: "Integraciones",
       branding: "Identidad Visual y Colores",
-      hero: "Configuración del Hero Header",
+      hero: "ConfiguraciÃ³n del Hero Header",
       preview: "Vista previa en tiempo real",
       legal: "Cumplimiento y Legal",
-      about: "Páginas Estáticas (About)",
-      team: "Gestión de Equipo"
+      about: "PÃ¡ginas EstÃ¡ticas (About)",
+      team: "GestiÃ³n de Equipo"
     },
     fields: {
       allowed_langs: "Idiomas permitidos en el sitio",
@@ -199,24 +199,24 @@ const translations = {
       agency_name: "Nombre de la agencia",
       subdomain: "URL del sitio (Slug)",
       logo: "Logo de la agencia",
-      font: "Fuente tipográfica",
-      font_family: "Fuente tipográfica",
+      font: "Fuente tipogrÃ¡fica",
+      font_family: "Fuente tipogrÃ¡fica",
       primary_color: "Color principal (Acentos)",
       button_color: "Color de botones (CTA)",
       button_style: "Estilo de botones",
-      button_animation: "Animación de botones",
-      hero_title: "Título de cabecera (Hero)",
+      button_animation: "AnimaciÃ³n de botones",
+      hero_title: "TÃ­tulo de cabecera (Hero)",
       hero_type: "Tipo de medio",
       hero_file: "Archivo multimedia (Imagen/Video)",
       email: "Correo de contacto",
-      phone: "Teléfono fijo",
-      whatsapp: "Número WhatsApp (Móvil)",
-      about_title: "Título de la página Sobre Nosotros",
-      about_text: "Texto de la página Sobre Nosotros",
-      privacy_policy: "Política de Privacidad",
+      phone: "TelÃ©fono fijo",
+      whatsapp: "NÃºmero WhatsApp (MÃ³vil)",
+      about_title: "TÃ­tulo de la pÃ¡gina Sobre Nosotros",
+      about_text: "Texto de la pÃ¡gina Sobre Nosotros",
+      privacy_policy: "PolÃ­tica de Privacidad",
       member_name: "Nombre completo",
       member_role: "Puesto / Rol",
-      member_bio: "Biografía",
+      member_bio: "BiografÃ­a",
       member_photo: "Foto del miembro"
     },
     placeholders: {
@@ -226,14 +226,14 @@ const translations = {
       about_text: "Describa su agencia...",
       click_upload: "Clic para subir",
       media_upload: "Cargar medio",
-      button: "Botón",
+      button: "BotÃ³n",
       whatsapp: "Ej: 34600000000 (sin +)",
-      member_name: "Juan Pérez",
+      member_name: "Juan PÃ©rez",
       member_role: "Agente Inmobiliario",
-      member_bio: "Experto en bienes raíces desde hace 15 años..."
+      member_bio: "Experto en bienes raÃ­ces desde hace 15 aÃ±os..."
     },
     buttons: {
-      add_member: "Añadir miembro",
+      add_member: "AÃ±adir miembro",
       remove_member: "Eliminar"
     }
   },
@@ -318,9 +318,9 @@ const DISPONIBLE_XML_SOURCES = [
 ];
 
 const SUPPORTED_LANGUAGES = [
-  { code: 'fr', label: 'Français' },
+  { code: 'fr', label: 'FranÃ§ais' },
   { code: 'en', label: 'English' },
-  { code: 'es', label: 'Español' },
+  { code: 'es', label: 'EspaÃ±ol' },
   { code: 'nl', label: 'Nederlands' },
 ];
 
@@ -337,7 +337,7 @@ const fadeUp = {
 };
 
 // ============================================================
-// TOGGLE SWITCH COMPONENT — neon glow dark mode
+// TOGGLE SWITCH COMPONENT â€” neon glow dark mode
 // ============================================================
 function ToggleSwitch({ checked, onChange, checkedColor = '#6366f1' }: { checked: boolean; onChange: (v: boolean) => void; checkedColor?: string }) {
   return (
@@ -649,9 +649,9 @@ export default function AgencyDashboard() {
         .reduce((total, r) => total + Number(r.value.count || 0), 0);
 
       if (failed > 0) {
-        setMessage({ type: 'error', text: `${synced} biens synchronisés, ${failed} flux en erreur.` });
+        setMessage({ type: 'error', text: `${synced} biens synchronisÃ©s, ${failed} flux en erreur.` });
       } else {
-        setMessage({ type: 'success', text: `${synced} biens synchronisés depuis ${xmlUrls.length} flux XML.` });
+        setMessage({ type: 'success', text: `${synced} biens synchronisÃ©s depuis ${xmlUrls.length} flux XML.` });
       }
       setTimeout(() => setMessage(null), 5000);
     } catch (err: any) {
@@ -692,7 +692,7 @@ export default function AgencyDashboard() {
       headers: { 'Content-Type': file.type },
       body: file,
     });
-    if (!uploadRes.ok) throw new Error('Upload direct échoué');
+    if (!uploadRes.ok) throw new Error('Upload direct Ã©chouÃ©');
     return publicUrl;
   };
 
@@ -725,7 +725,7 @@ export default function AgencyDashboard() {
     finally { setIsSaving(false); }
   };
 
-  // Fonction pour gérer l'upload du logo
+  // Fonction pour gÃ©rer l'upload du logo
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedAgency) return;
@@ -742,7 +742,7 @@ export default function AgencyDashboard() {
       const filePath = `${selectedAgency.subdomain}/branding/logo_${Date.now()}.${fileExt}`;
       const publicUrl = await uploadToStorage(file, filePath);
       setSelectedAgency({ ...selectedAgency, logo_url: publicUrl });
-      setMessage({ type: 'success', text: "Logo téléchargé avec succès !" });
+      setMessage({ type: 'success', text: "Logo tÃ©lÃ©chargÃ© avec succÃ¨s !" });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       setMessage({ type: 'error', text: "Erreur lors de l'upload du logo" });
@@ -751,28 +751,28 @@ export default function AgencyDashboard() {
     }
   };
 
-  // Fonction pour gérer l'upload du média héros (image ou vidéo)
+  // Fonction pour gÃ©rer l'upload du mÃ©dia hÃ©ros (image ou vidÃ©o)
   const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedAgency) return;
 
     const isVideo = file.type.startsWith('video/');
     
-    // Validation pour les vidéos
+    // Validation pour les vidÃ©os
     if (isVideo) {
       if (!file.type.includes('mp4')) {
-        setMessage({ type: 'error', text: t.upload_video_error || "Format vidéo non supporté. Utilisez MP4." });
+        setMessage({ type: 'error', text: t.upload_video_error || "Format vidÃ©o non supportÃ©. Utilisez MP4." });
         setTimeout(() => setMessage(null), 5000);
         return;
       }
       if (file.size > 50 * 1024 * 1024) {
-        setMessage({ type: 'error', text: t.upload_video_error || "La vidéo ne doit pas dépasser 50 Mo." });
+        setMessage({ type: 'error', text: t.upload_video_error || "La vidÃ©o ne doit pas dÃ©passer 50 Mo." });
         setTimeout(() => setMessage(null), 5000);
         return;
       }
     } else {
       if (file.size > 5 * 1024 * 1024) {
-        setMessage({ type: 'error', text: t.upload_image_error || "L'image ne doit pas dépasser 5 Mo." });
+        setMessage({ type: 'error', text: t.upload_image_error || "L'image ne doit pas dÃ©passer 5 Mo." });
         setTimeout(() => setMessage(null), 5000);
         return;
       }
@@ -804,7 +804,7 @@ export default function AgencyDashboard() {
         footer_config: nextFooterConfig,
       });
 
-      setMessage({ type: 'success', text: isVideo ? "Vidéo téléchargée avec succès !" : "Image téléchargée avec succès !" });
+      setMessage({ type: 'success', text: isVideo ? "VidÃ©o tÃ©lÃ©chargÃ©e avec succÃ¨s !" : "Image tÃ©lÃ©chargÃ©e avec succÃ¨s !" });
       setTimeout(() => setMessage(null), 3000);
 
     } catch (error: any) {
@@ -817,7 +817,7 @@ export default function AgencyDashboard() {
     }
   };
 
-  // Fonction pour supprimer le média héros
+  // Fonction pour supprimer le mÃ©dia hÃ©ros
   const handleRemoveHero = async () => {
     if (!selectedAgency?.hero_url) return;
     
@@ -829,7 +829,7 @@ export default function AgencyDashboard() {
         await supabase.storage.from('agencies').remove([filePath]);
       }
       setSelectedAgency({ ...selectedAgency, hero_url: null, hero_type: 'image' });
-      setMessage({ type: 'success', text: "Média supprimé avec succès !" });
+      setMessage({ type: 'success', text: "MÃ©dia supprimÃ© avec succÃ¨s !" });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Delete error:', error);
@@ -846,7 +846,7 @@ export default function AgencyDashboard() {
       setIsSaving(true);
       const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const json = await res.json();
-      console.log('[delete-agency] réponse API:', json);
+      console.log('[delete-agency] rÃ©ponse API:', json);
       if (!res.ok || !json.success) {
         const detail = json.code ? `[${json.code}] ${json.error}` : (json.error || `HTTP ${res.status}`);
         throw new Error(detail);
@@ -857,7 +857,7 @@ export default function AgencyDashboard() {
         setSelectedAgency(data && data.length > 0 ? data[0] : null);
         setTeam(data?.[0]?.team_data || []);
       }
-      setMessage({ type: 'success', text: `"${name}" supprimée` });
+      setMessage({ type: 'success', text: `"${name}" supprimÃ©e` });
     } catch (err: any) {
       console.error('handleDelete error:', err);
       const msg = err?.message || t.error_save;
@@ -934,15 +934,26 @@ export default function AgencyDashboard() {
         setTeam(json.agency.team_data || []);
         setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? json.agency : a));
         if (willPublishFromSave) {
-          await sendWelcomeEmailForAgency(json.agency);
-          await fetchPendingAgencies();
+          let emailMessage = " Email client et notification interne envoyÃ©s.";
+          try {
+            await sendWelcomeEmailForAgency(json.agency);
+          } catch (emailErr: any) {
+            console.error('Welcome email error:', emailErr);
+            emailMessage = ` Sauvegarde OK, mais l'e-mail n'a pas pu Ãªtre envoyÃ© (${emailErr?.message || 'erreur inconnue'}).`;
+          }
+
+          try {
+            await fetchPendingAgencies();
+          } catch (pendingErr) {
+            console.error('Pending registrations refresh error:', pendingErr);
+          }
           messageDuration = 6000;
-          setMessage({ type: 'success', text: `${t.success_save} Email client et notification interne envoyés.` });
+          setMessage({ type: 'success', text: `${t.success_save}${emailMessage}` });
         } else {
           setMessage({ type: 'success', text: t.success_save });
         }
       } else {
-        setMessage({ type: 'error', text: "Erreur: agence non renvoyée après sauvegarde" });
+        setMessage({ type: 'error', text: "Erreur: agence non renvoyÃ©e aprÃ¨s sauvegarde" });
       }
     } catch (err: any) {
       console.error('Save error:', err);
@@ -1034,7 +1045,7 @@ export default function AgencyDashboard() {
       await sendWelcomeEmailForAgency({ ...agency, footer_config: updatedFooter, website_status: 'active' });
       setPendingAgencies((prev) => prev.filter((a) => a.id !== agency.id));
       setAgencies((prev) => prev.map((a) => a.id === agency.id ? { ...a, website_status: 'active', footer_config: updatedFooter } : a));
-      setMessage({ type: 'success', text: `${agency.agency_name} est maintenant en ligne. Email client envoyé !` });
+      setMessage({ type: 'success', text: `${agency.agency_name} est maintenant en ligne. Email client envoyÃ© !` });
       setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
       console.error('Publish error:', err);
@@ -1079,7 +1090,7 @@ export default function AgencyDashboard() {
         }),
       });
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur création agence');
+      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur crÃ©ation agence');
 
       // Mark pre-registration as converted (removed from DEMANDES)
       await supabase
@@ -1106,11 +1117,11 @@ export default function AgencyDashboard() {
       setActiveTab('agencies');
       setActivePanel('agency');
 
-      setMessage({ type: 'success', text: '✅ Agence créée — complétez la configuration avant la mise en ligne' });
+      setMessage({ type: 'success', text: 'âœ… Agence crÃ©Ã©e â€” complÃ©tez la configuration avant la mise en ligne' });
       setTimeout(() => setMessage(null), 6000);
     } catch (err: any) {
       console.error('Convert preregistration error:', err);
-      setMessage({ type: 'error', text: err.message || 'Erreur lors de la création de l\'agence' });
+      setMessage({ type: 'error', text: err.message || 'Erreur lors de la crÃ©ation de l\'agence' });
       setTimeout(() => setMessage(null), 5000);
     } finally {
       setIsPublishing(false);
@@ -1153,7 +1164,7 @@ export default function AgencyDashboard() {
       className={`flex flex-col lg:flex-row h-screen font-sans overflow-hidden transition-colors duration-300 ${isDark ? 'dash-dark text-white bg-[#070c1a]' : 'dash-light text-slate-900 bg-slate-100'}`}
     >
 
-      {/* SIDEBAR — glass morphism */}
+      {/* SIDEBAR â€” glass morphism */}
       <aside className={`w-full lg:w-72 lg:flex-shrink-0 max-h-[46vh] lg:max-h-none overflow-y-auto backdrop-blur-2xl flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#0d1528]/70 border-b lg:border-b-0 lg:border-r border-white/[0.06]' : 'bg-white border-b lg:border-b-0 lg:border-r border-slate-200 shadow-sm'}`}>
         <div className="p-4 sm:p-6 border-b border-white/[0.05]">
           <div className="flex justify-between items-center mb-5">
@@ -1207,7 +1218,7 @@ export default function AgencyDashboard() {
           </button>
         </div>
 
-        {/* Toast erreur suppression — toujours visible dans la sidebar */}
+        {/* Toast erreur suppression â€” toujours visible dans la sidebar */}
         <AnimatePresence>
           {deleteError && (
             <motion.div
@@ -1225,9 +1236,9 @@ export default function AgencyDashboard() {
             {agencies.map((agency) => (
               <div key={agency.id} className="relative group">
                 {deleteConfirmId === agency.id ? (
-                  /* Confirmation inline — remplace le bouton de sélection */
+                  /* Confirmation inline â€” remplace le bouton de sÃ©lection */
                   <div className="w-full px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
-                    <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer «&nbsp;{agency.agency_name}&nbsp;» ?</span>
+                    <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer Â«&nbsp;{agency.agency_name}&nbsp;Â» ?</span>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button
                         onClick={() => handleDelete(agency.id, agency.agency_name)}
@@ -1291,17 +1302,17 @@ export default function AgencyDashboard() {
               <div className="flex justify-center pt-6"><Loader2 size={18} className="animate-spin text-orange-400/50" /></div>
             ) : (
               <>
-                {/* Agences prêtes à publier */}
+                {/* Agences prÃªtes Ã  publier */}
                 {pendingAgencies.length > 0 && (
                   <div className="space-y-2">
                     <p className="text-[8px] font-black uppercase tracking-widest text-emerald-400/60 px-1 pb-0.5 border-b border-emerald-500/10">
-                      À publier ({pendingAgencies.length})
+                      Ã€ publier ({pendingAgencies.length})
                     </p>
                     {pendingAgencies.map((agency) => (
                       <div key={agency.id} className="relative group">
                         {deleteConfirmId === agency.id ? (
                           <div className="w-full px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
-                            <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer «&nbsp;{agency.agency_name}&nbsp;» ?</span>
+                            <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer Â«&nbsp;{agency.agency_name}&nbsp;Â» ?</span>
                             <div className="flex items-center gap-1.5 flex-shrink-0">
                               <button
                                 onClick={() => handleDelete(agency.id, agency.agency_name)}
@@ -1326,7 +1337,7 @@ export default function AgencyDashboard() {
                               <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
                               <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
                               <div className="text-[9px] text-white/20 mt-0.5">
-                                {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : '—'}
+                                {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : 'â€”'}
                               </div>
                             </div>
                             <button
@@ -1350,11 +1361,11 @@ export default function AgencyDashboard() {
                   </div>
                 )}
 
-                {/* Pré-inscriptions (register_premium) */}
+                {/* PrÃ©-inscriptions (register_premium) */}
                 {preRegistrations.length > 0 && (
                   <div className="space-y-2 mt-3">
                     <p className="text-[8px] font-black uppercase tracking-widest text-orange-400/60 px-1 pb-0.5 border-b border-orange-500/10">
-                      Pré-inscriptions ({preRegistrations.length})
+                      PrÃ©-inscriptions ({preRegistrations.length})
                     </p>
                     {preRegistrations.map((reg) => (
                       <div
@@ -1366,15 +1377,15 @@ export default function AgencyDashboard() {
                         }`}
                         onClick={() => { setSelectedPreRegistration(reg); setActivePanel('preregistration'); }}
                       >
-                        <div className="font-semibold text-[12px] text-white/80 truncate">{reg.company_name || '—'}</div>
+                        <div className="font-semibold text-[12px] text-white/80 truncate">{reg.company_name || 'â€”'}</div>
                         <div className="text-[9px] text-white/40 mt-0.5">{reg.first_name} {reg.last_name}</div>
                         <div className="text-[9px] text-white/25 font-mono truncate">{reg.email}</div>
                         <div className="flex items-center justify-between mt-1.5">
                           <span className="text-[8px] text-white/20">
-                            {reg.created_at ? new Date(reg.created_at).toLocaleDateString('fr-FR') : '—'}
+                            {reg.created_at ? new Date(reg.created_at).toLocaleDateString('fr-FR') : 'â€”'}
                           </span>
                           <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${reg.status === 'verified' ? 'bg-blue-500/20 text-blue-300' : 'bg-orange-500/20 text-orange-300'}`}>
-                            {reg.status === 'verified' ? 'OTP ✓' : 'En attente OTP'}
+                            {reg.status === 'verified' ? 'OTP âœ“' : 'En attente OTP'}
                           </span>
                         </div>
                       </div>
@@ -1406,12 +1417,12 @@ export default function AgencyDashboard() {
                     {selectedPreRegistration.company_name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                   <div>
-                    <div className="text-xl font-bold text-white">{selectedPreRegistration.company_name || '—'}</div>
+                    <div className="text-xl font-bold text-white">{selectedPreRegistration.company_name || 'â€”'}</div>
                     <div className="mt-1">
                       <span className="px-2 py-0.5 bg-orange-500/15 text-orange-400 rounded-md text-[9px] font-bold uppercase tracking-wider border border-orange-500/20">
-                        Pré-inscription
+                        PrÃ©-inscription
                       </span>
-                      <span className="ml-2 text-[9px] text-white/25 uppercase tracking-wider">À valider</span>
+                      <span className="ml-2 text-[9px] text-white/25 uppercase tracking-wider">Ã€ valider</span>
                     </div>
                   </div>
                 </div>
@@ -1434,7 +1445,7 @@ export default function AgencyDashboard() {
                     className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 active:scale-95"
                   >
                     {isPublishing ? <Loader2 className="animate-spin" size={14} /> : <UserPlus size={14} />}
-                    {isPublishing ? 'Création...' : 'Créer l\'agence'}
+                    {isPublishing ? 'CrÃ©ation...' : 'CrÃ©er l\'agence'}
                   </button>
                 </div>
               </div>
@@ -1446,10 +1457,10 @@ export default function AgencyDashboard() {
                 <h3 className={sHdr}><Mail size={15} className="text-orange-400" /> Informations de Contact</h3>
                 <div className="space-y-3">
                   {[
-                    { label: 'Prénom & Nom', value: `${selectedPreRegistration.first_name || ''} ${selectedPreRegistration.last_name || ''}`.trim() || '—' },
-                    { label: 'Email', value: selectedPreRegistration.email || '—', mono: true },
-                    { label: 'Langue', value: selectedPreRegistration.preferred_language || '—' },
-                    { label: "Date d'inscription", value: selectedPreRegistration.created_at ? new Date(selectedPreRegistration.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—' },
+                    { label: 'PrÃ©nom & Nom', value: `${selectedPreRegistration.first_name || ''} ${selectedPreRegistration.last_name || ''}`.trim() || 'â€”' },
+                    { label: 'Email', value: selectedPreRegistration.email || 'â€”', mono: true },
+                    { label: 'Langue', value: selectedPreRegistration.preferred_language || 'â€”' },
+                    { label: "Date d'inscription", value: selectedPreRegistration.created_at ? new Date(selectedPreRegistration.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'â€”' },
                   ].map(({ label, value, mono }) => (
                     <div key={label} className="flex justify-between items-center py-1.5 border-b border-white/[0.04]">
                       <span className="text-white/40 text-xs">{label}</span>
@@ -1466,18 +1477,18 @@ export default function AgencyDashboard() {
                           : 'bg-red-500/20 text-red-300'
                     }`}>
                       {selectedPreRegistration.status === 'verified'
-                        ? 'OTP ✓ Vérifié'
+                        ? 'OTP âœ“ VÃ©rifiÃ©'
                         : selectedPreRegistration.otp_expires_at && new Date(selectedPreRegistration.otp_expires_at) > new Date()
                           ? 'OTP valide'
-                          : 'OTP expiré'}
+                          : 'OTP expirÃ©'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* IDENTITÉ VISUELLE */}
+              {/* IDENTITÃ‰ VISUELLE */}
               <div className={cardCls}>
-                <h3 className={sHdr}><Palette size={15} className="text-orange-400" /> Identité Visuelle</h3>
+                <h3 className={sHdr}><Palette size={15} className="text-orange-400" /> IdentitÃ© Visuelle</h3>
                 <div className="space-y-5">
                   <div>
                     <label className={lbl}>Couleur principale</label>
@@ -1497,10 +1508,10 @@ export default function AgencyDashboard() {
                       <img
                         src={selectedPreRegistration.logo_url}
                         className="h-16 object-contain bg-white/[0.04] border border-white/[0.08] rounded-xl p-2 mt-2"
-                        alt="Logo pré-inscription"
+                        alt="Logo prÃ©-inscription"
                       />
                     ) : (
-                      <p className="text-white/25 text-xs italic mt-2">Pas encore uploadé</p>
+                      <p className="text-white/25 text-xs italic mt-2">Pas encore uploadÃ©</p>
                     )}
                   </div>
                 </div>
@@ -1540,7 +1551,7 @@ export default function AgencyDashboard() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className={lbl}>Langue par défaut</label>
+                  <label className={lbl}>Langue par dÃ©faut</label>
                   <select
                     value={preRegForm.defaultLang}
                     onChange={(e) => setPreRegForm(f => ({ ...f, defaultLang: e.target.value }))}
@@ -1610,7 +1621,7 @@ export default function AgencyDashboard() {
                 {[
                   { label: "Agences", value: agencies.length, icon: <Users size={12} />, accent: "text-indigo-400" },
                   { label: "Modules actifs", value: `${activeModulesCount}/7`, icon: <Zap size={12} />, accent: "text-emerald-400" },
-                  { label: "Plan", value: (selectedAgency.package_level || "—").toUpperCase(), icon: <Sparkles size={12} />, accent: "text-violet-400" },
+                  { label: "Plan", value: (selectedAgency.package_level || "â€”").toUpperCase(), icon: <Sparkles size={12} />, accent: "text-violet-400" },
                   { label: "Statut site", value: siteIsActive ? "Live" : "Offline", icon: <Activity size={12} />, accent: siteIsActive ? "text-emerald-400" : "text-red-400" },
                 ].map((kpi) => (
                   <div key={kpi.label} className="bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3">
@@ -1623,12 +1634,12 @@ export default function AgencyDashboard() {
 
             {/* DEFAULT LANG */}
             <div className="space-y-3">
-              <label className={lbl}>Langue par défaut du site</label>
+              <label className={lbl}>Langue par dÃ©faut du site</label>
               <div className="flex flex-wrap gap-2">
                 {selectedAgency.footer_config?.allowed_langs?.map((code: string) => (
                   <button key={code} type="button" onClick={() => setDefaultLang(code)}
                     className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${selectedAgency.default_lang === code ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-white/[0.04] text-white/40 border-white/[0.06] hover:bg-white/[0.07]'}`}>
-                    {code} {selectedAgency.default_lang === code && "★"}
+                    {code} {selectedAgency.default_lang === code && "â˜…"}
                   </button>
                 ))}
               </div>
@@ -1637,7 +1648,7 @@ export default function AgencyDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <motion.div className="lg:col-span-2 space-y-5" variants={stagger} initial="hidden" animate="visible">
 
-                {/* ① IDENTITÉ VISUELLE */}
+                {/* â‘  IDENTITÃ‰ VISUELLE */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Palette size={15} className="text-indigo-400" /> {t.sections.branding}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1727,7 +1738,7 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className={lbl}>Police d'écriture</label>
+                      <label className={lbl}>Police d'Ã©criture</label>
                       <div className="relative">
                         <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
                         <select value={selectedAgency?.font_family || 'Montserrat'} onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} className={`${inp} pl-11 appearance-none [&>option]:bg-[#0d1528]`}>
@@ -1782,7 +1793,7 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* ② HERO HEADER */}
+                {/* â‘¡ HERO HEADER */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Layout size={15} className="text-indigo-400" /> {t.sections.hero}</h3>
                   <div className="space-y-5">
@@ -1790,7 +1801,7 @@ export default function AgencyDashboard() {
                       <label className={lbl}>Image hero</label>
                       <div className="flex p-1 bg-white/[0.04] border border-white/[0.06] rounded-xl w-full sm:w-fit">
                         <button type="button" disabled className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"><ImageIcon size={13} /> Image</button>
-                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><Video size={13} /> Vidéo</button>
+                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><Video size={13} /> VidÃ©o</button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1800,8 +1811,8 @@ export default function AgencyDashboard() {
                           <input type="file" accept="image/*" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                           <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-indigo-500/30 transition-all">
                             <UploadCloud className="text-white/20 group-hover:text-indigo-400 transition-colors" size={20} />
-                            <span className="text-xs text-white/30">{selectedAgency?.hero_url ? (selectedAgency.hero_type === 'video' ? "Changer la vidéo" : "Changer l'image") : t.placeholders.media_upload}</span>
-                            <span className="text-[9px] text-white/20">Image ou vidéo MP4 · max 50 Mo</span>
+                            <span className="text-xs text-white/30">{selectedAgency?.hero_url ? (selectedAgency.hero_type === 'video' ? "Changer la vidÃ©o" : "Changer l'image") : t.placeholders.media_upload}</span>
+                            <span className="text-[9px] text-white/20">Image ou vidÃ©o MP4 Â· max 50 Mo</span>
                           </div>
                         </div>
                         {selectedAgency?.hero_url && selectedAgency.hero_type !== 'video' && (
@@ -1823,7 +1834,7 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* ③ LANGUES & XML */}
+                {/* â‘¢ LANGUES & XML */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><FileCode size={15} className="text-indigo-400" /> {t.sections.lang_xml}</h3>
                   <div className="space-y-3">
@@ -1886,11 +1897,11 @@ export default function AgencyDashboard() {
                   <div className="space-y-2 pt-3 border-t border-white/[0.05]">
                     <label className={`${lbl} flex items-center gap-2`}><FileCode size={11} /> HabiHub Agent ID <span className="text-white/20 font-normal normal-case tracking-normal">(fourni par HabiHub)</span></label>
                     <input type="text" className={`${inp} font-mono`} placeholder="ex: 6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2" value={selectedAgency?.habihub_agent_id || ''} onChange={(e) => setSelectedAgency({ ...selectedAgency, habihub_agent_id: e.target.value })} />
-                    <p className="text-[10px] text-white/25">Permet à Francisco d&apos;envoyer des flux XML sans connaître votre UUID interne.</p>
+                    <p className="text-[10px] text-white/25">Permet Ã  Francisco d&apos;envoyer des flux XML sans connaÃ®tre votre UUID interne.</p>
                   </div>
                 </motion.div>
 
-                {/* ④ ÉQUIPE */}
+                {/* â‘£ Ã‰QUIPE */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <div className="flex justify-between items-center border-b border-white/[0.05] pb-4">
                     <h3 className="flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest"><Users size={15} className="text-indigo-400" /> {t.sections.team}</h3>
@@ -1901,7 +1912,7 @@ export default function AgencyDashboard() {
                   {team.length === 0 ? (
                     <div className="text-center py-10 text-white/20">
                       <Users size={40} className="mx-auto mb-3 opacity-30" />
-                      <p className="text-sm">Aucun membre dans l'équipe.</p>
+                      <p className="text-sm">Aucun membre dans l'Ã©quipe.</p>
                     </div>
                   ) : (
                     <div className="space-y-5">
@@ -1938,7 +1949,7 @@ export default function AgencyDashboard() {
                   )}
                 </motion.div>
 
-                {/* ⑤ CONTACT & RÉSEAUX SOCIAUX */}
+                {/* â‘¤ CONTACT & RÃ‰SEAUX SOCIAUX */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Share2 size={15} className="text-indigo-400" /> {t.sections.socials}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1953,11 +1964,11 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* ⑥ MODULES & ABONNEMENT */}
+                {/* â‘¥ MODULES & ABONNEMENT */}
                 <motion.div variants={fadeUp} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-7 space-y-4 hover:border-indigo-500/20 transition-all duration-300">
                   <div className="flex items-start justify-between border-b border-white/[0.05] pb-4">
                     <h3 className="flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest"><Zap size={15} className="text-violet-400" /> Modules & Abonnement</h3>
-                    <span className="text-[9px] text-white/25 uppercase tracking-widest text-right leading-relaxed max-w-[180px]">Activation conditionnée au paiement</span>
+                    <span className="text-[9px] text-white/25 uppercase tracking-widest text-right leading-relaxed max-w-[180px]">Activation conditionnÃ©e au paiement</span>
                   </div>
 
                   {/* MODULE: Site Web Public */}
@@ -1970,7 +1981,7 @@ export default function AgencyDashboard() {
                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${siteActive ? 'bg-emerald-500/20' : 'bg-white/[0.05]'}`}><Globe size={17} className={siteActive ? 'text-emerald-400' : 'text-white/30'} /></div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Site Web Public</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Inclus</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Visibilité publique du site agence</p>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">VisibilitÃ© publique du site agence</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -1981,14 +1992,14 @@ export default function AgencyDashboard() {
                         {!siteActive && (
                           <div className="px-4 py-2.5 bg-amber-500/[0.08] border-t border-amber-500/20 flex items-center gap-2">
                             <AlertCircle size={12} className="text-amber-400 shrink-0" />
-                            <p className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wide">Le site est inaccessible aux visiteurs tant que ce module est désactivé.</p>
+                            <p className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wide">Le site est inaccessible aux visiteurs tant que ce module est dÃ©sactivÃ©.</p>
                           </div>
                         )}
                       </div>
                     );
                   })()}
 
-                  {/* MODULE: Flou vignettes après 6 */}
+                  {/* MODULE: Flou vignettes aprÃ¨s 6 */}
                   {(() => {
                     const enabled = getSub('blur_listings') === true;
                     return (
@@ -1997,8 +2008,8 @@ export default function AgencyDashboard() {
                           <div className="flex items-center gap-3">
                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-cyan-500/20' : 'bg-white/[0.05]'}`}><Monitor size={17} className={enabled ? 'text-cyan-400' : 'text-white/30'} /></div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Flou des vignettes (après 6)</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">Visibilité</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Masque les biens au-delà des 6 premiers</p>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Flou des vignettes (aprÃ¨s 6)</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">VisibilitÃ©</span></div>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Masque les biens au-delÃ  des 6 premiers</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -2009,7 +2020,7 @@ export default function AgencyDashboard() {
                         {enabled && (
                           <div className="px-4 py-2.5 bg-cyan-500/[0.07] border-t border-cyan-500/20 flex items-center gap-2">
                             <AlertCircle size={12} className="text-cyan-400 shrink-0" />
-                            <p className="text-[9px] text-cyan-400/80 font-bold uppercase tracking-wide">Les vignettes au-delà de la 6ème apparaissent floutées avec un message &quot;Contactez-nous&quot;.</p>
+                            <p className="text-[9px] text-cyan-400/80 font-bold uppercase tracking-wide">Les vignettes au-delÃ  de la 6Ã¨me apparaissent floutÃ©es avec un message &quot;Contactez-nous&quot;.</p>
                           </div>
                         )}
                       </div>
@@ -2028,8 +2039,8 @@ export default function AgencyDashboard() {
                               <Video size={17} className={enabled ? 'text-fuchsia-400' : 'text-white/30'} />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Vidéo Hero</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/20">Module</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Remplace l'image hero par une vidéo MP4 sur la homepage</p>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">VidÃ©o Hero</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/20">Module</span></div>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Remplace l'image hero par une vidÃ©o MP4 sur la homepage</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -2043,8 +2054,8 @@ export default function AgencyDashboard() {
                               <input type="file" accept="video/mp4,.mp4" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                               <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-fuchsia-500/30 transition-all">
                                 <UploadCloud className="text-white/20 group-hover:text-fuchsia-400 transition-colors" size={20} />
-                                <span className="text-xs text-white/30">{hasVideo ? 'Changer la vidéo hero' : 'Uploader une vidéo hero'}</span>
-                                <span className="text-[9px] text-white/20">MP4 uniquement · max 50 Mo</span>
+                                <span className="text-xs text-white/30">{hasVideo ? 'Changer la vidÃ©o hero' : 'Uploader une vidÃ©o hero'}</span>
+                                <span className="text-[9px] text-white/20">MP4 uniquement Â· max 50 Mo</span>
                               </div>
                             </div>
                             {hasVideo && (
@@ -2054,7 +2065,7 @@ export default function AgencyDashboard() {
                               </div>
                             )}
                             {!hasVideo && (
-                              <p className="text-[9px] text-fuchsia-300/70 font-bold uppercase tracking-wide">Si aucune vidéo n'est uploadée, l'image hero standard reste utilisée.</p>
+                              <p className="text-[9px] text-fuchsia-300/70 font-bold uppercase tracking-wide">Si aucune vidÃ©o n'est uploadÃ©e, l'image hero standard reste utilisÃ©e.</p>
                             )}
                           </div>
                         )}
@@ -2085,8 +2096,8 @@ export default function AgencyDashboard() {
                         </div>
                         {enabled && slug && (
                           <div className="px-4 py-3 bg-green-500/[0.07] border-t border-green-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <p className="text-[9px] text-green-400/80 font-bold uppercase tracking-wide">L'agence peut gérer ses biens manuellement depuis son espace dédié</p>
-                            <a href={`/fr/${slug}/mon-espace`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-green-500 transition-all"><Globe size={9} /> Ouvrir →</a>
+                            <p className="text-[9px] text-green-400/80 font-bold uppercase tracking-wide">L'agence peut gÃ©rer ses biens manuellement depuis son espace dÃ©diÃ©</p>
+                            <a href={`/fr/${slug}/mon-espace`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-green-500 transition-all"><Globe size={9} /> Ouvrir â†’</a>
                           </div>
                         )}
                       </div>
@@ -2118,7 +2129,7 @@ export default function AgencyDashboard() {
                         </div>
                         {intOpen.whatsapp && enabled && (
                           <div className="p-4 border-t border-white/[0.05] bg-white/[0.02] space-y-3">
-                            <label className={lbl}>Numéro WhatsApp</label>
+                            <label className={lbl}>NumÃ©ro WhatsApp</label>
                             <input className={inp} placeholder="Ex: 33600000000 (sans +)" value={getInt('whatsapp_number') || ''} onChange={(e) => updateNestedConfig('integrations', 'whatsapp_number', e.target.value)} />
                           </div>
                         )}
@@ -2153,7 +2164,7 @@ export default function AgencyDashboard() {
                           <div className="p-4 border-t border-white/[0.05] bg-white/[0.02] space-y-4">
                             <div className="flex items-center gap-2 px-4 py-3 bg-violet-500/[0.08] rounded-xl border border-violet-500/20">
                               <Cpu size={12} className="text-violet-400 shrink-0" />
-                              <p className="text-[9px] text-violet-400/80 font-bold uppercase tracking-wide">IA propulsée par la plateforme — inclus dans l'abonnement</p>
+                              <p className="text-[9px] text-violet-400/80 font-bold uppercase tracking-wide">IA propulsÃ©e par la plateforme â€” inclus dans l'abonnement</p>
                             </div>
                             <div className="space-y-2">
                               <label className={lbl}>Destination des leads</label>
@@ -2199,7 +2210,7 @@ export default function AgencyDashboard() {
                         </div>
                         {intOpen.crm && enabled && slug && (
                           <div className="px-4 py-3 bg-blue-500/[0.07] border-t border-blue-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <p className="text-[9px] text-blue-400/80 font-bold uppercase tracking-wide">Les identifiants CRM sont configurés par l'agence depuis sa page de paramétrage</p>
+                            <p className="text-[9px] text-blue-400/80 font-bold uppercase tracking-wide">Les identifiants CRM sont configurÃ©s par l'agence depuis sa page de paramÃ©trage</p>
                             <a href={`/fr/${slug}/parametres/crm`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-500 transition-all"><Globe size={9} /> Ouvrir</a>
                           </div>
                         )}
@@ -2220,7 +2231,7 @@ export default function AgencyDashboard() {
                             </div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Mini CRM Leads</span><span onClick={() => setMarketplaceModule('mini_crm')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25 transition-colors"><Lock size={7} /> Module</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Accès leads depuis le site agence</p>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">AccÃ¨s leads depuis le site agence</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -2230,7 +2241,7 @@ export default function AgencyDashboard() {
                         </div>
                         {enabled && slug && (
                           <div className="px-4 py-3 bg-orange-500/[0.07] border-t border-orange-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <p className="text-[9px] text-orange-400/80 font-bold uppercase tracking-wide">Accès protégé par mot de passe — défini par l'agence à la première connexion</p>
+                            <p className="text-[9px] text-orange-400/80 font-bold uppercase tracking-wide">AccÃ¨s protÃ©gÃ© par mot de passe â€” dÃ©fini par l'agence Ã  la premiÃ¨re connexion</p>
                             <a href={`/fr/${slug}/mes-leads`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-500 transition-all"><TrendingUp size={9} /> Ouvrir le CRM</a>
                           </div>
                         )}
@@ -2239,7 +2250,7 @@ export default function AgencyDashboard() {
                   })()}
                 </motion.div>
 
-                {/* ⑦ PAGES STATIQUES (ABOUT) */}
+                {/* â‘¦ PAGES STATIQUES (ABOUT) */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Type size={15} className="text-indigo-400" /> {t.sections.about}</h3>
                   <div className="space-y-2">
@@ -2252,25 +2263,25 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* ⑧ CONFORMITÉ & LÉGAL */}
+                {/* â‘§ CONFORMITÃ‰ & LÃ‰GAL */}
                 <motion.div variants={fadeUp} className="bg-white/[0.03] border border-white/[0.07] border-l-2 border-l-indigo-500/60 rounded-2xl p-7 space-y-5">
                   <h3 className={sHdr}><ShieldCheck size={15} className="text-indigo-400" /> {t.sections.legal}</h3>
                   <div className="flex items-center justify-between p-4 bg-white/[0.03] rounded-xl border border-white/[0.05]">
                     <div className="space-y-1">
                       <span className="text-sm font-semibold text-white/80">Bandeau de Cookies</span>
-                      <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold">Conformité RGPD</p>
+                      <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold">ConformitÃ© RGPD</p>
                     </div>
                     <ToggleSwitch checked={selectedAgency.cookie_consent_enabled || false} checkedColor="#6366f1" onChange={(v) => setSelectedAgency({...selectedAgency, cookie_consent_enabled: v})} />
                   </div>
                   <div className="space-y-2">
                     <label className={lbl}>{t.fields.privacy_policy}</label>
-                    <textarea rows={5} className={`${inp} resize-none`} placeholder="Saisissez ici les mentions légales..." value={selectedAgency.privacy_policy || ''} onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})} />
+                    <textarea rows={5} className={`${inp} resize-none`} placeholder="Saisissez ici les mentions lÃ©gales..." value={selectedAgency.privacy_policy || ''} onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})} />
                   </div>
                 </motion.div>
 
               </motion.div>
 
-              {/* LIVE PREVIEW — browser chrome mockup */}
+              {/* LIVE PREVIEW â€” browser chrome mockup */}
               <div className="lg:col-span-1">
                 <div className="lg:sticky lg:top-52">
                   <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
@@ -2330,7 +2341,7 @@ export default function AgencyDashboard() {
         )}
       </main>
 
-      {/* CREATE MODAL — AnimatePresence spring */}
+      {/* CREATE MODAL â€” AnimatePresence spring */}
       <AnimatePresence>
         {showCreateModal && (
           <motion.div
@@ -2388,3 +2399,4 @@ export default function AgencyDashboard() {
     </div>
   );
 }
+
