@@ -406,6 +406,8 @@ export default function MonEspacePage() {
   const [showModules, setShowModules] = useState(false);
   const [moduleRequestLoading, setModuleRequestLoading] = useState<string | null>(null);
   const [moduleRequestMsg, setModuleRequestMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [layoutSaving, setLayoutSaving] = useState(false);
+  const [layoutMsg, setLayoutMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const [showChangePw, setShowChangePw] = useState(false);
   const [cpCurrent, setCpCurrent] = useState("");
@@ -549,8 +551,53 @@ export default function MonEspacePage() {
   };
 
   const inputCls = "w-full px-4 py-3.5 rounded-2xl border text-sm text-white placeholder:text-white/20 focus:outline-none transition-all bg-white/[0.04] border-white/[0.07] focus:border-white/20";
-  const integrations = agency?.footer_config?.integrations || {};
-  const allowedLangs = agency?.footer_config?.allowed_langs || [];
+  const footerConfig = (() => {
+    if (!agency?.footer_config) return {};
+    if (typeof agency.footer_config === "string") {
+      try { return JSON.parse(agency.footer_config); } catch { return {}; }
+    }
+    return agency.footer_config;
+  })();
+  const integrations = footerConfig?.integrations || {};
+  const allowedLangs = footerConfig?.allowed_langs || [];
+  const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
+
+  const updatePropertiesPerRow = async (value: 3 | 4) => {
+    if (!session || !agency?.id || layoutSaving || value === propertiesPerRow) return;
+    setLayoutSaving(true);
+    setLayoutMsg(null);
+    const nextFooterConfig = {
+      ...footerConfig,
+      layout: {
+        ...(footerConfig.layout || {}),
+        properties_per_row: value,
+      },
+    };
+    try {
+      const res = await fetch("/api/property-manager/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-pm-session": session.token || "" },
+        body: JSON.stringify({
+          slug,
+          agencyId: session.agencyId,
+          data: {
+            footer_config: nextFooterConfig,
+            updated_at: new Date().toISOString(),
+          },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || "Erreur sauvegarde");
+      setAgency(json.agency || { ...agency, footer_config: nextFooterConfig });
+      setLayoutMsg({ type: "ok", text: locale === "fr" ? "Affichage mis a jour." : "Display updated." });
+    } catch (err: any) {
+      setLayoutMsg({ type: "err", text: err.message || (locale === "fr" ? "Sauvegarde impossible." : "Could not save.") });
+    } finally {
+      setLayoutSaving(false);
+      setTimeout(() => setLayoutMsg(null), 3000);
+    }
+  };
+
   const extraLangCount = Array.isArray(allowedLangs) ?Math.max(0, allowedLangs.length - 1) : 0;
   const moduleCatalog = [
     {
@@ -819,6 +866,53 @@ export default function MonEspacePage() {
                   </span>
                 </div>
               </motion.button>
+
+              {/* -- Affichage des biens -- */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 }}
+                className="rounded-3xl p-7"
+                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                    <LayoutGrid size={22} style={{ color: brandColor }} />
+                  </div>
+                  {layoutSaving && <Loader2 size={18} className="animate-spin text-white/30" />}
+                </div>
+                <p className="text-lg font-bold text-white mb-1">
+                  {locale === "fr" ? "Affichage des biens" : "Property display"}
+                </p>
+                <p className="text-sm text-white/30 mb-5">
+                  {locale === "fr" ? "Nombre de villas par ligne sur votre site public." : "Number of properties per row on your public website."}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 3 as const, label: locale === "fr" ? "3 par ligne" : "3 per row" },
+                    { value: 4 as const, label: locale === "fr" ? "4 par ligne" : "4 per row" },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      disabled={layoutSaving}
+                      onClick={() => updatePropertiesPerRow(option.value)}
+                      className={`rounded-2xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-60 ${
+                        propertiesPerRow === option.value
+                          ? "border-white/20 bg-white/15 text-white"
+                          : "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12] hover:text-white/70"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                {layoutMsg && (
+                  <p className={`mt-4 text-[10px] font-bold uppercase tracking-widest ${layoutMsg.type === "ok" ? "text-emerald-300" : "text-red-300"}`}>
+                    {layoutMsg.text}
+                  </p>
+                )}
+              </motion.div>
 
               {/* Direct leads access */}
               {integrations.leads_enabled === true && (
