@@ -1,4 +1,4 @@
-// src/components/PropertyGrid.tsx
+﻿// src/components/PropertyGrid.tsx
 "use client";
 
 import React, { memo } from 'react';
@@ -22,14 +22,16 @@ interface PropertyGridProps {
   cardStyle?: "classic" | "compact" | "editorial" | "minimal";
 }
 
-// Composant memoizé pour éviter les re-rendus inutiles
+// Composant memoizÃ© pour Ã©viter les re-rendus inutiles
 const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "rounded", iconColor, cardStyle = "classic" }: any) => {
   const { t, locale } = useTranslation() as any;
   const price = Number(property.price || 0);
+  const isRental = property.listing_type === "rent";
+  const rentalSuffix = property.rental_period === "week" ? "/sem." : property.rental_period === "day" ? "/jour" : "/mois";
   const EUR_TO_AED = 3.97;
   const isArabic = locale === 'ar';
-  const eurFormatted = `${price.toLocaleString()} €`;
-  const aedFormatted = `${new Intl.NumberFormat('ar-AE').format(Math.round(price * EUR_TO_AED))} د.إ`;
+  const eurFormatted = `${price.toLocaleString()} €${isRental ? ` ${rentalSuffix}` : ""}`;
+  const aedFormatted = `${new Intl.NumberFormat('ar-AE').format(Math.round(price * EUR_TO_AED))} Ø¯.Ø¥`;
   const brandColor = agency?.primary_color || "#10b981";
   const cardIconColor = iconColor || brandColor;
   const fontFamily = agency?.font_family || 'Montserrat';
@@ -104,7 +106,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
         {[
           { 
             icon: Maximize, 
-            value: `${property.surface || property.surface_built || 0} ${t('propertyCard.surface') || 'm²'}`,
+            value: `${property.surface || property.surface_built || 0} ${t('propertyCard.surface') || 'mÂ²'}`,
             labelKey: 'propertyCard.surface'
           },
           { 
@@ -126,7 +128,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
           },
           { 
             icon: Map, 
-            value: `${property.surface_plot || 0} ${t('propertyCard.plot') || 'm²'}`,
+            value: `${property.surface_plot || 0} ${t('propertyCard.plot') || 'mÂ²'}`,
             labelKey: 'propertyCard.land'
           },
           { 
@@ -158,7 +160,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
 
 PropertyCard.displayName = 'PropertyCard';
 
-// Composant principal également memoizé
+// Composant principal Ã©galement memoizÃ©
 const PropertyGrid = memo(function PropertyGrid({
   properties,
   agency,
@@ -212,3 +214,4 @@ const PropertyGrid = memo(function PropertyGrid({
 });
 
 export default PropertyGrid;
+

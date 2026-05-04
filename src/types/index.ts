@@ -16,6 +16,8 @@ export interface Villa {
     surface_plot: string | number;
     pool: string;
     type: string;
+    listing_type?: 'sale' | 'rent';
+    rental_period?: string | null;
     images: string[];
     // --- AJOUTS INDISPENSABLES POUR LA CARTE ---
     latitude: number | null;

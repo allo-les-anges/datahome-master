@@ -96,6 +96,8 @@ type Property = {
   baths: number;
   surface_built: string;
   type: string;
+  listing_type?: "sale" | "rent";
+  rental_period?: string | null;
   pool: string;
   images: string[];
   video_url?: string;
@@ -108,6 +110,7 @@ const PROPERTY_TYPES = ["Villa", "Appartement", "Penthouse", "Bungalow", "Maison
 const emptyForm = {
   titre_fr: "", titre_en: "", price: "", town: "", region: "",
   beds: "", baths: "", surface_built: "", type: "Villa",
+  listing_type: "sale", rental_period: "month",
   pool: "Non", video_url: "", description_fr: "", description_en: "",
 };
 
@@ -236,13 +239,49 @@ function PropertyForm({
               onChange={(e) => set("titre_en", e.target.value)} className={inputCls} />
           </FieldInput>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput label="Transaction">
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: "sale", label: "Vente" },
+                  { value: "rent", label: "Location" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => set("listing_type", option.value)}
+                    className={`rounded-2xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+                      form.listing_type === option.value
+                        ? "border-white/25 bg-white/15 text-white"
+                        : "border-white/[0.07] bg-white/[0.03] text-white/35 hover:text-white/70"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </FieldInput>
             <FieldInput label={dict.price} icon={<Euro size={11} />}>
               <div className="relative">
                 <input type="number" placeholder="350 000" value={form.price}
                   onChange={(e) => set("price", e.target.value)} className={`${inputCls} pr-8`} />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/20 font-bold">EUR</span>
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/20 font-bold">
+                  {form.listing_type === "rent" ? "EUR/mois" : "EUR"}
+                </span>
               </div>
             </FieldInput>
+            {form.listing_type === "rent" && (
+              <FieldInput label="Periode de location">
+                <div className="relative">
+                  <select value={form.rental_period || "month"} onChange={(e) => set("rental_period", e.target.value)}
+                    className={`${inputCls} appearance-none pr-9 cursor-pointer`}>
+                    <option value="month" className="bg-[#1a1a1a]">Par mois</option>
+                    <option value="week" className="bg-[#1a1a1a]">Par semaine</option>
+                    <option value="day" className="bg-[#1a1a1a]">Par jour</option>
+                  </select>
+                  <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
+                </div>
+              </FieldInput>
+            )}
             <FieldInput label={dict.type}>
               <div className="relative">
                 <select value={form.type} onChange={(e) => set("type", e.target.value)}

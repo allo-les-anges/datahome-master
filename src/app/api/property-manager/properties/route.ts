@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await supabase
     .from('villas')
-    .select('id, ref, titre_fr, titre_en, price, town, region, beds, baths, surface_built, type, pool, images, video_url, description_fr, description_en, source, agency_id')
+    .select('id, ref, titre_fr, titre_en, price, town, region, beds, baths, surface_built, type, listing_type, rental_period, pool, images, video_url, description_fr, description_en, source, agency_id')
     .eq('agency_id', agencyId)
     .eq('source', 'manual')
     .order('id', { ascending: false });

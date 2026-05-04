@@ -62,7 +62,12 @@ export default function Navbar({ agency: propsAgency }: NavbarProps) {
   const textColor = isScrolled ? "text-slate-900" : "text-white";
   const logoHexColor = isScrolled ? "#000000" : "#FFFFFF";
 
+  const footerConfig = typeof agency?.footer_config === 'string'
+    ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
+    : (agency?.footer_config || {});
+  const rentalsEnabled = footerConfig?.layout?.rentals_page_enabled !== false;
   const navLinks = [
+    ...(rentalsEnabled ? [{ name: t('nav.rentals') || "Locations", href: `${baseUrl}/locations` }] : []),
     { name: t('nav.about') || "Qui sommes-nous", href: `${baseUrl}/about` },
     { name: t('nav.contact') || "Contact", href: `${baseUrl}/contact` },
   ];

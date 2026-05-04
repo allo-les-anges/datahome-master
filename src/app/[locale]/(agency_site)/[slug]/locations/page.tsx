@@ -2,11 +2,10 @@ import { supabase } from '@/lib/supabase';
 import AgencyPageClient from "@/app/AgencyPageClient";
 import { notFound } from 'next/navigation';
 
-// ISR : régénère la page au plus toutes les 60s, sert depuis le cache entre-temps
 export const revalidate = 60;
 const INITIAL_PROPERTIES_LIMIT = 24;
 
-export default async function DynamicAgencyPage({
+export default async function AgencyRentalsPage({
   params
 }: {
   params: Promise<{ slug: string, locale: string }>
@@ -19,12 +18,8 @@ export default async function DynamicAgencyPage({
     .eq('subdomain', slug);
 
   const agency = agencies && agencies.length > 0 ? agencies[0] : null;
+  if (agencyError || !agency) return notFound();
 
-  if (agencyError || !agency) {
-    return notFound();
-  }
-
-  // Site désactivé depuis le dashboard admin
   const subscription = agency.footer_config?.subscription;
   if (subscription?.website_active === false) {
     return (
@@ -40,73 +35,29 @@ export default async function DynamicAgencyPage({
     );
   }
 
-  // Récupération des flux XML autorisés depuis la config de l'agence
   let xmlUrls: string[] = [];
   try {
     const config = typeof agency.footer_config === 'string'
       ? JSON.parse(agency.footer_config)
       : agency.footer_config;
     xmlUrls = config?.xml_urls || [];
-  } catch (e) { /* ignore */ }
+  } catch { /* ignore */ }
 
   const selectColumns = `
-    id,
-    id_externe,
-    ref,
-    titre,
-    titre_fr,
-    titre_en,
-    titre_es,
-    titre_nl,
-    titre_pl,
-    titre_ar,
-    prix,
-    price,
-    town,
-    ville,
-    region,
-    province,
-    images,
-    beds,
-    baths,
-    surface_built,
-    built,
-    surface_plot,
-    plot,
-    type,
-    pool,
-    is_excluded,
-    agency_id,
-    development_name,
-    promoteur_name,
-    latitude,
-    longitude,
-    adresse,
-    distance_beach,
-    distance_golf,
-    distance_town,
-    currency,
-    commission_percentage,
-    xml_source,
-    description,
-    description_fr,
-    description_en,
-    description_es,
-    description_nl,
-    description_pl,
-    description_ar,
-    listing_type,
-    rental_period
+    id, id_externe, ref, titre, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar,
+    prix, price, town, ville, region, province, images, beds, baths, surface_built, built,
+    surface_plot, plot, type, listing_type, rental_period, pool, is_excluded, agency_id,
+    development_name, promoteur_name, latitude, longitude, adresse, distance_beach,
+    distance_golf, distance_town, currency, commission_percentage, xml_source, description,
+    description_fr, description_en, description_es, description_nl, description_pl, description_ar
   `;
 
-  // Deux requêtes parallèles : par agency_id ET par xml_source (union)
-  // Couvre tous les cas : biens assignés directement + biens importés via flux XML
   const byAgencyQuery = supabase
     .from('villas')
     .select(selectColumns)
     .eq('agency_id', agency.id)
     .or('is_excluded.eq.false,is_excluded.is.null')
-    .or('listing_type.eq.sale,listing_type.is.null')
+    .eq('listing_type', 'rent')
     .order('price', { ascending: true })
     .limit(INITIAL_PROPERTIES_LIMIT);
 
@@ -116,14 +67,13 @@ export default async function DynamicAgencyPage({
         .select(selectColumns)
         .in('xml_source', xmlUrls)
         .or('is_excluded.eq.false,is_excluded.is.null')
-        .or('listing_type.eq.sale,listing_type.is.null')
+        .eq('listing_type', 'rent')
         .order('price', { ascending: true })
         .limit(INITIAL_PROPERTIES_LIMIT)
     : Promise.resolve({ data: [] as any[] });
 
   const [{ data: byAgency }, { data: byXml }] = await Promise.all([byAgencyQuery, byXmlQuery]);
 
-  // Fusion et déduplication par id
   const seen = new Set<string>();
   const villas = [...(byAgency || []), ...(byXml || [])].filter(v => {
     const id = String(v.id);
@@ -134,13 +84,12 @@ export default async function DynamicAgencyPage({
 
   const [{ count: agencyCount }, { count: xmlCount }] = await Promise.all([
     supabase.from('villas').select('*', { count: 'exact', head: true })
-      .eq('agency_id', agency.id).or('is_excluded.eq.false,is_excluded.is.null').or('listing_type.eq.sale,listing_type.is.null'),
+      .eq('agency_id', agency.id).or('is_excluded.eq.false,is_excluded.is.null').eq('listing_type', 'rent'),
     xmlUrls.length > 0
       ? supabase.from('villas').select('*', { count: 'exact', head: true })
-          .in('xml_source', xmlUrls).or('is_excluded.eq.false,is_excluded.is.null').or('listing_type.eq.sale,listing_type.is.null')
+          .in('xml_source', xmlUrls).or('is_excluded.eq.false,is_excluded.is.null').eq('listing_type', 'rent')
       : Promise.resolve({ count: 0 }),
   ]);
-  const totalCount = (agencyCount || 0) + (xmlCount || 0);
 
   return (
     <AgencyPageClient
@@ -148,8 +97,8 @@ export default async function DynamicAgencyPage({
       routeLocale={locale}
       initialAgency={agency}
       initialProperties={villas || []}
-      initialPropertyTotal={totalCount}
-      listingType="sale"
+      initialPropertyTotal={(agencyCount || 0) + (xmlCount || 0)}
+      listingType="rent"
     />
   );
 }

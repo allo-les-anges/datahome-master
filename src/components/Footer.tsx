@@ -80,6 +80,11 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
                 </Link>
               </li>
               <li>
+                <Link href={`/${locale}/${slug}/locations`} className="hover:text-primary transition-colors">
+                  {t('nav.rentals') || 'Locations'}
+                </Link>
+              </li>
+              <li>
                 <Link href={`/${locale}/${slug}/contact`} className="hover:text-primary transition-colors">
                   {t('nav.contact')}
                 </Link>

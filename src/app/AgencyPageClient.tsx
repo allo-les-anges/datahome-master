@@ -23,9 +23,10 @@ interface AgencyPageClientProps {
   initialAgency?: any;
   initialProperties?: any[];
   initialPropertyTotal?: number;
+  listingType?: 'sale' | 'rent';
 }
 
-export default function AgencyPageClient({ slug, routeLocale, initialAgency, initialProperties, initialPropertyTotal }: AgencyPageClientProps) {
+export default function AgencyPageClient({ slug, routeLocale, initialAgency, initialProperties, initialPropertyTotal, listingType = 'sale' }: AgencyPageClientProps) {
   const { t, locale, setLocale } = useTranslation() as any;
   const { agency: contextAgency, setAgencyBySlug } = useAgency();
   const initialLoadDone = useRef(false);
@@ -117,6 +118,8 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
         surface_built: v.surface_built || "0",
         surface_plot: v.surface_plot || "0",
         type: String(v.type || "Villa").trim(),
+        listing_type: v.listing_type || "sale",
+        rental_period: v.rental_period || null,
         images: imageArray,
         pool: v.pool === "Oui" || v.pool === true ? "Oui" : "Non",
         latitude: v.latitude || null,
@@ -191,11 +194,11 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
 
       const [byAgencyTypes, byXmlTypes] = await Promise.all([
         fetchTypePages(
-          supabase.from('villas').select('type').eq('agency_id', currentAgency.id).or('is_excluded.eq.false,is_excluded.is.null')
+          supabase.from('villas').select('type').eq('agency_id', currentAgency.id).or('is_excluded.eq.false,is_excluded.is.null').or(listingType === 'rent' ? 'listing_type.eq.rent' : 'listing_type.eq.sale,listing_type.is.null')
         ),
         allowedXmlUrls.length > 0
           ? fetchTypePages(
-              supabase.from('villas').select('type').in('xml_source', allowedXmlUrls).or('is_excluded.eq.false,is_excluded.is.null')
+              supabase.from('villas').select('type').in('xml_source', allowedXmlUrls).or('is_excluded.eq.false,is_excluded.is.null').or(listingType === 'rent' ? 'listing_type.eq.rent' : 'listing_type.eq.sale,listing_type.is.null')
             )
           : Promise.resolve([] as string[]),
       ]);
@@ -203,7 +206,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
       const distinct = [...new Set([...byAgencyTypes, ...byXmlTypes])] as string[];
       if (distinct.length > 0) setAvailableTypes(distinct);
     } catch (e) { /* silently ignore */ }
-  }, []);
+  }, [listingType]);
 
   // Chargement initial : utilise les données SSR immédiatement, pas de fetch massif
   const loadData = useCallback(async (currentAgency: any) => {
@@ -223,7 +226,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     try {
       setLoadingProperties(true);
       const xmlUrls = getXmlUrls(currentAgency);
-      const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: String(PAGE_SIZE_DEFAULT), lang: 'fr', mode: 'listing' });
+      const params = new URLSearchParams({ agencyId: String(currentAgency.id), limit: String(PAGE_SIZE_DEFAULT), lang: 'fr', mode: 'listing', listingType });
       xmlUrls.forEach((url: string) => params.append('xmlSource', url));
       const res = await fetch(`/api/properties?${params.toString()}`);
       const json = await res.json();
@@ -237,7 +240,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     } finally {
       setLoadingProperties(false);
     }
-  }, [initialProperties, initialPropertyTotal, formatVillaData, getXmlUrls]);
+  }, [initialProperties, initialPropertyTotal, formatVillaData, getXmlUrls, listingType]);
 
   // Charge la page suivante et l'ajoute à la liste affichée
   const loadMore = useCallback(async () => {
@@ -252,6 +255,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
         offset: String(offset),
         lang: 'fr',
         mode: 'listing',
+        listingType,
       });
       if (filters.type) params.set('type', filters.type);
       if (filters.town) params.set('town', filters.town);
@@ -271,7 +275,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
       setHasMore(newProps.length === pageSize);
     } catch { /* garder l'état actuel */ }
     finally { setLoadingMore(false); }
-  }, [agency, filteredProperties.length, loadingMore, hasMore, pageSize, filters, getXmlUrls, formatVillaData]);
+  }, [agency, filteredProperties.length, loadingMore, hasMore, pageSize, filters, getXmlUrls, formatVillaData, listingType]);
 
   // Synchronisation de l'agence
   useEffect(() => {
@@ -360,7 +364,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     setLoadingProperties(true);
     try {
       const xmlUrls = getXmlUrls(agency);
-      const params = new URLSearchParams({ agencyId: String(agency.id), limit: '200', lang: 'fr', mode: 'listing' });
+      const params = new URLSearchParams({ agencyId: String(agency.id), limit: '200', lang: 'fr', mode: 'listing', listingType });
       if (filterValues.type) params.set('type', filterValues.type);
       if (filterValues.town) params.set('town', filterValues.town);
       if (filterValues.region) params.set('region', filterValues.region);
@@ -386,7 +390,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
       setLoadingProperties(false);
       setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 150);
     }
-  }, [agency, allProperties, propertyTotal, sortOrder, pageSize, getXmlUrls, formatVillaData]);
+  }, [agency, allProperties, propertyTotal, sortOrder, pageSize, getXmlUrls, formatVillaData, listingType]);
 
   const resetFilters = useCallback(() => {
     const defaultFilters = { type: "", town: "", region: "", beds: 0, minPrice: 0, maxPrice: 20000000, reference: "" };
@@ -420,6 +424,9 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
     : (t('home.propertiesSingular') || 'property');
   const propertiesAvailableLabel = (t('home.propertiesAvailable') || '{count} properties available')
     .replace('{count}', String(displayedPropertyCount));
+  const resultsTitle = listingType === 'rent'
+    ? (t('nav.rentals') || 'Locations')
+    : (t('nav.results') || 'Nos Biens');
 
   const primaryColor = agency?.primary_color || '#FF8C00';
   const radius = agency?.button_style === 'rounded-full' ? 'rounded-full' : 'rounded-none';
@@ -504,7 +511,7 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
                   <header className="mb-24 text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">{agency?.agency_name}</span>
                     <div className="mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                      <h2 className="text-5xl italic text-slate-900" style={{ fontFamily: selectedFont }}>{t('nav.results') || 'Nos Biens'}</h2>
+                      <h2 className="text-5xl italic text-slate-900" style={{ fontFamily: selectedFont }}>{resultsTitle}</h2>
                       <span
                         className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm"
                         aria-label={propertiesAvailableLabel}

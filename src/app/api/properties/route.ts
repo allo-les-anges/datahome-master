@@ -40,14 +40,17 @@ export async function GET(request: Request) {
     const ref = searchParams.get('reference');
     const agencyId = searchParams.get('agencyId') || searchParams.get('agency_id');
     const xmlSources = searchParams.getAll('xmlSource').concat(searchParams.getAll('xml_source')).filter(Boolean);
+    const listingTypeParam = searchParams.get('listingType') || searchParams.get('listing_type') || 'sale';
+    const listingType = listingTypeParam === 'rent' ? 'rent' : 'sale';
 
 
     // Optimisation : sélectionner seulement les champs nécessaires pour la liste
-    const BASE_FIELDS = 'id, id_externe, ref, price, prix, town, ville, region, province, beds, baths, surface_built, surface_plot, surface_useful, pool, type, images, video_url, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, agency_id, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, adresse, commission_percentage, currency, status';
+    const BASE_FIELDS = 'id, id_externe, ref, price, prix, town, ville, region, province, beds, baths, surface_built, surface_plot, surface_useful, pool, type, listing_type, rental_period, images, video_url, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, agency_id, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, adresse, commission_percentage, currency, status';
 
     // Rebuild base query as a function so we can retry without date columns if needed
     const buildQuery = () => {
       let q = supabase.from('villas').select('*', { count: 'exact' }).or('is_excluded.eq.false,is_excluded.is.null');
+      q = listingType === 'rent' ? q.eq('listing_type', 'rent') : q.or('listing_type.eq.sale,listing_type.is.null');
       if (agencyId) q = q.eq('agency_id', agencyId);
       if (!agencyId && xmlSources.length > 0) q = q.in('xml_source', xmlSources);
       if (type) q = q.ilike('type', `%${type}%`);
@@ -61,6 +64,7 @@ export async function GET(request: Request) {
     };
 
     const applyFilters = (q: any) => {
+      q = listingType === 'rent' ? q.eq('listing_type', 'rent') : q.or('listing_type.eq.sale,listing_type.is.null');
       if (type) q = q.ilike('type', `%${type}%`);
       if (region) q = q.eq('region', region);
       if (town) q = q.ilike('town', `%${town}%`);
@@ -122,6 +126,7 @@ export async function GET(request: Request) {
       let xmlResult: any = await supabase.from('villas')
         .select(`${BASE_FIELDS}, delivery_date, start_date`)
         .or('is_excluded.eq.false,is_excluded.is.null')
+        .or(listingType === 'rent' ? 'listing_type.eq.rent' : 'listing_type.eq.sale,listing_type.is.null')
         .in('xml_source', xmlSources)
         .order('price', { ascending: true })
         .range(offset, offset + limit - 1);
@@ -130,6 +135,7 @@ export async function GET(request: Request) {
         xmlResult = await supabase.from('villas')
           .select(BASE_FIELDS)
           .or('is_excluded.eq.false,is_excluded.is.null')
+          .or(listingType === 'rent' ? 'listing_type.eq.rent' : 'listing_type.eq.sale,listing_type.is.null')
           .in('xml_source', xmlSources)
           .order('price', { ascending: true })
           .range(offset, offset + limit - 1);
@@ -173,6 +179,8 @@ export async function GET(request: Request) {
       surface_useful: p.surface_useful,
       pool: p.pool,
       type: p.type,
+      listing_type: p.listing_type || 'sale',
+      rental_period: p.rental_period || null,
       images: parseImages(p.images, isListing ? 1 : 5),
       video_url: p.video_url || null,
       titre: p[`titre_${lang}`] || p.titre_fr || p.ref,
