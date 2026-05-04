@@ -584,6 +584,7 @@ export default function MonEspacePage() {
       status: "Disponible",
       icon: Languages,
       color: "#38bdf8",
+      requestableWhenActive: true,
     },
     {
       id: "seo",
@@ -1102,6 +1103,7 @@ export default function MonEspacePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {moduleCatalog.map((module) => {
                 const Icon = module.icon;
+                const canRequest = !module.comingSoon && (!module.active || module.requestableWhenActive);
                 return (
                   <div
                     key={module.id}
@@ -1127,7 +1129,7 @@ export default function MonEspacePage() {
                     <p className="text-white/35 text-sm leading-relaxed min-h-[44px]">{module.description}</p>
                     <div className="flex items-center justify-between gap-3 mt-5 pt-5 border-t border-white/5">
                       <p className="text-white font-black">{module.price}</p>
-                      {module.active ? (
+                      {module.active && !module.requestableWhenActive ? (
                         <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10">
                           Deja actif
                         </span>
@@ -1138,8 +1140,8 @@ export default function MonEspacePage() {
                       ) : (
                         <button
                           type="button"
-                          onClick={() => requestModule(module)}
-                          disabled={moduleRequestLoading === module.id}
+                          onClick={() => canRequest && requestModule(module)}
+                          disabled={!canRequest || moduleRequestLoading === module.id}
                           className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-black transition-all hover:opacity-90 disabled:opacity-60"
                           style={{ backgroundColor: brandColor }}
                         >

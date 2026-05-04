@@ -16,6 +16,7 @@ const MODULE_CATALOG: Record<string, { name: string; price: string }> = {
   whatsapp: { name: 'WhatsApp Business', price: '19 EUR / mois' },
   property_manager: { name: 'Property Manager', price: '29 EUR / mois' },
   crm_sync: { name: 'CRM Zoho / HubSpot', price: '39 EUR / mois' },
+  'crm-sync': { name: 'CRM Zoho / HubSpot', price: '39 EUR / mois' },
   'plan-silver': { name: 'Plan Silver', price: '50 EUR / mois' },
   'plan-gold': { name: 'Plan Gold', price: '129 EUR / mois' },
   'plan-platinum': { name: 'Plan Platinum', price: '179 EUR / mois' },
