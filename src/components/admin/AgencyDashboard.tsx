@@ -22,27 +22,27 @@ const translations = {
     admin: "Administration",
     saas_title: "SaaS Agences",
     new_agency: "Nouvelle Agence",
-    select_agency: "SÃ©lectionnez une agence pour configurer son branding.",
+    select_agency: "Selectionnez une agence pour configurer son branding.",
     save: "Enregistrer les modifications",
     saving: "Enregistrement en cours...",
-    success_save: "Configuration enregistrÃ©e avec succÃ¨s !",
+    success_save: "Configuration enregistree avec succes !",
     error_save: "Erreur lors de la sauvegarde.",
-    generate: "GÃ©nÃ©rer l'agence",
-    upload_video_error: "Erreur lors de l'upload vidÃ©o. La vidÃ©o doit Ãªtre au format MP4 et ne pas dÃ©passer 50 Mo.",
-    upload_image_error: "Erreur lors de l'upload image. L'image ne doit pas dÃ©passer 5 Mo.",
+    generate: "Generer l'agence",
+    upload_video_error: "Erreur lors de l'upload video. La video doit etre au format MP4 et ne pas depasser 50 Mo.",
+    upload_image_error: "Erreur lors de l'upload image. L'image ne doit pas depasser 5 Mo.",
     sections: {
       lang_xml: "Langues & Flux XML",
-      socials: "RÃ©seaux Sociaux & Contact",
-      integrations: "IntÃ©grations",
-      branding: "IdentitÃ© Visuelle & Couleurs",
+      socials: "Reseaux Sociaux & Contact",
+      integrations: "Integrations",
+      branding: "Identite Visuelle & Couleurs",
       hero: "Configuration du Hero Header",
-      preview: "AperÃ§u en temps rÃ©el",
-      legal: "ConformitÃ© & LÃ©gal",
+      preview: "Apercu en temps reel",
+      legal: "Conformite & Legal",
       about: "Pages Statiques (About)",
-      team: "Gestion de l'Ã‰quipe"
+      team: "Gestion de l'Equipe"
     },
     fields: {
-      allowed_langs: "Langues autorisÃ©es sur le site",
+      allowed_langs: "Langues autorisees sur le site",
       xml_sources: "Flux Immobilier (XML)",
       facebook: "Lien Facebook",
       instagram: "Lien Instagram",
@@ -53,33 +53,33 @@ const translations = {
       agency_name: "Nom de l'enseigne",
       subdomain: "URL du site (Slug)",
       logo: "Logo de l'agence",
-      font: "Police de caractÃ¨res",
-      font_family: "Police de caractÃ¨res",
+      font: "Police de caracteres",
+      font_family: "Police de caracteres",
       primary_color: "Couleur Principale (Accents)",
       button_color: "Couleur des Boutons (CTA)",
       button_style: "Style des boutons",
       button_animation: "Animation des boutons",
       hero_title: "Titre d'accroche (Hero)",
-      hero_type: "Type de mÃ©dia",
-      hero_file: "Fichier MÃ©dia (Image/VidÃ©o)",
+      hero_type: "Type de media",
+      hero_file: "Fichier Media (Image/Video)",
       email: "Email de contact",
-      phone: "TÃ©lÃ©phone Fixe",
-      whatsapp: "NumÃ©ro WhatsApp (GSM)",
-      about_title: "Titre Page Ã€ Propos",
-      about_text: "Contenu Page Ã€ Propos",
-      privacy_policy: "Politique de confidentialitÃ©",
+      phone: "Telephone Fixe",
+      whatsapp: "Numero WhatsApp (GSM)",
+      about_title: "Titre Page A Propos",
+      about_text: "Contenu Page A Propos",
+      privacy_policy: "Politique de confidentialite",
       member_name: "Nom complet",
-      member_role: "Poste / RÃ´le",
+      member_role: "Poste / Role",
       member_bio: "Biographie",
       member_photo: "Photo du membre"
     },
     placeholders: {
       slug: "nom-de-lagence",
-      hero_text: "DÃ©couvrez nos biens d'exception...",
+      hero_text: "Decouvrez nos biens d'exception...",
       about_title: "L'art de vivre l'exceptionnel...",
-      about_text: "DÃ©crivez votre agence...",
+      about_text: "Decrivez votre agence...",
       click_upload: "Cliquer pour uploader",
-      media_upload: "Charger le mÃ©dia",
+      media_upload: "Charger le media",
       button: "Bouton",
       whatsapp: "Ex: 33600000000 (sans +)",
       member_name: "Jean Dupont",
@@ -165,13 +165,13 @@ const translations = {
     }
   },
   es: {
-    admin: "AdministraciÃ³n",
+    admin: "Administracion",
     saas_title: "SaaS Agencias",
     new_agency: "Nueva Agencia",
     select_agency: "Seleccione una agencia para configurar su branding.",
     save: "Guardar cambios",
     saving: "Guardando...",
-    success_save: "Â¡ConfiguraciÃ³n guardada con Ã©xito!",
+    success_save: "Configuracion guardada con exito!",
     error_save: "Error al guardar.",
     generate: "Generar Agencia",
     upload_video_error: "Error al subir el video. El video debe ser MP4 y no superar los 50 MB.",
@@ -181,11 +181,11 @@ const translations = {
       socials: "Redes Sociales y Contacto",
       integrations: "Integraciones",
       branding: "Identidad Visual y Colores",
-      hero: "ConfiguraciÃ³n del Hero Header",
+      hero: "Configuracion del Hero Header",
       preview: "Vista previa en tiempo real",
       legal: "Cumplimiento y Legal",
-      about: "PÃ¡ginas EstÃ¡ticas (About)",
-      team: "GestiÃ³n de Equipo"
+      about: "Paginas Estaticas (About)",
+      team: "Gestion de Equipo"
     },
     fields: {
       allowed_langs: "Idiomas permitidos en el sitio",
@@ -199,24 +199,24 @@ const translations = {
       agency_name: "Nombre de la agencia",
       subdomain: "URL del sitio (Slug)",
       logo: "Logo de la agencia",
-      font: "Fuente tipogrÃ¡fica",
-      font_family: "Fuente tipogrÃ¡fica",
+      font: "Fuente tipografica",
+      font_family: "Fuente tipografica",
       primary_color: "Color principal (Acentos)",
       button_color: "Color de botones (CTA)",
       button_style: "Estilo de botones",
-      button_animation: "AnimaciÃ³n de botones",
-      hero_title: "TÃ­tulo de cabecera (Hero)",
+      button_animation: "Animacion de botones",
+      hero_title: "Titulo de cabecera (Hero)",
       hero_type: "Tipo de medio",
       hero_file: "Archivo multimedia (Imagen/Video)",
       email: "Correo de contacto",
-      phone: "TelÃ©fono fijo",
-      whatsapp: "NÃºmero WhatsApp (MÃ³vil)",
-      about_title: "TÃ­tulo de la pÃ¡gina Sobre Nosotros",
-      about_text: "Texto de la pÃ¡gina Sobre Nosotros",
-      privacy_policy: "PolÃ­tica de Privacidad",
+      phone: "Telefono fijo",
+      whatsapp: "Numero WhatsApp (Movil)",
+      about_title: "Titulo de la pagina Sobre Nosotros",
+      about_text: "Texto de la pagina Sobre Nosotros",
+      privacy_policy: "Politica de Privacidad",
       member_name: "Nombre completo",
       member_role: "Puesto / Rol",
-      member_bio: "BiografÃ­a",
+      member_bio: "Biografia",
       member_photo: "Foto del miembro"
     },
     placeholders: {
@@ -226,14 +226,14 @@ const translations = {
       about_text: "Describa su agencia...",
       click_upload: "Clic para subir",
       media_upload: "Cargar medio",
-      button: "BotÃ³n",
+      button: "Boton",
       whatsapp: "Ej: 34600000000 (sin +)",
-      member_name: "Juan PÃ©rez",
+      member_name: "Juan Perez",
       member_role: "Agente Inmobiliario",
-      member_bio: "Experto en bienes raÃ­ces desde hace 15 aÃ±os..."
+      member_bio: "Experto en bienes raices desde hace 15 anos..."
     },
     buttons: {
-      add_member: "AÃ±adir miembro",
+      add_member: "Anadir miembro",
       remove_member: "Eliminar"
     }
   },
@@ -318,9 +318,9 @@ const DISPONIBLE_XML_SOURCES = [
 ];
 
 const SUPPORTED_LANGUAGES = [
-  { code: 'fr', label: 'FranÃ§ais' },
+  { code: 'fr', label: 'Francais' },
   { code: 'en', label: 'English' },
-  { code: 'es', label: 'EspaÃ±ol' },
+  { code: 'es', label: 'Espanol' },
   { code: 'nl', label: 'Nederlands' },
 ];
 
@@ -337,7 +337,7 @@ const fadeUp = {
 };
 
 // ============================================================
-// TOGGLE SWITCH COMPONENT â€” neon glow dark mode
+// TOGGLE SWITCH COMPONENT - neon glow dark mode
 // ============================================================
 function ToggleSwitch({ checked, onChange, checkedColor = '#6366f1' }: { checked: boolean; onChange: (v: boolean) => void; checkedColor?: string }) {
   return (
@@ -348,13 +348,13 @@ function ToggleSwitch({ checked, onChange, checkedColor = '#6366f1' }: { checked
       onClick={() => onChange(!checked)}
       className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border border-transparent transition-all duration-300 focus:outline-none"
       style={{
-        backgroundColor: checked ? checkedColor : 'rgba(255,255,255,0.08)',
-        boxShadow: checked ? `0 0 14px ${checkedColor}55` : 'none'
+        backgroundColor: checked ?checkedColor : 'rgba(255,255,255,0.08)',
+        boxShadow: checked ?`0 0 14px ${checkedColor}55` : 'none'
       }}
     >
       <span
         aria-hidden="true"
-        className={`pointer-events-none inline-block h-5 w-5 rounded-full shadow-lg transform transition duration-300 ease-in-out ${checked ? 'translate-x-5 bg-white' : 'translate-x-0 bg-white/40'}`}
+        className={`pointer-events-none inline-block h-5 w-5 rounded-full shadow-lg transform transition duration-300 ease-in-out ${checked ?'translate-x-5 bg-white' : 'translate-x-0 bg-white/40'}`}
       />
     </button>
   );
@@ -433,7 +433,7 @@ export default function AgencyDashboard() {
       const rows = agenciesRes.data || [];
       const trulyPending = rows.filter((agency: any) => {
         const footer = typeof agency.footer_config === 'string'
-          ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
+          ?(() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
           : (agency.footer_config || {});
         return footer?.subscription?.website_active !== true;
       });
@@ -449,7 +449,7 @@ export default function AgencyDashboard() {
       setPreRegistrations(preRegsRes.data || []);
       if (regsRes.ok) {
         const regs = await regsRes.json();
-        setPendingRegistrations(Array.isArray(regs) ? regs : []);
+        setPendingRegistrations(Array.isArray(regs) ?regs : []);
       }
     } catch (err) {
       console.error('fetchPendingAgencies error:', err);
@@ -549,11 +549,11 @@ export default function AgencyDashboard() {
     if (!selectedAgency) return;
     setSelectedAgency((prev: any) => {
       const currentFooterConfig = typeof prev.footer_config === 'string'
-        ? (() => { try { return JSON.parse(prev.footer_config); } catch { return {}; } })()
+        ?(() => { try { return JSON.parse(prev.footer_config); } catch { return {}; } })()
         : (prev.footer_config || {});
       const currentXmlUrls = currentFooterConfig.xml_urls || [];
       const newXmlUrls = currentXmlUrls.includes(url)
-        ? currentXmlUrls.filter((u: string) => u !== url)
+        ?currentXmlUrls.filter((u: string) => u !== url)
         : [...currentXmlUrls, url];
       return { ...prev, footer_config: { ...currentFooterConfig, xml_urls: newXmlUrls } };
     });
@@ -569,7 +569,7 @@ export default function AgencyDashboard() {
     if (!selectedAgency) return;
     setSelectedAgency((prev: any) => {
       const currentFooterConfig = typeof prev.footer_config === 'string'
-        ? (() => { try { return JSON.parse(prev.footer_config); } catch { return {}; } })()
+        ?(() => { try { return JSON.parse(prev.footer_config); } catch { return {}; } })()
         : (prev.footer_config || {});
       const currentXmlUrls = currentFooterConfig.xml_urls || [];
       if (currentXmlUrls.includes(url)) return prev;
@@ -603,7 +603,7 @@ export default function AgencyDashboard() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Erreur Vercel');
       setSelectedAgency(json.agency);
-      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? json.agency : a));
+      setAgencies(prev => prev.map(a => a.id === selectedAgency.id ?json.agency : a));
       setMessage({ type: 'success', text: 'Domaine ajoute dans Vercel. Les instructions DNS sont disponibles.' });
       setTimeout(() => setMessage(null), 6000);
     } catch (err: any) {
@@ -618,7 +618,7 @@ export default function AgencyDashboard() {
     if (!selectedAgency?.id) return;
 
     const footerConfig = typeof selectedAgency.footer_config === 'string'
-      ? (() => { try { return JSON.parse(selectedAgency.footer_config); } catch { return {}; } })()
+      ?(() => { try { return JSON.parse(selectedAgency.footer_config); } catch { return {}; } })()
       : (selectedAgency.footer_config || {});
     const xmlUrls = Array.from(new Set((footerConfig.xml_urls || []).filter(Boolean))) as string[];
 
@@ -664,9 +664,9 @@ export default function AgencyDashboard() {
         .reduce((total, r) => total + Number(r.value.count || 0), 0);
 
       if (failed > 0) {
-        setMessage({ type: 'error', text: `${synced} biens synchronisÃ©s, ${failed} flux en erreur.` });
+        setMessage({ type: 'error', text: `${synced} biens synchronises, ${failed} flux en erreur.` });
       } else {
-        setMessage({ type: 'success', text: `${synced} biens synchronisÃ©s depuis ${xmlUrls.length} flux XML.` });
+        setMessage({ type: 'success', text: `${synced} biens synchronises depuis ${xmlUrls.length} flux XML.` });
       }
       setTimeout(() => setMessage(null), 5000);
     } catch (err: any) {
@@ -681,7 +681,7 @@ export default function AgencyDashboard() {
     const currentConfig = selectedAgency.footer_config || {};
     const currentLangs = currentConfig.allowed_langs || ['fr'];
     const newLangs = currentLangs.includes(code)
-      ? currentLangs.filter((l: string) => l !== code)
+      ?currentLangs.filter((l: string) => l !== code)
       : [...currentLangs, code];
     setSelectedAgency({ ...selectedAgency, footer_config: { ...currentConfig, allowed_langs: newLangs } });
   };
@@ -707,7 +707,7 @@ export default function AgencyDashboard() {
       headers: { 'Content-Type': file.type },
       body: file,
     });
-    if (!uploadRes.ok) throw new Error('Upload direct Ã©chouÃ©');
+    if (!uploadRes.ok) throw new Error('Upload direct echoue');
     return publicUrl;
   };
 
@@ -740,7 +740,7 @@ export default function AgencyDashboard() {
     finally { setIsSaving(false); }
   };
 
-  // Fonction pour gÃ©rer l'upload du logo
+  // Fonction pour gerer l'upload du logo
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedAgency) return;
@@ -757,7 +757,7 @@ export default function AgencyDashboard() {
       const filePath = `${selectedAgency.subdomain}/branding/logo_${Date.now()}.${fileExt}`;
       const publicUrl = await uploadToStorage(file, filePath);
       setSelectedAgency({ ...selectedAgency, logo_url: publicUrl });
-      setMessage({ type: 'success', text: "Logo tÃ©lÃ©chargÃ© avec succÃ¨s !" });
+      setMessage({ type: 'success', text: "Logo telecharge avec succes !" });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       setMessage({ type: 'error', text: "Erreur lors de l'upload du logo" });
@@ -766,28 +766,28 @@ export default function AgencyDashboard() {
     }
   };
 
-  // Fonction pour gÃ©rer l'upload du mÃ©dia hÃ©ros (image ou vidÃ©o)
+  // Fonction pour gerer l'upload du media heros (image ou video)
   const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedAgency) return;
 
     const isVideo = file.type.startsWith('video/');
     
-    // Validation pour les vidÃ©os
+    // Validation pour les videos
     if (isVideo) {
       if (!file.type.includes('mp4')) {
-        setMessage({ type: 'error', text: t.upload_video_error || "Format vidÃ©o non supportÃ©. Utilisez MP4." });
+        setMessage({ type: 'error', text: t.upload_video_error || "Format video non supporte. Utilisez MP4." });
         setTimeout(() => setMessage(null), 5000);
         return;
       }
       if (file.size > 50 * 1024 * 1024) {
-        setMessage({ type: 'error', text: t.upload_video_error || "La vidÃ©o ne doit pas dÃ©passer 50 Mo." });
+        setMessage({ type: 'error', text: t.upload_video_error || "La video ne doit pas depasser 50 Mo." });
         setTimeout(() => setMessage(null), 5000);
         return;
       }
     } else {
       if (file.size > 5 * 1024 * 1024) {
-        setMessage({ type: 'error', text: t.upload_image_error || "L'image ne doit pas dÃ©passer 5 Mo." });
+        setMessage({ type: 'error', text: t.upload_image_error || "L'image ne doit pas depasser 5 Mo." });
         setTimeout(() => setMessage(null), 5000);
         return;
       }
@@ -798,12 +798,12 @@ export default function AgencyDashboard() {
       const fileExt = file.name.split('.').pop();
       const timestamp = Date.now();
       const randomId = Math.random().toString(36).substring(2, 8);
-      const folder = isVideo ? 'hero-video' : 'hero';
+      const folder = isVideo ?'hero-video' : 'hero';
       const filePath = `${selectedAgency.subdomain}/${folder}/${timestamp}_${randomId}.${fileExt}`;
 
       const publicUrl = await uploadToStorage(file, filePath);
       const nextFooterConfig = isVideo
-        ? {
+        ?{
             ...(selectedAgency.footer_config || {}),
             integrations: {
               ...(selectedAgency.footer_config?.integrations || {}),
@@ -815,11 +815,11 @@ export default function AgencyDashboard() {
       setSelectedAgency({
         ...selectedAgency,
         hero_url: publicUrl,
-        hero_type: isVideo ? 'video' : 'image',
+        hero_type: isVideo ?'video' : 'image',
         footer_config: nextFooterConfig,
       });
 
-      setMessage({ type: 'success', text: isVideo ? "VidÃ©o tÃ©lÃ©chargÃ©e avec succÃ¨s !" : "Image tÃ©lÃ©chargÃ©e avec succÃ¨s !" });
+      setMessage({ type: 'success', text: isVideo ?"Video telechargee avec succes !" : "Image telechargee avec succes !" });
       setTimeout(() => setMessage(null), 3000);
 
     } catch (error: any) {
@@ -832,7 +832,7 @@ export default function AgencyDashboard() {
     }
   };
 
-  // Fonction pour supprimer le mÃ©dia hÃ©ros
+  // Fonction pour supprimer le media heros
   const handleRemoveHero = async () => {
     if (!selectedAgency?.hero_url) return;
     
@@ -844,7 +844,7 @@ export default function AgencyDashboard() {
         await supabase.storage.from('agencies').remove([filePath]);
       }
       setSelectedAgency({ ...selectedAgency, hero_url: null, hero_type: 'image' });
-      setMessage({ type: 'success', text: "MÃ©dia supprimÃ© avec succÃ¨s !" });
+      setMessage({ type: 'success', text: "Media supprime avec succes !" });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Delete error:', error);
@@ -861,18 +861,18 @@ export default function AgencyDashboard() {
       setIsSaving(true);
       const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: adminHeaders() });
       const json = await res.json();
-      console.log('[delete-agency] rÃ©ponse API:', json);
+      console.log('[delete-agency] reponse API:', json);
       if (!res.ok || !json.success) {
-        const detail = json.code ? `[${json.code}] ${json.error}` : (json.error || `HTTP ${res.status}`);
+        const detail = json.code ?`[${json.code}] ${json.error}` : (json.error || `HTTP ${res.status}`);
         throw new Error(detail);
       }
       const { data } = await supabase.from('agency_settings').select('*');
       setAgencies(data || []);
       if (selectedAgency?.id === id) {
-        setSelectedAgency(data && data.length > 0 ? data[0] : null);
+        setSelectedAgency(data && data.length > 0 ?data[0] : null);
         setTeam(data?.[0]?.team_data || []);
       }
-      setMessage({ type: 'success', text: `"${name}" supprimÃ©e` });
+      setMessage({ type: 'success', text: `"${name}" supprimee` });
     } catch (err: any) {
       console.error('handleDelete error:', err);
       const msg = err?.message || t.error_save;
@@ -924,13 +924,13 @@ export default function AgencyDashboard() {
         footer_config: footerConfig,
         habihub_agent_id: selectedAgency.habihub_agent_id || null,
         custom_domain: normalizedCustomDomain || null,
-        custom_domain_status: normalizedCustomDomain ? 'pending' : 'not_configured',
+        custom_domain_status: normalizedCustomDomain ?'pending' : 'not_configured',
         custom_domain_verified_at: selectedAgency.custom_domain_verified_at || null,
         custom_domain_verification: selectedAgency.custom_domain_verification || null,
         custom_domain_dns: selectedAgency.custom_domain_dns || null,
         team_data: teamDataToSave,
         updated_at: new Date().toISOString(),
-        website_status: footerConfig?.subscription?.website_active === true ? 'active' : selectedAgency.website_status,
+        website_status: footerConfig?.subscription?.website_active === true ?'active' : selectedAgency.website_status,
       };
 
       const res = await fetch('/api/property-manager/settings', {
@@ -947,14 +947,14 @@ export default function AgencyDashboard() {
       if (json.agency) {
         setSelectedAgency(json.agency);
         setTeam(json.agency.team_data || []);
-        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ? json.agency : a));
+        setAgencies(prev => prev.map(a => a.id === selectedAgency.id ?json.agency : a));
         if (willPublishFromSave) {
-          let emailMessage = " Email client et notification interne envoyÃ©s.";
+          let emailMessage = " Email client et notification interne envoyes.";
           try {
             await sendWelcomeEmailForAgency(json.agency);
           } catch (emailErr: any) {
             console.error('Welcome email error:', emailErr);
-            emailMessage = ` Sauvegarde OK, mais l'e-mail n'a pas pu Ãªtre envoyÃ© (${emailErr?.message || 'erreur inconnue'}).`;
+            emailMessage = ` Sauvegarde OK, mais l'e-mail n'a pas pu etre envoye (${emailErr?.message || 'erreur inconnue'}).`;
           }
 
           try {
@@ -968,7 +968,7 @@ export default function AgencyDashboard() {
           setMessage({ type: 'success', text: t.success_save });
         }
       } else {
-        setMessage({ type: 'error', text: "Erreur: agence non renvoyÃ©e aprÃ¨s sauvegarde" });
+        setMessage({ type: 'error', text: "Erreur: agence non renvoyee apres sauvegarde" });
       }
     } catch (err: any) {
       console.error('Save error:', err);
@@ -1012,10 +1012,10 @@ export default function AgencyDashboard() {
 
   const sendWelcomeEmailForAgency = async (agency: any) => {
     const dashboardAgency = selectedAgency?.id === agency.id
-      ? selectedAgency
+      ?selectedAgency
       : agencies.find((item) => item.id === agency.id);
     const footerConfig = typeof agency.footer_config === 'string'
-      ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
+      ?(() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
       : (agency.footer_config || {});
     const clientEmail = agency?.email || footerConfig.client_email || footerConfig.contact_email;
 
@@ -1049,7 +1049,7 @@ export default function AgencyDashboard() {
     setPublishingId(agency.id);
     try {
       const currentFooter = typeof agency.footer_config === 'string'
-        ? JSON.parse(agency.footer_config)
+        ?JSON.parse(agency.footer_config)
         : (agency.footer_config || {});
       const updatedFooter = {
         ...currentFooter,
@@ -1062,8 +1062,8 @@ export default function AgencyDashboard() {
       if (error) throw error;
       await sendWelcomeEmailForAgency({ ...agency, footer_config: updatedFooter, website_status: 'active' });
       setPendingAgencies((prev) => prev.filter((a) => a.id !== agency.id));
-      setAgencies((prev) => prev.map((a) => a.id === agency.id ? { ...a, website_status: 'active', footer_config: updatedFooter } : a));
-      setMessage({ type: 'success', text: `${agency.agency_name} est maintenant en ligne. Email client envoyÃ© !` });
+      setAgencies((prev) => prev.map((a) => a.id === agency.id ?{ ...a, website_status: 'active', footer_config: updatedFooter } : a));
+      setMessage({ type: 'success', text: `${agency.agency_name} est maintenant en ligne. Email client envoye !` });
       setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
       console.error('Publish error:', err);
@@ -1108,7 +1108,7 @@ export default function AgencyDashboard() {
         }),
       });
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur crÃ©ation agence');
+      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur creation agence');
 
       // Mark pre-registration as converted (removed from DEMANDES)
       await supabase
@@ -1135,11 +1135,11 @@ export default function AgencyDashboard() {
       setActiveTab('agencies');
       setActivePanel('agency');
 
-      setMessage({ type: 'success', text: 'âœ… Agence crÃ©Ã©e â€” complÃ©tez la configuration avant la mise en ligne' });
+      setMessage({ type: 'success', text: 'OK - Agence creee - completez la configuration avant la mise en ligne' });
       setTimeout(() => setMessage(null), 6000);
     } catch (err: any) {
       console.error('Convert preregistration error:', err);
-      setMessage({ type: 'error', text: err.message || 'Erreur lors de la crÃ©ation de l\'agence' });
+      setMessage({ type: 'error', text: err.message || 'Erreur lors de la creation de l\'agence' });
       setTimeout(() => setMessage(null), 5000);
     } finally {
       setIsPublishing(false);
@@ -1147,7 +1147,7 @@ export default function AgencyDashboard() {
   };
 
   // KPI computed values
-  const activeModulesCount = selectedAgency ? [
+  const activeModulesCount = selectedAgency ?[
     getSub('website_active') !== false,
     getSub('blur_listings') === true,
     !!getInt('hero_video_enabled'),
@@ -1172,33 +1172,33 @@ export default function AgencyDashboard() {
     </div>
   );
 
-  const inp = `w-full border rounded-xl px-5 py-4 text-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 outline-none transition-all ${isDark ? 'bg-white/[0.05] border-white/[0.08] text-white placeholder-white/25' : 'bg-[var(--d-inp-bg)] border-[var(--d-inp-border)] text-[var(--d-text)] placeholder:text-[var(--d-text-25)]'}`;
-  const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-[var(--d-text-40)]'}`;
-  const cardCls = `border rounded-2xl p-7 space-y-6 transition-all duration-300 ${isDark ? 'bg-white/[0.03] border-white/[0.06] hover:border-white/[0.10]' : 'bg-[var(--d-card)] border-[var(--d-card-border)] shadow-sm hover:shadow-md'}`;
-  const sHdr = `flex items-center gap-3 font-bold uppercase text-xs tracking-widest border-b pb-4 ${isDark ? 'text-white/80 border-white/[0.06]' : 'text-[var(--d-text-80)] border-[var(--d-divider)]'}`;
+  const inp = `w-full border rounded-xl px-5 py-4 text-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 outline-none transition-all ${isDark ?'bg-white/[0.05] border-white/[0.08] text-white placeholder-white/25' : 'bg-[var(--d-inp-bg)] border-[var(--d-inp-border)] text-[var(--d-text)] placeholder:text-[var(--d-text-25)]'}`;
+  const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ?'text-white/40' : 'text-[var(--d-text-40)]'}`;
+  const cardCls = `border rounded-2xl p-7 space-y-6 transition-all duration-300 ${isDark ?'bg-white/[0.03] border-white/[0.06] hover:border-white/[0.10]' : 'bg-[var(--d-card)] border-[var(--d-card-border)] shadow-sm hover:shadow-md'}`;
+  const sHdr = `flex items-center gap-3 font-bold uppercase text-xs tracking-widest border-b pb-4 ${isDark ?'text-white/80 border-white/[0.06]' : 'text-[var(--d-text-80)] border-[var(--d-divider)]'}`;
 
   return (
     <div
-      className={`flex flex-col lg:flex-row h-screen font-sans overflow-hidden transition-colors duration-300 ${isDark ? 'dash-dark text-white bg-[#070c1a]' : 'dash-light text-slate-900 bg-slate-100'}`}
+      className={`flex flex-col lg:flex-row h-screen font-sans overflow-hidden transition-colors duration-300 ${isDark ?'dash-dark text-white bg-[#070c1a]' : 'dash-light text-slate-900 bg-slate-100'}`}
     >
 
-      {/* SIDEBAR â€” glass morphism */}
-      <aside className={`w-full lg:w-72 lg:flex-shrink-0 max-h-[46vh] lg:max-h-none overflow-y-auto backdrop-blur-2xl flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#0d1528]/70 border-b lg:border-b-0 lg:border-r border-white/[0.06]' : 'bg-white border-b lg:border-b-0 lg:border-r border-slate-200 shadow-sm'}`}>
+      {/* SIDEBAR - glass morphism */}
+      <aside className={`w-full lg:w-72 lg:flex-shrink-0 max-h-[46vh] lg:max-h-none overflow-y-auto backdrop-blur-2xl flex flex-col transition-colors duration-300 ${isDark ?'bg-[#0d1528]/70 border-b lg:border-b-0 lg:border-r border-white/[0.06]' : 'bg-white border-b lg:border-b-0 lg:border-r border-slate-200 shadow-sm'}`}>
         <div className="p-4 sm:p-6 border-b border-white/[0.05]">
           <div className="flex justify-between items-center mb-5">
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+                onClick={() => setLang(lang === 'fr' ?'en' : 'fr')}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.06] border border-white/[0.06] rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-white/[0.10] transition-all text-white/50"
               >
                 <Languages size={11} /> {lang.toUpperCase()}
               </button>
               <button
                 onClick={() => setIsDark(v => !v)}
-                title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+                title={isDark ?'Passer en mode clair' : 'Passer en mode sombre'}
                 className="p-1.5 rounded-lg bg-white/[0.06] border border-white/[0.06] hover:bg-white/[0.10] transition-all text-white/50"
               >
-                {isDark ? <Sun size={13} /> : <Moon size={13} />}
+                {isDark ?<Sun size={13} /> : <Moon size={13} />}
               </button>
             </div>
             <button onClick={() => setShowCreateModal(true)} className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/30 active:scale-95">
@@ -1218,13 +1218,13 @@ export default function AgencyDashboard() {
         <div className="px-3 pt-2 pb-1 flex gap-1">
           <button
             onClick={() => { setActiveTab('agencies'); setActivePanel('agency'); setSelectedPreRegistration(null); }}
-            className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'agencies' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'}`}
+            className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'agencies' ?'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'}`}
           >
             Agences
           </button>
           <button
             onClick={() => setActiveTab('pending')}
-            className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1 ${activeTab === 'pending' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'}`}
+            className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1 ${activeTab === 'pending' ?'bg-orange-500/20 text-orange-300 border border-orange-500/30' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'}`}
           >
             <Clock size={9} />
             Demandes
@@ -1236,7 +1236,7 @@ export default function AgencyDashboard() {
           </button>
         </div>
 
-        {/* Toast erreur suppression â€” toujours visible dans la sidebar */}
+        {/* Toast erreur suppression - toujours visible dans la sidebar */}
         <AnimatePresence>
           {deleteError && (
             <motion.div
@@ -1249,14 +1249,14 @@ export default function AgencyDashboard() {
           )}
         </AnimatePresence>
 
-        {activeTab === 'agencies' ? (
+        {activeTab === 'agencies' ?(
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {agencies.map((agency) => (
               <div key={agency.id} className="relative group">
-                {deleteConfirmId === agency.id ? (
-                  /* Confirmation inline â€” remplace le bouton de sÃ©lection */
+                {deleteConfirmId === agency.id ?(
+                  /* Confirmation inline - remplace le bouton de selection */
                   <div className="w-full px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
-                    <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer Â«&nbsp;{agency.agency_name}&nbsp;Â» ?</span>
+                    <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer "&nbsp;{agency.agency_name}&nbsp;" ?</span>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button
                         onClick={() => handleDelete(agency.id, agency.agency_name)}
@@ -1276,7 +1276,7 @@ export default function AgencyDashboard() {
                   <>
                     <button
                       onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
-                      className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 relative ${selectedAgency?.id === agency.id ? 'text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 relative ${selectedAgency?.id === agency.id ?'text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
                     >
                       {selectedAgency?.id === agency.id && (
                         <motion.div layoutId="sidebar-indicator" className="absolute inset-0 rounded-xl bg-indigo-500/10 border border-indigo-500/25" />
@@ -1312,25 +1312,25 @@ export default function AgencyDashboard() {
                 disabled={loadingPending}
                 className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-all disabled:opacity-40"
               >
-                {loadingPending ? <Loader2 size={9} className="animate-spin" /> : <Activity size={9} />}
+                {loadingPending ?<Loader2 size={9} className="animate-spin" /> : <Activity size={9} />}
                 Actualiser
               </button>
             </div>
-            {loadingPending ? (
+            {loadingPending ?(
               <div className="flex justify-center pt-6"><Loader2 size={18} className="animate-spin text-orange-400/50" /></div>
             ) : (
               <>
-                {/* Agences prÃªtes Ã  publier */}
+                {/* Agences pretes a publier */}
                 {pendingAgencies.length > 0 && (
                   <div className="space-y-2">
                     <p className="text-[8px] font-black uppercase tracking-widest text-emerald-400/60 px-1 pb-0.5 border-b border-emerald-500/10">
-                      Ã€ publier ({pendingAgencies.length})
+                      A publier ({pendingAgencies.length})
                     </p>
                     {pendingAgencies.map((agency) => (
                       <div key={agency.id} className="relative group">
-                        {deleteConfirmId === agency.id ? (
+                        {deleteConfirmId === agency.id ?(
                           <div className="w-full px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
-                            <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer Â«&nbsp;{agency.agency_name}&nbsp;Â» ?</span>
+                            <span className="text-[10px] text-red-300 font-semibold truncate">Supprimer "&nbsp;{agency.agency_name}&nbsp;" ?</span>
                             <div className="flex items-center gap-1.5 flex-shrink-0">
                               <button
                                 onClick={() => handleDelete(agency.id, agency.agency_name)}
@@ -1348,14 +1348,14 @@ export default function AgencyDashboard() {
                           </div>
                         ) : (
                           <div
-                            className={`border rounded-xl p-3 space-y-2 cursor-pointer transition-all ${selectedAgency?.id === agency.id ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/[0.03] border-emerald-500/20 hover:border-emerald-500/35'}`}
+                            className={`border rounded-xl p-3 space-y-2 cursor-pointer transition-all ${selectedAgency?.id === agency.id ?'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/[0.03] border-emerald-500/20 hover:border-emerald-500/35'}`}
                             onClick={() => { setSelectedAgency(agency); setTeam(agency.team_data || []); setActivePanel('agency'); setSelectedPreRegistration(null); }}
                           >
                             <div className="pr-5">
                               <div className="font-semibold text-[13px] text-white truncate">{agency.agency_name}</div>
                               <div className="text-[9px] text-white/30 uppercase tracking-wider font-mono">{agency.subdomain}</div>
                               <div className="text-[9px] text-white/20 mt-0.5">
-                                {agency.created_at ? new Date(agency.created_at).toLocaleDateString('fr-FR') : 'â€”'}
+                                {agency.created_at ?new Date(agency.created_at).toLocaleDateString('fr-FR') : '-'}
                               </div>
                             </div>
                             <button
@@ -1363,7 +1363,7 @@ export default function AgencyDashboard() {
                               disabled={publishingId === agency.id}
                               className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
                             >
-                              {publishingId === agency.id ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                              {publishingId === agency.id ?<Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
                               Publier
                             </button>
                             <button
@@ -1379,31 +1379,31 @@ export default function AgencyDashboard() {
                   </div>
                 )}
 
-                {/* PrÃ©-inscriptions (register_premium) */}
+                {/* Pre-inscriptions (register_premium) */}
                 {preRegistrations.length > 0 && (
                   <div className="space-y-2 mt-3">
                     <p className="text-[8px] font-black uppercase tracking-widest text-orange-400/60 px-1 pb-0.5 border-b border-orange-500/10">
-                      PrÃ©-inscriptions ({preRegistrations.length})
+                      Pre-inscriptions ({preRegistrations.length})
                     </p>
                     {preRegistrations.map((reg) => (
                       <div
                         key={reg.id}
                         className={`rounded-xl p-3 cursor-pointer transition-all ${
                           selectedPreRegistration?.id === reg.id
-                            ? 'bg-amber-500/10 border border-amber-500/40'
+                            ?'bg-amber-500/10 border border-amber-500/40'
                             : 'bg-white/[0.02] border border-orange-500/15 hover:border-orange-500/35'
                         }`}
                         onClick={() => { setSelectedPreRegistration(reg); setActivePanel('preregistration'); }}
                       >
-                        <div className="font-semibold text-[12px] text-white/80 truncate">{reg.company_name || 'â€”'}</div>
+                        <div className="font-semibold text-[12px] text-white/80 truncate">{reg.company_name || '-'}</div>
                         <div className="text-[9px] text-white/40 mt-0.5">{reg.first_name} {reg.last_name}</div>
                         <div className="text-[9px] text-white/25 font-mono truncate">{reg.email}</div>
                         <div className="flex items-center justify-between mt-1.5">
                           <span className="text-[8px] text-white/20">
-                            {reg.created_at ? new Date(reg.created_at).toLocaleDateString('fr-FR') : 'â€”'}
+                            {reg.created_at ?new Date(reg.created_at).toLocaleDateString('fr-FR') : '-'}
                           </span>
-                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${reg.status === 'verified' ? 'bg-blue-500/20 text-blue-300' : 'bg-orange-500/20 text-orange-300'}`}>
-                            {reg.status === 'verified' ? 'OTP âœ“' : 'En attente OTP'}
+                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${reg.status === 'verified' ?'bg-blue-500/20 text-blue-300' : 'bg-orange-500/20 text-orange-300'}`}>
+                            {reg.status === 'verified' ?'OTP OK' : 'En attente OTP'}
                           </span>
                         </div>
                       </div>
@@ -1459,7 +1459,7 @@ export default function AgencyDashboard() {
 
       {/* MAIN */}
       <main className="flex-1 min-w-0 overflow-y-auto">
-        {activePanel === 'preregistration' && selectedPreRegistration ? (
+        {activePanel === 'preregistration' && selectedPreRegistration ?(
           <div className="max-w-4xl mx-auto px-4 sm:px-8 py-4 sm:py-6 space-y-6">
             {/* STICKY HEADER */}
             <div className="sticky top-0 z-20 -mx-4 sm:-mx-8 px-4 sm:px-8 pb-5 pt-5 bg-[#070c1a]/90 backdrop-blur-xl border-b border-white/[0.04]">
@@ -1472,12 +1472,12 @@ export default function AgencyDashboard() {
                     {selectedPreRegistration.company_name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                   <div>
-                    <div className="text-xl font-bold text-white">{selectedPreRegistration.company_name || 'â€”'}</div>
+                    <div className="text-xl font-bold text-white">{selectedPreRegistration.company_name || '-'}</div>
                     <div className="mt-1">
                       <span className="px-2 py-0.5 bg-orange-500/15 text-orange-400 rounded-md text-[9px] font-bold uppercase tracking-wider border border-orange-500/20">
-                        PrÃ©-inscription
+                        Pre-inscription
                       </span>
-                      <span className="ml-2 text-[9px] text-white/25 uppercase tracking-wider">Ã€ valider</span>
+                      <span className="ml-2 text-[9px] text-white/25 uppercase tracking-wider">A valider</span>
                     </div>
                   </div>
                 </div>
@@ -1486,9 +1486,9 @@ export default function AgencyDashboard() {
                     {message && (
                       <motion.div
                         initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wide ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wide ${message.type === 'success' ?'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}
                       >
-                        {message.type === 'success' ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                        {message.type === 'success' ?<CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                         {message.text}
                       </motion.div>
                     )}
@@ -1499,8 +1499,8 @@ export default function AgencyDashboard() {
                     disabled={isPublishing}
                     className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 active:scale-95"
                   >
-                    {isPublishing ? <Loader2 className="animate-spin" size={14} /> : <UserPlus size={14} />}
-                    {isPublishing ? 'CrÃ©ation...' : 'CrÃ©er l\'agence'}
+                    {isPublishing ?<Loader2 className="animate-spin" size={14} /> : <UserPlus size={14} />}
+                    {isPublishing ?'Creation...' : 'Creer l\'agence'}
                   </button>
                 </div>
               </div>
@@ -1512,38 +1512,38 @@ export default function AgencyDashboard() {
                 <h3 className={sHdr}><Mail size={15} className="text-orange-400" /> Informations de Contact</h3>
                 <div className="space-y-3">
                   {[
-                    { label: 'PrÃ©nom & Nom', value: `${selectedPreRegistration.first_name || ''} ${selectedPreRegistration.last_name || ''}`.trim() || 'â€”' },
-                    { label: 'Email', value: selectedPreRegistration.email || 'â€”', mono: true },
-                    { label: 'Langue', value: selectedPreRegistration.preferred_language || 'â€”' },
-                    { label: "Date d'inscription", value: selectedPreRegistration.created_at ? new Date(selectedPreRegistration.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'â€”' },
+                    { label: 'Prenom & Nom', value: `${selectedPreRegistration.first_name || ''} ${selectedPreRegistration.last_name || ''}`.trim() || '-' },
+                    { label: 'Email', value: selectedPreRegistration.email || '-', mono: true },
+                    { label: 'Langue', value: selectedPreRegistration.preferred_language || '-' },
+                    { label: "Date d'inscription", value: selectedPreRegistration.created_at ?new Date(selectedPreRegistration.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '-' },
                   ].map(({ label, value, mono }) => (
                     <div key={label} className="flex justify-between items-center py-1.5 border-b border-white/[0.04]">
                       <span className="text-white/40 text-xs">{label}</span>
-                      <span className={`text-white text-xs font-semibold ${mono ? 'font-mono' : ''}`}>{value}</span>
+                      <span className={`text-white text-xs font-semibold ${mono ?'font-mono' : ''}`}>{value}</span>
                     </div>
                   ))}
                   <div className="flex justify-between items-center py-1.5">
                     <span className="text-white/40 text-xs">Statut OTP</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       selectedPreRegistration.status === 'verified'
-                        ? 'bg-blue-500/20 text-blue-300'
+                        ?'bg-blue-500/20 text-blue-300'
                         : selectedPreRegistration.otp_expires_at && new Date(selectedPreRegistration.otp_expires_at) > new Date()
-                          ? 'bg-amber-500/20 text-amber-300'
+                          ?'bg-amber-500/20 text-amber-300'
                           : 'bg-red-500/20 text-red-300'
                     }`}>
                       {selectedPreRegistration.status === 'verified'
-                        ? 'OTP âœ“ VÃ©rifiÃ©'
+                        ?'OTP OK Verifie'
                         : selectedPreRegistration.otp_expires_at && new Date(selectedPreRegistration.otp_expires_at) > new Date()
-                          ? 'OTP valide'
-                          : 'OTP expirÃ©'}
+                          ?'OTP valide'
+                          : 'OTP expire'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* IDENTITÃ‰ VISUELLE */}
+              {/* IDENTITE VISUELLE */}
               <div className={cardCls}>
-                <h3 className={sHdr}><Palette size={15} className="text-orange-400" /> IdentitÃ© Visuelle</h3>
+                <h3 className={sHdr}><Palette size={15} className="text-orange-400" /> Identite Visuelle</h3>
                 <div className="space-y-5">
                   <div>
                     <label className={lbl}>Couleur principale</label>
@@ -1559,14 +1559,14 @@ export default function AgencyDashboard() {
                   </div>
                   <div>
                     <label className={lbl}>Logo</label>
-                    {selectedPreRegistration.logo_url ? (
+                    {selectedPreRegistration.logo_url ?(
                       <img
                         src={selectedPreRegistration.logo_url}
                         className="h-16 object-contain bg-white/[0.04] border border-white/[0.08] rounded-xl p-2 mt-2"
-                        alt="Logo prÃ©-inscription"
+                        alt="Logo pre-inscription"
                       />
                     ) : (
-                      <p className="text-white/25 text-xs italic mt-2">Pas encore uploadÃ©</p>
+                      <p className="text-white/25 text-xs italic mt-2">Pas encore uploade</p>
                     )}
                   </div>
                 </div>
@@ -1606,7 +1606,7 @@ export default function AgencyDashboard() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className={lbl}>Langue par dÃ©faut</label>
+                  <label className={lbl}>Langue par defaut</label>
                   <select
                     value={preRegForm.defaultLang}
                     onChange={(e) => setPreRegForm(f => ({ ...f, defaultLang: e.target.value }))}
@@ -1630,14 +1630,14 @@ export default function AgencyDashboard() {
               </div>
             </div>
           </div>
-        ) : selectedAgency ? (
+        ) : selectedAgency ?(
           <form onSubmit={handleSave} className="max-w-5xl mx-auto px-4 sm:px-8 py-4 sm:py-6 space-y-6">
 
             {/* STICKY HEADER + KPI STRIP */}
             <div className="sticky top-0 z-20 -mx-4 sm:-mx-8 px-4 sm:px-8 pb-5 pt-5 bg-[#070c1a]/90 backdrop-blur-xl border-b border-white/[0.04]">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
                 <div className="flex items-center gap-4 min-w-0">
-                  {selectedAgency.logo_url ? (
+                  {selectedAgency.logo_url ?(
                     <img src={selectedAgency.logo_url} className="w-11 h-11 rounded-xl object-contain bg-white/[0.04] border border-white/[0.08] p-1" alt="Logo" />
                   ) : (
                     <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg" style={{ background: `linear-gradient(135deg, ${selectedAgency.primary_color || '#6366f1'}, ${selectedAgency.button_color || '#8b5cf6'})` }}>
@@ -1659,15 +1659,15 @@ export default function AgencyDashboard() {
                   <AnimatePresence>
                     {message && (
                       <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wide ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                        {message.type === 'success' ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wide ${message.type === 'success' ?'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                        {message.type === 'success' ?<CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                         {message.text}
                       </motion.div>
                     )}
                   </AnimatePresence>
                   <button type="submit" disabled={isSaving} className="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 active:scale-95">
-                    {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
-                    {isSaving ? t.saving : t.save}
+                    {isSaving ?<Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
+                    {isSaving ?t.saving : t.save}
                   </button>
                 </div>
               </div>
@@ -1676,8 +1676,8 @@ export default function AgencyDashboard() {
                 {[
                   { label: "Agences", value: agencies.length, icon: <Users size={12} />, accent: "text-indigo-400" },
                   { label: "Modules actifs", value: `${activeModulesCount}/7`, icon: <Zap size={12} />, accent: "text-emerald-400" },
-                  { label: "Plan", value: (selectedAgency.package_level || "â€”").toUpperCase(), icon: <Sparkles size={12} />, accent: "text-violet-400" },
-                  { label: "Statut site", value: siteIsActive ? "Live" : "Offline", icon: <Activity size={12} />, accent: siteIsActive ? "text-emerald-400" : "text-red-400" },
+                  { label: "Plan", value: (selectedAgency.package_level || "-").toUpperCase(), icon: <Sparkles size={12} />, accent: "text-violet-400" },
+                  { label: "Statut site", value: siteIsActive ?"Live" : "Offline", icon: <Activity size={12} />, accent: siteIsActive ?"text-emerald-400" : "text-red-400" },
                 ].map((kpi) => (
                   <div key={kpi.label} className="bg-white/[0.03] border border-white/[0.05] rounded-xl px-4 py-3">
                     <div className={`flex items-center gap-1.5 ${kpi.accent} text-[9px] uppercase tracking-widest mb-1.5`}>{kpi.icon} {kpi.label}</div>
@@ -1689,12 +1689,12 @@ export default function AgencyDashboard() {
 
             {/* DEFAULT LANG */}
             <div className="space-y-3">
-              <label className={lbl}>Langue par dÃ©faut du site</label>
+              <label className={lbl}>Langue par defaut du site</label>
               <div className="flex flex-wrap gap-2">
                 {selectedAgency.footer_config?.allowed_langs?.map((code: string) => (
                   <button key={code} type="button" onClick={() => setDefaultLang(code)}
-                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${selectedAgency.default_lang === code ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-white/[0.04] text-white/40 border-white/[0.06] hover:bg-white/[0.07]'}`}>
-                    {code} {selectedAgency.default_lang === code && "â˜…"}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${selectedAgency.default_lang === code ?'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-white/[0.04] text-white/40 border-white/[0.06] hover:bg-white/[0.07]'}`}>
+                    {code} {selectedAgency.default_lang === code && "*"}
                   </button>
                 ))}
               </div>
@@ -1703,7 +1703,7 @@ export default function AgencyDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <motion.div className="lg:col-span-2 space-y-5" variants={stagger} initial="hidden" animate="visible">
 
-                {/* â‘  IDENTITÃ‰ VISUELLE */}
+                {/* 1 IDENTITE VISUELLE */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Palette size={15} className="text-indigo-400" /> {t.sections.branding}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1713,7 +1713,7 @@ export default function AgencyDashboard() {
                         <input type="file" accept="image/*" onChange={handleLogoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                         <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-indigo-500/30 transition-all">
                           <UploadCloud className="text-white/20 group-hover:text-indigo-400 transition-colors" size={20} />
-                          <span className="text-xs text-white/30">{selectedAgency?.logo_url ? "Changer le logo" : t.placeholders.click_upload}</span>
+                          <span className="text-xs text-white/30">{selectedAgency?.logo_url ?"Changer le logo" : t.placeholders.click_upload}</span>
                         </div>
                       </div>
                     </div>
@@ -1734,20 +1734,20 @@ export default function AgencyDashboard() {
                           onChange={(e) => setSelectedAgency({
                             ...selectedAgency,
                             custom_domain: normalizeCustomDomain(e.target.value),
-                            custom_domain_status: e.target.value.trim() ? 'pending' : 'not_configured',
+                            custom_domain_status: e.target.value.trim() ?'pending' : 'not_configured',
                           })}
                           className={`${inp} pl-11 font-mono`}
                           placeholder="marina-tobridoni.com"
                         />
                       </div>
-                      <div className={`rounded-xl border p-4 text-[11px] leading-relaxed ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/35' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                      <div className={`rounded-xl border p-4 text-[11px] leading-relaxed ${isDark ?'bg-white/[0.03] border-white/[0.06] text-white/35' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-bold uppercase tracking-widest">Statut</span>
-                          <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${selectedAgency?.custom_domain ? 'bg-amber-500/15 text-amber-300 border border-amber-500/20' : 'bg-white/[0.05] text-white/35 border border-white/[0.08]'}`}>
-                            {selectedAgency?.custom_domain_status === 'verified' ? 'Verifie' : selectedAgency?.custom_domain ? 'DNS a configurer' : 'Non configure'}
+                          <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${selectedAgency?.custom_domain ?'bg-amber-500/15 text-amber-300 border border-amber-500/20' : 'bg-white/[0.05] text-white/35 border border-white/[0.08]'}`}>
+                            {selectedAgency?.custom_domain_status === 'verified' ?'Verifie' : selectedAgency?.custom_domain ?'DNS a configurer' : 'Non configure'}
                           </span>
                         </div>
-                        {selectedAgency?.custom_domain ? (
+                        {selectedAgency?.custom_domain ?(
                           <div className="mt-3 space-y-3">
                             <p>
                               Cliquez sur le bouton ci-dessous pour ajouter le domaine au projet Vercel. Une fois les DNS actifs, il servira automatiquement le site
@@ -1759,7 +1759,7 @@ export default function AgencyDashboard() {
                               disabled={isConfiguringDomain}
                               className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-indigo-500 disabled:opacity-50"
                             >
-                              {isConfiguringDomain ? <Loader2 size={13} className="animate-spin" /> : <Globe size={13} />}
+                              {isConfiguringDomain ?<Loader2 size={13} className="animate-spin" /> : <Globe size={13} />}
                               Configurer dans Vercel
                             </button>
                             {selectedAgency?.custom_domain_dns?.records?.length > 0 && (
@@ -1793,7 +1793,7 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className={lbl}>Police d'Ã©criture</label>
+                      <label className={lbl}>Police d'ecriture</label>
                       <div className="relative">
                         <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
                         <select value={selectedAgency?.font_family || 'Montserrat'} onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} className={`${inp} pl-11 appearance-none [&>option]:bg-[#0d1528]`}>
@@ -1823,10 +1823,10 @@ export default function AgencyDashboard() {
                   <div className="space-y-3 pt-4 border-t border-white/[0.05]">
                     <label className={lbl}>{t.fields.button_style}</label>
                     <div className="grid grid-cols-2 gap-3">
-                      <button type="button" onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-none'})} className={`p-4 border rounded-xl transition-all ${selectedAgency.button_style === 'rounded-none' ? 'border-indigo-500/40 bg-indigo-500/10' : 'border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02]'}`}>
+                      <button type="button" onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-none'})} className={`p-4 border rounded-xl transition-all ${selectedAgency.button_style === 'rounded-none' ?'border-indigo-500/40 bg-indigo-500/10' : 'border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02]'}`}>
                         <div className="text-center"><div className="w-full h-8 bg-white/10 mb-2" style={{ borderRadius: 0 }}></div><span className="text-[9px] font-bold uppercase text-white/50">Bords Droits</span></div>
                       </button>
-                      <button type="button" onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-full'})} className={`p-4 border rounded-xl transition-all ${selectedAgency.button_style === 'rounded-full' ? 'border-indigo-500/40 bg-indigo-500/10' : 'border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02]'}`}>
+                      <button type="button" onClick={() => setSelectedAgency({...selectedAgency, button_style: 'rounded-full'})} className={`p-4 border rounded-xl transition-all ${selectedAgency.button_style === 'rounded-full' ?'border-indigo-500/40 bg-indigo-500/10' : 'border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02]'}`}>
                         <div className="text-center"><div className="w-full h-8 bg-white/10 rounded-full mb-2"></div><span className="text-[9px] font-bold uppercase text-white/50">Bords Arrondis</span></div>
                       </button>
                     </div>
@@ -1840,7 +1840,7 @@ export default function AgencyDashboard() {
                         { value: 'glow', label: 'Glow (Lueur)' },
                         { value: 'slide', label: 'Slide' },
                       ].map(opt => (
-                        <button key={opt.value} type="button" onClick={() => setSelectedAgency({...selectedAgency, button_animation: opt.value})} className={`p-3 border rounded-xl transition-all text-[9px] font-bold uppercase ${selectedAgency.button_animation === opt.value ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300' : 'border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02] text-white/40'}`}>
+                        <button key={opt.value} type="button" onClick={() => setSelectedAgency({...selectedAgency, button_animation: opt.value})} className={`p-3 border rounded-xl transition-all text-[9px] font-bold uppercase ${selectedAgency.button_animation === opt.value ?'border-indigo-500/40 bg-indigo-500/10 text-indigo-300' : 'border-white/[0.06] hover:border-white/[0.12] bg-white/[0.02] text-white/40'}`}>
                           {opt.label}
                         </button>
                       ))}
@@ -1848,7 +1848,7 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* â‘¡ HERO HEADER */}
+                {/* 2 HERO HEADER */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Layout size={15} className="text-indigo-400" /> {t.sections.hero}</h3>
                   <div className="space-y-5">
@@ -1856,7 +1856,7 @@ export default function AgencyDashboard() {
                       <label className={lbl}>Image hero</label>
                       <div className="flex p-1 bg-white/[0.04] border border-white/[0.06] rounded-xl w-full sm:w-fit">
                         <button type="button" disabled className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"><ImageIcon size={13} /> Image</button>
-                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><Video size={13} /> VidÃ©o</button>
+                        <button type="button" onClick={() => setSelectedAgency({...selectedAgency, hero_type: 'video'})} className={`flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${selectedAgency.hero_type === 'video' ?'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-white/40 hover:text-white/60'}`}><Video size={13} /> Video</button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1866,13 +1866,13 @@ export default function AgencyDashboard() {
                           <input type="file" accept="image/*" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                           <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-indigo-500/30 transition-all">
                             <UploadCloud className="text-white/20 group-hover:text-indigo-400 transition-colors" size={20} />
-                            <span className="text-xs text-white/30">{selectedAgency?.hero_url ? (selectedAgency.hero_type === 'video' ? "Changer la vidÃ©o" : "Changer l'image") : t.placeholders.media_upload}</span>
-                            <span className="text-[9px] text-white/20">Image ou vidÃ©o MP4 Â· max 50 Mo</span>
+                            <span className="text-xs text-white/30">{selectedAgency?.hero_url ?(selectedAgency.hero_type === 'video' ?"Changer la video" : "Changer l'image") : t.placeholders.media_upload}</span>
+                            <span className="text-[9px] text-white/20">Image ou video MP4 - max 50 Mo</span>
                           </div>
                         </div>
                         {selectedAgency?.hero_url && selectedAgency.hero_type !== 'video' && (
                           <div className="mt-2 rounded-xl overflow-hidden relative group border border-white/[0.06]">
-                            {selectedAgency.hero_type === 'video' ? (
+                            {selectedAgency.hero_type === 'video' ?(
                               <video src={selectedAgency.hero_url} className="w-full h-28 object-cover" controls />
                             ) : (
                               <img src={selectedAgency.hero_url} className="w-full h-28 object-cover" alt="Hero preview" />
@@ -1889,14 +1889,14 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* â‘¢ LANGUES & XML */}
+                {/* 3 LANGUES & XML */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><FileCode size={15} className="text-indigo-400" /> {t.sections.lang_xml}</h3>
                   <div className="space-y-3">
                     <label className={lbl}>{t.fields.allowed_langs}</label>
                     <div className="flex flex-wrap gap-2">
                       {SUPPORTED_LANGUAGES.map(l => (
-                        <button key={l.code} type="button" onClick={() => toggleLanguage(l.code)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${selectedAgency?.footer_config?.allowed_langs?.includes(l.code) ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-white/[0.04] text-white/40 border-white/[0.06] hover:bg-white/[0.07]'}`}>
+                        <button key={l.code} type="button" onClick={() => toggleLanguage(l.code)} className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${selectedAgency?.footer_config?.allowed_langs?.includes(l.code) ?'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-white/[0.04] text-white/40 border-white/[0.06] hover:bg-white/[0.07]'}`}>
                           {l.label}
                         </button>
                       ))}
@@ -1906,9 +1906,9 @@ export default function AgencyDashboard() {
                     <label className={lbl}>{t.fields.xml_sources}</label>
                     <div className="space-y-2">
                       {DISPONIBLE_XML_SOURCES.map((s) => (
-                        <button key={s.id} type="button" onClick={() => toggleXmlSource(s.url)} className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'border-indigo-500/40 bg-indigo-500/[0.07]' : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'}`}>
+                        <button key={s.id} type="button" onClick={() => toggleXmlSource(s.url)} className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ?'border-indigo-500/40 bg-indigo-500/[0.07]' : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'}`}>
                           <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ? 'bg-indigo-600 border-indigo-600' : 'bg-white/[0.05] border-white/[0.15]'}`}>
+                            <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${selectedAgency?.footer_config?.xml_urls?.includes(s.url) ?'bg-indigo-600 border-indigo-600' : 'bg-white/[0.05] border-white/[0.15]'}`}>
                               {selectedAgency?.footer_config?.xml_urls?.includes(s.url) && <CheckCircle2 size={11} className="text-white" />}
                             </div>
                             <span className="text-sm font-semibold text-white/80">{s.name}</span>
@@ -1945,18 +1945,18 @@ export default function AgencyDashboard() {
                       disabled={isSyncingXml || !(selectedAgency?.footer_config?.xml_urls || []).length}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600/85 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[10px] font-black uppercase tracking-widest transition-all"
                     >
-                      {isSyncingXml ? <Loader2 size={13} className="animate-spin" /> : <Activity size={13} />}
+                      {isSyncingXml ?<Loader2 size={13} className="animate-spin" /> : <Activity size={13} />}
                       Synchroniser les biens XML
                     </button>
                   </div>
                   <div className="space-y-2 pt-3 border-t border-white/[0.05]">
                     <label className={`${lbl} flex items-center gap-2`}><FileCode size={11} /> HabiHub Agent ID <span className="text-white/20 font-normal normal-case tracking-normal">(fourni par HabiHub)</span></label>
                     <input type="text" className={`${inp} font-mono`} placeholder="ex: 6d5cb68a-3636-4095-b0ce-7dc9ec2df2d2" value={selectedAgency?.habihub_agent_id || ''} onChange={(e) => setSelectedAgency({ ...selectedAgency, habihub_agent_id: e.target.value })} />
-                    <p className="text-[10px] text-white/25">Permet Ã  Francisco d&apos;envoyer des flux XML sans connaÃ®tre votre UUID interne.</p>
+                    <p className="text-[10px] text-white/25">Permet a Francisco d&apos;envoyer des flux XML sans connaitre votre UUID interne.</p>
                   </div>
                 </motion.div>
 
-                {/* â‘£ Ã‰QUIPE */}
+                {/* 4 EQUIPE */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <div className="flex justify-between items-center border-b border-white/[0.05] pb-4">
                     <h3 className="flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest"><Users size={15} className="text-indigo-400" /> {t.sections.team}</h3>
@@ -1964,10 +1964,10 @@ export default function AgencyDashboard() {
                       <UserPlus size={13} /> {t.buttons.add_member}
                     </button>
                   </div>
-                  {team.length === 0 ? (
+                  {team.length === 0 ?(
                     <div className="text-center py-10 text-white/20">
                       <Users size={40} className="mx-auto mb-3 opacity-30" />
-                      <p className="text-sm">Aucun membre dans l'Ã©quipe.</p>
+                      <p className="text-sm">Aucun membre dans l'equipe.</p>
                     </div>
                   ) : (
                     <div className="space-y-5">
@@ -1980,7 +1980,7 @@ export default function AgencyDashboard() {
                               <div className="relative group">
                                 <input type="file" accept="image/*" onChange={(e) => handleMemberPhotoUpload(e, index)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                                 <div className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.07] rounded-xl group-hover:border-indigo-500/30 transition-all">
-                                  {member.photo ? (<img src={member.photo} className="w-10 h-10 rounded-full object-cover" alt={member.name} />) : (<div className="w-10 h-10 rounded-full bg-white/[0.05] flex items-center justify-center"><UserPlus size={16} className="text-white/20" /></div>)}
+                                  {member.photo ?(<img src={member.photo} className="w-10 h-10 rounded-full object-cover" alt={member.name} />) : (<div className="w-10 h-10 rounded-full bg-white/[0.05] flex items-center justify-center"><UserPlus size={16} className="text-white/20" /></div>)}
                                   <span className="text-xs text-white/30">Cliquer pour uploader</span>
                                 </div>
                               </div>
@@ -2004,7 +2004,7 @@ export default function AgencyDashboard() {
                   )}
                 </motion.div>
 
-                {/* â‘¤ CONTACT & RÃ‰SEAUX SOCIAUX */}
+                {/* 5 CONTACT & RESEAUX SOCIAUX */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Share2 size={15} className="text-indigo-400" /> {t.sections.socials}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2019,7 +2019,7 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* â‘¥ MODULES & ABONNEMENT */}
+                {/* 6 MODULES & ABONNEMENT */}
                 <motion.div variants={fadeUp} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-7 space-y-4 hover:border-indigo-500/20 transition-all duration-300">
                   <div className="flex items-start justify-between border-b border-white/[0.05] pb-4">
                     <h3 className="flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest"><Zap size={15} className="text-violet-400" /> Modules & Abonnement</h3>
@@ -2030,17 +2030,17 @@ export default function AgencyDashboard() {
                   {(() => {
                     const siteActive = getSub('website_active') !== false;
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${siteActive ? 'border-emerald-500/30 bg-emerald-500/[0.05]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${siteActive ?'border-emerald-500/30 bg-emerald-500/[0.05]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${siteActive ? 'bg-emerald-500/20' : 'bg-white/[0.05]'}`}><Globe size={17} className={siteActive ? 'text-emerald-400' : 'text-white/30'} /></div>
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${siteActive ?'bg-emerald-500/20' : 'bg-white/[0.05]'}`}><Globe size={17} className={siteActive ?'text-emerald-400' : 'text-white/30'} /></div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Site Web Public</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Inclus</span></div>
                               <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Visibilite publique du site agence</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${siteActive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/[0.05] text-white/30'}`}>{siteActive ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${siteActive ?'bg-emerald-500/15 text-emerald-400' : 'bg-white/[0.05] text-white/30'}`}>{siteActive ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={siteActive} checkedColor="#10b981" onChange={(v) => updateNestedConfig('subscription', 'website_active', v)} />
                           </div>
                         </div>
@@ -2058,17 +2058,17 @@ export default function AgencyDashboard() {
                   {(() => {
                     const enabled = getSub('blur_listings') === true;
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-cyan-500/30 bg-cyan-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-cyan-500/30 bg-cyan-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-cyan-500/20' : 'bg-white/[0.05]'}`}><Monitor size={17} className={enabled ? 'text-cyan-400' : 'text-white/30'} /></div>
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-cyan-500/20' : 'bg-white/[0.05]'}`}><Monitor size={17} className={enabled ?'text-cyan-400' : 'text-white/30'} /></div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Flou des vignettes (apres 6)</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">Visibilite</span></div>
                               <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Masque les biens au-dela des 6 premiers</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-cyan-500/15 text-cyan-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-cyan-500/15 text-cyan-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={enabled} checkedColor="#06b6d4" onChange={(v) => updateNestedConfig('subscription', 'blur_listings', v)} />
                           </div>
                         </div>
@@ -2087,11 +2087,11 @@ export default function AgencyDashboard() {
                     const enabled = !!getInt('hero_video_enabled');
                     const hasVideo = selectedAgency?.hero_url && selectedAgency.hero_type === 'video';
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-fuchsia-500/30 bg-fuchsia-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-fuchsia-500/30 bg-fuchsia-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-fuchsia-500/20' : 'bg-white/[0.05]'}`}>
-                              <Video size={17} className={enabled ? 'text-fuchsia-400' : 'text-white/30'} />
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-fuchsia-500/20' : 'bg-white/[0.05]'}`}>
+                              <Video size={17} className={enabled ?'text-fuchsia-400' : 'text-white/30'} />
                             </div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Video Hero</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/20">Module</span></div>
@@ -2099,7 +2099,7 @@ export default function AgencyDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-fuchsia-500/15 text-fuchsia-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-fuchsia-500/15 text-fuchsia-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={enabled} checkedColor="#d946ef" onChange={(v) => updateNestedConfig('integrations', 'hero_video_enabled', v)} />
                           </div>
                         </div>
@@ -2109,8 +2109,8 @@ export default function AgencyDashboard() {
                               <input type="file" accept="video/mp4,.mp4" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                               <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-fuchsia-500/30 transition-all">
                                 <UploadCloud className="text-white/20 group-hover:text-fuchsia-400 transition-colors" size={20} />
-                                <span className="text-xs text-white/30">{hasVideo ? 'Changer la video hero' : 'Uploader une video hero'}</span>
-                                <span className="text-[9px] text-white/20">MP4 uniquement Â· max 50 Mo</span>
+                                <span className="text-xs text-white/30">{hasVideo ?'Changer la video hero' : 'Uploader une video hero'}</span>
+                                <span className="text-[9px] text-white/20">MP4 uniquement - max 50 Mo</span>
                               </div>
                             </div>
                             {hasVideo && (
@@ -2133,11 +2133,11 @@ export default function AgencyDashboard() {
                     const enabled = !!getInt('property_manager_enabled');
                     const slug = selectedAgency?.subdomain;
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-green-500/30 bg-green-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-green-500/30 bg-green-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-green-500/20' : 'bg-white/[0.05]'}`}>
-                              <HomeIcon size={17} className={enabled ? 'text-green-400' : 'text-white/30'} />
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-green-500/20' : 'bg-white/[0.05]'}`}>
+                              <HomeIcon size={17} className={enabled ?'text-green-400' : 'text-white/30'} />
                             </div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Property Manager</span><span onClick={() => setMarketplaceModule('property_manager')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-green-500/15 text-green-400 border border-green-500/20 hover:bg-green-500/25 transition-colors"><Lock size={7} /> Module</span></div>
@@ -2145,14 +2145,14 @@ export default function AgencyDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-green-500/15 text-green-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-green-500/15 text-green-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={enabled} checkedColor="#22c55e" onChange={(v) => updateNestedConfig('integrations', 'property_manager_enabled', v)} />
                           </div>
                         </div>
                         {enabled && slug && (
                           <div className="px-4 py-3 bg-green-500/[0.07] border-t border-green-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <p className="text-[9px] text-green-400/80 font-bold uppercase tracking-wide">L'agence peut gÃ©rer ses biens manuellement depuis son espace dÃ©diÃ©</p>
-                            <a href={`/fr/${slug}/mon-espace`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-green-500 transition-all"><Globe size={9} /> Ouvrir â†’</a>
+                            <p className="text-[9px] text-green-400/80 font-bold uppercase tracking-wide">L'agence peut gerer ses biens manuellement depuis son espace dedie</p>
+                            <a href={`/fr/${slug}/mon-espace`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-green-500 transition-all"><Globe size={9} /> Ouvrir</a>
                           </div>
                         )}
                       </div>
@@ -2163,11 +2163,11 @@ export default function AgencyDashboard() {
                   {(() => {
                     const enabled = !!getInt('whatsapp_enabled');
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-green-500/30 bg-green-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-green-500/30 bg-green-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-green-500/20' : 'bg-white/[0.05]'}`}>
-                              <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" className={enabled ? 'text-green-400' : 'text-white/30'}>
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-green-500/20' : 'bg-white/[0.05]'}`}>
+                              <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" className={enabled ?'text-green-400' : 'text-white/30'}>
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                               </svg>
                             </div>
@@ -2177,14 +2177,14 @@ export default function AgencyDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-green-500/15 text-green-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-green-500/15 text-green-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={enabled} checkedColor="#22c55e" onChange={(v) => { updateNestedConfig('integrations', 'whatsapp_enabled', v); setIntOpen(prev => ({ ...prev, whatsapp: v })); }} />
-                            {enabled && <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, whatsapp: !prev.whatsapp }))} className="p-1 hover:bg-white/[0.07] rounded-lg transition-all"><ChevronDown size={14} className={`text-white/30 transition-transform duration-200 ${intOpen.whatsapp ? 'rotate-180' : ''}`} /></button>}
+                            {enabled && <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, whatsapp: !prev.whatsapp }))} className="p-1 hover:bg-white/[0.07] rounded-lg transition-all"><ChevronDown size={14} className={`text-white/30 transition-transform duration-200 ${intOpen.whatsapp ?'rotate-180' : ''}`} /></button>}
                           </div>
                         </div>
                         {intOpen.whatsapp && enabled && (
                           <div className="p-4 border-t border-white/[0.05] bg-white/[0.02] space-y-3">
-                            <label className={lbl}>NumÃ©ro WhatsApp</label>
+                            <label className={lbl}>Numero WhatsApp</label>
                             <input className={inp} placeholder="Ex: 33600000000 (sans +)" value={getInt('whatsapp_number') || ''} onChange={(e) => updateNestedConfig('integrations', 'whatsapp_number', e.target.value)} />
                           </div>
                         )}
@@ -2196,11 +2196,11 @@ export default function AgencyDashboard() {
                   {(() => {
                     const enabled = !!getInt('chatbot_enabled');
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-violet-500/30 bg-violet-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-violet-500/30 bg-violet-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-violet-500/20' : 'bg-white/[0.05]'}`}>
-                              <Bot size={17} className={enabled ? 'text-violet-400' : 'text-white/30'} />
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-violet-500/20' : 'bg-white/[0.05]'}`}>
+                              <Bot size={17} className={enabled ?'text-violet-400' : 'text-white/30'} />
                             </div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Chatbot IA</span><span onClick={() => setMarketplaceModule('chatbot')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20 hover:bg-violet-500/25 transition-colors"><Lock size={7} /> Module</span></div>
@@ -2208,18 +2208,18 @@ export default function AgencyDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-violet-500/15 text-violet-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-violet-500/15 text-violet-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={enabled} checkedColor="#8b5cf6" onChange={(v) => { updateNestedConfig('integrations', 'chatbot_enabled', v); setIntOpen(prev => ({ ...prev, chatbot: v }));
                               }}
                             />
-                            {enabled && <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, chatbot: !prev.chatbot }))} className="p-1 hover:bg-white/[0.07] rounded-lg transition-all"><ChevronDown size={14} className={`text-white/30 transition-transform duration-200 ${intOpen.chatbot ? 'rotate-180' : ''}`} /></button>}
+                            {enabled && <button type="button" onClick={() => setIntOpen(prev => ({ ...prev, chatbot: !prev.chatbot }))} className="p-1 hover:bg-white/[0.07] rounded-lg transition-all"><ChevronDown size={14} className={`text-white/30 transition-transform duration-200 ${intOpen.chatbot ?'rotate-180' : ''}`} /></button>}
                           </div>
                         </div>
                         {intOpen.chatbot && enabled && (
                           <div className="p-4 border-t border-white/[0.05] bg-white/[0.02] space-y-4">
                             <div className="flex items-center gap-2 px-4 py-3 bg-violet-500/[0.08] rounded-xl border border-violet-500/20">
                               <Cpu size={12} className="text-violet-400 shrink-0" />
-                              <p className="text-[9px] text-violet-400/80 font-bold uppercase tracking-wide">IA propulsÃ©e par la plateforme â€” inclus dans l'abonnement</p>
+                              <p className="text-[9px] text-violet-400/80 font-bold uppercase tracking-wide">IA propulsee par la plateforme - inclus dans l'abonnement</p>
                             </div>
                             <div className="space-y-2">
                               <label className={lbl}>Destination des leads</label>
@@ -2247,11 +2247,11 @@ export default function AgencyDashboard() {
                     const enabled = !!getInt('crm_enabled');
                     const slug = selectedAgency?.subdomain;
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-blue-500/30 bg-blue-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-blue-500/30 bg-blue-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-blue-500/20' : 'bg-white/[0.05]'}`}>
-                              <Zap size={17} className={enabled ? 'text-blue-400' : 'text-white/30'} />
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-blue-500/20' : 'bg-white/[0.05]'}`}>
+                              <Zap size={17} className={enabled ?'text-blue-400' : 'text-white/30'} />
                             </div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">CRM (Zoho / HubSpot)</span><span onClick={() => setMarketplaceModule('crm_sync')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/20 hover:bg-violet-500/25 transition-colors"><Lock size={7} /> Module</span></div>
@@ -2259,13 +2259,13 @@ export default function AgencyDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-blue-500/15 text-blue-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-blue-500/15 text-blue-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={enabled} checkedColor="#3b82f6" onChange={(v) => { updateNestedConfig('integrations', 'crm_enabled', v); setIntOpen(prev => ({ ...prev, crm: v })); }} />
                           </div>
                         </div>
                         {intOpen.crm && enabled && slug && (
                           <div className="px-4 py-3 bg-blue-500/[0.07] border-t border-blue-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <p className="text-[9px] text-blue-400/80 font-bold uppercase tracking-wide">Les identifiants CRM sont configurÃ©s par l'agence depuis sa page de paramÃ©trage</p>
+                            <p className="text-[9px] text-blue-400/80 font-bold uppercase tracking-wide">Les identifiants CRM sont configures par l'agence depuis sa page de parametrage</p>
                             <a href={`/fr/${slug}/parametres/crm`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-500 transition-all"><Globe size={9} /> Ouvrir</a>
                           </div>
                         )}
@@ -2278,25 +2278,25 @@ export default function AgencyDashboard() {
                     const enabled = !!getInt('leads_enabled');
                     const slug = selectedAgency?.subdomain;
                     return (
-                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ? 'border-orange-500/30 bg-orange-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-orange-500/30 bg-orange-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                         <div className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-orange-500/20' : 'bg-white/[0.05]'}`}>
-                              <TrendingUp size={17} className={enabled ? 'text-orange-400' : 'text-white/30'} />
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-orange-500/20' : 'bg-white/[0.05]'}`}>
+                              <TrendingUp size={17} className={enabled ?'text-orange-400' : 'text-white/30'} />
                             </div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Mini CRM Leads</span><span onClick={() => setMarketplaceModule('mini_crm')} className="cursor-pointer flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25 transition-colors"><Lock size={7} /> Module</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">AccÃ¨s leads depuis le site agence</p>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Acces leads depuis le site agence</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ? 'bg-orange-500/15 text-orange-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ? 'ACTIF' : 'INACTIF'}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-orange-500/15 text-orange-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
                             <ToggleSwitch checked={enabled} checkedColor="#f97316" onChange={(v) => { updateNestedConfig('integrations', 'leads_enabled', v); setIntOpen(prev => ({ ...prev, leadsCrm: v })); }} />
                           </div>
                         </div>
                         {enabled && slug && (
                           <div className="px-4 py-3 bg-orange-500/[0.07] border-t border-orange-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <p className="text-[9px] text-orange-400/80 font-bold uppercase tracking-wide">AccÃ¨s protÃ©gÃ© par mot de passe â€” dÃ©fini par l'agence Ã  la premiÃ¨re connexion</p>
+                            <p className="text-[9px] text-orange-400/80 font-bold uppercase tracking-wide">Acces protege par mot de passe - defini par l'agence a la premiere connexion</p>
                             <a href={`/fr/${slug}/mes-leads`} target="_blank" rel="noopener noreferrer" className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-500 transition-all"><TrendingUp size={9} /> Ouvrir le CRM</a>
                           </div>
                         )}
@@ -2305,7 +2305,7 @@ export default function AgencyDashboard() {
                   })()}
                 </motion.div>
 
-                {/* â‘¦ PAGES STATIQUES (ABOUT) */}
+                {/* 7 PAGES STATIQUES (ABOUT) */}
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Type size={15} className="text-indigo-400" /> {t.sections.about}</h3>
                   <div className="space-y-2">
@@ -2318,25 +2318,25 @@ export default function AgencyDashboard() {
                   </div>
                 </motion.div>
 
-                {/* â‘§ CONFORMITÃ‰ & LÃ‰GAL */}
+                {/* 8 CONFORMITE & LEGAL */}
                 <motion.div variants={fadeUp} className="bg-white/[0.03] border border-white/[0.07] border-l-2 border-l-indigo-500/60 rounded-2xl p-7 space-y-5">
                   <h3 className={sHdr}><ShieldCheck size={15} className="text-indigo-400" /> {t.sections.legal}</h3>
                   <div className="flex items-center justify-between p-4 bg-white/[0.03] rounded-xl border border-white/[0.05]">
                     <div className="space-y-1">
                       <span className="text-sm font-semibold text-white/80">Bandeau de Cookies</span>
-                      <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold">ConformitÃ© RGPD</p>
+                      <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold">Conformite RGPD</p>
                     </div>
                     <ToggleSwitch checked={selectedAgency.cookie_consent_enabled || false} checkedColor="#6366f1" onChange={(v) => setSelectedAgency({...selectedAgency, cookie_consent_enabled: v})} />
                   </div>
                   <div className="space-y-2">
                     <label className={lbl}>{t.fields.privacy_policy}</label>
-                    <textarea rows={5} className={`${inp} resize-none`} placeholder="Saisissez ici les mentions lÃ©gales..." value={selectedAgency.privacy_policy || ''} onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})} />
+                    <textarea rows={5} className={`${inp} resize-none`} placeholder="Saisissez ici les mentions legales..." value={selectedAgency.privacy_policy || ''} onChange={(e) => setSelectedAgency({...selectedAgency, privacy_policy: e.target.value})} />
                   </div>
                 </motion.div>
 
               </motion.div>
 
-              {/* LIVE PREVIEW â€” browser chrome mockup */}
+              {/* LIVE PREVIEW - browser chrome mockup */}
               <div className="lg:col-span-1">
                 <div className="lg:sticky lg:top-52">
                   <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
@@ -2345,7 +2345,7 @@ export default function AgencyDashboard() {
                       <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
                       <div className="flex-1 ml-2 bg-white/[0.04] rounded-md px-3 py-1.5 text-[9px] text-white/25 font-mono truncate border border-white/[0.04]">
-                        {selectedAgency.subdomain ? `${selectedAgency.subdomain}.habihub.io` : 'preview.habihub.io'}
+                        {selectedAgency.subdomain ?`${selectedAgency.subdomain}.habihub.io` : 'preview.habihub.io'}
                       </div>
                     </div>
                     <div className="p-1">
@@ -2359,7 +2359,7 @@ export default function AgencyDashboard() {
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
                         <div className="absolute inset-0 p-5 flex flex-col justify-between">
                           <div>
-                            {selectedAgency.logo_url ? (
+                            {selectedAgency.logo_url ?(
                               <img src={selectedAgency.logo_url} className="h-7 object-contain bg-white/10 backdrop-blur-md p-1 rounded-lg" alt="Logo" />
                             ) : (
                               <div className="w-7 h-7 rounded-lg" style={{ backgroundColor: selectedAgency.primary_color || '#6366f1' }} />
@@ -2367,7 +2367,7 @@ export default function AgencyDashboard() {
                           </div>
                           <div className="space-y-2.5">
                             <h4 className="text-white text-base font-serif italic leading-tight">{selectedAgency.hero_title || t.placeholders.hero_text}</h4>
-                            <div className="h-8 w-20 flex items-center justify-center text-[9px] font-bold text-white uppercase tracking-widest" style={{ backgroundColor: selectedAgency.button_color || '#6366f1', borderRadius: selectedAgency.button_style === 'rounded-full' ? '9999px' : '4px' }}>
+                            <div className="h-8 w-20 flex items-center justify-center text-[9px] font-bold text-white uppercase tracking-widest" style={{ backgroundColor: selectedAgency.button_color || '#6366f1', borderRadius: selectedAgency.button_style === 'rounded-full' ?'9999px' : '4px' }}>
                               {t.placeholders.button}
                             </div>
                           </div>
@@ -2377,8 +2377,8 @@ export default function AgencyDashboard() {
                     <div className="px-4 py-3 border-t border-white/[0.05] flex items-center justify-between">
                       <span className="text-[9px] text-white/20 font-mono uppercase tracking-widest">{t.sections.preview}</span>
                       <div className="flex items-center gap-1.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${siteIsActive ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-                        <span className={`text-[9px] font-bold uppercase tracking-widest ${siteIsActive ? 'text-emerald-400' : 'text-red-400'}`}>{siteIsActive ? 'Live' : 'Offline'}</span>
+                        <div className={`w-1.5 h-1.5 rounded-full ${siteIsActive ?'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                        <span className={`text-[9px] font-bold uppercase tracking-widest ${siteIsActive ?'text-emerald-400' : 'text-red-400'}`}>{siteIsActive ?'Live' : 'Offline'}</span>
                       </div>
                     </div>
                   </div>
@@ -2396,7 +2396,7 @@ export default function AgencyDashboard() {
         )}
       </main>
 
-      {/* CREATE MODAL â€” AnimatePresence spring */}
+      {/* CREATE MODAL - AnimatePresence spring */}
       <AnimatePresence>
         {showCreateModal && (
           <motion.div
@@ -2433,7 +2433,7 @@ export default function AgencyDashboard() {
                   <input required className={`${inp} font-mono`} placeholder="slug-agence" value={newAgency.subdomain} onChange={(e) => setNewAgency({...newAgency, subdomain: e.target.value.toLowerCase().replace(/\s+/g, '-')})} />
                 </div>
                 <button disabled={isCreating} className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-500/25 hover:bg-indigo-500 transition-all disabled:opacity-50 active:scale-[0.99]">
-                  {isCreating ? <Loader2 className="animate-spin mx-auto" size={16} /> : t.generate}
+                  {isCreating ?<Loader2 className="animate-spin mx-auto" size={16} /> : t.generate}
                 </button>
               </form>
             </motion.div>

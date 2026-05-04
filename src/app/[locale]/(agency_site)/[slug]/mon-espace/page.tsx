@@ -56,7 +56,7 @@ const emptyForm = {
   pool: "Non", description_fr: "", description_en: "",
 };
 
-// â”€â”€â”€ Skeleton Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Skeleton Loader -----------------------------------------------------------
 function SkeletonCard() {
   return (
     <div
@@ -77,7 +77,7 @@ function SkeletonCard() {
   );
 }
 
-// â”€â”€â”€ Form components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Form components -----------------------------------------------------------
 function SectionHeader({ icon, label, color }: { icon: React.ReactNode; label: string; color: string }) {
   return (
     <div className="flex items-center gap-3 mb-5">
@@ -150,10 +150,10 @@ function PropertyForm({
       baths: Number(form.baths) || 0,
       images,
       agency_id: agencyId,
-      ...(initial?.id ? { id: initial.id } : {}),
+      ...(initial?.id ?{ id: initial.id } : {}),
     };
     const res = await fetch("/api/property-manager/properties", {
-      method: initial?.id ? "PUT" : "POST",
+      method: initial?.id ?"PUT" : "POST",
       headers: { "Content-Type": "application/json", "x-pm-session": pmToken },
       body: JSON.stringify(payload),
     });
@@ -184,7 +184,7 @@ function PropertyForm({
               <div className="relative">
                 <input type="number" placeholder="350 000" value={form.price}
                   onChange={(e) => set("price", e.target.value)} className={`${inputCls} pr-8`} />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/20 font-bold">â‚¬</span>
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/20 font-bold">EUR</span>
               </div>
             </FieldInput>
             <FieldInput label={dict.type}>
@@ -215,7 +215,7 @@ function PropertyForm({
       </div>
 
       <div>
-        <SectionHeader icon={<LayoutGrid size={15} />} label="CaractÃ©ristiques" color={brandColor} />
+        <SectionHeader icon={<LayoutGrid size={15} />} label="Caracteristiques" color={brandColor} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
           <FieldInput label={dict.beds} icon={<BedDouble size={11} />}>
             <input type="number" placeholder="3" value={form.beds}
@@ -229,7 +229,7 @@ function PropertyForm({
             <div className="relative">
               <input type="number" placeholder="180" value={form.surface_built}
                 onChange={(e) => set("surface_built", e.target.value)} className={`${inputCls} pr-9`} />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-bold">mÂ²</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-bold">m2</span>
             </div>
           </FieldInput>
         </div>
@@ -241,7 +241,7 @@ function PropertyForm({
                 <button key={val} type="button" onClick={() => set("pool", val)}
                   className="flex-1 py-3 rounded-2xl text-sm font-bold transition-all border"
                   style={active
-                    ? { backgroundColor: brandColor, color: "#000", border: "1px solid transparent" }
+                    ?{ backgroundColor: brandColor, color: "#000", border: "1px solid transparent" }
                     : { backgroundColor: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.07)" }
                   }>
                   {label}
@@ -273,7 +273,7 @@ function PropertyForm({
         {images.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-3">
             {images.map((url, i) => (
-              <div key={i} className={`relative group rounded-2xl overflow-hidden bg-white/5 ${i === 0 ? "col-span-2 row-span-2 aspect-[4/3]" : "aspect-square"}`}>
+              <div key={i} className={`relative group rounded-2xl overflow-hidden bg-white/5 ${i === 0 ?"col-span-2 row-span-2 aspect-[4/3]" : "aspect-square"}`}>
                 <img src={url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
                 {i === 0 && (
                   <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-black/60 text-white">Cover</span>
@@ -290,12 +290,12 @@ function PropertyForm({
           className="w-full py-7 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 text-white/30 hover:text-white/50 transition-all group"
           style={{ borderColor: "rgba(255,255,255,0.08)" }}>
           {uploading
-            ? <Loader2 size={20} className="animate-spin" />
+            ?<Loader2 size={20} className="animate-spin" />
             : <div className="w-10 h-10 rounded-2xl bg-white/5 group-hover:bg-white/10 flex items-center justify-center transition-all">
                 <Upload size={18} />
               </div>
           }
-          <span className="text-sm font-semibold">{uploading ? dict.uploading : dict.addPhotos}</span>
+          <span className="text-sm font-semibold">{uploading ?dict.uploading : dict.addPhotos}</span>
           {!uploading && <span className="text-xs text-white/20">JPG, PNG, WEBP</span>}
         </button>
         <input ref={fileRef} type="file" multiple accept="image/*" className="hidden"
@@ -318,15 +318,15 @@ function PropertyForm({
         <button type="button" onClick={handleSave} disabled={saving}
           className="flex-1 py-3.5 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
           style={{ backgroundColor: brandColor, color: "#000", boxShadow: `0 8px 24px ${brandColor}40` }}>
-          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          {initial?.id ? dict.save : dict.addProperty}
+          {saving ?<Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          {initial?.id ?dict.save : dict.addProperty}
         </button>
       </div>
     </div>
   );
 }
 
-// â”€â”€â”€ Trial helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Trial helpers -------------------------------------------------------------
 function getTrialInfo(agency: any): { isExpired: boolean; daysLeft: number; expiresAt: Date | null } {
   const sub = agency?.footer_config?.subscription;
   if (!sub?.trial_expires_at) return { isExpired: false, daysLeft: 15, expiresAt: null };
@@ -336,16 +336,16 @@ function getTrialInfo(agency: any): { isExpired: boolean; daysLeft: number; expi
   return { isExpired: daysLeft <= 0, daysLeft: Math.max(0, daysLeft), expiresAt };
 }
 
-// â”€â”€â”€ Trial Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Trial Banner --------------------------------------------------------------
 function TrialBanner({ daysLeft, brandColor, dict }: { daysLeft: number; brandColor: string; dict: any }) {
   const pct = Math.min(100, Math.round((daysLeft / 15) * 100));
   const urgent = daysLeft <= 3;
-  const color = urgent ? "#ef4444" : brandColor;
+  const color = urgent ?"#ef4444" : brandColor;
 
   const label = daysLeft === 0
-    ? dict?.expiresToday || "Expire aujourd'hui"
+    ?dict?.expiresToday || "Expire aujourd'hui"
     : daysLeft === 1
-    ? dict?.dayLeft || "1 jour restant"
+    ?dict?.dayLeft || "1 jour restant"
     : (dict?.daysLeft || "{days} jours restants").replace("{days}", String(daysLeft));
 
   return (
@@ -371,7 +371,7 @@ function TrialBanner({ daysLeft, brandColor, dict }: { daysLeft: number; brandCo
   );
 }
 
-// â”€â”€â”€ Page principale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Page principale -----------------------------------------------------------
 export default function MonEspacePage() {
   const params = useParams();
   const router = useRouter();
@@ -382,7 +382,7 @@ export default function MonEspacePage() {
   const trialDict = (dicts[locale] || dicts.fr).trial;
   const upsellDict = (dicts[locale] || dicts.fr).upsell;
   const settingsTile = locale === "fr"
-    ? { title: "Parametres", subtitle: "Identite, couleurs, equipe..." }
+    ?{ title: "Parametres", subtitle: "Identite, couleurs, equipe..." }
     : { title: "Settings", subtitle: "Identity, colors, team..." };
   const isRtl = locale === "ar";
 
@@ -437,7 +437,7 @@ export default function MonEspacePage() {
 
   useEffect(() => {
     if (!agency) return;
-    setMode(agency.property_manager_password ? "login" : "create");
+    setMode(agency.property_manager_password ?"login" : "create");
   }, [agency]);
 
   const loadProperties = useCallback(async () => {
@@ -469,7 +469,7 @@ export default function MonEspacePage() {
     const res = await fetch("/api/property-manager/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: mode === "create" ? "set-password" : "login", slug, password }),
+      body: JSON.stringify({ action: mode === "create" ?"set-password" : "login", slug, password }),
     });
     const data = await res.json();
     setAuthLoading(false);
@@ -551,7 +551,7 @@ export default function MonEspacePage() {
   const inputCls = "w-full px-4 py-3.5 rounded-2xl border text-sm text-white placeholder:text-white/20 focus:outline-none transition-all bg-white/[0.04] border-white/[0.07] focus:border-white/20";
   const integrations = agency?.footer_config?.integrations || {};
   const allowedLangs = agency?.footer_config?.allowed_langs || [];
-  const extraLangCount = Array.isArray(allowedLangs) ? Math.max(0, allowedLangs.length - 1) : 0;
+  const extraLangCount = Array.isArray(allowedLangs) ?Math.max(0, allowedLangs.length - 1) : 0;
   const moduleCatalog = [
     {
       id: "chatbot",
@@ -578,7 +578,7 @@ export default function MonEspacePage() {
       name: "Langues supplementaires",
       price: "2 EUR / langue / mois",
       description: extraLangCount > 0
-        ? `${extraLangCount} langue${extraLangCount > 1 ? "s" : ""} supplementaire${extraLangCount > 1 ? "s" : ""} active${extraLangCount > 1 ? "s" : ""}.`
+        ?`${extraLangCount} langue${extraLangCount > 1 ?"s" : ""} supplementaire${extraLangCount > 1 ?"s" : ""} active${extraLangCount > 1 ?"s" : ""}.`
         : "Ajoutez EN, NL, ES, DE, PL ou d'autres langues selon vos besoins.",
       active: extraLangCount > 0,
       status: "Disponible",
@@ -619,7 +619,7 @@ export default function MonEspacePage() {
     },
   ];
 
-  // â”€â”€ Loading â”€â”€
+  // -- Loading --
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]">
       <Loader2 size={32} className="animate-spin text-white/20" />
@@ -632,10 +632,10 @@ export default function MonEspacePage() {
     </div>
   );
 
-  // â”€â”€ Module non activÃ© â”€â”€
+  // -- Module non active --
   const pmEnabled = agency.property_manager_enabled || agency.footer_config?.integrations?.property_manager_enabled;
   if (!pmEnabled) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d] px-6" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+    <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d] px-6" dir={isRtl ?"rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
       <div className="text-center max-w-sm">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-black font-bold text-2xl" style={{ backgroundColor: brandColor }}>
           {agency.agency_name?.charAt(0)}
@@ -647,37 +647,37 @@ export default function MonEspacePage() {
     </div>
   );
 
-  // â”€â”€ Auth â”€â”€
+  // -- Auth --
   if (!session) return (
     <div
       className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden"
-      dir={isRtl ? "rtl" : "ltr"}
+      dir={isRtl ?"rtl" : "ltr"}
       style={{ fontFamily: `${fontFamily}, sans-serif`, background: "#0d0d0d" }}
     >
       <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: `radial-gradient(circle at 50% 40%, ${brandColor} 0%, transparent 60%)` }} />
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
           {agency.logo_url
-            ? <img src={agency.logo_url} alt={agency.agency_name} className="h-14 mx-auto mb-5 object-contain" />
+            ?<img src={agency.logo_url} alt={agency.agency_name} className="h-14 mx-auto mb-5 object-contain" />
             : <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 text-black text-2xl font-bold" style={{ backgroundColor: brandColor }}>{agency.agency_name?.charAt(0)}</div>
           }
           <h1 className="text-2xl font-bold text-white">{dict.title}</h1>
-          <p className="text-sm text-white/30 mt-1">{mode === "create" ? dict.welcome : agency.agency_name}</p>
+          <p className="text-sm text-white/30 mt-1">{mode === "create" ?dict.welcome : agency.agency_name}</p>
         </div>
 
         <div className="rounded-3xl p-8 space-y-5" style={glassCard}>
           <div className="space-y-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-white/30">
-              {mode === "create" ? dict.createPwLabel : dict.pwLabel}
+              {mode === "create" ?dict.createPwLabel : dict.pwLabel}
             </label>
             <div className="relative">
-              <input type={showPw ? "text" : "password"} value={password}
+              <input type={showPw ?"text" : "password"} value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="********"
                 className={inputCls} />
               <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPw ?<EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -688,7 +688,7 @@ export default function MonEspacePage() {
               <input type="password" value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="********"
                 className={inputCls} />
             </div>
           )}
@@ -703,15 +703,15 @@ export default function MonEspacePage() {
           <button type="button" onClick={handleAuth} disabled={authLoading}
             className="w-full py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
             style={{ backgroundColor: brandColor, color: "#000", boxShadow: `0 8px 32px ${brandColor}40` }}>
-            {authLoading ? <Loader2 size={16} className="animate-spin" /> : <Key size={16} />}
-            {mode === "create" ? dict.createBtn : dict.loginBtn}
+            {authLoading ?<Loader2 size={16} className="animate-spin" /> : <Key size={16} />}
+            {mode === "create" ?dict.createBtn : dict.loginBtn}
           </button>
         </div>
       </div>
     </div>
   );
 
-  // â”€â”€ Settings â”€â”€
+  // -- Settings --
   if (view === "settings") return (
     <ClientDashboard
       agency={agency}
@@ -724,9 +724,9 @@ export default function MonEspacePage() {
     />
   );
 
-  // â”€â”€ Dashboard â”€â”€
+  // -- Dashboard --
   return (
-    <div className="min-h-screen bg-[#0d0d0d]" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+    <div className="min-h-screen bg-[#0d0d0d]" dir={isRtl ?"rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
 
       {/* Header */}
       <div
@@ -747,7 +747,7 @@ export default function MonEspacePage() {
             </button>
           )}
           {agency.logo_url
-            ? <img src={agency.logo_url} alt={agency.agency_name} className="h-8 object-contain" />
+            ?<img src={agency.logo_url} alt={agency.agency_name} className="h-8 object-contain" />
             : <div className="w-9 h-9 rounded-xl flex items-center justify-center text-black font-bold" style={{ backgroundColor: brandColor }}>{agency.agency_name?.charAt(0)}</div>
           }
           <div className="min-w-0">
@@ -767,14 +767,14 @@ export default function MonEspacePage() {
         </div>
       </div>
 
-      {/* Trial Banner â€” shown in dashboard and list views */}
+      {/* Trial Banner - shown in dashboard and list views */}
       {view !== "form" && (() => {
         const { daysLeft } = getTrialInfo(agency);
         return <TrialBanner daysLeft={daysLeft} brandColor={brandColor} dict={trialDict} />;
       })()}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        {view === "dashboard" ? (
+        {view === "dashboard" ?(
           <>
             {/* Welcome header */}
             <motion.div
@@ -794,7 +794,7 @@ export default function MonEspacePage() {
             {/* Module Bento Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* â”€â”€ PropriÃ©tÃ©s â”€â”€ */}
+              {/* -- Proprietes -- */}
               <motion.button
                 type="button"
                 initial={{ opacity: 0, y: 20 }}
@@ -815,7 +815,7 @@ export default function MonEspacePage() {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
                   <span className="text-xs font-bold text-white/40">
-                    {properties.length} {properties.length <= 1 ? dict.published : dict.publishedPlural}
+                    {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
                   </span>
                 </div>
               </motion.button>
@@ -850,12 +850,12 @@ export default function MonEspacePage() {
                 </motion.a>
               )}
 
-              {/* â”€â”€ Mini CRM â”€â”€ */}
+              {/* -- Mini CRM -- */}
               <motion.button
                 type="button"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: integrations.leads_enabled === true ? 0.15 : 0.1 }}
+                transition={{ delay: integrations.leads_enabled === true ?0.15 : 0.1 }}
                 onClick={() => setShowModules(true)}
                 className="group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                 style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
@@ -882,7 +882,7 @@ export default function MonEspacePage() {
               </motion.button>
 
 
-              {/* â”€â”€ Site Vitrine â€” masquÃ© tant que le site n'est pas activÃ© â”€â”€ */}
+              {/* -- Site Vitrine - masque tant que le site n'est pas active -- */}
               {agency?.footer_config?.subscription?.website_active === true && (
                 <motion.a
                   initial={{ opacity: 0, y: 20 }}
@@ -905,7 +905,7 @@ export default function MonEspacePage() {
                 </motion.a>
               )}
 
-              {/* â”€â”€ ParamÃ¨tres â”€â”€ */}
+              {/* -- Parametres -- */}
               <motion.button
                 type="button"
                 initial={{ opacity: 0, y: 20 }}
@@ -925,7 +925,7 @@ export default function MonEspacePage() {
                 <p className="text-sm text-white/30">{settingsTile.subtitle}</p>
               </motion.button>
 
-              {/* â”€â”€ Statistiques â”€â”€ */}
+              {/* -- Statistiques -- */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -948,7 +948,7 @@ export default function MonEspacePage() {
 
             </div>
           </>
-        ) : view === "list" ? (
+        ) : view === "list" ?(
           <>
             {/* Header liste */}
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
@@ -957,7 +957,7 @@ export default function MonEspacePage() {
                 <div className="flex items-center gap-2 mt-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
                   <p className="text-sm text-white/30">
-                    {properties.length} {properties.length <= 1 ? dict.published : dict.publishedPlural}
+                    {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
                   </p>
                 </div>
               </div>
@@ -969,12 +969,12 @@ export default function MonEspacePage() {
               </button>
             </div>
 
-            {propLoading ? (
+            {propLoading ?(
               /* Bento Skeleton */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
-            ) : properties.length === 0 ? (
+            ) : properties.length === 0 ?(
               <div className="text-center py-28 rounded-3xl" style={glassCard}>
                 <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: `${brandColor}15` }}>
                   <Building2 size={32} style={{ color: brandColor }} />
@@ -994,15 +994,15 @@ export default function MonEspacePage() {
                 {properties.map((p, idx) => (
                   <div
                     key={p.id}
-                    className={`group rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${idx === 0 ? "lg:col-span-2" : ""}`}
+                    className={`group rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${idx === 0 ?"lg:col-span-2" : ""}`}
                     style={{
                       ...glassCard,
                       boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
                     }}
                   >
-                    <div className={`relative overflow-hidden ${idx === 0 ? "aspect-[4/3] sm:aspect-[16/7]" : "aspect-[4/3]"} bg-white/5`}>
+                    <div className={`relative overflow-hidden ${idx === 0 ?"aspect-[4/3] sm:aspect-[16/7]" : "aspect-[4/3]"} bg-white/5`}>
                       {p.images?.[0]
-                        ? <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.titre_fr} />
+                        ?<img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.titre_fr} />
                         : <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                             <ImageIcon size={32} className="text-white/10" />
                           </div>
@@ -1021,15 +1021,15 @@ export default function MonEspacePage() {
                       <p className="font-bold text-white text-sm leading-tight line-clamp-1 mb-1">{p.titre_fr || "(Sans titre)"}</p>
                       <div className="flex items-center gap-1 mb-3">
                         <MapPin size={11} className="text-white/20 shrink-0" />
-                        <p className="text-xs text-white/30 truncate">{[p.town, p.region].filter(Boolean).join(", ") || "â€”"}</p>
+                        <p className="text-xs text-white/30 truncate">{[p.town, p.region].filter(Boolean).join(", ") || "-"}</p>
                       </div>
                       <p className="text-xl font-black" style={{ color: brandColor }}>
-                        {p.price ? Number(p.price).toLocaleString("fr-FR") + " â‚¬" : "â€”"}
+                        {p.price ?Number(p.price).toLocaleString("fr-FR") + " EUR" : "-"}
                       </p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-white/30 font-medium">
                         {p.beds > 0 && <span className="flex items-center gap-1"><BedDouble size={12} /> {p.beds}</span>}
                         {p.baths > 0 && <span className="flex items-center gap-1"><Bath size={12} /> {p.baths}</span>}
-                        {p.surface_built && <span className="flex items-center gap-1"><Maximize2 size={12} /> {p.surface_built} mÂ²</span>}
+                        {p.surface_built && <span className="flex items-center gap-1"><Maximize2 size={12} /> {p.surface_built} m2</span>}
                       </div>
                       <div className="flex gap-2 mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                         <button type="button" onClick={() => { setEditing(p); setView("form"); }}
@@ -1050,7 +1050,7 @@ export default function MonEspacePage() {
         ) : (
           <div className="max-w-2xl mx-auto">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white">{editing?.id ? dict.editProperty : dict.newProperty}</h2>
+              <h2 className="text-2xl font-bold text-white">{editing?.id ?dict.editProperty : dict.newProperty}</h2>
               <p className="text-sm text-white/30 mt-1">{dict.fillInfo}</p>
             </div>
             <div className="rounded-3xl p-4 sm:p-8" style={glassCard}>
@@ -1094,8 +1094,8 @@ export default function MonEspacePage() {
             </div>
 
             {moduleRequestMsg && (
-              <div className={`mb-5 flex items-center gap-2 rounded-2xl border px-4 py-3 ${moduleRequestMsg.type === "ok" ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300" : "bg-red-500/10 border-red-500/25 text-red-300"}`}>
-                {moduleRequestMsg.type === "ok" ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
+              <div className={`mb-5 flex items-center gap-2 rounded-2xl border px-4 py-3 ${moduleRequestMsg.type === "ok" ?"bg-emerald-500/10 border-emerald-500/25 text-emerald-300" : "bg-red-500/10 border-red-500/25 text-red-300"}`}>
+                {moduleRequestMsg.type === "ok" ?<CheckCircle2 size={15} /> : <AlertCircle size={15} />}
                 <p className="text-xs font-bold">{moduleRequestMsg.text}</p>
               </div>
             )}
@@ -1117,23 +1117,23 @@ export default function MonEspacePage() {
                       <span
                         className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest"
                         style={{
-                          background: module.active ? "rgba(34,197,94,0.12)" : module.comingSoon ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.06)",
-                          color: module.active ? "#22c55e" : module.comingSoon ? "#f59e0b" : "rgba(255,255,255,0.45)",
+                          background: module.active ?"rgba(34,197,94,0.12)" : module.comingSoon ?"rgba(245,158,11,0.12)" : "rgba(255,255,255,0.06)",
+                          color: module.active ?"#22c55e" : module.comingSoon ?"#f59e0b" : "rgba(255,255,255,0.45)",
                           border: "1px solid rgba(255,255,255,0.08)",
                         }}
                       >
-                        {module.active ? "Actif" : module.status}
+                        {module.active ?"Actif" : module.status}
                       </span>
                     </div>
                     <h4 className="text-white font-bold text-lg mb-1">{module.name}</h4>
                     <p className="text-white/35 text-sm leading-relaxed min-h-[44px]">{module.description}</p>
                     <div className="flex items-center justify-between gap-3 mt-5 pt-5 border-t border-white/5">
                       <p className="text-white font-black">{module.price}</p>
-                      {module.active && !module.requestableWhenActive ? (
+                      {module.active && !module.requestableWhenActive ?(
                         <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10">
                           Deja actif
                         </span>
-                      ) : module.comingSoon ? (
+                      ) : module.comingSoon ?(
                         <span className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10">
                           Bientot
                         </span>
@@ -1145,7 +1145,7 @@ export default function MonEspacePage() {
                           className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-black transition-all hover:opacity-90 disabled:opacity-60"
                           style={{ backgroundColor: brandColor }}
                         >
-                          {moduleRequestLoading === module.id ? "Envoi..." : "Demander"}
+                          {moduleRequestLoading === module.id ?"Envoi..." : "Demander"}
                         </button>
                       )}
                     </div>
@@ -1173,7 +1173,7 @@ export default function MonEspacePage() {
               </button>
               <button type="button" onClick={() => handleDelete(deleteId)} disabled={deleting}
                 className="flex-1 py-3.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all">
-                {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                {deleting ?<Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                 {dict.delete}
               </button>
             </div>
@@ -1205,15 +1205,15 @@ export default function MonEspacePage() {
                 </div>
               ))}
               {cpMsg && (
-                <div className={`flex items-center gap-2 p-3 rounded-xl border ${cpMsg.type === "ok" ? "bg-green-900/10 border-green-900/30" : "bg-red-900/10 border-red-900/30"}`}>
-                  {cpMsg.type === "ok" ? <CheckCircle2 size={14} className="text-green-400" /> : <AlertCircle size={14} className="text-red-400" />}
-                  <p className={`text-xs font-medium ${cpMsg.type === "ok" ? "text-green-400" : "text-red-400"}`}>{cpMsg.text}</p>
+                <div className={`flex items-center gap-2 p-3 rounded-xl border ${cpMsg.type === "ok" ?"bg-green-900/10 border-green-900/30" : "bg-red-900/10 border-red-900/30"}`}>
+                  {cpMsg.type === "ok" ?<CheckCircle2 size={14} className="text-green-400" /> : <AlertCircle size={14} className="text-red-400" />}
+                  <p className={`text-xs font-medium ${cpMsg.type === "ok" ?"text-green-400" : "text-red-400"}`}>{cpMsg.text}</p>
                 </div>
               )}
               <button type="button" onClick={handleChangePw} disabled={cpLoading}
                 className="w-full py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all hover:opacity-90"
                 style={{ backgroundColor: brandColor, color: "#000", boxShadow: `0 8px 24px ${brandColor}40` }}>
-                {cpLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {cpLoading ?<Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 {dict.updateBtn}
               </button>
             </div>
