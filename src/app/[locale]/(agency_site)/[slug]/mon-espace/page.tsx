@@ -379,6 +379,9 @@ export default function MonEspacePage() {
   const dict = (dicts[locale] || dicts.fr).propertyManager;
   const trialDict = (dicts[locale] || dicts.fr).trial;
   const upsellDict = (dicts[locale] || dicts.fr).upsell;
+  const settingsTile = locale === "fr"
+    ? { title: "Parametres", subtitle: "Identite, couleurs, equipe..." }
+    : { title: "Settings", subtitle: "Identity, colors, team..." };
   const isRtl = locale === "ar";
 
   const [agency, setAgency] = useState<any>(null);
@@ -845,8 +848,8 @@ export default function MonEspacePage() {
                   </div>
                   <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">Parametres</p>
-                <p className="text-sm text-white/30">Identite, couleurs, equipe...</p>
+                <p className="text-lg font-bold text-white mb-1">{settingsTile.title}</p>
+                <p className="text-sm text-white/30">{settingsTile.subtitle}</p>
               </motion.button>
 
               {/* â”€â”€ Statistiques â”€â”€ */}
