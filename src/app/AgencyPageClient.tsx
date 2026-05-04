@@ -598,19 +598,23 @@ export default function AgencyPageClient({ slug, routeLocale, initialAgency, ini
           crmType: 'none',
         }}
         onPropertyClick={async (id) => {
-          let property = allProperties.find(p => String(p.id) === String(id));
+          let property = allProperties.find(p =>
+            [p.id, p.id_externe, p.ref].some(value => String(value) === String(id))
+          );
           if (!property) {
             try {
-              const { data } = await supabase.from('villas').select('*').eq('id', id).single();
-              if (data) {
+              const params = new URLSearchParams({ lang: effectiveLocale });
+              if (agency?.id) params.set('agencyId', String(agency.id));
+              const res = await fetch(`/api/property/${id}?${params.toString()}`);
+              if (res.ok) {
+                const data = await res.json();
                 const [formatted] = formatVillaData([data]);
                 property = formatted;
               }
             } catch { /* ignore */ }
           }
           if (property) {
-            setSelectedProperty(property);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            await openPropertyDetail(property);
           }
         }}
       />
