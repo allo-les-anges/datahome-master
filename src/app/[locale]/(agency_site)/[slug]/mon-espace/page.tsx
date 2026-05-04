@@ -30,6 +30,60 @@ const SESSION_DURATION = 8 * 60 * 60 * 1000;
 
 type PmSession = { agencyId: string; slug: string; exp: number; token?: string };
 
+const WEBSITE_TEMPLATES = [
+  {
+    id: "luxury-light",
+    labelFr: "Luxe clair",
+    labelEn: "Light luxury",
+    descriptionFr: "Fond clair, or doux, vignettes elegantes.",
+    descriptionEn: "Light background, soft gold, elegant cards.",
+    primary_color: "#C8A84E",
+    button_color: "#D4AF37",
+    button_style: "rounded-full",
+    layout: {
+      property_card_style: "editorial",
+      property_card_corners: "rounded",
+      property_card_icon_color: "#C8A84E",
+      results_bg_color: "#F8FAFC",
+    },
+    hero: { alignment: "center", overlay_opacity: 30 },
+  },
+  {
+    id: "modern-contrast",
+    labelFr: "Moderne contraste",
+    labelEn: "Modern contrast",
+    descriptionFr: "Style premium sombre, violet et cartes compactes.",
+    descriptionEn: "Premium dark style, violet accents and compact cards.",
+    primary_color: "#B859C5",
+    button_color: "#B859C5",
+    button_style: "rounded-full",
+    layout: {
+      property_card_style: "compact",
+      property_card_corners: "rounded",
+      property_card_icon_color: "#B859C5",
+      results_bg_color: "#F3F4F6",
+    },
+    hero: { alignment: "left", overlay_opacity: 45 },
+  },
+  {
+    id: "minimal-square",
+    labelFr: "Minimal carre",
+    labelEn: "Minimal square",
+    descriptionFr: "Presentation sobre, bords droits, accent bleu.",
+    descriptionEn: "Clean layout, square edges, blue accent.",
+    primary_color: "#2563EB",
+    button_color: "#0F172A",
+    button_style: "rounded-none",
+    layout: {
+      property_card_style: "minimal",
+      property_card_corners: "square",
+      property_card_icon_color: "#2563EB",
+      results_bg_color: "#FFFFFF",
+    },
+    hero: { alignment: "right", overlay_opacity: 25 },
+  },
+] as const;
+
 type Property = {
   id: number;
   ref: string;
@@ -628,6 +682,49 @@ export default function MonEspacePage() {
     }
   };
 
+  const applyWebsiteTemplate = async (template: typeof WEBSITE_TEMPLATES[number]) => {
+    if (!session || !agency?.id || layoutSaving) return;
+    setLayoutSaving(true);
+    setLayoutMsg(null);
+    const nextFooterConfig = {
+      ...footerConfig,
+      layout: { ...(footerConfig.layout || {}), ...template.layout },
+      hero: { ...(footerConfig.hero || {}), ...template.hero },
+    };
+    try {
+      const res = await fetch("/api/property-manager/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-pm-session": session.token || "" },
+        body: JSON.stringify({
+          slug,
+          agencyId: session.agencyId,
+          data: {
+            primary_color: template.primary_color,
+            button_color: template.button_color,
+            button_style: template.button_style,
+            footer_config: nextFooterConfig,
+            updated_at: new Date().toISOString(),
+          },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || "Erreur sauvegarde");
+      setAgency(json.agency || {
+        ...agency,
+        primary_color: template.primary_color,
+        button_color: template.button_color,
+        button_style: template.button_style,
+        footer_config: nextFooterConfig,
+      });
+      setLayoutMsg({ type: "ok", text: locale === "fr" ? "Template applique." : "Template applied." });
+    } catch (err: any) {
+      setLayoutMsg({ type: "err", text: err.message || (locale === "fr" ? "Sauvegarde impossible." : "Could not save.") });
+    } finally {
+      setLayoutSaving(false);
+      setTimeout(() => setLayoutMsg(null), 3000);
+    }
+  };
+
   const updatePropertiesPerRow = async (value: 3 | 4) => {
     if (!session || !agency?.id || layoutSaving || value === propertiesPerRow) return;
     setLayoutSaving(true);
@@ -1035,6 +1132,30 @@ export default function MonEspacePage() {
                 <p className="text-sm text-white/30 mb-5">
                   {locale === "fr" ? "Nombre de villas par ligne sur votre site public." : "Number of properties per row on your public website."}
                 </p>
+                <div className="mb-5 border-b border-white/[0.06] pb-5">
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-white/30">
+                    {locale === "fr" ? "Templates rapides" : "Quick templates"}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {WEBSITE_TEMPLATES.map((template) => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        disabled={layoutSaving}
+                        onClick={() => applyWebsiteTemplate(template)}
+                        className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-all hover:border-white/20 hover:bg-white/[0.06] disabled:opacity-60"
+                      >
+                        <div className="mb-3 flex gap-1.5">
+                          <span className="h-4 w-4 rounded-full" style={{ backgroundColor: template.primary_color }} />
+                          <span className="h-4 w-4 rounded-full" style={{ backgroundColor: template.button_color }} />
+                          <span className="h-4 w-4 rounded-full border border-white/15" style={{ backgroundColor: template.layout.results_bg_color }} />
+                        </div>
+                        <p className="text-sm font-black text-white">{locale === "fr" ? template.labelFr : template.labelEn}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-white/35">{locale === "fr" ? template.descriptionFr : template.descriptionEn}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: 3 as const, label: locale === "fr" ? "3 par ligne" : "3 per row" },

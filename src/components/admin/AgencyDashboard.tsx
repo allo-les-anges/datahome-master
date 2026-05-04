@@ -361,6 +361,54 @@ function ToggleSwitch({ checked, onChange, checkedColor = '#6366f1' }: { checked
   );
 }
 
+const WEBSITE_TEMPLATES = [
+  {
+    id: 'luxury-light',
+    label: 'Luxe clair',
+    description: 'Fond clair, or doux, vignettes elegantes.',
+    primary_color: '#C8A84E',
+    button_color: '#D4AF37',
+    button_style: 'rounded-full',
+    layout: {
+      property_card_style: 'editorial',
+      property_card_corners: 'rounded',
+      property_card_icon_color: '#C8A84E',
+      results_bg_color: '#F8FAFC',
+    },
+    hero: { alignment: 'center', overlay_opacity: 30 },
+  },
+  {
+    id: 'modern-contrast',
+    label: 'Moderne contraste',
+    description: 'Style premium sombre, violet et cartes compactes.',
+    primary_color: '#B859C5',
+    button_color: '#B859C5',
+    button_style: 'rounded-full',
+    layout: {
+      property_card_style: 'compact',
+      property_card_corners: 'rounded',
+      property_card_icon_color: '#B859C5',
+      results_bg_color: '#F3F4F6',
+    },
+    hero: { alignment: 'left', overlay_opacity: 45 },
+  },
+  {
+    id: 'minimal-square',
+    label: 'Minimal carre',
+    description: 'Presentation sobre, bords droits, accent bleu.',
+    primary_color: '#2563EB',
+    button_color: '#0F172A',
+    button_style: 'rounded-none',
+    layout: {
+      property_card_style: 'minimal',
+      property_card_corners: 'square',
+      property_card_icon_color: '#2563EB',
+      results_bg_color: '#FFFFFF',
+    },
+    hero: { alignment: 'right', overlay_opacity: 25 },
+  },
+] as const;
+
 export default function AgencyDashboard() {
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const [isDark, setIsDark] = useState(true);
@@ -541,6 +589,29 @@ export default function AgencyDashboard() {
           ...currentConfig,
           [section]: { ...(currentConfig[section] || {}), [field]: value }
         }
+      };
+    });
+  };
+
+  const applyWebsiteTemplate = (template: typeof WEBSITE_TEMPLATES[number]) => {
+    if (!selectedAgency) return;
+    setSelectedAgency((prev: any) => {
+      let currentConfig: any = {};
+      if (typeof prev.footer_config === 'string') {
+        try { currentConfig = JSON.parse(prev.footer_config); } catch { currentConfig = {}; }
+      } else {
+        currentConfig = prev.footer_config || {};
+      }
+      return {
+        ...prev,
+        primary_color: template.primary_color,
+        button_color: template.button_color,
+        button_style: template.button_style,
+        footer_config: {
+          ...currentConfig,
+          layout: { ...(currentConfig.layout || {}), ...template.layout },
+          hero: { ...(currentConfig.hero || {}), ...template.hero },
+        },
       };
     });
   };
@@ -1720,6 +1791,27 @@ export default function AgencyDashboard() {
                 <motion.div variants={fadeUp} className={cardCls}>
                   <h3 className={sHdr}><Palette size={15} className="text-indigo-400" /> {t.sections.branding}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2 space-y-3">
+                      <label className={lbl}>Templates rapides</label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {WEBSITE_TEMPLATES.map((template) => (
+                          <button
+                            key={template.id}
+                            type="button"
+                            onClick={() => applyWebsiteTemplate(template)}
+                            className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-all hover:border-white/20 hover:bg-white/[0.06]"
+                          >
+                            <div className="mb-3 flex gap-1.5">
+                              <span className="h-4 w-4 rounded-full" style={{ backgroundColor: template.primary_color }} />
+                              <span className="h-4 w-4 rounded-full" style={{ backgroundColor: template.button_color }} />
+                              <span className="h-4 w-4 rounded-full border border-white/15" style={{ backgroundColor: template.layout.results_bg_color }} />
+                            </div>
+                            <p className="text-sm font-black text-white">{template.label}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-white/35">{template.description}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <label className={lbl}>{t.fields.logo}</label>
                       <div className="relative group">

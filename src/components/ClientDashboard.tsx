@@ -213,6 +213,60 @@ const dashboardText: Record<string, Record<string, string>> = {
   },
 };
 
+const WEBSITE_TEMPLATES = [
+  {
+    id: "luxury-light",
+    labelFr: "Luxe clair",
+    labelEn: "Light luxury",
+    descriptionFr: "Fond clair, or doux, vignettes elegantes.",
+    descriptionEn: "Light background, soft gold, elegant cards.",
+    primary_color: "#C8A84E",
+    button_color: "#D4AF37",
+    button_style: "rounded-full",
+    layout: {
+      property_card_style: "editorial",
+      property_card_corners: "rounded",
+      property_card_icon_color: "#C8A84E",
+      results_bg_color: "#F8FAFC",
+    },
+    hero: { alignment: "center", overlay_opacity: 30 },
+  },
+  {
+    id: "modern-contrast",
+    labelFr: "Moderne contraste",
+    labelEn: "Modern contrast",
+    descriptionFr: "Style premium sombre, violet et cartes compactes.",
+    descriptionEn: "Premium dark style, violet accents and compact cards.",
+    primary_color: "#B859C5",
+    button_color: "#B859C5",
+    button_style: "rounded-full",
+    layout: {
+      property_card_style: "compact",
+      property_card_corners: "rounded",
+      property_card_icon_color: "#B859C5",
+      results_bg_color: "#F3F4F6",
+    },
+    hero: { alignment: "left", overlay_opacity: 45 },
+  },
+  {
+    id: "minimal-square",
+    labelFr: "Minimal carre",
+    labelEn: "Minimal square",
+    descriptionFr: "Presentation sobre, bords droits, accent bleu.",
+    descriptionEn: "Clean layout, square edges, blue accent.",
+    primary_color: "#2563EB",
+    button_color: "#0F172A",
+    button_style: "rounded-none",
+    layout: {
+      property_card_style: "minimal",
+      property_card_corners: "square",
+      property_card_icon_color: "#2563EB",
+      results_bg_color: "#FFFFFF",
+    },
+    hero: { alignment: "right", overlay_opacity: 25 },
+  },
+] as const;
+
 export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", locale, onBack, onSaved }: Props) {
   const [form, setForm] = useState<any>({ ...agency });
   const [team, setTeam] = useState<Member[]>(agency.team_data || []);
@@ -248,6 +302,23 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
       let fc = prev.footer_config || {};
       if (typeof fc === "string") try { fc = JSON.parse(fc); } catch { fc = {}; }
       return { ...prev, footer_config: { ...fc, [section]: { ...(fc[section] || {}), [field]: value } } };
+    });
+
+  const applyTemplate = (template: typeof WEBSITE_TEMPLATES[number]) =>
+    setForm((prev: any) => {
+      let fc = prev.footer_config || {};
+      if (typeof fc === "string") try { fc = JSON.parse(fc); } catch { fc = {}; }
+      return {
+        ...prev,
+        primary_color: template.primary_color,
+        button_color: template.button_color,
+        button_style: template.button_style,
+        footer_config: {
+          ...fc,
+          layout: { ...(fc.layout || {}), ...template.layout },
+          hero: { ...(fc.hero || {}), ...template.hero },
+        },
+      };
     });
 
   const updateRoot = (field: string, value: any) =>
@@ -484,6 +555,27 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
             <div className="rounded-2xl p-7 space-y-5" style={card}>
               <h3 className={sHdr}><Palette size={15} style={{ color: brandColor }} /> {ui.branding}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2 space-y-3">
+                  <label className={lbl}>{locale === "fr" ? "Templates rapides" : "Quick templates"}</label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {WEBSITE_TEMPLATES.map((template) => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => applyTemplate(template)}
+                        className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-all hover:border-white/20 hover:bg-white/[0.06]"
+                      >
+                        <div className="mb-3 flex gap-1.5">
+                          <span className="h-4 w-4 rounded-full" style={{ backgroundColor: template.primary_color }} />
+                          <span className="h-4 w-4 rounded-full" style={{ backgroundColor: template.button_color }} />
+                          <span className="h-4 w-4 rounded-full border border-white/15" style={{ backgroundColor: template.layout.results_bg_color }} />
+                        </div>
+                        <p className="text-sm font-black text-white">{locale === "fr" ? template.labelFr : template.labelEn}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-white/35">{locale === "fr" ? template.descriptionFr : template.descriptionEn}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <label className={lbl}>{ui.logo}</label>
                   <div className="relative group cursor-pointer">
