@@ -28,6 +28,20 @@ const CLIENT_ALLOWED_FIELDS = [
   'team_data', 'footer_config', 'updated_at',
 ];
 
+const OPTIONAL_SCHEMA_FIELDS = [
+  'custom_domain',
+  'custom_domain_status',
+  'custom_domain_verified_at',
+  'custom_domain_verification',
+  'custom_domain_dns',
+  'trial_reminder_sent_at',
+];
+
+function isMissingOptionalColumnError(error: any) {
+  const message = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`;
+  return error?.code === 'PGRST204' || OPTIONAL_SCHEMA_FIELDS.some((field) => message.includes(field));
+}
+
 export async function POST(request: Request) {
   try {
     const { agencyId, data } = await request.json();
@@ -56,12 +70,27 @@ export async function POST(request: Request) {
       if (field in data) safeData[field] = data[field];
     }
 
-    const { data: updated, error } = await supabase
+    let { data: updated, error } = await supabase
       .from('agency_settings')
       .update(safeData)
       .eq('id', agencyId)
       .select()
       .maybeSingle();
+
+    if (error && isMissingOptionalColumnError(error)) {
+      const fallbackData = { ...safeData };
+      for (const field of OPTIONAL_SCHEMA_FIELDS) delete fallbackData[field];
+
+      const retry = await supabase
+        .from('agency_settings')
+        .update(fallbackData)
+        .eq('id', agencyId)
+        .select()
+        .maybeSingle();
+
+      updated = retry.data;
+      error = retry.error;
+    }
 
     if (error) throw error;
 
