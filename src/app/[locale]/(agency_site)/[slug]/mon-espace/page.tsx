@@ -377,6 +377,7 @@ export default function MonEspacePage() {
   const slug = params?.slug as string;
   const locale = (params?.locale as string) || "fr";
   const dict = (dicts[locale] || dicts.fr).propertyManager;
+  const leadsCrmDict = (dicts[locale] || dicts.fr).leadsCrm;
   const trialDict = (dicts[locale] || dicts.fr).trial;
   const upsellDict = (dicts[locale] || dicts.fr).upsell;
   const settingsTile = locale === "fr"
@@ -777,12 +778,42 @@ export default function MonEspacePage() {
                 </div>
               </motion.button>
 
+              {/* Direct leads access */}
+              {integrations.leads_enabled === true && (
+                <motion.a
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  href={`/${locale}/${slug}/mes-leads`}
+                  className="group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                  style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                >
+                  <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(circle at 20% 15%, ${brandColor}33, transparent 32%)` }} />
+                  <div className="relative">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                        <TrendingUp size={22} style={{ color: brandColor }} />
+                      </div>
+                      <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: brandColor }}>
+                      {dict?.badge || "Property Manager"}
+                    </span>
+                    <p className="text-lg font-bold text-white mb-1">{leadsCrmDict?.title || "Mini CRM Leads"}</p>
+                    <p className="text-sm text-white/30 mb-4">{leadsCrmDict?.noLeadsHint || "Les leads apparaissent ici des qu'un visiteur remplit le formulaire chatbot."}</p>
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                      {upsellDict?.viewModule || "Acceder"}
+                    </span>
+                  </div>
+                </motion.a>
+              )}
+
               {/* â”€â”€ Mini CRM â”€â”€ */}
               <motion.button
                 type="button"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                transition={{ delay: integrations.leads_enabled === true ? 0.15 : 0.1 }}
                 onClick={() => setShowModules(true)}
                 className="group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                 style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
