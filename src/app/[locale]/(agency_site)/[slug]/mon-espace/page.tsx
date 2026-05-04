@@ -403,6 +403,8 @@ export default function MonEspacePage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showModules, setShowModules] = useState(false);
+  const [moduleRequestLoading, setModuleRequestLoading] = useState<string | null>(null);
+  const [moduleRequestMsg, setModuleRequestMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const [showChangePw, setShowChangePw] = useState(false);
   const [cpCurrent, setCpCurrent] = useState("");
@@ -500,6 +502,38 @@ export default function MonEspacePage() {
     if (!data.success) { setCpMsg({ type: "err", text: data.error || "Erreur" }); return; }
     setCpMsg({ type: "ok", text: dict.pwUpdated });
     setCpCurrent(""); setCpNew(""); setCpConfirm("");
+  };
+
+  const requestModule = async (module: any) => {
+    if (!agency?.id) return;
+    setModuleRequestLoading(module.id);
+    setModuleRequestMsg(null);
+
+    const footerConfig = agency.footer_config || {};
+    const agencyEmail = footerConfig.client_email || footerConfig.contact_email || footerConfig.email || "";
+
+    try {
+      const res = await fetch("/api/admin/request-module", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agencyId: agency.id,
+          agencyName: agency.agency_name || slug,
+          agencyEmail,
+          moduleId: module.id,
+          moduleName: module.name,
+          modulePrice: module.price,
+          locale,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) throw new Error(data.error || "Erreur lors de la demande");
+      setModuleRequestMsg({ type: "ok", text: "Demande envoyee. Notre equipe vous contactera pour le paiement." });
+    } catch (err: any) {
+      setModuleRequestMsg({ type: "err", text: err.message || "Impossible d'envoyer la demande." });
+    } finally {
+      setModuleRequestLoading(null);
+    }
   };
 
   const glassCard = {
@@ -1050,12 +1084,16 @@ export default function MonEspacePage() {
               </button>
             </div>
 
+            {moduleRequestMsg && (
+              <div className={`mb-5 flex items-center gap-2 rounded-2xl border px-4 py-3 ${moduleRequestMsg.type === "ok" ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300" : "bg-red-500/10 border-red-500/25 text-red-300"}`}>
+                {moduleRequestMsg.type === "ok" ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
+                <p className="text-xs font-bold">{moduleRequestMsg.text}</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {moduleCatalog.map((module) => {
                 const Icon = module.icon;
-                const subject = encodeURIComponent(`Activation module ${module.name} - ${agency?.agency_name || slug}`);
-                const body = encodeURIComponent(`Bonjour,\n\nJe souhaite activer le module "${module.name}" pour l'agence ${agency?.agency_name || slug}.\n\nPrix indique: ${module.price}\n\nMerci.`);
-                const href = `mailto:gaetan@amaru-homes.com?subject=${subject}&body=${body}`;
                 return (
                   <div
                     key={module.id}
@@ -1090,13 +1128,15 @@ export default function MonEspacePage() {
                           Bientot
                         </span>
                       ) : (
-                        <a
-                          href={href}
-                          className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-black transition-all hover:opacity-90"
+                        <button
+                          type="button"
+                          onClick={() => requestModule(module)}
+                          disabled={moduleRequestLoading === module.id}
+                          className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-black transition-all hover:opacity-90 disabled:opacity-60"
                           style={{ backgroundColor: brandColor }}
                         >
-                          Demander
-                        </a>
+                          {moduleRequestLoading === module.id ? "Envoi..." : "Demander"}
+                        </button>
                       )}
                     </div>
                   </div>

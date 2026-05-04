@@ -369,6 +369,7 @@ export default function AgencyDashboard() {
   const [pendingAgencies, setPendingAgencies] = useState<any[]>([]);
   const [pendingRegistrations, setPendingRegistrations] = useState<any[]>([]);
   const [preRegistrations, setPreRegistrations] = useState<any[]>([]);
+  const [moduleRequests, setModuleRequests] = useState<any[]>([]);
   const [selectedPreRegistration, setSelectedPreRegistration] = useState<any>(null);
   const [activePanel, setActivePanel] = useState<'agency' | 'preregistration'>('agency');
   const [preRegForm, setPreRegForm] = useState({ subdomain: '', packageLevel: 'silver', defaultLang: 'fr', whatsapp: '' });
@@ -402,7 +403,7 @@ export default function AgencyDashboard() {
   const fetchPendingAgencies = async () => {
     setLoadingPending(true);
     try {
-      const [agenciesRes, regsRes, preRegsRes] = await Promise.all([
+      const [agenciesRes, regsRes, preRegsRes, moduleReqsRes] = await Promise.all([
         supabase
           .from('agency_settings')
           .select('*')
@@ -414,8 +415,14 @@ export default function AgencyDashboard() {
           .select('*')
           .eq('status', 'verified')
           .order('created_at', { ascending: false }),
+        supabase
+          .from('module_purchase_requests')
+          .select('*')
+          .eq('status', 'pending')
+          .order('requested_at', { ascending: false }),
       ]);
       if (agenciesRes.error) throw agenciesRes.error;
+      if ((moduleReqsRes as any).error) console.error('Module requests fetch error:', (moduleReqsRes as any).error);
       const rows = agenciesRes.data || [];
       const trulyPending = rows.filter((agency: any) => {
         const footer = typeof agency.footer_config === 'string'
@@ -431,6 +438,7 @@ export default function AgencyDashboard() {
           .in('id', alreadyActive.map((agency: any) => agency.id));
       }
       setPendingAgencies(trulyPending);
+      setModuleRequests((moduleReqsRes as any).data || []);
       setPreRegistrations(preRegsRes.data || []);
       if (regsRes.ok) {
         const regs = await regsRes.json();
@@ -1213,9 +1221,9 @@ export default function AgencyDashboard() {
           >
             <Clock size={9} />
             Demandes
-            {(pendingAgencies.length + preRegistrations.length) > 0 && (
+            {(pendingAgencies.length + preRegistrations.length + moduleRequests.length) > 0 && (
               <span className="bg-orange-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                {pendingAgencies.length + preRegistrations.length}
+                {pendingAgencies.length + preRegistrations.length + moduleRequests.length}
               </span>
             )}
           </button>
@@ -1396,7 +1404,44 @@ export default function AgencyDashboard() {
                   </div>
                 )}
 
-                {pendingAgencies.length === 0 && preRegistrations.length === 0 && (
+                {moduleRequests.length > 0 && (
+                  <div className="space-y-2 mt-3">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-fuchsia-400/60 px-1 pb-0.5 border-b border-fuchsia-500/10">
+                      Modules demandés ({moduleRequests.length})
+                    </p>
+                    {moduleRequests.map((request) => {
+                      const agency = agencies.find((item) => item.id === request.agency_id);
+                      return (
+                        <div
+                          key={request.id}
+                          className="rounded-xl p-3 bg-white/[0.02] border border-fuchsia-500/15 hover:border-fuchsia-500/35 transition-all cursor-pointer"
+                          onClick={() => {
+                            if (agency) {
+                              setSelectedAgency(agency);
+                              setTeam(agency.team_data || []);
+                              setActivePanel('agency');
+                              setSelectedPreRegistration(null);
+                            }
+                          }}
+                        >
+                          <div className="font-semibold text-[12px] text-white/80 truncate">{request.module_name}</div>
+                          <div className="text-[9px] text-white/40 mt-0.5 truncate">{request.agency_name || agency?.agency_name || 'Agence inconnue'}</div>
+                          <div className="text-[9px] text-white/25 font-mono truncate">{request.agency_email || 'email non renseigné'}</div>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <span className="text-[8px] text-fuchsia-300 font-bold">
+                              {request.module_price || 'Prix non renseigné'}
+                            </span>
+                            <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300">
+                              Paiement à traiter
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {pendingAgencies.length === 0 && preRegistrations.length === 0 && moduleRequests.length === 0 && (
                   <p className="text-center text-white/20 text-[10px] uppercase tracking-widest pt-6">Aucune demande</p>
                 )}
               </>
