@@ -695,6 +695,11 @@ export default function MonEspacePage() {
     backgroundPosition: "center",
     boxShadow: `0 18px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)`,
   });
+  const premiumPanelStyle = (accent = brandColor) => ({
+    ...glassCard,
+    background: `radial-gradient(circle at 10% 0%, ${accent}24, transparent 34%), linear-gradient(135deg, rgba(255,255,255,0.065), rgba(255,255,255,0.025))`,
+    boxShadow: "0 22px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.08)",
+  });
 
   const updateFooterSectionSetting = async (section: "layout" | "hero", field: string, value: any) => {
     if (!session || !agency?.id || layoutSaving) return;
@@ -1526,22 +1531,28 @@ export default function MonEspacePage() {
         ) : view === "list" ?(
           <>
             {/* Header liste */}
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-              <div>
-                <h2 className="text-3xl font-bold text-white">{dict.myProperties}</h2>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-                  <p className="text-sm text-white/30">
-                    {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
+            <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-8" style={makeVisualTileStyle(firstPropertyImage || heroPreviewImage, brandColor, 0.64)}>
+              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+                <div>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.32em]" style={{ color: brandColor }}>
+                    Property Manager
                   </p>
+                  <h2 className="text-3xl sm:text-4xl font-black text-white">{dict.myProperties}</h2>
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 backdrop-blur-md">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
+                    <p className="text-xs font-bold text-white/70">
+                      {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
+                    </p>
+                  </div>
                 </div>
+                <button type="button"
+                  onClick={() => { setEditing(null); setView("form"); }}
+                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.97] w-full sm:w-auto"
+                  style={{ backgroundColor: brandColor, boxShadow: `0 8px 24px ${brandColor}40` }}>
+                  <Plus size={18} strokeWidth={2.5} /> {dict.addProperty}
+                </button>
               </div>
-              <button type="button"
-                onClick={() => { setEditing(null); setView("form"); }}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.97] w-full sm:w-auto"
-                style={{ backgroundColor: brandColor, boxShadow: `0 8px 24px ${brandColor}40` }}>
-                <Plus size={18} strokeWidth={2.5} /> {dict.addProperty}
-              </button>
             </div>
 
             {propLoading ?(
@@ -1550,7 +1561,8 @@ export default function MonEspacePage() {
                 {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             ) : properties.length === 0 ?(
-              <div className="text-center py-28 rounded-3xl" style={glassCard}>
+              <div className="relative overflow-hidden text-center py-28 rounded-3xl" style={premiumPanelStyle(brandColor)}>
+                <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full blur-3xl opacity-30" style={{ backgroundColor: brandColor }} />
                 <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: `${brandColor}15` }}>
                   <Building2 size={32} style={{ color: brandColor }} />
                 </div>
@@ -1569,10 +1581,9 @@ export default function MonEspacePage() {
                 {properties.map((p, idx) => (
                   <div
                     key={p.id}
-                    className={`group rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${idx === 0 ?"lg:col-span-2" : ""}`}
+                    className={`group relative rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${idx === 0 ?"lg:col-span-2" : ""}`}
                     style={{
-                      ...glassCard,
-                      boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+                      ...premiumPanelStyle(brandColor),
                     }}
                   >
                     <div className={`relative overflow-hidden ${idx === 0 ?"aspect-[4/3] sm:aspect-[16/7]" : "aspect-[4/3]"} bg-white/5`}>
@@ -1583,8 +1594,11 @@ export default function MonEspacePage() {
                           </div>
                       }
                       <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%)" }} />
-                      <div className="absolute top-3 left-3">
+                      <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                         <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-black/60 text-white backdrop-blur-sm">{p.type}</span>
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-sm" style={{ backgroundColor: `${brandColor}cc`, color: "#050505" }}>
+                          {p.listing_type === "rent" ?"Location" : "Vente"}
+                        </span>
                       </div>
                       {p.pool === "Oui" && (
                         <div className="absolute top-3 right-3">
@@ -1599,7 +1613,7 @@ export default function MonEspacePage() {
                         <p className="text-xs text-white/30 truncate">{[p.town, p.region].filter(Boolean).join(", ") || "-"}</p>
                       </div>
                       <p className="text-xl font-black" style={{ color: brandColor }}>
-                        {p.price ?Number(p.price).toLocaleString("fr-FR") + " EUR" : "-"}
+                        {p.price ?`${Number(p.price).toLocaleString("fr-FR")} EUR${p.listing_type === "rent" ? p.rental_period === "week" ? " / sem." : p.rental_period === "day" ? " / jour" : " / mois" : ""}` : "-"}
                       </p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-white/30 font-medium">
                         {p.beds > 0 && <span className="flex items-center gap-1"><BedDouble size={12} /> {p.beds}</span>}
@@ -1623,12 +1637,25 @@ export default function MonEspacePage() {
             )}
           </>
         ) : (
-          <div className="max-w-2xl mx-auto">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white">{editing?.id ?dict.editProperty : dict.newProperty}</h2>
-              <p className="text-sm text-white/30 mt-1">{dict.fillInfo}</p>
+          <div className="max-w-4xl mx-auto">
+            <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-6" style={makeVisualTileStyle(editing?.images?.[0] || firstPropertyImage || heroPreviewImage, brandColor, 0.68)}>
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="relative flex items-start justify-between gap-4">
+                <div>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.32em]" style={{ color: brandColor }}>
+                    {editing?.id ?"Edition" : "Creation"}
+                  </p>
+                  <h2 className="text-2xl sm:text-4xl font-black text-white">{editing?.id ?dict.editProperty : dict.newProperty}</h2>
+                  <p className="text-sm text-white/55 mt-2 max-w-xl">{dict.fillInfo}</p>
+                </div>
+                <button type="button" onClick={() => { setView("list"); setEditing(null); }}
+                  className="rounded-2xl border border-white/10 bg-black/20 p-3 text-white/45 backdrop-blur-md transition-all hover:bg-white/10 hover:text-white">
+                  <X size={18} />
+                </button>
+              </div>
             </div>
-            <div className="rounded-3xl p-4 sm:p-8" style={glassCard}>
+            <div className="relative overflow-hidden rounded-3xl p-4 sm:p-8" style={premiumPanelStyle(brandColor)}>
+              <div className="pointer-events-none absolute -right-20 top-20 h-52 w-52 rounded-full blur-3xl opacity-20" style={{ backgroundColor: brandColor }} />
               <PropertyForm
                 initial={editing}
                 agencyId={session.agencyId}
@@ -1648,8 +1675,10 @@ export default function MonEspacePage() {
       {/* Modale modules disponibles */}
       {showModules && (
         <div className="fixed inset-0 z-[210] flex items-center justify-center px-4 py-8" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}>
-          <div className="rounded-3xl p-6 md:p-8 max-w-5xl w-full max-h-[88vh] overflow-y-auto" style={{ ...glassCard, boxShadow: "0 40px 90px rgba(0,0,0,0.65)" }}>
-            <div className="flex items-start justify-between gap-4 mb-7">
+          <div className="relative overflow-hidden rounded-3xl p-6 md:p-8 max-w-5xl w-full max-h-[88vh] overflow-y-auto" style={{ ...premiumPanelStyle("#B859C5"), boxShadow: "0 40px 90px rgba(0,0,0,0.65)" }}>
+            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
+            <div className="absolute left-10 bottom-0 h-44 w-44 rounded-full bg-cyan-500/10 blur-3xl" />
+            <div className="relative flex items-start justify-between gap-4 mb-7">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: brandColor }}>
                   Catalogue premium
@@ -1683,11 +1712,12 @@ export default function MonEspacePage() {
                 return (
                   <div
                     key={module.id}
-                    className="rounded-3xl p-5 border transition-all"
-                    style={{ background: "rgba(255,255,255,0.035)", borderColor: "rgba(255,255,255,0.08)" }}
+                    className="group relative overflow-hidden rounded-3xl p-5 border transition-all hover:-translate-y-1"
+                    style={{ background: `radial-gradient(circle at 18% 0%, ${module.color}22, transparent 38%), rgba(255,255,255,0.035)`, borderColor: "rgba(255,255,255,0.08)" }}
                   >
+                    <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full blur-2xl opacity-25" style={{ backgroundColor: module.color }} />
                     <div className="flex items-start justify-between gap-3 mb-5">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${module.color}18` }}>
+                      <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10" style={{ backgroundColor: `${module.color}18` }}>
                         <Icon size={22} style={{ color: module.color }} />
                       </div>
                       <span
@@ -1736,13 +1766,14 @@ export default function MonEspacePage() {
       {/* Modale suppression */}
       {deleteId !== null && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center px-6" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
-          <div className="rounded-3xl p-8 max-w-sm w-full" style={{ ...glassCard, boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
-            <div className="w-14 h-14 rounded-2xl bg-red-900/20 flex items-center justify-center mx-auto mb-4">
+          <div className="relative overflow-hidden rounded-3xl p-8 max-w-sm w-full" style={{ ...premiumPanelStyle("#ef4444"), boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
+            <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full bg-red-500/20 blur-3xl" />
+            <div className="relative w-14 h-14 rounded-2xl bg-red-900/20 flex items-center justify-center mx-auto mb-4 border border-red-500/15">
               <Trash2 size={24} className="text-red-400" />
             </div>
-            <h3 className="text-center font-bold text-white text-lg mb-1">{dict.deleteTitle}</h3>
-            <p className="text-center text-sm text-white/30 mb-7">{dict.deleteWarning}</p>
-            <div className="flex gap-3">
+            <h3 className="relative text-center font-bold text-white text-lg mb-1">{dict.deleteTitle}</h3>
+            <p className="relative text-center text-sm text-white/35 mb-7">{dict.deleteWarning}</p>
+            <div className="relative flex gap-3">
               <button type="button" onClick={() => setDeleteId(null)}
                 className="flex-1 py-3.5 rounded-2xl border border-white/10 text-sm font-bold text-white/40 hover:bg-white/5 transition-all">
                 {dict.cancel}
@@ -1760,15 +1791,16 @@ export default function MonEspacePage() {
       {/* Modale changement mot de passe */}
       {showChangePw && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center px-6" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
-          <div className="rounded-3xl p-8 max-w-sm w-full" style={{ ...glassCard, boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
-            <div className="flex items-center justify-between mb-6">
+          <div className="relative overflow-hidden rounded-3xl p-8 max-w-sm w-full" style={{ ...premiumPanelStyle(brandColor), boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
+            <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full blur-3xl opacity-25" style={{ backgroundColor: brandColor }} />
+            <div className="relative flex items-center justify-between mb-6">
               <h3 className="font-bold text-white text-lg">{dict.changePwTitle}</h3>
               <button type="button" onClick={() => { setShowChangePw(false); setCpMsg(null); }}
                 className="p-2 hover:bg-white/5 rounded-xl transition-all">
                 <X size={16} className="text-white/30" />
               </button>
             </div>
-            <div className="space-y-4">
+            <div className="relative space-y-4">
               {([
                 [dict.currentPw, cpCurrent, setCpCurrent],
                 [dict.newPw, cpNew, setCpNew],
