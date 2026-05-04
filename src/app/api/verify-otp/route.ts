@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const SUPABASE_BASE = process.env.SUPABASE_URL   || 'https://idoosovuatkqfrkuyiie.supabase.co';
+const SUPABASE_BASE = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY
                    || process.env.SUPABASE_KEY
-                   || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb29zb3Z1YXRrcWZya3V5aWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MTEwMDgsImV4cCI6MjA4NzI4NzAwOH0.JJKPOFgVdNgoweD4B4cIo28Ip3aGRvh-0czsgvY0AuM';
+                   || '';
 
 function sb(path: string) {
   return `${SUPABASE_BASE}/rest/v1/${path}`;
@@ -56,6 +56,10 @@ function rateLimitedResponse(retryAfter: number) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!SUPABASE_BASE || !SUPABASE_KEY) {
+    return NextResponse.json({ success: false, error: 'Configuration Supabase manquante' }, { status: 500 });
+  }
+
   let email: string, otp_code: string;
   try {
     ({ email, otp_code } = await req.json());

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { isAdminRequest, unauthorized } from '@/lib/serverAuth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,6 +8,8 @@ const supabase = createClient(
 );
 
 export async function DELETE(req: NextRequest) {
+  if (!isAdminRequest(req)) return unauthorized();
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
 

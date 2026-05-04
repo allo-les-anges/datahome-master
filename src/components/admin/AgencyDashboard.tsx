@@ -400,6 +400,16 @@ export default function AgencyDashboard() {
     package_level: 'silver'
   });
 
+  const adminHeaders = (json = false) => {
+    const headers: Record<string, string> = {};
+    if (json) headers['Content-Type'] = 'application/json';
+    if (typeof window !== 'undefined') {
+      const secret = sessionStorage.getItem('admin_secret');
+      if (secret) headers['x-admin-secret'] = secret;
+    }
+    return headers;
+  };
+
   const fetchPendingAgencies = async () => {
     setLoadingPending(true);
     try {
@@ -409,20 +419,17 @@ export default function AgencyDashboard() {
           .select('*')
           .eq('website_status', 'pending')
           .order('created_at', { ascending: false }),
-        fetch('/api/admin/pending-registrations'),
+        fetch('/api/admin/pending-registrations', { headers: adminHeaders() }),
         supabase
           .from('register_premium')
           .select('*')
           .eq('status', 'verified')
           .order('created_at', { ascending: false }),
-        supabase
-          .from('module_purchase_requests')
-          .select('*')
-          .eq('status', 'pending')
-          .order('requested_at', { ascending: false }),
+        fetch('/api/admin/module-requests', { headers: adminHeaders() }),
       ]);
       if (agenciesRes.error) throw agenciesRes.error;
-      if ((moduleReqsRes as any).error) console.error('Module requests fetch error:', (moduleReqsRes as any).error);
+      const moduleReqsJson = await (moduleReqsRes as Response).json().catch(() => ({}));
+      if (!(moduleReqsRes as Response).ok || moduleReqsJson.success === false) console.error('Module requests fetch error:', moduleReqsJson.error);
       const rows = agenciesRes.data || [];
       const trulyPending = rows.filter((agency: any) => {
         const footer = typeof agency.footer_config === 'string'
@@ -438,7 +445,7 @@ export default function AgencyDashboard() {
           .in('id', alreadyActive.map((agency: any) => agency.id));
       }
       setPendingAgencies(trulyPending);
-      setModuleRequests((moduleReqsRes as any).data || []);
+      setModuleRequests(moduleReqsJson.requests || []);
       setPreRegistrations(preRegsRes.data || []);
       if (regsRes.ok) {
         const regs = await regsRes.json();
@@ -590,7 +597,7 @@ export default function AgencyDashboard() {
     try {
       const res = await fetch('/api/admin/vercel-domain', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: adminHeaders(true),
         body: JSON.stringify({ agency_id: selectedAgency.id, domain }),
       });
       const json = await res.json();
@@ -627,7 +634,7 @@ export default function AgencyDashboard() {
     try {
       const saveRes = await fetch('/api/property-manager/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: adminHeaders(true),
         body: JSON.stringify({
           agencyId: selectedAgency.id,
           data: {
@@ -690,7 +697,7 @@ export default function AgencyDashboard() {
   const uploadToStorage = async (file: File, filePath: string): Promise<string> => {
     const res = await fetch('/api/admin/upload', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: adminHeaders(true),
       body: JSON.stringify({ filePath }),
     });
     if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
@@ -852,7 +859,7 @@ export default function AgencyDashboard() {
     setDeleteConfirmId(null);
     try {
       setIsSaving(true);
-      const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/delete-agency?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: adminHeaders() });
       const json = await res.json();
       console.log('[delete-agency] rÃ©ponse API:', json);
       if (!res.ok || !json.success) {
@@ -928,7 +935,7 @@ export default function AgencyDashboard() {
 
       const res = await fetch('/api/property-manager/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: adminHeaders(true),
         body: JSON.stringify({
           agencyId: selectedAgency.id,
           data: savePayload,
@@ -1018,7 +1025,7 @@ export default function AgencyDashboard() {
 
     const res = await fetch('/api/admin/send-welcome-email', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: adminHeaders(true),
       body: JSON.stringify({
         agency_id:        agency.id,
         email:            clientEmail,

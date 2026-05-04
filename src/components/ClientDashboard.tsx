@@ -37,6 +37,7 @@ interface Props {
   agency: any;
   slug: string;
   agencyId: string;
+  pmToken?: string;
   locale: string;
   onBack: () => void;
   onSaved: (updated: any) => void;
@@ -183,7 +184,7 @@ const dashboardText: Record<string, Record<string, string>> = {
   },
 };
 
-export default function ClientDashboard({ agency, slug, agencyId, locale, onBack, onSaved }: Props) {
+export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", locale, onBack, onSaved }: Props) {
   const [form, setForm] = useState<any>({ ...agency });
   const [team, setTeam] = useState<Member[]>(agency.team_data || []);
   const [isSaving, setIsSaving] = useState(false);
@@ -312,7 +313,7 @@ export default function ClientDashboard({ agency, slug, agencyId, locale, onBack
     try {
       const res = await fetch("/api/admin/vercel-domain", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-pm-session": pmToken },
         body: JSON.stringify({ agency_id: agencyId, domain, lang: locale }),
       });
       const json = await res.json();
@@ -337,7 +338,7 @@ export default function ClientDashboard({ agency, slug, agencyId, locale, onBack
       if (typeof fc === "string") try { fc = JSON.parse(fc); } catch { fc = {}; }
       const res = await fetch("/api/property-manager/settings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-pm-session": pmToken },
         body: JSON.stringify({
           slug,
           agencyId,

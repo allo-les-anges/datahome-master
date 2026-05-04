@@ -47,6 +47,7 @@ interface Props {
 
 export default function ModuleMarketplace({
   moduleId,
+  agencyId,
   agencyName,
   agencyEmail,
   onClose,
@@ -77,6 +78,8 @@ export default function ModuleMarketplace({
         body: JSON.stringify({
           moduleName: module.name,
           modulePrice: module.price,
+          agencyId,
+          moduleId: module.id,
           agencyName,
           agencyEmail,
         }),
@@ -96,6 +99,8 @@ export default function ModuleMarketplace({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          agencyId,
+          moduleId: `plan-${plan.id}`,
           moduleName: `Plan ${plan.name}`,
           modulePrice: plan.price,
           agencyName,

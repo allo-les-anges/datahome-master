@@ -28,7 +28,7 @@ const dicts: Record<string, any> = { fr, en, es, nl, pl, ar };
 const SESSION_KEY = "pm_session";
 const SESSION_DURATION = 8 * 60 * 60 * 1000;
 
-type PmSession = { agencyId: string; slug: string; exp: number };
+type PmSession = { agencyId: string; slug: string; exp: number; token?: string };
 
 type Property = {
   id: number;
@@ -103,10 +103,11 @@ function FieldInput({ label, icon, children }: { label: string; icon?: React.Rea
 }
 
 function PropertyForm({
-  initial, agencyId, slug, brandColor, dict, onSaved, onCancel,
+  initial, agencyId, pmToken, slug, brandColor, dict, onSaved, onCancel,
 }: {
   initial?: Partial<Property> | null;
   agencyId: string;
+  pmToken: string;
   slug: string;
   brandColor: string;
   dict: any;
@@ -153,7 +154,7 @@ function PropertyForm({
     };
     const res = await fetch("/api/property-manager/properties", {
       method: initial?.id ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-pm-session": pmToken },
       body: JSON.stringify(payload),
     });
     const data = await res.json();
@@ -442,7 +443,9 @@ export default function MonEspacePage() {
   const loadProperties = useCallback(async () => {
     if (!session) return;
     setPropLoading(true);
-    const res = await fetch(`/api/property-manager/properties?agency_id=${session.agencyId}`);
+    const res = await fetch(`/api/property-manager/properties?agency_id=${session.agencyId}`, {
+      headers: { "x-pm-session": session.token || "" },
+    });
     const { data } = await res.json();
     setProperties(data || []);
     setPropLoading(false);
@@ -471,7 +474,7 @@ export default function MonEspacePage() {
     const data = await res.json();
     setAuthLoading(false);
     if (!data.success) { setAuthError(data.error || "Erreur"); return; }
-    const s: PmSession = { agencyId: String(data.agencyId || agency.id), slug, exp: Date.now() + SESSION_DURATION };
+    const s: PmSession = { agencyId: String(data.agencyId || agency.id), slug, exp: Date.now() + SESSION_DURATION, token: data.token };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
     setSession(s);
   };
@@ -481,7 +484,10 @@ export default function MonEspacePage() {
   const handleDelete = async (id: number) => {
     if (!session) return;
     setDeleting(true);
-    await fetch(`/api/property-manager/properties?id=${id}&agency_id=${session.agencyId}`, { method: "DELETE" });
+    await fetch(`/api/property-manager/properties?id=${id}&agency_id=${session.agencyId}`, {
+      method: "DELETE",
+      headers: { "x-pm-session": session.token || "" },
+    });
     setDeleteId(null);
     setDeleting(false);
     loadProperties();
@@ -710,6 +716,7 @@ export default function MonEspacePage() {
       agency={agency}
       slug={slug as string}
       agencyId={session!.agencyId}
+      pmToken={session!.token || ""}
       locale={locale as string}
       onBack={() => setView("dashboard")}
       onSaved={(updated) => { setAgency(updated); setView("dashboard"); }}
@@ -1049,6 +1056,7 @@ export default function MonEspacePage() {
               <PropertyForm
                 initial={editing}
                 agencyId={session.agencyId}
+                pmToken={session.token || ""}
                 slug={slug}
                 brandColor={brandColor}
                 dict={dict}

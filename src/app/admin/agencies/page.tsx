@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import AgencyDashboard from "@/components/admin/AgencyDashboard";
 
@@ -9,10 +9,11 @@ export default function AgenciesPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // ✅ Le mot de passe est directement vérifié ici
-    if (password === "Lea_Iris_171213!") {
+  const checkAuth = async (pwd: string) => {
+    const res = await fetch('/api/admin/check', { headers: { 'x-admin-secret': pwd } });
+    if (res.ok) {
+      sessionStorage.setItem('admin_auth', 'true');
+      sessionStorage.setItem('admin_secret', pwd);
       setIsAuthorized(true);
       setError("");
     } else {
@@ -21,12 +22,24 @@ export default function AgenciesPage() {
     }
   };
 
+  useEffect(() => {
+    const savedSecret = sessionStorage.getItem('admin_secret');
+    if (sessionStorage.getItem('admin_auth') === 'true' && savedSecret) {
+      checkAuth(savedSecret);
+    }
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    checkAuth(password);
+  };
+
   if (!isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <form onSubmit={handleLogin} className="bg-white p-8 rounded-2xl shadow-lg w-96">
           <img src="/logo-data-home.jpeg" alt="DataHome" className="h-20 w-auto object-contain mx-auto mb-5 rounded-xl" />
-          <h1 className="text-2xl font-bold mb-2 text-center">Accès Administration</h1>
+          <h1 className="text-2xl font-bold mb-2 text-center">AccÃ¨s Administration</h1>
           <p className="text-slate-500 text-sm text-center mb-6">Configuration des agences</p>
           
           <input
@@ -68,3 +81,4 @@ export default function AgenciesPage() {
     </main>
   );
 }
+

@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-const RESEND_KEY = process.env.RESEND_KEY || 're_FF7fBpoX_3VCWrP4FkF5HvdCxLf5uRCR8';
+const RESEND_KEY = process.env.RESEND_KEY || process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@data-home.app';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://datahome.vercel.app';
 
@@ -165,7 +165,23 @@ async function sendTrialReminder(agency: any, email: string, lang: Lang, trialEx
   }
 }
 
-export async function GET() {
+function isAuthorizedCron(request: Request) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const auth = request.headers.get('authorization') || '';
+  const headerSecret = request.headers.get('x-cron-secret') || '';
+  return auth === `Bearer ${secret}` || headerSecret === secret;
+}
+
+export async function GET(request: Request) {
+  if (!isAuthorizedCron(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!RESEND_KEY) {
+    return NextResponse.json({ success: false, error: 'RESEND_KEY manquant' }, { status: 500 });
+  }
+
   const now = new Date();
   const threshold = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
@@ -220,4 +236,3 @@ export async function GET() {
     results,
   }, { status: failed === 0 ? 200 : 207 });
 }
-

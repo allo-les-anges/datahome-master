@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { hasAdminOrPmAccess, unauthorized } from '@/lib/serverAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -219,6 +220,8 @@ export async function POST(req: NextRequest) {
     if (!agencyId || !domain) {
       return NextResponse.json({ success: false, error: 'agency_id et domain sont requis' }, { status: 400 });
     }
+
+    if (!hasAdminOrPmAccess(req, agencyId)) return unauthorized();
 
     let projectDomainRes = await vercelFetch(
       `/v10/projects/${encodeURIComponent(VERCEL_PROJECT_ID)}/domains`,

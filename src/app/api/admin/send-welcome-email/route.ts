@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import { isAdminRequest, unauthorized } from '@/lib/serverAuth';
 
-const RESEND_KEY  = process.env.RESEND_KEY  || 're_FF7fBpoX_3VCWrP4FkF5HvdCxLf5uRCR8';
+const RESEND_KEY  = process.env.RESEND_KEY || process.env.RESEND_API_KEY;
 const FROM_EMAIL  = process.env.FROM_EMAIL  || 'noreply@data-home.app';
 const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL || 'https://datahome.vercel.app';
 const INTERNAL_PREMIUM_RECIPIENTS = ['gillian@habihub-soft.com', 'gaetan@amaru-homes.com'];
@@ -293,6 +294,8 @@ function buildInternalNotification(p: EmailParams): { subject: string; html: str
 }
 
 export async function POST(req: NextRequest) {
+  if (!isAdminRequest(req)) return unauthorized();
+
   let body: Record<string, string>;
   try {
     body = await req.json();
@@ -307,6 +310,10 @@ export async function POST(req: NextRequest) {
 
   if (!agency_id || !email || !subdomain) {
     return NextResponse.json({ success: false, error: 'agency_id, email et subdomain sont requis' }, { status: 400 });
+  }
+
+  if (!RESEND_KEY) {
+    return NextResponse.json({ success: false, error: 'RESEND_KEY manquant' }, { status: 500 });
   }
 
   const { data: agencyLangRow } = await supabase

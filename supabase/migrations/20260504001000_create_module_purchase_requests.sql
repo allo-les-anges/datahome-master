@@ -21,3 +21,4 @@ create index if not exists module_purchase_requests_agency_id_idx
 create index if not exists module_purchase_requests_status_idx
   on public.module_purchase_requests(status);
 
+alter table public.module_purchase_requests enable row level security;

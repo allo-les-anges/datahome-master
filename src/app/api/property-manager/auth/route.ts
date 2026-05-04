@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { createPmSessionToken } from '@/lib/serverAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
         .update({ property_manager_password: hash })
         .eq('id', agency.id);
       if (error) throw error;
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, agencyId: agency.id, token: createPmSessionToken(String(agency.id)) });
     }
 
     if (action === 'login') {
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
       if (!valid) {
         return NextResponse.json({ success: false, error: 'Mot de passe incorrect' }, { status: 401 });
       }
-      return NextResponse.json({ success: true, agencyId: agency.id });
+      return NextResponse.json({ success: true, agencyId: agency.id, token: createPmSessionToken(String(agency.id)) });
     }
 
     if (action === 'change-password') {
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
         .update({ property_manager_password: hash })
         .eq('id', agency.id);
       if (error) throw error;
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, agencyId: agency.id, token: createPmSessionToken(String(agency.id)) });
     }
 
     return NextResponse.json({ success: false, error: 'Action inconnue' }, { status: 400 });

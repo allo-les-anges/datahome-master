@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { verifyPmSessionToken } from '@/lib/serverAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const agencyId = searchParams.get('agency_id');
   if (!agencyId) return NextResponse.json({ error: 'agency_id requis' }, { status: 400 });
+  if (!verifyPmSessionToken(request.headers.get('x-pm-session'), agencyId)) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  }
 
   const { data, error } = await supabase
     .from('villas')
@@ -29,6 +33,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { agency_id, ...fields } = body;
     if (!agency_id) return NextResponse.json({ error: 'agency_id requis' }, { status: 400 });
+    if (!verifyPmSessionToken(request.headers.get('x-pm-session'), agency_id)) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
 
     const ref = `MAN-${Date.now()}`;
     const { data, error } = await supabase
@@ -49,6 +56,9 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { id, agency_id, ...fields } = body;
     if (!id || !agency_id) return NextResponse.json({ error: 'id et agency_id requis' }, { status: 400 });
+    if (!verifyPmSessionToken(request.headers.get('x-pm-session'), agency_id)) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
 
     // Vérifie que le bien appartient à l'agence
     const { data: existing } = await supabase
@@ -79,6 +89,9 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id');
     const agencyId = searchParams.get('agency_id');
     if (!id || !agencyId) return NextResponse.json({ error: 'id et agency_id requis' }, { status: 400 });
+    if (!verifyPmSessionToken(request.headers.get('x-pm-session'), agencyId)) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
 
     const { data: existing } = await supabase
       .from('villas')

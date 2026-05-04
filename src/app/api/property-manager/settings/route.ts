@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { hasAdminOrPmAccess, isAdminRequest, unauthorized } from '@/lib/serverAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,9 +19,22 @@ const ALLOWED_FIELDS = [
   'team_data', 'footer_config', 'website_status', 'updated_at',
 ];
 
+const CLIENT_ALLOWED_FIELDS = [
+  'agency_name', 'primary_color', 'button_color', 'button_style', 'button_animation',
+  'font_family', 'logo_url', 'hero_title', 'hero_type', 'hero_url',
+  'custom_domain', 'custom_domain_status', 'custom_domain_verified_at',
+  'custom_domain_verification', 'custom_domain_dns',
+  'about_title', 'about_text', 'cookie_consent_enabled', 'privacy_policy',
+  'team_data', 'footer_config', 'updated_at',
+];
+
 export async function POST(request: Request) {
   try {
     const { agencyId, data } = await request.json();
+
+    if (agencyId && !hasAdminOrPmAccess(request, String(agencyId))) {
+      return unauthorized();
+    }
 
     if (!agencyId || !data) {
       return NextResponse.json({ success: false, error: 'Paramètres manquants' }, { status: 400 });
@@ -36,8 +50,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Agence introuvable' }, { status: 404 });
     }
 
+    const allowedFields = isAdminRequest(request) ? ALLOWED_FIELDS : CLIENT_ALLOWED_FIELDS;
     const safeData: Record<string, any> = {};
-    for (const field of ALLOWED_FIELDS) {
+    for (const field of allowedFields) {
       if (field in data) safeData[field] = data[field];
     }
 

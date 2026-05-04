@@ -10,8 +10,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const PASSWORD = "Lea_Iris_171213!";
-
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   new:       { label: "Nouveau",   color: "text-blue-700",  bg: "bg-blue-50 border-blue-200" },
   contacted: { label: "Contacté",  color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
@@ -36,10 +34,11 @@ export default function LeadsDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === PASSWORD) {
+  const checkAuth = async (pwd: string) => {
+    const res = await fetch('/api/admin/check', { headers: { 'x-admin-secret': pwd } });
+    if (res.ok) {
       sessionStorage.setItem("admin_leads_auth", "true");
+      sessionStorage.setItem("admin_secret", pwd);
       setIsAuthorized(true);
       setError("");
     } else {
@@ -48,8 +47,16 @@ export default function LeadsDashboard() {
     }
   };
 
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    checkAuth(password);
+  };
+
   useEffect(() => {
-    if (sessionStorage.getItem("admin_leads_auth") === "true") setIsAuthorized(true);
+    const savedSecret = sessionStorage.getItem("admin_secret");
+    if (sessionStorage.getItem("admin_leads_auth") === "true" && savedSecret) {
+      checkAuth(savedSecret);
+    }
   }, []);
 
   useEffect(() => {

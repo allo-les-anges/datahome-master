@@ -20,7 +20,19 @@ function parseFooterConfig(value: any) {
   return value;
 }
 
+function isAuthorizedCron(request: Request) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const auth = request.headers.get('authorization') || '';
+  const headerSecret = request.headers.get('x-cron-secret') || '';
+  return auth === `Bearer ${secret}` || headerSecret === secret;
+}
+
 export async function GET(request: Request) {
+  if (!isAuthorizedCron(request)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { data: agencies, error } = await supabase
     .from('agency_settings')
     .select('id, agency_name, footer_config')

@@ -3,16 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 // ─── Config ───────────────────────────────────────────────────────────────────
 const SUPABASE_ENDPOINT =
   process.env.SUPABASE_ENDPOINT ||
-  'https://idoosovuatkqfrkuyiie.supabase.co/rest/v1/register_premium';
+  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/register_premium`;
 
 const SUPABASE_KEY =
   process.env.SUPABASE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb29zb3Z1YXRrcWZya3V5aWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MTEwMDgsImV4cCI6MjA4NzI4NzAwOH0.JJKPOFgVdNgoweD4B4cIo28Ip3aGRvh-0czsgvY0AuM';
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 const RESEND_KEY =
   process.env.RESEND_KEY ||
-  process.env.RESEND_API_KEY ||
-  're_FF7fBpoX_3VCWrP4FkF5HvdCxLf5uRCR8';
+  process.env.RESEND_API_KEY || '';
 
 const FROM_EMAIL = process.env.FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@data-home.app';
 const SITE_URL   = process.env.NEXT_PUBLIC_SITE_URL || 'https://datahome.vercel.app';
@@ -255,6 +255,13 @@ async function sendEmail(
 
 // ─── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.SUPABASE_ENDPOINT) {
+    return NextResponse.json({ success: false, error: 'Configuration Supabase manquante' }, { status: 500 });
+  }
+  if (!SUPABASE_KEY || !RESEND_KEY) {
+    return NextResponse.json({ success: false, error: 'Configuration email/Supabase manquante' }, { status: 500 });
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
