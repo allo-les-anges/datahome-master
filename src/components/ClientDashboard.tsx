@@ -7,6 +7,7 @@ import {
   UploadCloud, Trash2, UserPlus, Image as ImageIcon, Mail, Phone,
   Facebook, Instagram, Linkedin, Briefcase, FileText, Sun, Moon, Globe,
 } from "lucide-react";
+import { FONT_OPTIONS } from "@/lib/fontOptions";
 
 function TikTokIcon({ size = 15, className = "" }: { size?: number; className?: string }) {
   return (
@@ -483,11 +484,11 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                     onChange={(e) => setForm((p: any) => ({ ...p, font_family: e.target.value }))}
                     className={`${inp} appearance-none [&>option]:bg-[#0d0d0d]`}
                   >
-                    <option value="Montserrat">Montserrat (Moderne)</option>
-                    <option value="Inter">Inter (Minimaliste)</option>
-                    <option value="'Playfair Display', serif">Playfair (Luxe)</option>
-                    <option value="Poppins">Poppins (Arrondi)</option>
-                    <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
+                    {FONT_OPTIONS.map((font) => (
+                      <option key={font.value} value={font.value}>
+                        {font.label} ({font.style})
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2">

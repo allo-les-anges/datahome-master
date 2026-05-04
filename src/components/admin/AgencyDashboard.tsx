@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import ModuleMarketplace from '@/components/admin/ModuleMarketplace';
+import { FONT_OPTIONS } from '@/lib/fontOptions';
 import {
   Save, Plus, Globe, Image as ImageIcon, Loader2,
   CheckCircle2, AlertCircle, Palette, Phone, Mail, Layout, X,
@@ -1797,11 +1798,11 @@ export default function AgencyDashboard() {
                       <div className="relative">
                         <Type className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
                         <select value={selectedAgency?.font_family || 'Montserrat'} onChange={(e) => setSelectedAgency({...selectedAgency, font_family: e.target.value})} className={`${inp} pl-11 appearance-none [&>option]:bg-[#0d1528]`}>
-                          <option value="Montserrat">Montserrat (Moderne)</option>
-                          <option value="Inter">Inter (Minimaliste)</option>
-                          <option value="'Playfair Display', serif">Playfair (Luxe)</option>
-                          <option value="Poppins">Poppins (Arrondi)</option>
-                          <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
+                          {FONT_OPTIONS.map((font) => (
+                            <option key={font.value} value={font.value}>
+                              {font.label} ({font.style})
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>

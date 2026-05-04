@@ -1,0 +1,18 @@
+export const FONT_OPTIONS = [
+  { value: "Montserrat", label: "Montserrat", style: "Moderne" },
+  { value: "Inter", label: "Inter", style: "Minimaliste" },
+  { value: "Poppins", label: "Poppins", style: "Arrondi" },
+  { value: "'Playfair Display', serif", label: "Playfair Display", style: "Luxe" },
+  { value: "Georgia, serif", label: "Georgia", style: "Editorial" },
+  { value: "Garamond, serif", label: "Garamond", style: "Classique" },
+  { value: "'Times New Roman', serif", label: "Times New Roman", style: "Traditionnel" },
+  { value: "Arial, sans-serif", label: "Arial", style: "Simple" },
+  { value: "'Helvetica Neue', Arial, sans-serif", label: "Helvetica Neue", style: "Premium" },
+  { value: "Verdana, sans-serif", label: "Verdana", style: "Lisible" },
+  { value: "Tahoma, sans-serif", label: "Tahoma", style: "Compact" },
+  { value: "'Trebuchet MS', sans-serif", label: "Trebuchet MS", style: "Doux" },
+  { value: "'Segoe UI', sans-serif", label: "Segoe UI", style: "Interface" },
+  { value: "system-ui, sans-serif", label: "System UI", style: "Natif" },
+  { value: "'Roboto Mono', monospace", label: "Roboto Mono", style: "Tech" },
+  { value: "'Courier New', monospace", label: "Courier New", style: "Mono" },
+];
