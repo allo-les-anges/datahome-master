@@ -65,7 +65,11 @@ const dashboardText: Record<string, Record<string, string>> = {
     roundedButtons: "Bords arrondis",
     buttonAnimation: "Animation des boutons",
     none: "Aucune",
-    hero: "Hero Header",
+    propertyDisplay: "Affichage des biens",
+    villasPerRow: "Villas par ligne",
+    threePerRow: "3 par ligne",
+    fourPerRow: "4 par ligne",
+    hero: "Affichage du site & Hero",
     mediaType: "Type de media",
     image: "Image",
     video: "Video",
@@ -134,7 +138,11 @@ const dashboardText: Record<string, Record<string, string>> = {
     roundedButtons: "Rounded buttons",
     buttonAnimation: "Button animation",
     none: "None",
-    hero: "Hero header",
+    propertyDisplay: "Property display",
+    villasPerRow: "Properties per row",
+    threePerRow: "3 per row",
+    fourPerRow: "4 per row",
+    hero: "Site display & hero",
     mediaType: "Media type",
     image: "Image",
     video: "Video",
@@ -195,6 +203,11 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
   const brandColor = form.primary_color || "#D4AF37";
   const fontFamily = form.font_family || "Montserrat";
   const ui = dashboardText[locale] || dashboardText.en;
+  let footerConfig = form.footer_config || {};
+  if (typeof footerConfig === "string") {
+    try { footerConfig = JSON.parse(footerConfig); } catch { footerConfig = {}; }
+  }
+  const propertiesPerRow = footerConfig?.layout?.properties_per_row === 4 ? 4 : 3;
 
   const inp = `w-full px-4 py-3.5 rounded-2xl border text-sm focus:outline-none transition-all ${isDark ? "text-white placeholder:text-white/20 bg-white/[0.04] border-white/[0.07] focus:border-white/20" : "text-slate-900 placeholder:text-slate-400 bg-slate-50 border-slate-200 focus:border-slate-400"}`;
   const lbl = `block text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? "text-white/40" : "text-slate-500"}`;
@@ -518,6 +531,36 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
             {/* ② {ui.hero} */}
             <div className="rounded-2xl p-7 space-y-5" style={card}>
               <h3 className={sHdr}><Layout size={15} style={{ color: brandColor }} /> {ui.hero}</h3>
+              <div className="space-y-3">
+                <label className={lbl}>{ui.propertyDisplay}</label>
+                <div className={`rounded-2xl border p-4 ${isDark ? "border-white/[0.06] bg-white/[0.02]" : "border-slate-200 bg-slate-50"}`}>
+                  <div className="mb-3 flex items-center justify-between gap-4">
+                    <span className={`text-sm font-semibold ${isDark ? "text-white/80" : "text-slate-800"}`}>{ui.villasPerRow}</span>
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? "text-white/30" : "text-slate-400"}`}>{propertiesPerRow}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 3, label: ui.threePerRow },
+                      { value: 4, label: ui.fourPerRow },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => updateNested("layout", "properties_per_row", opt.value)}
+                        className={`rounded-xl border px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+                          propertiesPerRow === opt.value
+                            ? "border-white/20 bg-white/15 text-white"
+                            : isDark
+                              ? "border-white/[0.06] bg-white/[0.02] text-white/40 hover:border-white/[0.12]"
+                              : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
               <div>
                 <label className={lbl}>{ui.mediaType}</label>
                 <div className="flex p-1 bg-white/[0.04] border border-white/[0.06] rounded-xl w-fit">

@@ -16,6 +16,7 @@ interface PropertyGridProps {
   activeFilters?: Filters;
   locale?: string;
   blurAfter6?: boolean;
+  propertiesPerRow?: 3 | 4;
 }
 
 // Composant memoizé pour éviter les re-rendus inutiles
@@ -150,13 +151,17 @@ const PropertyGrid = memo(function PropertyGrid({
   isLight,
   locale,
   blurAfter6 = false,
+  propertiesPerRow = 3,
 }: PropertyGridProps) {
   const { t } = useTranslation() as any;
   const visiblePerPage = 6;
   const cardsPerPage = 12;
+  const gridColumnsClass = propertiesPerRow === 4
+    ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
+    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className={`grid ${gridColumnsClass} gap-8`}>
       {properties.map((property: Villa, index: number) => {
         const shouldBlur = blurAfter6 && index % cardsPerPage >= visiblePerPage;
         return (
