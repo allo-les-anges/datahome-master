@@ -645,6 +645,17 @@ export default function MonEspacePage() {
   const heroCtaText = footerConfig?.hero?.cta_text || "";
   const heroAlignment = ["left", "center", "right"].includes(footerConfig?.hero?.alignment) ? footerConfig.hero.alignment : "center";
   const heroOverlayOpacity = typeof footerConfig?.hero?.overlay_opacity === "number" ? footerConfig.hero.overlay_opacity : 30;
+  const firstPropertyImage = properties.find((property) => property.images?.[0])?.images?.[0] || "";
+  const heroPreviewImage = agency?.hero_type !== "video" ? agency?.hero_url : "";
+  const makeVisualTileStyle = (imageUrl: string | undefined, accent: string, opacity = 0.58) => ({
+    ...glassCard,
+    backgroundImage: imageUrl
+      ? `linear-gradient(135deg, rgba(8,10,18,${opacity}) 0%, rgba(8,10,18,0.92) 72%), url("${imageUrl}")`
+      : `radial-gradient(circle at 18% 12%, ${accent}40, transparent 34%), linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    boxShadow: `0 18px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)`,
+  });
 
   const updateFooterSectionSetting = async (section: "layout" | "hero", field: string, value: any) => {
     if (!session || !agency?.id || layoutSaving) return;
@@ -1093,20 +1104,23 @@ export default function MonEspacePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
                 onClick={() => { loadProperties(); setView("list"); }}
-                className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                className="group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                style={makeVisualTileStyle(firstPropertyImage || heroPreviewImage, brandColor, 0.5)}
               >
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent opacity-70" />
+                <div className="relative flex items-start justify-between mb-12">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 backdrop-blur-md" style={{ backgroundColor: `${brandColor}25` }}>
                     <Building2 size={22} style={{ color: brandColor }} />
                   </div>
                   <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">{upsellDict?.propertiesTitle || "Mes Proprietes"}</p>
-                <p className="text-sm text-white/30 mb-4">{upsellDict?.propertiesSubtitle || "Gerez votre catalogue"}</p>
-                <div className="flex items-center gap-2">
+                <div className="relative">
+                  <p className="text-xl font-black text-white mb-1">{upsellDict?.propertiesTitle || "Mes Proprietes"}</p>
+                  <p className="text-sm text-white/55 mb-4">{upsellDict?.propertiesSubtitle || "Gerez votre catalogue"}</p>
+                </div>
+                <div className="relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 backdrop-blur-md">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-                  <span className="text-xs font-bold text-white/40">
+                  <span className="text-xs font-bold text-white/70">
                     {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
                   </span>
                 </div>
@@ -1117,19 +1131,23 @@ export default function MonEspacePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.12 }}
-                className="rounded-3xl p-7"
-                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                className="relative overflow-hidden rounded-3xl p-7"
+                style={makeVisualTileStyle("", brandColor, 0.7)}
               >
-                <div className="flex items-start justify-between mb-6">
+                <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl opacity-30" style={{ backgroundColor: brandColor }} />
+                <div className="absolute right-5 top-5 grid grid-cols-2 gap-1.5 opacity-20">
+                  {[0, 1, 2, 3].map((i) => <span key={i} className="h-8 w-8 rounded-lg border border-white/20 bg-white/10" />)}
+                </div>
+                <div className="relative flex items-start justify-between mb-6">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
                     <LayoutGrid size={22} style={{ color: brandColor }} />
                   </div>
                   {layoutSaving && <Loader2 size={18} className="animate-spin text-white/30" />}
                 </div>
-                <p className="text-lg font-bold text-white mb-1">
+                <p className="relative text-lg font-bold text-white mb-1">
                   {locale === "fr" ? "Affichage des biens" : "Property display"}
                 </p>
-                <p className="text-sm text-white/30 mb-5">
+                <p className="relative text-sm text-white/30 mb-5">
                   {locale === "fr" ? "Nombre de villas par ligne sur votre site public." : "Number of properties per row on your public website."}
                 </p>
                 <div className="mb-5 border-b border-white/[0.06] pb-5">
@@ -1372,17 +1390,19 @@ export default function MonEspacePage() {
                 transition={{ delay: integrations.leads_enabled === true ?0.15 : 0.1 }}
                 onClick={() => setShowModules(true)}
                 className="group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                style={makeVisualTileStyle("", "#B859C5", 0.7)}
               >
-                <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(circle at 20% 15%, ${brandColor}33, transparent 32%)` }} />
+                <div className="absolute inset-0 opacity-70" style={{ background: `linear-gradient(135deg, rgba(184,89,197,0.18), transparent 45%), radial-gradient(circle at 85% 20%, rgba(255,255,255,0.16), transparent 25%)` }} />
+                <div className="absolute -right-8 bottom-6 h-28 w-28 rounded-[2rem] border border-white/10 bg-white/[0.04] rotate-12 blur-[0.2px]" />
+                <div className="absolute right-12 bottom-12 h-16 w-16 rounded-2xl border border-white/10 bg-white/[0.05] -rotate-6" />
                 <div className="relative">
                   <div className="flex items-start justify-between mb-6">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
-                      <Zap size={22} style={{ color: brandColor }} />
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-fuchsia-500/15 backdrop-blur-md">
+                      <Zap size={22} className="text-fuchsia-300" />
                     </div>
                     <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                   </div>
-                  <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: brandColor }}>
+                  <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] mb-2 text-fuchsia-300">
                     <Lock size={12} /> Catalogue premium
                   </span>
                   <p className="text-lg font-bold text-white mb-1">Modules disponibles</p>
@@ -1405,17 +1425,18 @@ export default function MonEspacePage() {
                   href={`/${locale}/${slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                  style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                  className="group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                  style={makeVisualTileStyle(heroPreviewImage || firstPropertyImage, "#38BDF8", 0.55)}
                 >
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-sky-900/20">
+                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="relative flex items-start justify-between mb-12">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-sky-900/30 backdrop-blur-md">
                       <Globe size={22} className="text-sky-400" />
                     </div>
                     <ChevronRight size={18} className="text-white/20 group-hover:text-sky-400 group-hover:translate-x-1 transition-all" />
                   </div>
-                  <p className="text-lg font-bold text-white mb-1">{upsellDict?.siteTitle || "Mon Site Vitrine"}</p>
-                  <p className="text-sm text-white/30">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
+                  <p className="relative text-xl font-black text-white mb-1">{upsellDict?.siteTitle || "Mon Site Vitrine"}</p>
+                  <p className="relative text-sm text-white/55">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
                 </motion.a>
               )}
 
@@ -1426,17 +1447,18 @@ export default function MonEspacePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 onClick={() => setView("settings")}
-                className="group text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
+                className="group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                style={makeVisualTileStyle(agency.logo_url, "#94A3B8", 0.72)}
               >
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-800/60">
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+                <div className="relative flex items-start justify-between mb-10">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-slate-800/60 backdrop-blur-md">
                     <Settings size={22} className="text-slate-400" />
                   </div>
                   <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">{settingsTile.title}</p>
-                <p className="text-sm text-white/30">{settingsTile.subtitle}</p>
+                <p className="relative text-xl font-black text-white mb-1">{settingsTile.title}</p>
+                <p className="relative text-sm text-white/50">{settingsTile.subtitle}</p>
               </motion.button>
 
               {/* -- Statistiques -- */}
