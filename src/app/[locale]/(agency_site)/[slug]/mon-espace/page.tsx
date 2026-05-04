@@ -44,6 +44,7 @@ type Property = {
   type: string;
   pool: string;
   images: string[];
+  video_url?: string;
   description_fr: string;
   description_en: string;
 };
@@ -53,7 +54,7 @@ const PROPERTY_TYPES = ["Villa", "Appartement", "Penthouse", "Bungalow", "Maison
 const emptyForm = {
   titre_fr: "", titre_en: "", price: "", town: "", region: "",
   beds: "", baths: "", surface_built: "", type: "Villa",
-  pool: "Non", description_fr: "", description_en: "",
+  pool: "Non", video_url: "", description_fr: "", description_en: "",
 };
 
 // --- Skeleton Loader -----------------------------------------------------------
@@ -103,7 +104,7 @@ function FieldInput({ label, icon, children }: { label: string; icon?: React.Rea
 }
 
 function PropertyForm({
-  initial, agencyId, pmToken, slug, brandColor, dict, onSaved, onCancel,
+  initial, agencyId, pmToken, slug, brandColor, dict, immersiveEnabled, onSaved, onCancel,
 }: {
   initial?: Partial<Property> | null;
   agencyId: string;
@@ -111,6 +112,7 @@ function PropertyForm({
   slug: string;
   brandColor: string;
   dict: any;
+  immersiveEnabled: boolean;
   onSaved: () => void;
   onCancel: () => void;
 }) {
@@ -301,6 +303,24 @@ function PropertyForm({
         <input ref={fileRef} type="file" multiple accept="image/*" className="hidden"
           onChange={(e) => e.target.files && handleUpload(e.target.files)} />
       </div>
+
+      {immersiveEnabled && (
+        <div>
+          <SectionHeader icon={<Video size={15} />} label={dict.immersiveTour || "Visite immersive"} color={brandColor} />
+          <FieldInput label={dict.immersiveUrl || "Lien visite virtuelle / video 360"}>
+            <input
+              type="url"
+              placeholder="https://my.matterport.com/show/?m=..."
+              value={form.video_url || ""}
+              onChange={(e) => set("video_url", e.target.value)}
+              className={inputCls}
+            />
+          </FieldInput>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-white/20">
+            {dict.immersiveHint || "Matterport, Kuula, 3D Vista, CloudPano, YouTube, Vimeo ou URL embed."}
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-2 p-3.5 rounded-2xl border border-red-900/30 bg-red-900/10">
@@ -727,6 +747,16 @@ export default function MonEspacePage() {
       status: "Disponible",
       icon: Video,
       color: "#ec4899",
+    },
+    {
+      id: "immersive-tours",
+      name: "Visites immersives",
+      price: "29 EUR / mois",
+      description: "Ajoutez des liens Matterport, Kuula, 3D Vista, CloudPano ou videos 360 sur les fiches biens.",
+      active: integrations.immersive_tours_enabled === true,
+      status: "Disponible",
+      icon: Video,
+      color: "#14b8a6",
     },
     {
       id: "crm-sync",
@@ -1275,6 +1305,7 @@ export default function MonEspacePage() {
                 slug={slug}
                 brandColor={brandColor}
                 dict={dict}
+                immersiveEnabled={integrations.immersive_tours_enabled === true}
                 onSaved={() => { setView("list"); setEditing(null); loadProperties(); }}
                 onCancel={() => { setView("list"); setEditing(null); }}
               />

@@ -2155,6 +2155,36 @@ export default function AgencyDashboard() {
                     );
                   })()}
 
+                  {/* MODULE: Visites immersives */}
+                  {(() => {
+                    const enabled = !!getInt('immersive_tours_enabled');
+                    return (
+                      <div className={`rounded-xl border overflow-hidden transition-all duration-300 ${enabled ?'border-teal-500/30 bg-teal-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ?'bg-teal-500/20' : 'bg-white/[0.05]'}`}>
+                              <Video size={17} className={enabled ?'text-teal-400' : 'text-white/30'} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Visites immersives</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-teal-500/15 text-teal-400 border border-teal-500/20">Module</span></div>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Liens Matterport, Kuula, 3D Vista, CloudPano ou videos 360 par bien</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${enabled ?'bg-teal-500/15 text-teal-400' : 'bg-white/[0.05] text-white/30'}`}>{enabled ?'ACTIF' : 'INACTIF'}</span>
+                            <ToggleSwitch checked={enabled} checkedColor="#14b8a6" onChange={(v) => updateNestedConfig('integrations', 'immersive_tours_enabled', v)} />
+                          </div>
+                        </div>
+                        {enabled && (
+                          <div className="px-4 py-2.5 bg-teal-500/[0.07] border-t border-teal-500/20 flex items-center gap-2">
+                            <AlertCircle size={12} className="text-teal-400 shrink-0" />
+                            <p className="text-[9px] text-teal-400/80 font-bold uppercase tracking-wide">Le client peut ajouter une URL de visite immersive dans chaque fiche bien manuelle.</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   {/* MODULE: Video Hero */}
                   {(() => {
                     const enabled = !!getInt('hero_video_enabled');

@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
 
     // Optimisation : sélectionner seulement les champs nécessaires pour la liste
-    const BASE_FIELDS = 'id, id_externe, ref, price, prix, town, ville, region, province, beds, baths, surface_built, surface_plot, surface_useful, pool, type, images, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, agency_id, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, adresse, commission_percentage, currency, status';
+    const BASE_FIELDS = 'id, id_externe, ref, price, prix, town, ville, region, province, beds, baths, surface_built, surface_plot, surface_useful, pool, type, images, video_url, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, agency_id, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, adresse, commission_percentage, currency, status';
 
     // Rebuild base query as a function so we can retry without date columns if needed
     const buildQuery = () => {
@@ -174,6 +174,7 @@ export async function GET(request: Request) {
       pool: p.pool,
       type: p.type,
       images: parseImages(p.images, isListing ? 1 : 5),
+      video_url: p.video_url || null,
       titre: p[`titre_${lang}`] || p.titre_fr || p.ref,
       titre_fr: p.titre_fr || null,
       titre_en: p.titre_en || null,

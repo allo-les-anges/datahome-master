@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   X, CheckCircle2, Loader2,
   Users, MessageCircle, Building2, TrendingUp, Briefcase, Bot,
-  LucideIcon,
+  Video, LucideIcon,
 } from 'lucide-react';
 import { MODULES, PLANS } from '@/lib/modules';
 
@@ -17,6 +17,7 @@ const iconMap: Record<string, LucideIcon> = {
   TrendingUp,
   Briefcase,
   Bot,
+  Video,
 };
 
 const planColorMap: Record<string, { bg: string; border: string; text: string }> = {
@@ -25,13 +26,14 @@ const planColorMap: Record<string, { bg: string; border: string; text: string }>
   purple: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400' },
 };
 
-const ALL_MODULE_IDS = ['site_web', 'mini_crm', 'whatsapp', 'property_manager', 'seo', 'crm_sync', 'chatbot'] as const;
+const ALL_MODULE_IDS = ['site_web', 'mini_crm', 'whatsapp', 'property_manager', 'seo', 'immersive-tours', 'crm_sync', 'chatbot'] as const;
 const MODULE_LABELS: Record<string, string> = {
   site_web:         'Site web',
   mini_crm:         'Mini CRM Leads',
   whatsapp:         'WhatsApp Business',
   property_manager: 'Property Manager',
   seo:              'Module SEO',
+  'immersive-tours': 'Visites immersives',
   crm_sync:         'CRM Zoho / HubSpot',
   chatbot:          'Chatbot IA',
 };

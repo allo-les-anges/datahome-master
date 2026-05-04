@@ -219,7 +219,7 @@ export default function PropertyDetailClient({ property, agency, locale: localeP
                       onClick={() => setIsVideoModalOpen(true)}
                       className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-2 z-20 hover:bg-black/80 transition-colors"
                     >
-                      <Play size={14} /> Plein écran
+                      <Play size={14} /> Visite immersive
                     </button>
                   </div>
                 ) : (
@@ -257,7 +257,7 @@ export default function PropertyDetailClient({ property, agency, locale: localeP
                     <div className="w-full h-full bg-slate-800 flex items-center justify-center">
                       <Play size={24} className="text-white" />
                     </div>
-                    <span className="absolute bottom-2 left-2 text-white text-[8px] bg-black/50 px-2 py-0.5 rounded-full">VIDÉO</span>
+                    <span className="absolute bottom-2 left-2 text-white text-[8px] bg-black/50 px-2 py-0.5 rounded-full">VISITE IMMERSIVE</span>
                   </button>
                 )}
                 

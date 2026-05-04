@@ -13,6 +13,7 @@ const MODULE_CATALOG: Record<string, { name: string; price: string }> = {
   languages: { name: 'Langues supplementaires', price: '2 EUR / langue / mois' },
   seo: { name: 'Module SEO', price: '19 EUR / mois' },
   'hero-video': { name: 'Video hero', price: '9 EUR / mois' },
+  'immersive-tours': { name: 'Visites immersives', price: '29 EUR / mois' },
   whatsapp: { name: 'WhatsApp Business', price: '19 EUR / mois' },
   property_manager: { name: 'Property Manager', price: '29 EUR / mois' },
   crm_sync: { name: 'CRM Zoho / HubSpot', price: '39 EUR / mois' },
