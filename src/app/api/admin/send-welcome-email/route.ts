@@ -309,6 +309,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'agency_id, email et subdomain sont requis' }, { status: 400 });
   }
 
+  const { data: agencyLangRow } = await supabase
+    .from('agency_settings')
+    .select('default_lang, footer_config')
+    .eq('id', agency_id)
+    .maybeSingle();
+
+  const savedFooterConfig = typeof agencyLangRow?.footer_config === 'string'
+    ? (() => { try { return JSON.parse(agencyLangRow.footer_config); } catch { return {}; } })()
+    : (agencyLangRow?.footer_config || {});
+
+  const dashboardLang =
+    agencyLangRow?.default_lang ||
+    savedFooterConfig?.allowed_langs?.[0] ||
+    default_lang ||
+    'fr';
+
   const tempPassword  = generateTempPassword();
   const hashedPwd     = await bcrypt.hash(tempPassword, 10);
 
@@ -327,7 +343,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
   }
 
-  const lang: Lang = SUPPORTED.includes(default_lang as Lang) ? (default_lang as Lang) : 'fr';
+  const lang: Lang = SUPPORTED.includes(dashboardLang as Lang) ? (dashboardLang as Lang) : 'fr';
   const agencyUrl   = `${SITE_URL}/${lang}/${subdomain}`;
   const dashUrl     = `${SITE_URL}/${lang}/${subdomain}/mon-espace`;
   const leadsUrl    = `${SITE_URL}/${lang}/${subdomain}/mes-leads`;

@@ -996,6 +996,9 @@ export default function AgencyDashboard() {
   };
 
   const sendWelcomeEmailForAgency = async (agency: any) => {
+    const dashboardAgency = selectedAgency?.id === agency.id
+      ? selectedAgency
+      : agencies.find((item) => item.id === agency.id);
     const footerConfig = typeof agency.footer_config === 'string'
       ? (() => { try { return JSON.parse(agency.footer_config); } catch { return {}; } })()
       : (agency.footer_config || {});
@@ -1014,7 +1017,7 @@ export default function AgencyDashboard() {
         first_name:       agency.contact_first_name || agency.agency_name,
         company_name:     agency.agency_name,
         subdomain:        agency.subdomain,
-        default_lang:     agency.default_lang || footerConfig.allowed_langs?.[0] || 'fr',
+        default_lang:     dashboardAgency?.default_lang || agency.default_lang || footerConfig.allowed_langs?.[0] || 'fr',
         package_level:    agency.package_level || 'silver',
         trial_expires_at: agency.trial_expires_at || footerConfig.subscription?.trial_expires_at || new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
       }),
