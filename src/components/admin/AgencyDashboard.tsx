@@ -2023,7 +2023,7 @@ export default function AgencyDashboard() {
                 <motion.div variants={fadeUp} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-7 space-y-4 hover:border-indigo-500/20 transition-all duration-300">
                   <div className="flex items-start justify-between border-b border-white/[0.05] pb-4">
                     <h3 className="flex items-center gap-3 font-bold text-white/80 uppercase text-xs tracking-widest"><Zap size={15} className="text-violet-400" /> Modules & Abonnement</h3>
-                    <span className="text-[9px] text-white/25 uppercase tracking-widest text-right leading-relaxed max-w-[180px]">Activation conditionnÃ©e au paiement</span>
+                    <span className="text-[9px] text-white/25 uppercase tracking-widest text-right leading-relaxed max-w-[180px]">Activation conditionnee au paiement</span>
                   </div>
 
                   {/* MODULE: Site Web Public */}
@@ -2036,7 +2036,7 @@ export default function AgencyDashboard() {
                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${siteActive ? 'bg-emerald-500/20' : 'bg-white/[0.05]'}`}><Globe size={17} className={siteActive ? 'text-emerald-400' : 'text-white/30'} /></div>
                             <div>
                               <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Site Web Public</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Inclus</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">VisibilitÃ© publique du site agence</p>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Visibilite publique du site agence</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -2047,14 +2047,14 @@ export default function AgencyDashboard() {
                         {!siteActive && (
                           <div className="px-4 py-2.5 bg-amber-500/[0.08] border-t border-amber-500/20 flex items-center gap-2">
                             <AlertCircle size={12} className="text-amber-400 shrink-0" />
-                            <p className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wide">Le site est inaccessible aux visiteurs tant que ce module est dÃ©sactivÃ©.</p>
+                            <p className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wide">Le site est inaccessible aux visiteurs tant que ce module est desactive.</p>
                           </div>
                         )}
                       </div>
                     );
                   })()}
 
-                  {/* MODULE: Flou vignettes aprÃ¨s 6 */}
+                  {/* MODULE: Flou vignettes apres 6 */}
                   {(() => {
                     const enabled = getSub('blur_listings') === true;
                     return (
@@ -2063,8 +2063,8 @@ export default function AgencyDashboard() {
                           <div className="flex items-center gap-3">
                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-cyan-500/20' : 'bg-white/[0.05]'}`}><Monitor size={17} className={enabled ? 'text-cyan-400' : 'text-white/30'} /></div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Flou des vignettes (aprÃ¨s 6)</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">VisibilitÃ©</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Masque les biens au-delÃ  des 6 premiers</p>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Flou des vignettes (apres 6)</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">Visibilite</span></div>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Masque les biens au-dela des 6 premiers</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -2075,7 +2075,7 @@ export default function AgencyDashboard() {
                         {enabled && (
                           <div className="px-4 py-2.5 bg-cyan-500/[0.07] border-t border-cyan-500/20 flex items-center gap-2">
                             <AlertCircle size={12} className="text-cyan-400 shrink-0" />
-                            <p className="text-[9px] text-cyan-400/80 font-bold uppercase tracking-wide">Les vignettes au-delÃ  de la 6Ã¨me apparaissent floutÃ©es avec un message &quot;Contactez-nous&quot;.</p>
+                            <p className="text-[9px] text-cyan-400/80 font-bold uppercase tracking-wide">Les vignettes au-dela de la 6eme apparaissent floutees avec un message &quot;Contactez-nous&quot;.</p>
                           </div>
                         )}
                       </div>
@@ -2094,8 +2094,8 @@ export default function AgencyDashboard() {
                               <Video size={17} className={enabled ? 'text-fuchsia-400' : 'text-white/30'} />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">VidÃ©o Hero</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/20">Module</span></div>
-                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Remplace l'image hero par une vidÃ©o MP4 sur la homepage</p>
+                              <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80">Video Hero</span><span className="px-1.5 py-0.5 text-[8px] font-black uppercase rounded-md bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/20">Module</span></div>
+                              <p className="text-[9px] text-white/30 uppercase tracking-tight font-bold mt-0.5">Remplace l'image hero par une video MP4 sur la homepage</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -2109,7 +2109,7 @@ export default function AgencyDashboard() {
                               <input type="file" accept="video/mp4,.mp4" onChange={handleHeroUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                               <div className="w-full border-2 border-dashed border-white/[0.08] rounded-xl p-5 flex flex-col items-center gap-2 bg-white/[0.02] group-hover:bg-white/[0.04] group-hover:border-fuchsia-500/30 transition-all">
                                 <UploadCloud className="text-white/20 group-hover:text-fuchsia-400 transition-colors" size={20} />
-                                <span className="text-xs text-white/30">{hasVideo ? 'Changer la vidÃ©o hero' : 'Uploader une vidÃ©o hero'}</span>
+                                <span className="text-xs text-white/30">{hasVideo ? 'Changer la video hero' : 'Uploader une video hero'}</span>
                                 <span className="text-[9px] text-white/20">MP4 uniquement Â· max 50 Mo</span>
                               </div>
                             </div>
@@ -2120,7 +2120,7 @@ export default function AgencyDashboard() {
                               </div>
                             )}
                             {!hasVideo && (
-                              <p className="text-[9px] text-fuchsia-300/70 font-bold uppercase tracking-wide">Si aucune vidÃ©o n'est uploadÃ©e, l'image hero standard reste utilisÃ©e.</p>
+                              <p className="text-[9px] text-fuchsia-300/70 font-bold uppercase tracking-wide">Si aucune video n'est uploadee, l'image hero standard reste utilisee.</p>
                             )}
                           </div>
                         )}
