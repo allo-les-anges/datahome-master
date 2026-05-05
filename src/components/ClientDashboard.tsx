@@ -383,7 +383,23 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
     try {
       const ext = file.name.split(".").pop();
       const url = await uploadFile(file, `${slug}/${isVideo ? "hero-video" : "hero"}/${Date.now()}.${ext}`);
-      setForm((p: any) => ({ ...p, hero_url: url, hero_type: isVideo ? "video" : "image" }));
+      setForm((p: any) => {
+        const footerConfig = p.footer_config || {};
+        return {
+          ...p,
+          hero_url: url,
+          hero_type: isVideo ? "video" : "image",
+          footer_config: isVideo
+            ? {
+                ...footerConfig,
+                integrations: {
+                  ...(footerConfig.integrations || {}),
+                  hero_video_enabled: true,
+                },
+              }
+            : footerConfig,
+        };
+      });
     } catch { setMessage({ type: "err", text: ui.uploadHeroError }); }
     finally { setIsSaving(false); e.target.value = ""; }
   };

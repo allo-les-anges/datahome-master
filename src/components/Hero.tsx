@@ -38,7 +38,7 @@ export default function Hero({ agency, title, subtitle, backgroundImage, agencyN
       ? 'ml-auto'
       : 'mx-auto';
 
-  const isVideo = heroVideoEnabled && agency?.hero_type === 'video';
+  const isVideo = agency?.hero_type === 'video' && (heroVideoEnabled || Boolean(agency?.hero_url));
   const rawBgUrl = agency?.hero_url || backgroundImage;
   const cleanBgUrl = rawBgUrl ? rawBgUrl.replace(/['"]+/g, '').trim() : null;
   const isValidUrl = cleanBgUrl && (cleanBgUrl.startsWith('http') || cleanBgUrl.startsWith('/'));
