@@ -332,6 +332,10 @@ export default function MesLeadsPage() {
       <style jsx global>{`
         .pm-light [class*="text-white"] { color: #0f172a !important; }
         .pm-light [class*="text-white/"] { color: rgba(15, 23, 42, 0.62) !important; }
+        .pm-light .pm-header [class*="text-white"] { color: #0f172a !important; }
+        .pm-dark .pm-header [class*="text-white"] { color: rgba(255,255,255,0.76) !important; }
+        .pm-dark .pm-header .pm-header-title { color: #fff !important; }
+        .pm-dark .pm-header .pm-header-muted { color: rgba(255,255,255,0.38) !important; }
         .pm-light [class*="bg-white/"] { background-color: rgba(15, 23, 42, 0.045) !important; }
         .pm-light [class*="border-white/"] { border-color: rgba(15, 23, 42, 0.10) !important; }
         .pm-light input { color: #0f172a !important; background-color: rgba(255,255,255,0.82) !important; border-color: rgba(15,23,42,0.12) !important; }
@@ -340,7 +344,7 @@ export default function MesLeadsPage() {
 
       {/* Header */}
       <div
-        className="sticky top-0 z-50 px-6 py-4 flex items-center justify-between"
+        className="pm-header sticky top-0 z-50 px-6 py-4 flex items-center justify-between"
         style={{ background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
         <div className="flex items-center gap-3">
@@ -351,8 +355,8 @@ export default function MesLeadsPage() {
               </div>
           }
           <div>
-            <p className="text-sm font-bold text-white">{agency.agency_name}</p>
-            <p className="text-[10px] text-white/25 uppercase tracking-widest font-bold">{dict.badge}</p>
+            <p className="pm-header-title text-sm font-bold text-white">{agency.agency_name}</p>
+            <p className="pm-header-muted text-[10px] text-white/25 uppercase tracking-widest font-bold">{dict.badge}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">

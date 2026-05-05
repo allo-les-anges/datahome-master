@@ -1091,6 +1091,10 @@ export default function MonEspacePage() {
       <style jsx global>{`
         .pm-light [class*="text-white"] { color: #0f172a !important; }
         .pm-light [class*="text-white/"] { color: rgba(15, 23, 42, 0.62) !important; }
+        .pm-light .pm-header [class*="text-white"] { color: #0f172a !important; }
+        .pm-dark .pm-header [class*="text-white"] { color: rgba(255,255,255,0.76) !important; }
+        .pm-dark .pm-header .pm-header-title { color: #fff !important; }
+        .pm-dark .pm-header .pm-header-muted { color: rgba(255,255,255,0.38) !important; }
         .pm-light [class*="bg-white/"] { background-color: rgba(15, 23, 42, 0.045) !important; }
         .pm-light [class*="border-white/"] { border-color: rgba(15, 23, 42, 0.10) !important; }
         .pm-light input, .pm-light textarea, .pm-light select {
@@ -1103,7 +1107,7 @@ export default function MonEspacePage() {
 
       {/* Header */}
       <div
-        className="sticky top-0 z-50 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+        className="pm-header sticky top-0 z-50 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
         style={{ background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
         <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
@@ -1124,8 +1128,8 @@ export default function MonEspacePage() {
             : <div className="w-9 h-9 rounded-xl flex items-center justify-center text-black font-bold" style={{ backgroundColor: brandColor }}>{agency.agency_name?.charAt(0)}</div>
           }
           <div className="min-w-0">
-            <p className="text-sm font-bold text-white truncate">{agency.agency_name}</p>
-            <p className="text-[10px] text-white/25 uppercase tracking-widest font-bold">{dict.badge}</p>
+            <p className="pm-header-title text-sm font-bold text-white truncate">{agency.agency_name}</p>
+            <p className="pm-header-muted text-[10px] text-white/25 uppercase tracking-widest font-bold">{dict.badge}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
