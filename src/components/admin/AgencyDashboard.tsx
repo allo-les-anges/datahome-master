@@ -1830,15 +1830,18 @@ export default function AgencyDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="md:col-span-2 space-y-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4">
                       <label className={lbl}>{t.fields.footer_description}</label>
                       <textarea
-                        rows={4}
-                        className={`${inp} resize-none`}
+                        rows={3}
+                        className={`${inp} min-h-[96px] resize-none border-white/15 bg-black/20`}
                         placeholder={t.placeholders.footer_description}
                         value={selectedAgency.footer_config?.description || ''}
                         onChange={(e) => updateRootConfig('description', e.target.value)}
                       />
+                      <p className="text-[10px] text-white/30">
+                        Ce texte apparaitra directement sous le logo dans le footer du site.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <label className={lbl}>{t.fields.subdomain}</label>

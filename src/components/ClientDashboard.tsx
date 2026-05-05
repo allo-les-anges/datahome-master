@@ -605,15 +605,18 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="md:col-span-2 space-y-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4">
                   <label className={lbl}>{ui.footerDescription}</label>
                   <textarea
-                    rows={4}
-                    className={`${inp} resize-none`}
+                    rows={3}
+                    className={`${inp} min-h-[96px] resize-none border-white/15 bg-black/20`}
                     placeholder={ui.footerDescriptionPlaceholder}
                     value={form.footer_config?.description || ""}
                     onChange={(e) => updateRoot("description", e.target.value)}
                   />
+                  <p className="text-[10px] text-white/30">
+                    {locale === "fr" ? "Ce texte apparaitra directement sous le logo dans le footer du site." : "This text appears directly below the logo in the website footer."}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <label className={lbl}>{ui.font}</label>
