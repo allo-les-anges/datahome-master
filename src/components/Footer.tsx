@@ -36,6 +36,7 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
     : (agency?.footer_config || {});
 
   const brandColor = agency?.primary_color || '#10b981';
+  const footerDescription = footerData?.description || t('footer.description');
 
   // Logique SaaS : Nom légal vs Nom commercial
   const legalName = agency?.legal_name || agency?.agency_name || "Datahome";
@@ -65,7 +66,7 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
             )}
             <div className="w-12 h-0.5" style={{ backgroundColor: brandColor }}></div>
             <p className={`${mutedText} text-[10px] leading-relaxed uppercase tracking-widest max-w-[200px]`}>
-              {t('footer.description')}
+              {footerDescription}
             </p>
           </div>
 

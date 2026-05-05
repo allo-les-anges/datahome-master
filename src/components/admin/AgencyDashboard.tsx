@@ -65,6 +65,7 @@ const translations = {
       hero_file: "Fichier Media (Image/Video)",
       email: "Email de contact",
       phone: "Telephone Fixe",
+      footer_description: "Texte sous le logo du footer",
       whatsapp: "Numero WhatsApp (GSM)",
       about_title: "Titre Page A Propos",
       about_text: "Contenu Page A Propos",
@@ -81,6 +82,7 @@ const translations = {
       about_text: "Decrivez votre agence...",
       click_upload: "Cliquer pour uploader",
       media_upload: "Charger le media",
+      footer_description: "Texte court presente sous le logo...",
       button: "Bouton",
       whatsapp: "Ex: 33600000000 (sans +)",
       member_name: "Jean Dupont",
@@ -138,6 +140,7 @@ const translations = {
       hero_file: "Hero Media (Image/Video)",
       email: "Contact Email",
       phone: "Landline Phone",
+      footer_description: "Footer logo description",
       whatsapp: "WhatsApp Number (Mobile)",
       about_title: "About Page Title",
       about_text: "About Page Content",
@@ -154,6 +157,7 @@ const translations = {
       about_text: "Describe your agency...",
       click_upload: "Click to upload",
       media_upload: "Upload media",
+      footer_description: "Short text displayed under the footer logo...",
       button: "Button",
       whatsapp: "Ex: 44600000000 (no +)",
       member_name: "John Doe",
@@ -211,6 +215,7 @@ const translations = {
       hero_file: "Archivo multimedia (Imagen/Video)",
       email: "Correo de contacto",
       phone: "Telefono fijo",
+      footer_description: "Texto bajo el logo del footer",
       whatsapp: "Numero WhatsApp (Movil)",
       about_title: "Titulo de la pagina Sobre Nosotros",
       about_text: "Texto de la pagina Sobre Nosotros",
@@ -227,6 +232,7 @@ const translations = {
       about_text: "Describa su agencia...",
       click_upload: "Clic para subir",
       media_upload: "Cargar medio",
+      footer_description: "Texto corto mostrado bajo el logo...",
       button: "Boton",
       whatsapp: "Ej: 34600000000 (sin +)",
       member_name: "Juan Perez",
@@ -284,6 +290,7 @@ const translations = {
       hero_file: "Mediabestand (Afbeelding/Video)",
       email: "Contact e-mail",
       phone: "Vaste lijn",
+      footer_description: "Tekst onder het footerlogo",
       whatsapp: "WhatsApp-nummer (Mobiel)",
       about_title: "Titel over ons pagina",
       about_text: "Tekst over ons pagina",
@@ -300,6 +307,7 @@ const translations = {
       about_text: "Beschrijf uw agentschap...",
       click_upload: "Klik om te uploaden",
       media_upload: "Media uploaden",
+      footer_description: "Korte tekst onder het logo...",
       button: "Knop",
       whatsapp: "Bijv: 31600000000 (zonder +)",
       member_name: "Jan Jansen",
@@ -2285,6 +2293,16 @@ export default function AgencyDashboard() {
                     <div className="md:col-span-2 pt-3 border-t border-white/[0.05] grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder={t.fields.email} className={`${inp} pl-11`} value={selectedAgency.footer_config?.email || ''} onChange={(e) => updateRootConfig('email', e.target.value)} /></div>
                       <div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder={t.fields.phone} className={`${inp} pl-11`} value={selectedAgency.footer_config?.phone || ''} onChange={(e) => updateRootConfig('phone', e.target.value)} /></div>
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <label className={lbl}>{t.fields.footer_description}</label>
+                      <textarea
+                        rows={3}
+                        className={`${inp} resize-none`}
+                        placeholder={t.placeholders.footer_description}
+                        value={selectedAgency.footer_config?.description || ''}
+                        onChange={(e) => updateRootConfig('description', e.target.value)}
+                      />
                     </div>
                   </div>
                 </motion.div>

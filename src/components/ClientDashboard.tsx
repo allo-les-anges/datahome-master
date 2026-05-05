@@ -91,6 +91,8 @@ const dashboardText: Record<string, Record<string, string>> = {
     heroTitle: "Titre d'accroche",
     heroPlaceholder: "Decouvrez nos biens d'exception...",
     contactSocials: "Reseaux sociaux & contact",
+    footerDescription: "Texte sous le logo du footer",
+    footerDescriptionPlaceholder: "Texte court presente sous le logo...",
     phone: "Telephone",
     customDomain: "Domaine personnalise",
     domainName: "Nom de domaine",
@@ -174,6 +176,8 @@ const dashboardText: Record<string, Record<string, string>> = {
     heroTitle: "Hero title",
     heroPlaceholder: "Discover our exceptional properties...",
     contactSocials: "Social networks & contact",
+    footerDescription: "Footer logo description",
+    footerDescriptionPlaceholder: "Short text displayed under the footer logo...",
     phone: "Phone",
     customDomain: "Custom domain",
     domainName: "Domain name",
@@ -845,6 +849,16 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                 <div className="md:col-span-2 pt-3 border-t border-white/[0.05] grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder="Email de contact" className={`${inp} pl-11`} value={form.footer_config?.email || ""} onChange={(e) => updateRoot("email", e.target.value)} /></div>
                   <div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder={ui.phone} className={`${inp} pl-11`} value={form.footer_config?.phone || ""} onChange={(e) => updateRoot("phone", e.target.value)} /></div>
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <label className={lbl}>{ui.footerDescription}</label>
+                  <textarea
+                    rows={3}
+                    className={`${inp} resize-none`}
+                    placeholder={ui.footerDescriptionPlaceholder}
+                    value={form.footer_config?.description || ""}
+                    onChange={(e) => updateRoot("description", e.target.value)}
+                  />
                 </div>
               </div>
             </div>
