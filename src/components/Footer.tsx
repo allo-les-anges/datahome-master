@@ -42,20 +42,20 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
 
   return (
     <footer 
-      className={`${bgColor} py-16 transition-colors duration-500`}
+      className={`${bgColor} py-8 md:py-10 transition-colors duration-500`}
       style={{ '--brand-primary': brandColor } as React.CSSProperties}
     >
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-6">
           
           {/* Identité & Copyrighting */}
-          <div className="col-span-1 md:col-span-1 space-y-6">
+          <div className="col-span-1 md:col-span-1 space-y-4">
             {agency?.logo_url ? (
               <Link href={`/${locale}/${slug}`} className="inline-flex items-center">
                 <img
                   src={agency.logo_url}
                   alt={agency?.agency_name || "Agency logo"}
-                  className="max-h-20 max-w-[180px] object-contain"
+                  className="max-h-14 max-w-[150px] object-contain"
                 />
               </Link>
             ) : (
@@ -70,9 +70,9 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
           </div>
 
           {/* Navigation */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Navigation</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+            <ul className={`space-y-3 text-[10px] uppercase tracking-widest ${mutedText}`}>
               <li>
                 <Link href={`/${locale}/${slug}`} className="hover:text-primary transition-colors">
                   {t('nav.home')}
@@ -92,9 +92,9 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
           </div>
 
           {/* Légal & Privacy */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Légal</h4>
-            <ul className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
+            <ul className={`space-y-3 text-[10px] uppercase tracking-widest ${mutedText}`}>
               <li>
                 <Link href={`/${locale}/${slug}/privacy`} className="hover:text-primary transition-colors flex items-center gap-2">
                   <ShieldCheck size={12} className="shrink-0" />
@@ -117,14 +117,16 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
           </div>
 
           {/* Contact & Réseaux */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h4 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColor}`}>Contact</h4>
-            <div className={`space-y-4 text-[10px] uppercase tracking-widest ${mutedText}`}>
-              <div className="flex items-start gap-3">
-                <MapPin size={14} className="shrink-0" style={{ color: brandColor }} />
-                <span className="leading-tight">{footerData?.address || agency?.address}</span>
-              </div>
-              <div className="flex gap-4 pt-2">
+            <div className={`space-y-3 text-[10px] uppercase tracking-widest ${mutedText}`}>
+              {(footerData?.address || agency?.address) && (
+                <div className="flex items-start gap-3">
+                  <MapPin size={14} className="shrink-0" style={{ color: brandColor }} />
+                  <span className="leading-tight">{footerData?.address || agency?.address}</span>
+                </div>
+              )}
+              <div className="flex gap-4">
                 {(footerData?.socials?.facebook || agency?.facebook_url) && (
                    <a href={footerData?.socials?.facebook || agency?.facebook_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">
                      <Facebook size={18} />
@@ -146,7 +148,7 @@ export default function Footer({ isLight = true, agency }: FooterProps) {
         </div>
 
         {/* Footer Bottom : Copyright & Attribution Datahome */}
-        <div className={`mt-16 pt-8 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-4`}>
+        <div className={`mt-8 pt-5 border-t ${isLight ? 'border-slate-200' : 'border-white/5'} flex flex-col md:flex-row justify-between items-center gap-3`}>
           <p className={`${mutedText} text-[8px] uppercase tracking-[0.4em]`}>
             © {new Date().getFullYear()} {legalName} — {t('footer.eliteEdition')}
           </p>
