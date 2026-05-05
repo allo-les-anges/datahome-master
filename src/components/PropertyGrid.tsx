@@ -45,7 +45,8 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
   const statsPaddingClass = isCompact ? "p-5 pt-5" : "p-8 pt-6";
   const titleClass = isEditorial ? "text-xl italic" : isCompact ? "text-base" : "text-lg";
   const priceClass = isCompact ? "text-xl" : isEditorial ? "text-3xl" : "text-2xl";
-  const bodyHeightClass = isCompact ? "h-[168px]" : isEditorial ? "h-[188px]" : "h-[198px]";
+  const bodyHeightClass = isCompact ? "h-[184px]" : isEditorial ? "h-[204px]" : "h-[218px]";
+  const titleHeightClass = isCompact ? "min-h-[2.75rem]" : "min-h-[3.4rem]";
   const statsHeightClass = isCompact ? "h-[154px]" : "h-[182px]";
 
   return (
@@ -88,7 +89,7 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
           </div>
         </div>
         <h3 
-          className={`${titleClass} leading-tight line-clamp-2 font-normal ${showDark ? 'text-white/90' : 'text-slate-800'}`}
+          className={`${titleClass} ${titleHeightClass} overflow-hidden leading-[1.35] line-clamp-2 font-normal ${showDark ? 'text-white/90' : 'text-slate-800'}`}
           style={{ 
             fontFamily: `${fontFamily}, 'Playfair Display', serif`,
             fontWeight: 400
