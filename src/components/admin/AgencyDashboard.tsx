@@ -1831,6 +1831,16 @@ export default function AgencyDashboard() {
                       </div>
                     </div>
                     <div className="space-y-2">
+                      <label className={lbl}>{t.fields.footer_description}</label>
+                      <textarea
+                        rows={4}
+                        className={`${inp} resize-none`}
+                        placeholder={t.placeholders.footer_description}
+                        value={selectedAgency.footer_config?.description || ''}
+                        onChange={(e) => updateRootConfig('description', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <label className={lbl}>{t.fields.subdomain}</label>
                       <div className="relative">
                         <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
@@ -2293,16 +2303,6 @@ export default function AgencyDashboard() {
                     <div className="md:col-span-2 pt-3 border-t border-white/[0.05] grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder={t.fields.email} className={`${inp} pl-11`} value={selectedAgency.footer_config?.email || ''} onChange={(e) => updateRootConfig('email', e.target.value)} /></div>
                       <div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder={t.fields.phone} className={`${inp} pl-11`} value={selectedAgency.footer_config?.phone || ''} onChange={(e) => updateRootConfig('phone', e.target.value)} /></div>
-                    </div>
-                    <div className="md:col-span-2 space-y-2">
-                      <label className={lbl}>{t.fields.footer_description}</label>
-                      <textarea
-                        rows={3}
-                        className={`${inp} resize-none`}
-                        placeholder={t.placeholders.footer_description}
-                        value={selectedAgency.footer_config?.description || ''}
-                        onChange={(e) => updateRootConfig('description', e.target.value)}
-                      />
                     </div>
                   </div>
                 </motion.div>

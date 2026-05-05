@@ -606,6 +606,16 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <label className={lbl}>{ui.footerDescription}</label>
+                  <textarea
+                    rows={4}
+                    className={`${inp} resize-none`}
+                    placeholder={ui.footerDescriptionPlaceholder}
+                    value={form.footer_config?.description || ""}
+                    onChange={(e) => updateRoot("description", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
                   <label className={lbl}>{ui.font}</label>
                   <select
                     value={form.font_family || "Montserrat"}
@@ -849,16 +859,6 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
                 <div className="md:col-span-2 pt-3 border-t border-white/[0.05] grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder="Email de contact" className={`${inp} pl-11`} value={form.footer_config?.email || ""} onChange={(e) => updateRoot("email", e.target.value)} /></div>
                   <div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25" size={15} /><input placeholder={ui.phone} className={`${inp} pl-11`} value={form.footer_config?.phone || ""} onChange={(e) => updateRoot("phone", e.target.value)} /></div>
-                </div>
-                <div className="md:col-span-2 space-y-2">
-                  <label className={lbl}>{ui.footerDescription}</label>
-                  <textarea
-                    rows={3}
-                    className={`${inp} resize-none`}
-                    placeholder={ui.footerDescriptionPlaceholder}
-                    value={form.footer_config?.description || ""}
-                    onChange={(e) => updateRoot("description", e.target.value)}
-                  />
                 </div>
               </div>
             </div>
