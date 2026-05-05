@@ -519,6 +519,7 @@ export default function MonEspacePage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showModules, setShowModules] = useState(false);
+  const [homePanel, setHomePanel] = useState<"properties" | "leads" | "modules" | "website" | "settings" | "stats">("properties");
   const [moduleRequestLoading, setModuleRequestLoading] = useState<string | null>(null);
   const [moduleRequestMsg, setModuleRequestMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [layoutSaving, setLayoutSaving] = useState(false);
@@ -1196,172 +1197,163 @@ export default function MonEspacePage() {
               </h2>
             </motion.div>
 
-            {/* Module Bento Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-              {/* -- Proprietes -- */}
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                onClick={() => { loadProperties(); setView("list"); }}
-                className="pm-dashboard-tile group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                style={makeVisualTileStyle(firstPropertyImage || heroPreviewImage, brandColor, 0.5)}
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5">
+              <motion.nav
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="rounded-3xl p-3"
+                style={glassCard}
               >
-                <div className="pm-tile-bottom-fade absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent opacity-70" />
-                <div className="relative flex items-start justify-between mb-12">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 backdrop-blur-md" style={{ backgroundColor: `${brandColor}25` }}>
-                    <Building2 size={22} style={{ color: brandColor }} />
-                  </div>
-                  <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
-                </div>
-                <div className="relative">
-                  <p className="text-xl font-black text-white mb-1">{upsellDict?.propertiesTitle || "Mes Proprietes"}</p>
-                  <p className="text-sm text-white/55 mb-4">{upsellDict?.propertiesSubtitle || "Gerez votre catalogue"}</p>
-                </div>
-                <div className="pm-tile-pill relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 backdrop-blur-md">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-                  <span className="text-xs font-bold text-white/70">
-                    {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
-                  </span>
-                </div>
-              </motion.button>
+                {[
+                  { id: "properties", title: upsellDict?.propertiesTitle || "Mes Proprietes", subtitle: `${properties.length} ${properties.length <= 1 ?dict.published : dict.publishedPlural}`, icon: Building2, color: brandColor, visible: true },
+                  { id: "leads", title: leadsCrmDict?.title || "Mini CRM Leads", subtitle: integrations.leads_enabled === true ? "Module actif" : "Module inactif", icon: TrendingUp, color: "#22c55e", visible: integrations.leads_enabled === true },
+                  { id: "modules", title: "Modules disponibles", subtitle: "Options premium", icon: Zap, color: "#B859C5", visible: true },
+                  { id: "website", title: upsellDict?.siteTitle || "Mon Site Vitrine", subtitle: agency?.footer_config?.subscription?.website_active === true ? "Site actif" : "Non publie", icon: Globe, color: "#38BDF8", visible: agency?.footer_config?.subscription?.website_active === true },
+                  { id: "settings", title: settingsTile.title, subtitle: settingsTile.subtitle, icon: Settings, color: "#94A3B8", visible: true },
+                  { id: "stats", title: upsellDict?.statsTitle || "Statistiques", subtitle: upsellDict?.statsBadge || "Bientot", icon: BarChart3, color: "#f59e0b", visible: true },
+                ].filter(item => item.visible).map((item) => {
+                  const Icon = item.icon;
+                  const active = homePanel === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setHomePanel(item.id as any)}
+                      className={`w-full flex items-center gap-3 rounded-2xl p-4 text-left transition-all ${active ? "bg-white/10" : "hover:bg-white/[0.05]"}`}
+                      style={active ? { boxShadow: `inset 3px 0 0 ${item.color}` } : undefined}
+                    >
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10" style={{ backgroundColor: `${item.color}20`, color: item.color }}>
+                        <Icon size={19} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-black text-white">{item.title}</span>
+                        <span className="mt-0.5 block truncate text-[10px] font-bold uppercase tracking-widest text-white/35">{item.subtitle}</span>
+                      </span>
+                      <ChevronRight size={16} className={`shrink-0 transition-all ${active ? "text-white/70" : "text-white/20"}`} />
+                    </button>
+                  );
+                })}
+              </motion.nav>
 
-              {/* Direct leads access */}
-              {integrations.leads_enabled === true && (
-                <motion.a
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  href={`/${locale}/${slug}/mes-leads`}
-                  className="pm-dashboard-tile group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                  style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
-                >
-                  <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(circle at 20% 15%, ${brandColor}33, transparent 32%)` }} />
-                  <div className="relative">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
-                        <TrendingUp size={22} style={{ color: brandColor }} />
+              <motion.section
+                key={homePanel}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="pm-dashboard-tile relative min-h-[420px] overflow-hidden rounded-3xl p-6 sm:p-8"
+                style={homePanel === "properties"
+                  ? makeVisualTileStyle(firstPropertyImage || heroPreviewImage, brandColor, 0.5)
+                  : homePanel === "website"
+                    ? makeVisualTileStyle(heroPreviewImage || firstPropertyImage, "#38BDF8", 0.55)
+                    : homePanel === "settings"
+                      ? makeVisualTileStyle(agency.logo_url, "#94A3B8", 0.72)
+                      : { ...glassCard, boxShadow: isDark ? "0 4px 24px rgba(0,0,0,0.3)" : "0 18px 45px rgba(15,23,42,0.08)" }
+                }
+              >
+                <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(circle at 85% 15%, ${brandColor}22, transparent 34%)` }} />
+                <div className="relative flex h-full min-h-[360px] flex-col justify-between">
+                  {homePanel === "properties" && (
+                    <>
+                      <div>
+                        <div className="mb-8 flex items-center justify-between">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 backdrop-blur-md" style={{ backgroundColor: `${brandColor}25` }}>
+                            <Building2 size={24} style={{ color: brandColor }} />
+                          </div>
+                          <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs font-bold text-white/70 backdrop-blur-md">
+                            {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
+                          </span>
+                        </div>
+                        <p className="text-3xl font-black text-white">{upsellDict?.propertiesTitle || "Mes Proprietes"}</p>
+                        <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">{upsellDict?.propertiesSubtitle || "Gerez votre catalogue, ajoutez des biens et gardez vos annonces a jour."}</p>
                       </div>
-                      <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
-                    </div>
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: brandColor }}>
-                      {dict?.badge || "Property Manager"}
-                    </span>
-                    <p className="text-lg font-bold text-white mb-1">{leadsCrmDict?.title || "Mini CRM Leads"}</p>
-                    <p className="text-sm text-white/30 mb-4">{leadsCrmDict?.noLeadsHint || "Les leads apparaissent ici des qu'un visiteur remplit le formulaire chatbot."}</p>
-                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                      {upsellDict?.viewModule || "Acceder"}
-                    </span>
-                  </div>
-                </motion.a>
-              )}
+                      <button type="button" onClick={() => { loadProperties(); setView("list"); }} className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black text-black transition-all hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                        <Building2 size={16} /> {upsellDict?.viewModule || "Acceder"}
+                      </button>
+                    </>
+                  )}
 
-              {/* -- Mini CRM -- */}
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: integrations.leads_enabled === true ?0.15 : 0.1 }}
-                onClick={() => setShowModules(true)}
-                className="pm-dashboard-tile group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                style={makeVisualTileStyle("", "#B859C5", 0.7)}
-              >
-                <div className="absolute inset-0 opacity-70" style={{ background: `linear-gradient(135deg, rgba(184,89,197,0.18), transparent 45%), radial-gradient(circle at 85% 20%, rgba(255,255,255,0.16), transparent 25%)` }} />
-                <div className="absolute -right-8 bottom-6 h-28 w-28 rounded-[2rem] border border-white/10 bg-white/[0.04] rotate-12 blur-[0.2px]" />
-                <div className="absolute right-12 bottom-12 h-16 w-16 rounded-2xl border border-white/10 bg-white/[0.05] -rotate-6" />
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-fuchsia-500/15 backdrop-blur-md">
-                      <Zap size={22} className="text-fuchsia-300" />
-                    </div>
-                    <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] mb-2 text-fuchsia-300">
-                    <Lock size={12} /> Catalogue premium
-                  </span>
-                  <p className="text-lg font-bold text-white mb-1">Modules disponibles</p>
-                  <p className="text-sm text-white/30 mb-4">Chatbot, langues, SEO, video hero et integrations.</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/5 text-white/45">Chatbot 39 EUR</span>
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/5 text-white/45">Mini CRM gratuit</span>
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/5 text-white/45">Langue +2 EUR</span>
-                  </div>
+                  {homePanel === "leads" && (
+                    <>
+                      <div>
+                        <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ backgroundColor: `${brandColor}20` }}>
+                          <TrendingUp size={24} style={{ color: brandColor }} />
+                        </div>
+                        <p className="text-3xl font-black text-white">{leadsCrmDict?.title || "Mini CRM Leads"}</p>
+                        <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">{leadsCrmDict?.noLeadsHint || "Les leads apparaissent ici des qu'un visiteur remplit le formulaire chatbot."}</p>
+                      </div>
+                      <a href={`/${locale}/${slug}/mes-leads`} className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black text-black transition-all hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                        <TrendingUp size={16} /> {upsellDict?.viewModule || "Acceder"}
+                      </a>
+                    </>
+                  )}
+
+                  {homePanel === "modules" && (
+                    <>
+                      <div>
+                        <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-fuchsia-500/15">
+                          <Zap size={24} className="text-fuchsia-300" />
+                        </div>
+                        <p className="text-3xl font-black text-white">Modules disponibles</p>
+                        <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">Chatbot, langues, SEO, video hero et integrations.</p>
+                        <div className="mt-6 flex flex-wrap gap-2">
+                          <span className="px-3 py-1.5 rounded-full text-[10px] font-bold bg-white/5 text-white/50">Chatbot 39 EUR</span>
+                          <span className="px-3 py-1.5 rounded-full text-[10px] font-bold bg-white/5 text-white/50">Mini CRM gratuit</span>
+                          <span className="px-3 py-1.5 rounded-full text-[10px] font-bold bg-white/5 text-white/50">Langue +2 EUR</span>
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => setShowModules(true)} className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black text-black transition-all hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                        <Zap size={16} /> Voir les modules
+                      </button>
+                    </>
+                  )}
+
+                  {homePanel === "website" && (
+                    <>
+                      <div>
+                        <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-sky-900/30">
+                          <Globe size={24} className="text-sky-400" />
+                        </div>
+                        <p className="text-3xl font-black text-white">{upsellDict?.siteTitle || "Mon Site Vitrine"}</p>
+                        <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
+                      </div>
+                      <a href={`/${locale}/${slug}`} target="_blank" rel="noopener noreferrer" className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black text-black transition-all hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                        <Globe size={16} /> Ouvrir le site
+                      </a>
+                    </>
+                  )}
+
+                  {homePanel === "settings" && (
+                    <>
+                      <div>
+                        <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-800/60">
+                          <Settings size={24} className="text-slate-300" />
+                        </div>
+                        <p className="text-3xl font-black text-white">{settingsTile.title}</p>
+                        <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">{settingsTile.subtitle}</p>
+                      </div>
+                      <button type="button" onClick={() => setView("settings")} className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black text-black transition-all hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                        <Settings size={16} /> Ouvrir les parametres
+                      </button>
+                    </>
+                  )}
+
+                  {homePanel === "stats" && (
+                    <>
+                      <div>
+                        <div className="mb-8 flex items-center justify-between">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-900/20">
+                            <BarChart3 size={24} className="text-amber-400" />
+                          </div>
+                          <span className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest" style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>
+                            {upsellDict?.statsBadge || "Bientot"}
+                          </span>
+                        </div>
+                        <p className="text-3xl font-black text-white">{upsellDict?.statsTitle || "Statistiques"}</p>
+                        <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">{upsellDict?.statsSubtitle || "Vues, clics, performances"}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </motion.button>
-
-
-              {/* -- Site Vitrine - masque tant que le site n'est pas active -- */}
-              {agency?.footer_config?.subscription?.website_active === true && (
-                <motion.a
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  href={`/${locale}/${slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pm-dashboard-tile group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                  style={makeVisualTileStyle(heroPreviewImage || firstPropertyImage, "#38BDF8", 0.55)}
-                >
-                  <div className="pm-tile-bottom-fade absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="relative flex items-start justify-between mb-12">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-sky-900/30 backdrop-blur-md">
-                      <Globe size={22} className="text-sky-400" />
-                    </div>
-                    <ChevronRight size={18} className="text-white/20 group-hover:text-sky-400 group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <p className="relative text-xl font-black text-white mb-1">{upsellDict?.siteTitle || "Mon Site Vitrine"}</p>
-                  <p className="relative text-sm text-white/55">{upsellDict?.siteSubtitle || "Voir votre site public"}</p>
-                </motion.a>
-              )}
-
-              {/* -- Parametres -- */}
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                onClick={() => setView("settings")}
-                className="pm-dashboard-tile group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                style={makeVisualTileStyle(agency.logo_url, "#94A3B8", 0.72)}
-              >
-                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
-                <div className="relative flex items-start justify-between mb-10">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-slate-800/60 backdrop-blur-md">
-                    <Settings size={22} className="text-slate-400" />
-                  </div>
-                  <ChevronRight size={18} className="text-white/20 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
-                </div>
-                <p className="relative text-xl font-black text-white mb-1">{settingsTile.title}</p>
-                <p className="relative text-sm text-white/50">{settingsTile.subtitle}</p>
-              </motion.button>
-
-              {/* -- Statistiques -- */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-                className="pm-dashboard-tile relative rounded-3xl p-7 overflow-hidden"
-                style={{
-                  ...glassCard,
-                  boxShadow: isDark ? "0 4px 24px rgba(0,0,0,0.3)" : "0 18px 45px rgba(15,23,42,0.08)",
-                  opacity: isDark ? 0.6 : 1,
-                }}
-              >
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-900/20">
-                    <BarChart3 size={22} className="text-amber-400" />
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
-                    style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>
-                    {upsellDict?.statsBadge || "Bientot"}
-                  </span>
-                </div>
-                <p className="text-lg font-bold text-white mb-1">{upsellDict?.statsTitle || "Statistiques"}</p>
-                <p className="text-sm text-white/30">{upsellDict?.statsSubtitle || "Vues, clics, performances"}</p>
-              </motion.div>
-
+              </motion.section>
             </div>
           </>
         ) : view === "list" ?(
