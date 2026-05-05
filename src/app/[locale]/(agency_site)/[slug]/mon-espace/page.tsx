@@ -11,7 +11,7 @@ import {
   BedDouble, Bath, Maximize2, MapPin, Image as ImageIcon,
   ArrowLeft, Building2, Euro, Waves, LayoutGrid, AlignLeft,
   Camera, Info, ChevronDown, TrendingUp, Globe, BarChart3,
-  Lock, Zap, Clock, ChevronRight, Star, Settings,
+  Lock, Zap, Clock, ChevronRight, Star, Settings, Sun, Moon,
   Bot, Languages, Search, Video,
 } from "lucide-react";
 import ClientDashboard from "@/components/ClientDashboard";
@@ -521,6 +521,7 @@ export default function MonEspacePage() {
   const [moduleRequestMsg, setModuleRequestMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [layoutSaving, setLayoutSaving] = useState(false);
   const [layoutMsg, setLayoutMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [isDark, setIsDark] = useState(true);
 
   const [showChangePw, setShowChangePw] = useState(false);
   const [cpCurrent, setCpCurrent] = useState("");
@@ -531,6 +532,19 @@ export default function MonEspacePage() {
 
   const brandColor = agency?.primary_color || "#D4AF37";
   const fontFamily = agency?.font_family || "Montserrat";
+
+  useEffect(() => {
+    const stored = localStorage.getItem("pm_theme");
+    if (stored) setIsDark(stored !== "light");
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark((current) => {
+      const next = !current;
+      localStorage.setItem("pm_theme", next ? "dark" : "light");
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -1073,7 +1087,19 @@ export default function MonEspacePage() {
 
   // -- Dashboard --
   return (
-    <div className="min-h-screen bg-[#0d0d0d]" dir={isRtl ?"rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+    <div className={`min-h-screen ${isDark ? "pm-dark bg-[#0d0d0d]" : "pm-light bg-slate-100"}`} dir={isRtl ?"rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+      <style jsx global>{`
+        .pm-light [class*="text-white"] { color: #0f172a !important; }
+        .pm-light [class*="text-white/"] { color: rgba(15, 23, 42, 0.62) !important; }
+        .pm-light [class*="bg-white/"] { background-color: rgba(15, 23, 42, 0.045) !important; }
+        .pm-light [class*="border-white/"] { border-color: rgba(15, 23, 42, 0.10) !important; }
+        .pm-light input, .pm-light textarea, .pm-light select {
+          color: #0f172a !important;
+          background-color: rgba(255,255,255,0.82) !important;
+          border-color: rgba(15,23,42,0.12) !important;
+        }
+        .pm-light input::placeholder, .pm-light textarea::placeholder { color: rgba(15,23,42,0.35) !important; }
+      `}</style>
 
       {/* Header */}
       <div
@@ -1106,6 +1132,12 @@ export default function MonEspacePage() {
           <button type="button" onClick={() => setShowChangePw(true)}
             className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-white/5 transition-all">
             <Key size={13} /> <span className="truncate">{dict.changePwBtn}</span>
+          </button>
+          <button type="button" onClick={toggleTheme}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-white/5 transition-all"
+            title={isDark ? "Mode jour" : "Mode nuit"}>
+            {isDark ? <Sun size={13} /> : <Moon size={13} />}
+            <span className="truncate">{isDark ? "Jour" : "Nuit"}</span>
           </button>
           <button type="button" onClick={handleLogout}
             className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-red-900/20 hover:border-red-900/40 hover:text-red-400 transition-all">

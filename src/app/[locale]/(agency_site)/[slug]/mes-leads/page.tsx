@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import {
   TrendingUp, LogOut, Key, Loader2, Eye, EyeOff,
   AlertCircle, CheckCircle2, Save, X, RefreshCw,
-  Mail, Phone, MapPin, Clock, User,
+  Mail, Phone, MapPin, Clock, User, Sun, Moon,
 } from "lucide-react";
 
 import fr from "@/dictionaries/fr.json";
@@ -99,9 +99,23 @@ export default function MesLeadsPage() {
   const [cpConfirm, setCpConfirm] = useState("");
   const [cpLoading, setCpLoading] = useState(false);
   const [cpMsg, setCpMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [isDark, setIsDark] = useState(true);
 
   const brandColor = agency?.primary_color || "#ea580c";
   const fontFamily = agency?.font_family || "Montserrat";
+
+  useEffect(() => {
+    const stored = localStorage.getItem("pm_theme");
+    if (stored) setIsDark(stored !== "light");
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark((current) => {
+      const next = !current;
+      localStorage.setItem("pm_theme", next ? "dark" : "light");
+      return next;
+    });
+  };
 
   const dateLocale =
     locale === "ar" ? "ar-MA" :
@@ -314,7 +328,15 @@ export default function MesLeadsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+    <div className={`min-h-screen ${isDark ? "pm-dark bg-[#0d0d0d]" : "pm-light bg-slate-100"}`} dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: `${fontFamily}, sans-serif` }}>
+      <style jsx global>{`
+        .pm-light [class*="text-white"] { color: #0f172a !important; }
+        .pm-light [class*="text-white/"] { color: rgba(15, 23, 42, 0.62) !important; }
+        .pm-light [class*="bg-white/"] { background-color: rgba(15, 23, 42, 0.045) !important; }
+        .pm-light [class*="border-white/"] { border-color: rgba(15, 23, 42, 0.10) !important; }
+        .pm-light input { color: #0f172a !important; background-color: rgba(255,255,255,0.82) !important; border-color: rgba(15,23,42,0.12) !important; }
+        .pm-light input::placeholder { color: rgba(15,23,42,0.35) !important; }
+      `}</style>
 
       {/* Header */}
       <div
@@ -337,6 +359,11 @@ export default function MesLeadsPage() {
           <button type="button" onClick={() => setShowChangePw(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-white/5 transition-all">
             <Key size={13} /> {dict.changePwBtn}
+          </button>
+          <button type="button" onClick={toggleTheme}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-white/5 transition-all"
+            title={isDark ? "Mode jour" : "Mode nuit"}>
+            {isDark ? <Sun size={13} /> : <Moon size={13} />} {isDark ? "Jour" : "Nuit"}
           </button>
           <button type="button" onClick={handleLogout}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white/50 hover:bg-red-900/20 hover:border-red-900/40 hover:text-red-400 transition-all">

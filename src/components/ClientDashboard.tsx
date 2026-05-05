@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle,
   Palette, Layout, Share2, Users, Type, ShieldCheck,
@@ -275,6 +275,19 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [isDark, setIsDark] = useState(true);
 
+  useEffect(() => {
+    const stored = localStorage.getItem("pm_theme");
+    if (stored) setIsDark(stored !== "light");
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark((current) => {
+      const next = !current;
+      localStorage.setItem("pm_theme", next ? "dark" : "light");
+      return next;
+    });
+  };
+
   const brandColor = form.primary_color || "#D4AF37";
   const fontFamily = form.font_family || "Montserrat";
   const ui = dashboardText[locale] || dashboardText.en;
@@ -522,7 +535,7 @@ export default function ClientDashboard({ agency, slug, agencyId, pmToken = "", 
           <img src="/logo-data-home.jpeg" alt="DataHome" className="h-9 w-9 rounded-xl object-cover" />
           <button
             type="button"
-            onClick={() => setIsDark(v => !v)}
+            onClick={toggleTheme}
             title={isDark ? ui.lightMode : ui.darkMode}
             className={`p-2 rounded-xl transition-all ${isDark ? "hover:bg-white/5 text-white/40" : "hover:bg-black/5 text-slate-400"}`}
           >
