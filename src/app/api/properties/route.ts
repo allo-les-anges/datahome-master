@@ -1,4 +1,4 @@
-// src/app/api/properties/route.ts
+﻿// src/app/api/properties/route.ts
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
@@ -10,7 +10,7 @@ const supabase = createClient(
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Cache ISR pendant 60 secondes
 
-// Cache en mémoire simple pour les requêtes identiques
+// Cache en mÃ©moire simple pour les requÃªtes identiques
 const cache = new Map();
 const CACHE_TTL = 60000; // 1 minute
 
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Générer une clé de cache unique basée sur les paramètres
+    // GÃ©nÃ©rer une clÃ© de cache unique basÃ©e sur les paramÃ¨tres
     const cacheKey = searchParams.toString();
     const cached = cache.get(cacheKey);
     
@@ -44,13 +44,13 @@ export async function GET(request: Request) {
     const listingType = listingTypeParam === 'rent' ? 'rent' : 'sale';
 
 
-    // Optimisation : sélectionner seulement les champs nécessaires pour la liste
+    // Optimisation : sÃ©lectionner seulement les champs nÃ©cessaires pour la liste
     const BASE_FIELDS = 'id, id_externe, ref, price, prix, town, ville, region, province, beds, baths, surface_built, surface_plot, surface_useful, pool, type, listing_type, rental_period, images, video_url, titre_fr, titre_en, titre_es, titre_nl, titre_pl, titre_ar, description_fr, description_en, description_es, description_nl, description_pl, description_ar, agency_id, xml_source, development_name, promoteur_name, distance_beach, distance_golf, distance_town, latitude, longitude, adresse, commission_percentage, currency, status';
 
     // Rebuild base query as a function so we can retry without date columns if needed
     const buildQuery = () => {
       let q = supabase.from('villas').select('*', { count: 'exact' }).or('is_excluded.eq.false,is_excluded.is.null');
-      q = listingType === 'rent' ? q.eq('listing_type', 'rent') : q.or('listing_type.eq.sale,listing_type.is.null');
+      if (listingType === 'rent') q = q.eq('listing_type', 'rent');
       if (agencyId) q = q.eq('agency_id', agencyId);
       if (!agencyId && xmlSources.length > 0) q = q.in('xml_source', xmlSources);
       if (type) q = q.ilike('type', `%${type}%`);
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     };
 
     const applyFilters = (q: any) => {
-      q = listingType === 'rent' ? q.eq('listing_type', 'rent') : q.or('listing_type.eq.sale,listing_type.is.null');
+      if (listingType === 'rent') q = q.eq('listing_type', 'rent');
       if (type) q = q.ilike('type', `%${type}%`);
       if (region) q = q.eq('region', region);
       if (town) q = q.ilike('town', `%${town}%`);
@@ -109,13 +109,13 @@ export async function GET(request: Request) {
     };
 
     let result: any = await buildQuery()
-      .select(`${BASE_FIELDS}, delivery_date, start_date`)
+      .select('*')
       .order('price', { ascending: true })
       .range(offset, offset + limit - 1);
 
     if (result.error) {
       result = await buildQuery()
-        .select(BASE_FIELDS)
+        .select('*')
         .order('price', { ascending: true })
         .range(offset, offset + limit - 1);
     }
@@ -124,19 +124,17 @@ export async function GET(request: Request) {
 
     if (!error && agencyId && xmlSources.length > 0) {
       let xmlResult: any = await supabase.from('villas')
-        .select(`${BASE_FIELDS}, delivery_date, start_date`)
+        .select('*')
         .or('is_excluded.eq.false,is_excluded.is.null')
-        .or(listingType === 'rent' ? 'listing_type.eq.rent' : 'listing_type.eq.sale,listing_type.is.null')
         .in('xml_source', xmlSources)
         .order('price', { ascending: true })
         .range(offset, offset + limit - 1);
 
       if (xmlResult.error) {
         xmlResult = await supabase.from('villas')
-          .select(BASE_FIELDS)
+          .select('*')
           .or('is_excluded.eq.false,is_excluded.is.null')
-          .or(listingType === 'rent' ? 'listing_type.eq.rent' : 'listing_type.eq.sale,listing_type.is.null')
-          .in('xml_source', xmlSources)
+        .in('xml_source', xmlSources)
           .order('price', { ascending: true })
           .range(offset, offset + limit - 1);
       }
@@ -153,6 +151,11 @@ export async function GET(request: Request) {
     }
     if (error) throw error;
 
+    properties = (properties || []).filter((p: any) =>
+      listingType === 'rent' ? p.listing_type === 'rent' : p.listing_type !== 'rent'
+    );
+    if (listingType === 'rent') count = properties.length;
+
     const parseImages = (images: any, max = 5) => {
       if (Array.isArray(images)) return images.slice(0, max);
       if (typeof images !== 'string') return [];
@@ -164,7 +167,7 @@ export async function GET(request: Request) {
       }
     };
 
-    // Transformation multilingue optimisée
+    // Transformation multilingue optimisÃ©e
     const formatted = (properties || []).map((p: any) => ({
       id: p.id,
       id_externe: p.id_externe,
@@ -220,7 +223,7 @@ export async function GET(request: Request) {
     // Mise en cache
     cache.set(cacheKey, { data: response, timestamp: Date.now() });
     
-    // Nettoyer le cache périodiquement
+    // Nettoyer le cache pÃ©riodiquement
     if (cache.size > 50) {
       const now = Date.now();
       for (const [key, value] of cache.entries()) {
@@ -237,3 +240,4 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
