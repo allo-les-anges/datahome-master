@@ -442,8 +442,10 @@ function PropertyForm({
 // --- Trial helpers -------------------------------------------------------------
 function getTrialInfo(agency: any): { isExpired: boolean; daysLeft: number; expiresAt: Date | null } {
   const sub = agency?.footer_config?.subscription;
-  if (!sub?.trial_expires_at) return { isExpired: false, daysLeft: 15, expiresAt: null };
-  const expiresAt = new Date(sub.trial_expires_at);
+  const trialExpiresAt = agency?.trial_expires_at || sub?.trial_expires_at;
+  if (!trialExpiresAt) return { isExpired: false, daysLeft: 15, expiresAt: null };
+  const expiresAt = new Date(trialExpiresAt);
+  if (Number.isNaN(expiresAt.getTime())) return { isExpired: false, daysLeft: 15, expiresAt: null };
   const msLeft = expiresAt.getTime() - Date.now();
   const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
   return { isExpired: daysLeft <= 0, daysLeft: Math.max(0, daysLeft), expiresAt };
