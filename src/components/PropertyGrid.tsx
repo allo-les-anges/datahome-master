@@ -45,11 +45,13 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
   const statsPaddingClass = isCompact ? "p-5 pt-5" : "p-8 pt-6";
   const titleClass = isEditorial ? "text-xl italic" : isCompact ? "text-base" : "text-lg";
   const priceClass = isCompact ? "text-xl" : isEditorial ? "text-3xl" : "text-2xl";
+  const bodyHeightClass = isCompact ? "h-[168px]" : isEditorial ? "h-[188px]" : "h-[198px]";
+  const statsHeightClass = isCompact ? "h-[154px]" : "h-[182px]";
 
   return (
     <div 
       onClick={() => onClick(property)}
-      className={`group cursor-pointer ${cardRadiusClass} overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
+      className={`group flex h-full cursor-pointer flex-col ${cardRadiusClass} overflow-hidden transition-all duration-500 hover:shadow-2xl border ${
         isMinimal
           ? showDark ? 'bg-transparent border-white/10' : 'bg-transparent border-slate-200'
           : showDark ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-100'
@@ -71,10 +73,10 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
         </div>
       </div>
 
-      <div className={`${bodyPaddingClass} space-y-4`}>
+      <div className={`${bodyPaddingClass} ${bodyHeightClass} flex flex-col space-y-4`}>
         <div className="flex justify-between items-start">
           <div 
-            className={`${priceClass} font-normal`}
+            className={`${priceClass} min-h-[2.4rem] font-normal leading-tight`}
             style={{ 
               fontFamily: `${fontFamily}, 'Playfair Display', serif`,
               color: showDark ? 'white' : '#0f172a',
@@ -94,15 +96,15 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
         >
           {property.titre}
         </h3>
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-          <MapPin size={14} style={{ color: cardIconColor }} />
-          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town}</span>
+        <div className="mt-auto flex min-w-0 items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <MapPin size={14} className="shrink-0" style={{ color: cardIconColor }} />
+          <span className="truncate" style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.town}</span>
           <span className="opacity-30">|</span>
-          <span style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span>
+          <span className="truncate" style={{ fontFamily: `${fontFamily}, sans-serif` }}>{property.region}</span>
         </div>
       </div>
 
-      <div className={`grid grid-cols-3 gap-y-6 border-t ${statsPaddingClass}`} style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
+      <div className={`mt-auto grid grid-cols-3 gap-y-6 border-t ${statsPaddingClass} ${statsHeightClass}`} style={{ borderColor: showDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }}>
         {[
           { 
             icon: Maximize, 
@@ -137,10 +139,10 @@ const PropertyCard = memo(({ property, isLight, onClick, agency, cardCorners = "
             labelKey: 'propertyCard.parking'
           }
         ].map((item, idx) => (
-          <div key={idx} className="flex flex-col items-center gap-1">
+          <div key={idx} className="flex min-w-0 flex-col items-center gap-1 px-1 text-center">
             <item.icon size={16} style={{ color: cardIconColor }} />
             <span 
-              className="text-[10px] font-medium text-slate-400"
+              className="h-4 max-w-full truncate text-[10px] font-medium text-slate-400"
               style={{ fontFamily: `${fontFamily}, sans-serif` }}
             >
               {item.value}
@@ -185,7 +187,7 @@ const PropertyGrid = memo(function PropertyGrid({
       {properties.map((property: Villa, index: number) => {
         const shouldBlur = blurAfter6 && index % cardsPerPage >= visiblePerPage;
         return (
-          <div key={property.id} className="relative">
+          <div key={property.id} className="relative h-full">
             <div className={shouldBlur ? 'pointer-events-none select-none' : ''} style={shouldBlur ? { filter: 'blur(6px)', opacity: 0.6 } : undefined}>
               <PropertyCard
                 property={property}
