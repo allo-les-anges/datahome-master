@@ -1108,7 +1108,10 @@ export default function MonEspacePage() {
       {/* Header */}
       <div
         className="pm-header sticky top-0 z-50 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-        style={{ background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        style={isDark
+          ? { background: "rgba(13,13,13,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }
+          : { background: "rgba(255,255,255,0.95)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(15,23,42,0.08)" }
+        }
       >
         <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
           {(view === "list" || view === "form") && (
