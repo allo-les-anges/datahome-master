@@ -672,8 +672,10 @@ export default function MonEspacePage() {
   };
 
   const glassCard = {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: isDark
+      ? "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)"
+      : "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.9) 100%)",
+    border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.10)",
     backdropFilter: "blur(12px)",
   };
 
@@ -703,11 +705,17 @@ export default function MonEspacePage() {
   const makeVisualTileStyle = (imageUrl: string | undefined, accent: string, opacity = 0.58) => ({
     ...glassCard,
     backgroundImage: imageUrl
-      ? `linear-gradient(135deg, rgba(8,10,18,${opacity}) 0%, rgba(8,10,18,0.92) 72%), url("${imageUrl}")`
-      : `radial-gradient(circle at 18% 12%, ${accent}40, transparent 34%), linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))`,
+      ? isDark
+        ? `linear-gradient(135deg, rgba(8,10,18,${opacity}) 0%, rgba(8,10,18,0.92) 72%), url("${imageUrl}")`
+        : `linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(248,250,252,0.78) 74%), url("${imageUrl}")`
+      : isDark
+        ? `radial-gradient(circle at 18% 12%, ${accent}40, transparent 34%), linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))`
+        : `radial-gradient(circle at 18% 12%, ${accent}22, transparent 34%), linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.9))`,
     backgroundSize: "cover",
     backgroundPosition: "center",
-    boxShadow: `0 18px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)`,
+    boxShadow: isDark
+      ? `0 18px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)`
+      : `0 18px 45px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.9)`,
   });
   const premiumPanelStyle = (accent = brandColor) => ({
     ...glassCard,
@@ -1095,6 +1103,15 @@ export default function MonEspacePage() {
         .pm-dark .pm-header [class*="text-white"] { color: rgba(255,255,255,0.76) !important; }
         .pm-dark .pm-header .pm-header-title { color: #fff !important; }
         .pm-dark .pm-header .pm-header-muted { color: rgba(255,255,255,0.38) !important; }
+        .pm-light .pm-dashboard-tile .pm-tile-bottom-fade {
+          background: linear-gradient(to top, rgba(255,255,255,0.82), rgba(255,255,255,0)) !important;
+          opacity: 1 !important;
+        }
+        .pm-light .pm-dashboard-tile .pm-tile-pill {
+          background: rgba(255,255,255,0.86) !important;
+          border-color: rgba(15,23,42,0.10) !important;
+          box-shadow: 0 8px 22px rgba(15,23,42,0.08);
+        }
         .pm-light [class*="bg-white/"] { background-color: rgba(15, 23, 42, 0.045) !important; }
         .pm-light [class*="border-white/"] { border-color: rgba(15, 23, 42, 0.10) !important; }
         .pm-light input, .pm-light textarea, .pm-light select {
@@ -1187,10 +1204,10 @@ export default function MonEspacePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
                 onClick={() => { loadProperties(); setView("list"); }}
-                className="group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                className="pm-dashboard-tile group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                 style={makeVisualTileStyle(firstPropertyImage || heroPreviewImage, brandColor, 0.5)}
               >
-                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent opacity-70" />
+                <div className="pm-tile-bottom-fade absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent opacity-70" />
                 <div className="relative flex items-start justify-between mb-12">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 backdrop-blur-md" style={{ backgroundColor: `${brandColor}25` }}>
                     <Building2 size={22} style={{ color: brandColor }} />
@@ -1201,7 +1218,7 @@ export default function MonEspacePage() {
                   <p className="text-xl font-black text-white mb-1">{upsellDict?.propertiesTitle || "Mes Proprietes"}</p>
                   <p className="text-sm text-white/55 mb-4">{upsellDict?.propertiesSubtitle || "Gerez votre catalogue"}</p>
                 </div>
-                <div className="relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 backdrop-blur-md">
+                <div className="pm-tile-pill relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 backdrop-blur-md">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
                   <span className="text-xs font-bold text-white/70">
                     {properties.length} {properties.length <= 1 ?dict.published : dict.publishedPlural}
@@ -1216,7 +1233,7 @@ export default function MonEspacePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                   href={`/${locale}/${slug}/mes-leads`}
-                  className="group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                  className="pm-dashboard-tile group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                   style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}
                 >
                   <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(circle at 20% 15%, ${brandColor}33, transparent 32%)` }} />
@@ -1246,7 +1263,7 @@ export default function MonEspacePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: integrations.leads_enabled === true ?0.15 : 0.1 }}
                 onClick={() => setShowModules(true)}
-                className="group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                className="pm-dashboard-tile group relative text-left rounded-3xl p-7 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                 style={makeVisualTileStyle("", "#B859C5", 0.7)}
               >
                 <div className="absolute inset-0 opacity-70" style={{ background: `linear-gradient(135deg, rgba(184,89,197,0.18), transparent 45%), radial-gradient(circle at 85% 20%, rgba(255,255,255,0.16), transparent 25%)` }} />
@@ -1282,10 +1299,10 @@ export default function MonEspacePage() {
                   href={`/${locale}/${slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                  className="pm-dashboard-tile group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                   style={makeVisualTileStyle(heroPreviewImage || firstPropertyImage, "#38BDF8", 0.55)}
                 >
-                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="pm-tile-bottom-fade absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="relative flex items-start justify-between mb-12">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-sky-900/30 backdrop-blur-md">
                       <Globe size={22} className="text-sky-400" />
@@ -1304,7 +1321,7 @@ export default function MonEspacePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 onClick={() => setView("settings")}
-                className="group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                className="pm-dashboard-tile group relative overflow-hidden text-left rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
                 style={makeVisualTileStyle(agency.logo_url, "#94A3B8", 0.72)}
               >
                 <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
@@ -1323,8 +1340,12 @@ export default function MonEspacePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
-                className="relative rounded-3xl p-7 overflow-hidden"
-                style={{ ...glassCard, boxShadow: "0 4px 24px rgba(0,0,0,0.3)", opacity: 0.6 }}
+                className="pm-dashboard-tile relative rounded-3xl p-7 overflow-hidden"
+                style={{
+                  ...glassCard,
+                  boxShadow: isDark ? "0 4px 24px rgba(0,0,0,0.3)" : "0 18px 45px rgba(15,23,42,0.08)",
+                  opacity: isDark ? 0.6 : 1,
+                }}
               >
                 <div className="flex items-start justify-between mb-6">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-900/20">
